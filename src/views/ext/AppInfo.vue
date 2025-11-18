@@ -12,9 +12,9 @@ getVersion().then(res => appVersion.value = res).catch(_ => {})
     <div class="app-name">RedisME</div>
     <div class="app-version">v{{appVersion}}</div>
     <div class="app-site">
-      <el-link href="https://gitee.com/hepengju/redis-me" target="_blank">源码地址</el-link>
+      <el-link href="https://github.com/hepengju/redis-me" target="_blank">源码地址</el-link>
       <div class="sep"></div>
-      <el-link href="https://gitee.com/hepengju/redis-me" target="_blank">官方网站</el-link>
+      <el-link href="https://github.com/hepengju/redis-me" target="_blank">官方网站</el-link>
     </div>
     <div class="app-copyright">
       Copyright © 2025 hepengju.com All Rights Reserved.
