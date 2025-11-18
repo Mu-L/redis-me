@@ -4,15 +4,17 @@ layout: home
 
 hero:
   name: "RedisME"
-#  text: "RedisME Doc Site"
   tagline: 现代的Redis桌面客户端
-#  actions:
-#    - theme: brand
-#      text: Markdown Examples
-#      link: /markdown-examples
-#    - theme: alt
-#      text: API Examples
-#      link: /api-examples
+  image:
+    src: /image/logo.png
+    alt: RedisME
+  actions:
+    - theme: brand
+      text: 下载安装
+      link: https://github.com/hepengju/redis-me/releases
+    - theme: alt
+      text: 进入GitHub
+      link: https://github.com/hepengju/redis-me
 
 features:
   - title: 极致轻量
