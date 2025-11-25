@@ -31,16 +31,18 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%; /*app的height单独加高度100%不生效*/
-  /*https://element-plus.org/zh-CN/component/typography#%E5%AD%97%E4%BD%93*/
-  font-family: Inter, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
-  'Microsoft YaHei', '微软雅黑', Arial, sans-serif;;
+
+  /* https://element-plus.org/zh-CN/component/typography#%E5%AD%97%E4%BD%93 */
+  /* 系统UI字体, 添加system-ui最高优先级 */
+  font-family: system-ui, Inter, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+  'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
   overflow: hidden;
 }
 
 /* CodeMirror */
-/*//.CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like {
-//  font-family: Menlo, Consolas, Monaco, monospace !important;
-//}*/
+.CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like {
+  font-family: Menlo, Monaco, Consolas, system-ui !important;
+}
 
 .codemirror-opacity {
   opacity: 0.6;
