@@ -76,7 +76,6 @@ function rowDrag() {
         // handle：selector 格式为简单css选择器的字符串，使列表单元中符合选择器的元素成为拖动的手柄，只有按住拖动手柄才能使列表单元进行拖动；
         handle: '.drag-handle',
         onEnd: ({oldIndex, newIndex}) => {
-          console.log('oldIndex:', oldIndex, 'newIndex:', newIndex)
           const dragRow = share.connList.splice(oldIndex, 1)[0]
           share.connList.splice(newIndex, 0, dragRow)
         }

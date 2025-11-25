@@ -1,5 +1,5 @@
 <script setup>
-import {load} from '@tauri-apps/plugin-store'
+import {LazyStore} from '@tauri-apps/plugin-store'
 import TabMain from './TabMain.vue'
 import {sortBy} from 'lodash'
 import {bus, CONN_REFRESH, meInvoke, STORE_CONN_LIST, STORE_FILE_NAME} from '@/utils/util.js'
@@ -28,7 +28,8 @@ async function loadStore() {
   // markRaw 将一个对象标记为不可被转为代理。返回该对象本身。
   // 避免报错: Cannot read private member from an object whose class did not declare it
   try {
-    const store = await load(STORE_FILE_NAME)
+    // const store = await load(STORE_FILE_NAME)
+    const store = new LazyStore(STORE_FILE_NAME)
     share.store = markRaw(store)
     share.connList = await share.store.get(STORE_CONN_LIST) || []
   } catch (e) {
