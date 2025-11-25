@@ -41,7 +41,8 @@ html, body {
 
 /* CodeMirror */
 .CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like {
-  font-family: Menlo, Monaco, Consolas, system-ui !important;
+  /* vscode的默认字体: Menlo, Monaco, 'Courier New', monospace*/
+  font-family: Menlo, Monaco, 'Courier New', monospace, system-ui !important;
 }
 
 .codemirror-opacity {
