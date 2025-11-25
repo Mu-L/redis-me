@@ -2,6 +2,10 @@
 import {Window} from '@tauri-apps/api/window'
 import {useDark, useToggle} from '@vueuse/core'
 import {debounce} from 'lodash'
+import { type } from '@tauri-apps/plugin-os'
+
+const osType = type()
+const isMacOS = osType === 'macos'
 
 // 模拟窗口操作
 const appWindow = new Window('main')
@@ -16,16 +20,25 @@ const calcIsMaximized = debounce(async () => {
 // 主题切换
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
+
+// MacOS且未全屏时 留出最大化最小化按钮空间
+const marginLeft = computed(() => {
+  if (isMaximized.value) {
+    return '5px'
+  } else {
+    return isMacOS ? '65px' : '5px'
+  }
+})
 </script>
 
 <template>
   <div data-tauri-drag-region class="title-bar me-flex">
-    <div class="me-flex" style="align-items: center">
-      <me-icon icon="me-icon-redis-me" class="icon-btn" style="margin-left: 5px; font-size: 16px;"
+    <div class="me-flex" style="align-items: center" :style="{marginLeft}">
+      <me-icon icon="me-icon-redis-me" class="icon-btn" style="font-size: 16px;"
                @click="toggleDark()"/>
       <div style="margin-left: 5px;font-size: 12px">RedisME</div>
     </div>
-    <div style="font-size: 12px;">
+    <div style="font-size: 12px;" v-if="!isMacOS">
       <me-icon icon="me-icon-window-minimize" class="title-button normal-btn" @click="appWindow.minimize()"/>
       <me-icon icon="me-icon-window-maximize" class="title-button normal-btn" @click="appWindow.toggleMaximize()" v-show="!isMaximized"/>
       <me-icon icon="me-icon-window-restore"  class="title-button normal-btn" @click="appWindow.toggleMaximize()" v-show="isMaximized"/>

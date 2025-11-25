@@ -19,6 +19,7 @@
     "store:default",
     "fs:allow-write-text-file",
     "fs:allow-read-text-file",
-    "fs:allow-resource-read-recursive"
+    "fs:allow-resource-read-recursive",
+    "os:default"
   ]
 }
