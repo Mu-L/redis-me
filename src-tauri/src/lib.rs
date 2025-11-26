@@ -2,6 +2,7 @@ mod api;
 mod client;
 mod utils;
 
+use tauri::{Manager, TitleBarStyle};
 use crate::utils::logger::init_logger;
 use api::*;
 use client::state::AppState;
@@ -13,6 +14,13 @@ pub fn run() {
         .expect("Failed to install rustls crypto provider");
 
     tauri::Builder::default()
+        .setup(|app| {
+            let type_ = tauri_plugin_os::type_();
+            let window = app.get_webview_window("main").expect("main window not exists");
+            window.set_decorations(if type_.to_string() == "macos" { true } else { false }).unwrap();
+            window.set_title_bar_style(TitleBarStyle::Overlay).unwrap();
+            Ok(())
+        })
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())

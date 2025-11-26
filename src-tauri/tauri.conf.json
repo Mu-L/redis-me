@@ -15,8 +15,8 @@
         "title": "RedisME",
         "width": 1200,
         "height": 800,
-        "decorations": false,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "hiddenTitle": true
       }
     ],
     "security": {

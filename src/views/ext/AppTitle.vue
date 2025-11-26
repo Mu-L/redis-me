@@ -1,33 +1,24 @@
 <script setup>
 import {Window} from '@tauri-apps/api/window'
 import {useDark, useToggle} from '@vueuse/core'
-import {debounce} from 'lodash'
-import { type } from '@tauri-apps/plugin-os'
+import {type} from '@tauri-apps/plugin-os'
 
 // 模拟窗口操作
 const appWindow = new Window('main')
 const isFullScreen = ref(false)
 const isMaximized = ref(false)
-const osType = type()
-const isMacOS = osType === 'macos'
 
-if (isMacOS) {
-  appWindow.setDecorations(true)
-  appWindow.setTitleBarStyle('transparent')
-}
-
-onMounted(() => window.addEventListener('resize', calcIsMaximized))
-onUnmounted(() => window.removeEventListener('resize', calcIsMaximized))
-const calcIsMaximized = debounce(async () => {
+appWindow.onResized(async () => {
   isMaximized.value = await appWindow.isMaximized()
   isFullScreen.value = await appWindow.isFullscreen()
-}, 200)
+})
 
 // 主题切换
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
 
 // MacOS且未全屏时 留出最大化最小化按钮空间
+const isMacOS = type() === 'macos'
 const marginLeft = computed(() => {
   if (isFullScreen.value) {
     return '5px'
