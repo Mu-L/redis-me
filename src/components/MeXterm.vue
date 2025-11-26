@@ -76,7 +76,7 @@ const computedTheme = computed(() => {
 // 设置终端尺寸
 const term = new Terminal({
   theme: computedTheme.value,
-  fontFamily: "Menlo, Monaco, 'Courier New', monospace, system-ui",
+  fontFamily: "Menlo, Monaco, Consolas, 黑体, system-ui",
   cursorBlink: true,  // 光标闪烁
   cursorStyle: 'bar', // 竖线
 })

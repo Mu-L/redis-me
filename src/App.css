@@ -41,8 +41,14 @@ html, body {
 
 /* CodeMirror */
 .CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like {
-  /* vscode的默认字体: Menlo, Monaco, 'Courier New', monospace*/
-  font-family: Menlo, Monaco, 'Courier New', monospace, system-ui !important;
+  /* vscode的默认字体: Menlo, Monaco, 'Courier New', monospace */
+  /*
+     MacOS: Menlo 支持中英文, Monaco 也支持中英文
+    Window: Consolas/黑体,
+     Linux: TODO验证
+     system-ui: 兜底
+  */
+  font-family: Menlo, Monaco, Consolas, 黑体, system-ui !important;
 }
 
 .codemirror-opacity {
