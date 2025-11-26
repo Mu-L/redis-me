@@ -23,7 +23,7 @@ const marginLeft = computed(() => {
   if (isFullScreen.value) {
     return '5px'
   } else {
-    return isMacOS ? '65px' : '5px'
+    return isMacOS ? '70px' : '5px'
   }
 })
 </script>
