@@ -6,7 +6,7 @@ import {bus, CONN_REFRESH, meInvoke, STORE_CONN_LIST, STORE_FILE_NAME} from '@/u
 import TabConn from '@/views/TabConn.vue'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
-import {onMounted} from 'vue'
+import {onMounted, ref} from 'vue'
 
 // 共享数据
 const share = reactive({
@@ -53,27 +53,38 @@ function toggleKeyTag() {
   nextTick(() => connPrepared.value = true)
 }
 
+// 切换连接时loading
+const loading = ref(false)
 watch(() => share.conn, async (newConn, oldConn) => {
   // 连接id未发生改变时，无需断开重连（比如颜色或db改变）
   if (newConn?.id == oldConn?.id) return
 
+  loading.value = true
   connPrepared.value = false
-  // 关闭旧连接
-  if (oldConn) {
-    await meInvoke('disconnect', {id: oldConn.id})
+
+  try { // 关闭旧连接
+    if (oldConn) {
+      await meInvoke('disconnect', {id: oldConn.id})
+    }
+
+    // 打开新连接，获取节点列表和数据库列表（TODO）
+    if (newConn) {
+      share.color = newConn.color
+      share.tabName = 'info'
+      await meInvoke('connect', {id: newConn.id})
+      connPrepared.value = true
+      const data = await meInvoke('node_list', {id: share.conn.id})
+      // 节点列表排序: 主节点在前面，相同类型节点按照node升序
+      const nodeList = sortBy(data, 'node').reverse()
+      share.nodeList = sortBy(nodeList, 'isMaster').reverse()
+    }
+  } catch (e) {
+    // 如果从连接列表页进入的，则返回连接列表页
+    if (!oldConn) share.conn = null
+  } finally {
+    loading.value = false
   }
 
-  // 打开新连接，获取节点列表和数据库列表（TODO）
-  if (newConn) {
-    share.color = newConn.color
-    share.tabName = 'info'
-    await meInvoke('connect', {id: newConn.id})
-    connPrepared.value = true
-    const data = await meInvoke('node_list', {id: share.conn.id})
-    // 节点列表排序: 主节点在前面，相同类型节点按照node升序
-    const nodeList = sortBy(data, 'node').reverse()
-    share.nodeList = sortBy(nodeList, 'isMaster').reverse()
-  }
 }, {deep: true})
 
 // 保存连接列表: 列表真实变化时才发送命令
@@ -89,7 +100,7 @@ watch(connListToString, async (newConnList) => {
 </script>
 
 <template>
-  <div class="redis-main">
+  <div class="redis-main" v-loading="loading">
     <el-splitter>
       <!-- 左侧键 -->
       <el-splitter-panel :min="250" size="30%">
