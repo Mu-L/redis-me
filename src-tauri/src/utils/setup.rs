@@ -1,6 +1,7 @@
 use chrono::Local;
 use log::{LevelFilter, Record};
 use std::fmt::Arguments;
+use tauri::{Manager, TitleBarStyle};
 use tauri_plugin_log::fern::{
     FormatCallback,
     colors::{Color, ColoredLevelConfig},
@@ -38,4 +39,15 @@ pub fn init_logger() -> tauri_plugin_log::Builder {
         .format(format)
         .level(LevelFilter::Info)
         .targets(log_targets)
+}
+
+// 初始化应用窗口设置等
+pub fn app_setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    let type_ = tauri_plugin_os::type_();
+    let window = app
+        .get_webview_window("main")
+        .expect("main window not exists");
+    window.set_decorations(type_.to_string() == "macos").unwrap();
+    window.set_title_bar_style(TitleBarStyle::Overlay).unwrap();
+    Ok(())
 }

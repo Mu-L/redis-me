@@ -2,10 +2,10 @@ mod api;
 mod client;
 mod utils;
 
-use tauri::{Manager, TitleBarStyle};
-use crate::utils::logger::init_logger;
+use crate::utils::setup::{app_setup, init_logger};
 use api::*;
 use client::state::AppState;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -14,21 +14,16 @@ pub fn run() {
         .expect("Failed to install rustls crypto provider");
 
     tauri::Builder::default()
-        .setup(|app| {
-            let type_ = tauri_plugin_os::type_();
-            let window = app.get_webview_window("main").expect("main window not exists");
-            window.set_decorations(if type_.to_string() == "macos" { true } else { false }).unwrap();
-            window.set_title_bar_style(TitleBarStyle::Overlay).unwrap();
-            Ok(())
-        })
+        .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_fs::init()) // 文件系统插件(导入导出)
         .plugin(tauri_plugin_store::Builder::new().build()) // 状态存储插件(连接、设置的自动保存和读取)
-        .plugin(init_logger().build()) // 日志插件
         .plugin(tauri_plugin_dialog::init()) // 弹框选择文件
         .plugin(tauri_plugin_opener::init()) // 打开外部链接
+        .plugin(init_logger().build()) // 日志插件
+        .setup(app_setup)
         .manage(AppState::default()) // 状态管理，保持Redis连接
         .invoke_handler(tauri::generate_handler![
             greet,
