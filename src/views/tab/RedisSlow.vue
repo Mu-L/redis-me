@@ -1,6 +1,6 @@
 <script setup>
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
-import {meInvoke} from "@/utils/util.js";
+import {meCopy, meInvoke} from '@/utils/util.js'
 
 // 共享数据
 const share = inject('share')
@@ -125,14 +125,20 @@ refresh()
                 :default-sort="{prop: 'cost', order: 'descending'}"
                 @sort-change="sortChange"
                 border stripe>
-        <el-table-column label="命令" prop="command" min-width="200" sortable show-overflow-tooltip/>
+        <el-table-column label="命令" prop="command" sortable show-overflow-tooltip/>
+        <el-table-column label="操作" width="60" align="center">
+          <template #default="scope">
+            <me-icon info="复制" icon="el-icon-document-copy" class="icon-btn"
+                     @click="meCopy(scope.row.command)" style="justify-content: center"/>
+          </template>
+        </el-table-column>
         <el-table-column label="耗时" prop="cost" width="100" sortable show-overflow-tooltip>
           <template #default="scope">
             {{ scope.row.cost.toFixed(2) }} ms
           </template>
         </el-table-column>
         <el-table-column label="客户端名称"   prop="clientName" width="120" sortable show-overflow-tooltip/>
-        <el-table-column label="执行时间" prop="time" width="160" sortable/>
+        <el-table-column label="执行时间" prop="time" width="170" sortable/>
         <!--<el-table-column label="节点" prop="node" width="160" sortable/>-->
         <el-table-column label="客户端" prop="client" width="160" sortable show-overflow-tooltip/>
       </me-table>
