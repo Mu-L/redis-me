@@ -1,5 +1,5 @@
 # RedisME
 Redis Desktop Manager based on Tauri
 
-![redis-me-light.png](doc/redis-me-light.png)
-![redis-me-dark.png](doc/redis-me-dark.png)
+![redis-me-light.png](docs/image/light.png)
+![redis-me-dark.png](docs/image/dark.png)
