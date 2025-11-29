@@ -175,16 +175,15 @@ async function checkImportContent(content) {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="export" :disabled="share.connList.length === 0 ">
-                <me-icon name="导出" icon="el-icon-upload"/>
+                <me-icon name="导出连接" icon="el-icon-upload"/>
               </el-dropdown-item>
               <el-dropdown-item command="import">
-                <me-icon name="导入" icon="el-icon-download"/>
+                <me-icon name="导入连接" icon="el-icon-download"/>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-input v-model="keyword" placeholder="模糊筛选（名称、主机）" style="width: 300px; margin-right: 10px"
-                  clearable/>
+        <el-input v-model="keyword" placeholder="模糊筛选（名称、主机）" style="width: 300px; margin-right: 10px" clearable/>
       </div>
     </div>
     <el-table ref="table"
