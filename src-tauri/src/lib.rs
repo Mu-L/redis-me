@@ -5,7 +5,6 @@ mod utils;
 use crate::utils::setup::{app_setup, init_logger};
 use api::*;
 use client::state::AppState;
-use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
