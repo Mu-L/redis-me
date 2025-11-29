@@ -25,12 +25,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": [
-      "deb",
-      "rpm",
-      "nsis",
-      "dmg"
-    ],
+    "targets": ["deb", "rpm", "nsis", "dmg"] ,
     "icon": [
       "resources/icons/128x128.png",
       "resources/icons/128x128@2x.png",
@@ -45,20 +40,11 @@
     ],
     "createUpdaterArtifacts": true,
     "windows": {
-      "webviewInstallMode": {
-        "type": "skip"
-      },
       "wix": {
-        "language": [
-          "en-US",
-          "zh-CN"
-        ]
+        "language": ["en-US", "zh-CN"]
       },
       "nsis": {
-        "languages": [
-          "English",
-          "SimpChinese"
-        ]
+        "languages": ["English", "SimpChinese"]
       }
     }
   },
