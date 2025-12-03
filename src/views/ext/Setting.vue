@@ -1,5 +1,5 @@
 <script setup>
-import {useDark, usePreferredDark, useStorage} from '@vueuse/core'
+import {useDark, useLocalStorage, usePreferredDark, useStorage} from '@vueuse/core'
 import {ref} from 'vue'
 import {getVersion} from '@tauri-apps/api/app'
 import {meOk} from '@/utils/util.js'
@@ -32,11 +32,11 @@ function changeTheme(theme) {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 语言
-const language = ref('zh-CN')
-const languageList = [
+const lang = useLocalStorage('lang', 'en')
+const langList = [
   {value: 'en', label: 'English'},
-  {value: 'zh-CN', label: '简体中文'},
-  {value: 'zh-TW', label: '繁体中文'}
+  {value: 'zhCn', label: '简体中文'},
+  {value: 'zhTw', label: '繁体中文'}
 ]
 
 // 切换语言
@@ -55,8 +55,8 @@ function changeLanguage() {
         </el-select>
       </el-form-item>
       <el-form-item label="语言">
-        <el-select v-model="language" style="width: 120px" @change="changeLanguage" disabled>
-          <el-option v-for="item in languageList" :label="item.label" :value="item.value" :key="item.value"/>
+        <el-select v-model="lang" style="width: 120px">
+          <el-option v-for="item in langList" :label="item.label" :value="item.value" :key="item.value"/>
         </el-select>
       </el-form-item>
     </el-form>
