@@ -12,11 +12,14 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
     let prefix = if conn.ssl { "rediss" } else { "redis" };
     let suffix = if conn.ssl { "/#insecure" } else { "" };
 
-    let redis_url = format!(
-        "{}://{}:{}@{}:{}{}",
+    let redis_url = format!("{}://{}:{}@{}:{}{}",
         prefix, conn.username, conn.password, conn.host, conn.port, suffix
     );
-    info!("redis_url: {redis_url}");
+    let redis_url_log = format!("{}://{}:{}@{}:{}{}",
+        prefix, conn.username, "******", conn.host, conn.port, suffix
+    );
+    // 日志打印中去除密码显示
+    info!("redis_url: {redis_url_log}");
 
     let client = if conn.ssl {
         let certs = get_tls_certs(conn.ssl_option.clone())?;
