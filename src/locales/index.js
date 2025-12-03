@@ -7,6 +7,7 @@ const i18n = createI18n({
   legacy: false,
   globalInjection: true, // 全局模式，可以直接使用 $t
   locale: localStorage.getItem('lang') || 'en',
+  fallbackLocale: 'en',
   messages: {zhCn, en}
 })
 

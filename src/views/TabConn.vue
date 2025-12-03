@@ -167,7 +167,7 @@ async function checkImportContent(content) {
   <div class="redis-conn">
     <div class="me-flex header">
       <div>
-        <el-button icon="el-icon-plus" type="primary" @click="addConn">新增连接</el-button>
+        <el-button icon="el-icon-plus" type="primary" @click="addConn">{{$t('conn.add')}}</el-button>
       </div>
       <div>
         <el-dropdown placement="bottom-start" @command="handleCommand" style="margin-right: 10px">
