@@ -141,4 +141,10 @@ export default {
     score: '分数',
     value: '值',
   },
+
+  nodeList: {
+    placeholder: '指定节点【可选】',
+    master: '主',
+    slave: '从'
+  }
 }

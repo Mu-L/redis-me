@@ -142,4 +142,9 @@ export default {
     value: 'Value',
   },
 
+  nodeList: {
+    placeholder: 'node [optional]',
+    master: 'M',
+    slave: 'S'
+  }
 }
