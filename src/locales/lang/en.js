@@ -93,7 +93,7 @@ export default {
   keyHeader: {
     mockHint: 'Please enter the number of entries for each data type（N×5）',
     mockOk: 'Mock Data Insert Done',
-    connHint: 'Please select connection',
+    connHint: 'Select Connection',
 
     refreshConn: 'Refresh Conn',
     closeConn: 'Close Conn',
@@ -143,7 +143,7 @@ export default {
   },
 
   nodeList: {
-    placeholder: 'node [optional]',
+    placeholder: 'Node [Optional]',
     master: 'M',
     slave: 'S'
   },
@@ -157,5 +157,9 @@ export default {
     confirmDelete: 'Confirm Delete',
     showImpactKeys: 'Show Impact Keys',
     confirmDeleteSize: 'Delete {size} Keys'
+  },
+
+  keyMemory: {
+
   }
 }

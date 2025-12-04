@@ -157,5 +157,9 @@ export default {
     confirmDelete: '确认删除',
     showImpactKeys: '查看受影响的键名',
     confirmDeleteSize: '确认删除{size}个键'
+  },
+
+  keyMemory: {
+
   }
 }

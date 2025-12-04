@@ -1,7 +1,9 @@
 <script setup>
 import {useVirtualList} from '@vueuse/core'
 import {meHumanSize, meInvoke} from '@/utils/util.js'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 defineExpose({open})
 function open(data) {
   keyList.value = []
