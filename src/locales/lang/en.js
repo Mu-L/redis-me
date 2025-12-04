@@ -8,10 +8,15 @@ export default {
   delete: 'Delete',
   action: 'Action',
   cancel: 'Cancel',
+
   ok: 'OK',
-  hint: 'Hint',
+  warn: 'Warning',
   error: 'Error',
-  copyOk: 'Copy Ok',
+
+  copyOk: 'Copy OK',
+  addOk: 'Add OK',
+  editOk: 'Edit OK',
+  deleteOk: 'Delete OK',
 
   // 连接
   conn: {
@@ -54,8 +59,13 @@ export default {
     readonly: 'Read Only',
     nameRequired: 'Please Input host',
     portRequired: 'Please Input port',
-    addOk: 'Add Success',
-    editOk: 'Edit Success',
-    testOk: 'Test Conn Success'
+    testOk: 'Conn Success'
+  },
+  util: {
+    day: 'D',
+    deleteKey: 'Delete【{key}】?',
+    updateHint: 'new version v{version}，update？',
+    updateDone: 'update done, restart now?',
+    updateErr: 'update error: {message}'
   }
 }

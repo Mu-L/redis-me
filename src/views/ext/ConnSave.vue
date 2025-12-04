@@ -65,13 +65,13 @@ function submit() {
       form.id = nanoid()
       autoGenName()
       share.connList.push(form)
-      meOk(t('conn.addOk'))
+      meOk(t('addOk'))
       emit('success', form, mode.value)
     } else if (mode.value === 'edit') {
       autoGenName()
       const conn = share.connList.filter(c => c.id === form.id)[0]
       Object.assign(conn, cloneDeep(form))
-      meOk(t('conn.editOk'))
+      meOk(t('editOk'))
       emit('success', form, mode.value)
     }
     visible.value = false

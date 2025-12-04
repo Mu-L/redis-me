@@ -8,10 +8,15 @@ export default {
   delete: '删除',
   action: '操作',
   cancel: '取消',
+
   ok: '确定',
-  hint: '提示',
+  warn: '提示',
   error: '错误',
+
   copyOk: '复制成功',
+  addOk: '新增成功',
+  editOk: '保存成功',
+  deleteOk: '删除成功',
 
   // 连接
   conn: {
@@ -54,8 +59,13 @@ export default {
     readonly: '只读',
     nameRequired: '请输入主机',
     portRequired: '请输入端口',
-    addOk: '新增成功',
-    editOk: '保存成功',
     testOk: '测试连接成功'
+  },
+  util: {
+    day: '天',
+    deleteKey: '确定删除键【{key}】吗？',
+    updateHint: '有新版本 v{version}，是否更新？',
+    updateDone: '更新完成，是否立刻重启？',
+    updateErr: '更新失败: {message}'
   }
 }

@@ -11,6 +11,4 @@ const i18n = createI18n({
   messages: {zhCn, en}
 })
 
-export default function (app) {
-  app.use(i18n)
-}
+export default i18n

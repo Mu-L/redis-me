@@ -7,7 +7,7 @@ import setupBus from '@/plugins/bus.js'
 import setupPinia from '@/plugins/pinia.js'
 import setupDirective from '@/plugins/directive.js'
 import setupTauri from '@/plugins/tauri.js'
-import setupI18n from '@/locales'
+import setupI18n from '@/plugins/i18n.js'
 
 const app = createApp(App)
 setupElementPlus(app)
