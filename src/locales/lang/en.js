@@ -5,6 +5,7 @@ export default {
   copy: 'Copy',
   add: 'Add',
   edit: 'Edit',
+  save: 'Save',
   delete: 'Delete',
   action: 'Action',
   cancel: 'Cancel',
@@ -60,7 +61,7 @@ export default {
     key: 'Key',
     ca: 'CA',
 
-    nameHint: '【Optional】Automatically generated based on host and port',
+    nameHint: '【Optional】Automatically generated based on Host and Port',
     certHint: 'Public Key File format',
     keyHint: 'Private Key File in PEM format',
     caHint: 'Certificate Authority File in PEM format',
@@ -104,6 +105,31 @@ export default {
   about: {
     sourceCode: 'Source Code',
     officialWebsite: 'Official Website'
+  },
+
+  fieldAdd: {
+    append: 'Append',
+    prepend: 'Prepend',
+    keyRequired: 'Please input key',
+    typeRequired: 'Please select type',
+    ttlRequired: 'Please input TTL',
+    ttlValidator: 'TTL timeout duration only allows -1 or positive integers',
+    valueRequired: 'Please input value',
+    hashValidator: 'HashKey and hashValue required',
+    hashHint: '(HashKey: HashValue)',
+    zsetHint: '(Value: Score)',
+    newKey: 'New Key',
+    newField: 'New Field',
+    key: 'Key',
+    field: 'Field',
+    type: 'Type',
+    ttl: 'TTL',
+    negativeOneHint: '-1 means Permanent',
+    permanent: 'Permanent',
+    second: 'Second',
+    value: 'Value',
+    element: 'Element',
+    hashKey: 'HashKey'
   }
 
 }

@@ -5,6 +5,7 @@ export default {
   copy: '复制',
   add: '新增',
   edit: '编辑',
+  save: '保存',
   delete: '删除',
   action: '操作',
   cancel: '取消',
@@ -104,5 +105,30 @@ export default {
   about: {
     sourceCode: '源码地址',
     officialWebsite: '官方网站'
+  },
+
+  fieldAdd: {
+    append: '尾部追加',
+    prepend: '插入头部',
+    keyRequired: '请输入键名',
+    typeRequired: '请选择类型',
+    ttlRequired: '请输入TTL',
+    ttlValidator: 'TTL超时时长只允许-1或正整数',
+    valueRequired: '值不允许为空',
+    hashValidator: '哈希键和值不允许为空',
+    hashHint: '(哈希键: 值)',
+    zsetHint: '(值: 分数)',
+    newKey: '新增键',
+    newField: '新增字段',
+    key: '键',
+    field: '字段',
+    type: '类型',
+    ttl: 'TTL超时时长',
+    negativeOneHint: '-1代表永久',
+    permanent: '永久',
+    second: '秒',
+    value: '值',
+    element: '元素',
+    hashKey: '哈希键'
   }
 }
