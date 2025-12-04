@@ -146,5 +146,16 @@ export default {
     placeholder: 'node [optional]',
     master: 'M',
     slave: 'S'
+  },
+
+  keyBatchDel: {
+    matchRequired: 'Key match expression required',
+    title: 'Batch Delete Key',
+    match: 'Key match expression',
+    deleteDirect: 'Delete Direct',
+    impactKeys: 'Impact Keys({size})',
+    confirmDelete: 'Confirm Delete',
+    showImpactKeys: 'Show Impact Keys',
+    confirmDeleteSize: 'Delete {size} Keys'
   }
 }
