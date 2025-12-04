@@ -3,8 +3,10 @@ export default {
 
   // 通用
   copy: '复制',
+  add: '新增',
   edit: '编辑',
   delete: '删除',
+  action: '操作',
 
   // 连接
   conn: {
@@ -16,6 +18,6 @@ export default {
     name: '名称',
     hostPort: '主机端口',
     otherProp: '其他属性',
-    action: '操作',
+    cluster: '集群'
   }
 }

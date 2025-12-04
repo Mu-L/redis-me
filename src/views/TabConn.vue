@@ -175,15 +175,15 @@ async function checkImportContent(content) {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="export" :disabled="share.connList.length === 0 ">
-                <me-icon name="导出连接" icon="el-icon-upload"/>
+                <me-icon :name="$t('conn.export')" icon="el-icon-upload"/>
               </el-dropdown-item>
               <el-dropdown-item command="import">
-                <me-icon name="导入连接" icon="el-icon-download"/>
+                <me-icon :name="$t('conn.import')" icon="el-icon-download"/>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-input v-model="keyword" placeholder="模糊筛选（名称、主机）" style="width: 300px; margin-right: 10px" clearable/>
+        <el-input v-model="keyword" :placeholder="$t('conn.keyword')" style="width: 300px; margin-right: 10px" clearable/>
       </div>
     </div>
     <el-table ref="table"
@@ -193,12 +193,12 @@ async function checkImportContent(content) {
               border stripe
               height="100%">
       <el-table-column label="#" type="index" width="50" align="center" class-name="drag-handle"/>
-      <el-table-column label="颜色" prop="color" width="60">
+      <el-table-column :label="$t('conn.color')" prop="color" width="64" align="center">
         <template #default="scope">
           <el-color-picker size="small" v-model="scope.row.color" :predefine="PREDEFINE_COLORS"/>
         </template>
       </el-table-column>
-      <el-table-column label="名称" prop="name" show-overflow-tooltip>
+      <el-table-column :label="$t('conn.name')" prop="name" show-overflow-tooltip>
         <template #default="scope">
           <div style="display: flex">
             <el-link underline="never" type="primary"
@@ -209,23 +209,23 @@ async function checkImportContent(content) {
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="主机端口" prop="host" width="160" show-overflow-tooltip>
+      <el-table-column :label="$t('conn.hostPort')" prop="host" width="180" show-overflow-tooltip>
         <template #default="scope">
           {{ scope.row.host + ':' + scope.row.port }}
         </template>
       </el-table-column>
-      <el-table-column label="其他属性" width="180">
+      <el-table-column :label="$t('conn.otherProp')" width="180">
         <template #default="scope">
-          <el-checkbox disabled size="small" v-model="scope.row.cluster">集群</el-checkbox>
+          <el-checkbox disabled size="small" v-model="scope.row.cluster">{{ $t('conn.cluster') }}</el-checkbox>
           <el-checkbox disabled size="small" v-model="scope.row.ssl">SSL</el-checkbox>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="100" fixed="right" align="center">
+      <el-table-column :label="$t('action')" width="100" fixed="right" align="center">
         <template #default="scope">
           <div class="me-flex">
-            <me-icon info="复制" icon="el-icon-document-copy" class="icon-btn" @click="copyConn(scope.row) "/>
-            <me-icon info="编辑" icon="el-icon-edit" class="icon-btn" @click="editConn(scope.row)"/>
-            <me-icon info="删除" icon="el-icon-delete" class="icon-btn" @click="deleteConn(scope.row)"/>
+            <me-icon :info="$t('copy')"   icon="el-icon-document-copy" class="icon-btn" @click="copyConn(scope.row) "/>
+            <me-icon :info="$t('edit')"   icon="el-icon-edit" class="icon-btn" @click="editConn(scope.row)"/>
+            <me-icon :info="$t('delete')" icon="el-icon-delete" class="icon-btn" @click="deleteConn(scope.row)"/>
           </div>
         </template>
       </el-table-column>

@@ -3,8 +3,10 @@ export default {
 
   // 通用
   copy: 'Copy',
+  add: 'Add',
   edit: 'Edit',
   delete: 'Delete',
+  action: 'Action',
 
   // 连接
   conn: {
@@ -14,7 +16,8 @@ export default {
     keyword: 'Filter (Name, Host)',
     color: 'Color',
     name: 'Name',
-    hostPort: 'HostPort',
-    otherProp: 'OtherProp',
+    hostPort: 'Host/Port',
+    otherProp: 'Ext',
+    cluster: 'Cluster'
   }
 }
