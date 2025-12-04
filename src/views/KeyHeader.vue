@@ -65,26 +65,26 @@ async function handleCommand(command) {
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item command="refreshConn" :disabled="!share.conn">
-            <me-icon :name="$t('keyHeader.refreshConn')" icon="el-icon-refresh"/>
+            <me-icon :name="t('keyHeader.refreshConn')" icon="el-icon-refresh"/>
           </el-dropdown-item>
           <el-dropdown-item command="closeConn" :disabled="!share.conn">
-            <me-icon :name="$t('keyHeader.closeConn')" icon="el-icon-circle-close"/>
+            <me-icon :name="t('keyHeader.closeConn')" icon="el-icon-circle-close"/>
           </el-dropdown-item>
           <el-dropdown-item command="mockData" :disabled="!share.conn">
-            <me-icon :name="$t('keyHeader.mockData')" icon="el-icon-coffee-cup"/>
+            <me-icon :name="t('keyHeader.mockData')" icon="el-icon-coffee-cup"/>
           </el-dropdown-item>
           <el-dropdown-item command="setting" divided>
-            <me-icon :name="$t('keyHeader.setting')" icon="el-icon-setting"/>
+            <me-icon :name="t('keyHeader.setting')" icon="el-icon-setting"/>
           </el-dropdown-item>
           <el-dropdown-item command="info">
-            <me-icon :name="$t('keyHeader.about')" icon="me-icon-info"/>
+            <me-icon :name="t('keyHeader.about')" icon="me-icon-info"/>
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
 
     <!--为了方便主题语言等初始化，组件一直存在；为了方便v-model直接绑定弹框是否显示直接传入dialog-->
-    <el-dialog :title="$t('setting.title')" v-model="dialog.setting" width="600" align-center draggable>
+    <el-dialog :title="t('setting.title')" v-model="dialog.setting" width="600" align-center draggable>
       <Setting/>
     </el-dialog>
     <el-dialog v-model="dialog.info" width="400" align-center draggable>

@@ -45,15 +45,15 @@ watch(lang, () => {locale.value = lang.value})
 </script>
 
 <template>
-  <el-card :header="$t('setting.appearance')" header-class="me-card">
+  <el-card :header="t('setting.appearance')" header-class="me-card">
     <el-form inline label-position="left">
-      <el-form-item :label="$t('setting.theme')">
+      <el-form-item :label="t('setting.theme')">
 <!--        <el-select v-model="theme" style="width: 120px" @change="changeTheme">
           <el-option v-for="item in themeList" :label="item.label" :value="item.value" :key="item.value"/>
         </el-select>-->
         <el-segmented v-model="theme" :options="themeList"/>
       </el-form-item>
-      <el-form-item :label="$t('setting.language')">
+      <el-form-item :label="t('setting.language')">
         <el-select v-model="lang" style="width: 120px">
           <el-option v-for="item in langList" :label="item.label" :value="item.value" :key="item.value"/>
         </el-select>
