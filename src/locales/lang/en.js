@@ -87,6 +87,18 @@ export default {
     monitor: 'Monitor',
     pubsub: 'Pub/Sub',
     chart: 'Chart',
+  },
+
+  keyHeader: {
+    mockHint: 'Please enter the number of entries for each data type（N×5）',
+    mockOk: 'Mock Data Insert Done',
+    connHint: 'Please select connection',
+
+    refreshConn: 'Refresh Conn',
+    closeConn: 'Close Conn',
+    mockData: 'Mock Data',
+    setting: 'Setting',
+    about: 'About',
   }
 
 }

@@ -87,5 +87,17 @@ export default {
     monitor: '监控',
     pubsub: '发布订阅',
     chart: '图表',
+  },
+
+  keyHeader: {
+    mockHint: '请输入每种数据类型条数（N×5）',
+    mockOk: '模拟数据插入完成',
+    connHint: '请选择连接',
+
+    refreshConn: '刷新连接',
+    closeConn: '关闭连接',
+    mockData: '模拟数据',
+    setting: '基础设置',
+    about: '关于',
   }
 }
