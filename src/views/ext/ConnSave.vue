@@ -106,21 +106,21 @@ function testConn() {
 </script>
 
 <template>
-  <el-dialog :title="mode === 'add' ? $t('conn.addConn') : $t('conn.editConn')" @closed="emit('closed')"
+  <el-dialog :title="mode === 'add' ? t('conn.addConn') : t('conn.editConn')" @closed="emit('closed')"
              v-model="visible" width="600" append-to-body destroy-on-close>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="right" label-width="60">
-      <el-form-item :label="$t('conn.name')" prop="name">
-        <el-input v-model.trim="form.name" :placeholder="$t('conn.nameHint')"/>
+      <el-form-item :label="t('conn.name')" prop="name">
+        <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')"/>
       </el-form-item>
 
       <el-row :gutter="24">
         <el-col :span="12">
-          <el-form-item :label="$t('conn.host')" prop="host">
+          <el-form-item :label="t('conn.host')" prop="host">
             <el-input v-model.trim="form.host" placeholder="127.0.0.1"/>
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item :label="$t('conn.port')" prop="port">
+          <el-form-item :label="t('conn.port')" prop="port">
             <el-input-number :min="1" :max="65535" v-model="form.port"
                              :controls='false' align="left" style="width: 100%"
                              placeholder="6379"/>
@@ -130,12 +130,12 @@ function testConn() {
 
       <el-row :gutter="24">
         <el-col :span="12">
-          <el-form-item :label="$t('conn.username')">
+          <el-form-item :label="t('conn.username')">
             <el-input v-model.trim="form.username" placeholder="ACL in Redis >= 6.0"/>
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item :label="$t('conn.password')">
+          <el-form-item :label="t('conn.password')">
             <el-input type="password" v-model.trim="form.password" placeholder="password"/>
           </el-form-item>
         </el-col>
@@ -143,27 +143,27 @@ function testConn() {
 
       <el-row :gutter="24">
         <el-col :span="5">
-          <el-form-item :label="$t('conn.color')">
+          <el-form-item :label="t('conn.color')">
             <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS"/>
           </el-form-item>
         </el-col>
         <el-col :span="19">
-          <el-checkbox v-model="form.readonly">{{$t('conn.readonly')}}</el-checkbox>
-          <el-checkbox v-model="form.cluster">{{$t('conn.cluster')}}</el-checkbox>
+          <el-checkbox v-model="form.readonly">{{t('conn.readonly')}}</el-checkbox>
+          <el-checkbox v-model="form.cluster">{{t('conn.cluster')}}</el-checkbox>
           <el-checkbox v-model="form.ssl">SSL</el-checkbox>
         </el-col>
       </el-row>
 
       <div v-show="form.ssl">
-        <el-divider content-position="left">{{$t('conn.ssl')}}</el-divider>
-        <el-form-item :label="$t('conn.cert')">
-          <me-file-input v-model="form.sslOption.cert" :placeholder="$t('conn.certHint')"/>
+        <el-divider content-position="left">{{t('conn.ssl')}}</el-divider>
+        <el-form-item :label="t('conn.cert')">
+          <me-file-input v-model="form.sslOption.cert" :placeholder="t('conn.certHint')"/>
         </el-form-item>
-        <el-form-item :label="$t('conn.key')">
-          <me-file-input v-model="form.sslOption.key" :placeholder="$t('conn.keyHint')"/>
+        <el-form-item :label="t('conn.key')">
+          <me-file-input v-model="form.sslOption.key" :placeholder="t('conn.keyHint')"/>
         </el-form-item>
-        <el-form-item :label="$t('conn.ca')">
-          <me-file-input v-model="form.sslOption.ca" :placeholder="$t('conn.caHint')"/>
+        <el-form-item :label="t('conn.ca')">
+          <me-file-input v-model="form.sslOption.ca" :placeholder="t('conn.caHint')"/>
         </el-form-item>
       </div>
     </el-form>
@@ -171,10 +171,10 @@ function testConn() {
       <div class="me-flex">
         <el-button type="primary" style="margin-left: 20px"
                    :loading="loading" :disabled="!(form.host && form.port)"
-                   @click="testConn">{{$t('conn.testConn')}}</el-button>
+                   @click="testConn">{{t('conn.testConn')}}</el-button>
         <div>
-          <el-button @click="visible = false">{{$t('cancel')}}</el-button>
-          <el-button type="primary" @click="submit">{{$t('ok')}}</el-button>
+          <el-button @click="visible = false">{{t('cancel')}}</el-button>
+          <el-button type="primary" @click="submit">{{t('ok')}}</el-button>
         </div>
       </div>
     </template>

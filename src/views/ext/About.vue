@@ -1,7 +1,8 @@
 <script setup>
 import {ref} from 'vue'
 import {getVersion} from '@tauri-apps/api/app'
-
+import {useI18n} from 'vue-i18n'
+const { t } = useI18n()
 const appVersion = ref('')
 getVersion().then(res => appVersion.value = res).catch(_ => {})
 </script>
@@ -12,9 +13,9 @@ getVersion().then(res => appVersion.value = res).catch(_ => {})
     <div class="app-name">RedisME</div>
     <div class="app-version">v{{appVersion}}</div>
     <div class="app-site">
-      <el-link href="https://github.com/hepengju/redis-me" target="_blank">{{ $t('about.sourceCode') }}</el-link>
+      <el-link href="https://github.com/hepengju/redis-me" target="_blank">{{ t('about.sourceCode') }}</el-link>
       <div class="sep"></div>
-      <el-link href="https://github.com/hepengju/redis-me" target="_blank">{{ $t('about.officialWebsite') }}</el-link>
+      <el-link href="https://github.com/hepengju/redis-me" target="_blank">{{ t('about.officialWebsite') }}</el-link>
     </div>
     <div class="app-copyright">
       Copyright © 2025 hepengju.com All Rights Reserved.

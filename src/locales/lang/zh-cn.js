@@ -130,5 +130,15 @@ export default {
     value: '值',
     element: '元素',
     hashKey: '哈希键'
-  }
+  },
+
+  fieldSet: {
+    fieldValueRequired: '值不能为空',
+    fieldScoreRequired: '请输入分数',
+    editField: '编辑字段',
+    hashKey: '哈希键',
+    index: '索引',
+    score: '分数',
+    value: '值',
+  },
 }

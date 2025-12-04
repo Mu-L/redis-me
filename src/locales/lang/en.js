@@ -16,7 +16,7 @@ export default {
 
   copyOk: 'Copy OK',
   addOk: 'Add OK',
-  editOk: 'Edit OK',
+  editOk: 'Save OK',
   deleteOk: 'Delete OK',
 
   setting: {
@@ -130,6 +130,16 @@ export default {
     value: 'Value',
     element: 'Element',
     hashKey: 'HashKey'
-  }
+  },
+
+  fieldSet: {
+    fieldValueRequired: 'Value Required',
+    fieldScoreRequired: 'Score Required',
+    editField: 'Edit Field',
+    hashKey: 'HashKey',
+    index: 'Index',
+    score: 'Score',
+    value: 'Value',
+  },
 
 }
