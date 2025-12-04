@@ -1,7 +1,7 @@
 <script setup>
 import {bus, CONN_REFRESH, meInvoke, meOk, mePrompt} from '@/utils/util.js'
 import Setting from '@/views/ext/Setting.vue'
-import AppInfo from '@/views/ext/AppInfo.vue'
+import About from '@/views/ext/About.vue'
 import {useI18n} from 'vue-i18n'
 
 // 共享数据
@@ -88,7 +88,7 @@ async function handleCommand(command) {
       <Setting/>
     </el-dialog>
     <el-dialog v-model="dialog.info" width="400" align-center draggable>
-      <AppInfo/>
+      <About/>
     </el-dialog>
   </div>
 </template>

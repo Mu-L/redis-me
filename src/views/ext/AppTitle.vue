@@ -3,6 +3,9 @@ import {Window} from '@tauri-apps/api/window'
 import {useDark, useLocalStorage, useToggle} from '@vueuse/core'
 import {type} from '@tauri-apps/plugin-os'
 import {meOk} from '@/utils/util.js'
+import {useI18n} from 'vue-i18n'
+
+const { locale } = useI18n()
 
 // 模拟窗口操作
 const appWindow = new Window('main')
@@ -33,8 +36,10 @@ const lang = useLocalStorage('lang', 'en')
 const toggleName = () => {
   if (lang.value === 'en') {
     lang.value = 'zhCn'
+    locale.value = 'zhCn'
   } else {
     lang.value = 'en'
+    locale.value = 'en'
   }
   meOk(`Change Lang: ${lang.value}`)
 }

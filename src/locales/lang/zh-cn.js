@@ -99,5 +99,10 @@ export default {
     mockData: '模拟数据',
     setting: '基础设置',
     about: '关于',
+  },
+
+  about: {
+    sourceCode: '源码地址',
+    officialWebsite: '官方网站'
   }
 }

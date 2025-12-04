@@ -99,6 +99,11 @@ export default {
     mockData: 'Mock Data',
     setting: 'Setting',
     about: 'About',
+  },
+
+  about: {
+    sourceCode: 'Source Code',
+    officialWebsite: 'Official Website'
   }
 
 }
