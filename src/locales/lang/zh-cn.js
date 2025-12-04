@@ -7,6 +7,11 @@ export default {
   edit: '编辑',
   delete: '删除',
   action: '操作',
+  cancel: '取消',
+  ok: '确定',
+  hint: '提示',
+  error: '错误',
+  copyOk: '复制成功',
 
   // 连接
   conn: {
@@ -25,12 +30,32 @@ export default {
     exportErr: '导出失败',
     importOk: '导入成功',
     importErr: '导入失败',
-
     importJsonErr: '文件JSON解析错误',
     importConnErr: '文件不包含有效连接',
     importFormatErr: '文件连接格式错误',
 
     // 新增编辑
+    addConn: '新增连接',
+    editConn: '编辑连接',
+    host: '主机',
+    port: '端口',
+    username: '用户',
+    password: '密码',
+    ssl: 'SSL设置',
+    cert: '公钥',
+    key: '私钥',
+    ca: '授权',
 
+    nameHint: '【可选】默认自动根据主机和端口生成',
+    certHint: 'PEM格式公钥文件 (Cert)',
+    keyHint: 'PEM格式私钥文件 (Key)',
+    caHint: 'PEM格式授权文件 (CA)',
+    testConn: '测试连接',
+    readonly: '只读',
+    nameRequired: '请输入主机',
+    portRequired: '请输入端口',
+    addOk: '新增成功',
+    editOk: '保存成功',
+    testOk: '测试连接成功'
   }
 }

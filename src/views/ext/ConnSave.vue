@@ -3,6 +3,8 @@ import {cloneDeep} from 'lodash'
 import {nanoid} from 'nanoid'
 import {ref, useTemplateRef} from 'vue'
 import {meInvoke, PREDEFINE_COLORS, meRandomString, meOk} from '@/utils/util.js'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 const emit = defineEmits(['success', 'closed'])
 
@@ -30,8 +32,8 @@ const form = reactive({
 })
 
 const rules = {
-  host: [{required: true, message: '请输入主机'}],
-  port: [{required: true, message: '请输入端口'}]
+  host: [{required: true, message: t('conn.nameRequired')}],
+  port: [{required: true, message: t('conn.portRequired')}]
 }
 
 // 外部打开对话框
@@ -46,7 +48,7 @@ function open(modeValue, data) {
     // 新增时给了数据，则是复制连接。id和name需要重置
     if (modeValue === 'add') {
       newData.id = nanoid()
-      newData.name = data.name + '-副本'
+      newData.name = data.name + '-' + t('copy')
     }
     Object.assign(form, newData)
   }
@@ -63,13 +65,13 @@ function submit() {
       form.id = nanoid()
       autoGenName()
       share.connList.push(form)
-      meOk('新增成功')
+      meOk(t('conn.addOk'))
       emit('success', form, mode.value)
     } else if (mode.value === 'edit') {
       autoGenName()
       const conn = share.connList.filter(c => c.id === form.id)[0]
       Object.assign(conn, cloneDeep(form))
-      meOk('保存成功')
+      meOk(t('conn.editOk'))
       emit('success', form, mode.value)
     }
     visible.value = false
@@ -95,7 +97,7 @@ function testConn() {
     loading.value = true
     try {
       await meInvoke('test_conn', {redisConn: form})
-      meOk('测试连接成功')
+      meOk(t('conn.testOk'))
     } finally {
       loading.value = false
     }
@@ -104,21 +106,21 @@ function testConn() {
 </script>
 
 <template>
-  <el-dialog :title="mode === 'add' ? '新增连接' : '编辑连接'" @closed="emit('closed')"
+  <el-dialog :title="mode === 'add' ? $t('conn.addConn') : $t('conn.editConn')" @closed="emit('closed')"
              v-model="visible" width="600" append-to-body destroy-on-close>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="right" label-width="60">
-      <el-form-item label="名称" prop="name">
-        <el-input v-model.trim="form.name" placeholder="【可选】默认自动根据地址和端口生成"/>
+      <el-form-item :label="$t('conn.name')" prop="name">
+        <el-input v-model.trim="form.name" :placeholder="$t('conn.nameHint')"/>
       </el-form-item>
 
       <el-row :gutter="24">
         <el-col :span="12">
-          <el-form-item label="地址" prop="host">
+          <el-form-item :label="$t('conn.host')" prop="host">
             <el-input v-model.trim="form.host" placeholder="127.0.0.1"/>
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="端口" prop="port">
+          <el-form-item :label="$t('conn.port')" prop="port">
             <el-input-number :min="1" :max="65535" v-model="form.port"
                              :controls='false' align="left" style="width: 100%"
                              placeholder="6379"/>
@@ -128,12 +130,12 @@ function testConn() {
 
       <el-row :gutter="24">
         <el-col :span="12">
-          <el-form-item label="用户">
+          <el-form-item :label="$t('conn.username')">
             <el-input v-model.trim="form.username" placeholder="ACL in Redis >= 6.0"/>
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="密码">
+          <el-form-item :label="$t('conn.password')">
             <el-input type="password" v-model.trim="form.password" placeholder="password"/>
           </el-form-item>
         </el-col>
@@ -141,38 +143,38 @@ function testConn() {
 
       <el-row :gutter="24">
         <el-col :span="5">
-          <el-form-item label="颜色">
+          <el-form-item :label="$t('conn.color')">
             <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS"/>
           </el-form-item>
         </el-col>
         <el-col :span="19">
-          <el-checkbox v-model="form.readonly">只读</el-checkbox>
-          <el-checkbox v-model="form.cluster">集群</el-checkbox>
+          <el-checkbox v-model="form.readonly">{{$t('conn.readonly')}}</el-checkbox>
+          <el-checkbox v-model="form.cluster">{{$t('conn.cluster')}}</el-checkbox>
           <el-checkbox v-model="form.ssl">SSL</el-checkbox>
         </el-col>
       </el-row>
 
       <div v-show="form.ssl">
-        <el-divider content-position="left">SSL设置</el-divider>
-        <el-form-item label="公钥">
-          <me-file-input v-model="form.sslOption.cert" placeholder="PEM格式公钥文件 (Cert)"/>
+        <el-divider content-position="left">{{$t('conn.ssl')}}</el-divider>
+        <el-form-item :label="$t('conn.cert')">
+          <me-file-input v-model="form.sslOption.cert" :placeholder="$t('conn.certHint')"/>
         </el-form-item>
-        <el-form-item label="私钥">
-          <me-file-input v-model="form.sslOption.key" placeholder="PEM格式私钥文件 (Key)"/>
+        <el-form-item :label="$t('conn.key')">
+          <me-file-input v-model="form.sslOption.key" :placeholder="$t('conn.keyHint')"/>
         </el-form-item>
-        <el-form-item label="授权">
-          <me-file-input v-model="form.sslOption.ca" placeholder="PEM格式授权文件 (CA)"/>
+        <el-form-item :label="$t('conn.ca')">
+          <me-file-input v-model="form.sslOption.ca" :placeholder="$t('conn.caHint')"/>
         </el-form-item>
       </div>
     </el-form>
     <template #footer>
       <div class="me-flex">
         <el-button type="primary" style="margin-left: 20px"
-                   :loading="loading"
-                   @click="testConn">测试连接</el-button>
+                   :loading="loading" :disabled="!(form.host && form.port)"
+                   @click="testConn">{{$t('conn.testConn')}}</el-button>
         <div>
-          <el-button @click="visible = false">取消</el-button>
-          <el-button type="primary" @click="submit">确定</el-button>
+          <el-button @click="visible = false">{{$t('cancel')}}</el-button>
+          <el-button type="primary" @click="submit">{{$t('ok')}}</el-button>
         </div>
       </div>
     </template>
