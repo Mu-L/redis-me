@@ -7,6 +7,8 @@ import {Sortable} from 'sortablejs'
 import {open, save} from '@tauri-apps/plugin-dialog'
 import {readTextFile, writeTextFile} from '@tauri-apps/plugin-fs'
 import dayjs from 'dayjs'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 const share = inject('share')
 const keyword = ref('')
@@ -104,9 +106,9 @@ async function exportConn() {
   if (path) {
     try {
       await writeTextFile(path, JSON.stringify(share.connList, null, 2))
-      meOk('导出成功')
+      meOk(t('conn.exportOk'))
     } catch (e) {
-      meErr(e, '导出失败')
+      meErr(e, t('conn.exportErr'))
     }
   }
 }
@@ -125,9 +127,9 @@ async function importConn() {
       newConnList.push(...share.connList.filter(conn => !impIds.includes(conn.id)))
       newConnList.push(...impConnList)
       share.connList = newConnList
-      meOk('导入成功')
+      meOk(t('conn.importOk'))
     } catch (e) {
-      meErr(e, '导入失败')
+      meErr(e, t('conn.importErr'))
     }
   }
 }
@@ -138,18 +140,18 @@ async function checkImportContent(content) {
   try {
     connList = JSON.parse(content)
   } catch (e) {
-    throw new Error('文件JSON解析错误')
+    throw new Error(t('conn.importJsonErr'))
   }
 
   // 数组检查
   if (!Array.isArray(connList) || connList.length === 0) {
-    throw new Error('文件不包含有效连接')
+    throw new Error(t('conn.importConnErr'))
   }
 
   // 属性检查（简单检查）
   connList.forEach(conn => {
     if (!conn.id || !conn.name || !conn.host || !conn.port) {
-      throw new Error('文件连接格式错误')
+      throw new Error(t('conn.importFormatErr'))
     }
   })
 

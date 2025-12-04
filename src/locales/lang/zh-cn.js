@@ -10,6 +10,7 @@ export default {
 
   // 连接
   conn: {
+    // 列表展示
     add: '新增连接',
     export: '导出连接',
     import: '导入连接',
@@ -18,6 +19,18 @@ export default {
     name: '名称',
     hostPort: '主机端口',
     otherProp: '其他属性',
-    cluster: '集群'
+    cluster: '集群',
+
+    exportOk: '导出成功',
+    exportErr: '导出失败',
+    importOk: '导入成功',
+    importErr: '导入失败',
+
+    importJsonErr: '文件JSON解析错误',
+    importConnErr: '文件不包含有效连接',
+    importFormatErr: '文件连接格式错误',
+
+    // 新增编辑
+
   }
 }
