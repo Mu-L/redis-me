@@ -62,12 +62,21 @@ export default {
     testOk: '测试连接成功'
   },
 
-  // 工具类
   util: {
     day: '天',
     deleteKey: '确定删除键【{key}】吗？',
     updateHint: '有新版本 v{version}，是否更新？',
     updateDone: '更新完成，是否立刻重启？',
     updateErr: '更新失败: {message}'
+  },
+
+  tabMain: {
+    info: '信息',
+    value: '键值',
+    console: '终端',
+    slow: '慢日志',
+    monitor: '监控',
+    pubsub: '发布订阅',
+    chart: '图表',
   }
 }

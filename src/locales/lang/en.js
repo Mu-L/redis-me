@@ -62,12 +62,22 @@ export default {
     testOk: 'Conn Success'
   },
 
-  // 工具类
   util: {
     day: 'D',
     deleteKey: 'Delete【{key}】?',
     updateHint: 'new version v{version}，update？',
     updateDone: 'update done, restart now?',
     updateErr: 'update error: {message}'
+  },
+
+  tabMain: {
+    info: 'INFO',
+    value: 'Value',
+    console: 'Console',
+    slow: 'SlowLog',
+    monitor: 'Monitor',
+    pubsub: 'Pub/Sub',
+    chart: 'Chart',
   }
+
 }
