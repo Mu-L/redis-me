@@ -18,7 +18,16 @@ export default {
   editOk: 'Edit OK',
   deleteOk: 'Delete OK',
 
-  // 连接
+  setting: {
+    title: 'Settings',
+    appearance: 'Appearance',
+    theme: 'Theme',
+    system: 'Auto',
+    light: 'Light',
+    dark: 'Dark',
+    language: 'Language'
+  },
+
   conn: {
     // 列表展示
     add: 'Add Conn',

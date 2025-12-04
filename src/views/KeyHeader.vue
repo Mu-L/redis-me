@@ -82,7 +82,7 @@ async function handleCommand(command) {
     </el-dropdown>
 
     <!--为了方便主题语言等初始化，组件一直存在；为了方便v-model直接绑定弹框是否显示直接传入dialog-->
-    <el-dialog title="基础设置" v-model="dialog.setting" width="500" align-center draggable>
+    <el-dialog :title="$t('setting.title')" v-model="dialog.setting" width="600" align-center draggable>
       <Setting/>
     </el-dialog>
     <el-dialog v-model="dialog.info" width="400" align-center draggable>

@@ -2,6 +2,7 @@
 import {Window} from '@tauri-apps/api/window'
 import {useDark, useLocalStorage, useToggle} from '@vueuse/core'
 import {type} from '@tauri-apps/plugin-os'
+import {meOk} from '@/utils/util.js'
 
 // 模拟窗口操作
 const appWindow = new Window('main')
@@ -35,6 +36,7 @@ const toggleName = () => {
   } else {
     lang.value = 'en'
   }
+  meOk(`Change Lang: ${lang.value}`)
 }
 </script>
 

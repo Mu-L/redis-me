@@ -18,7 +18,16 @@ export default {
   editOk: '保存成功',
   deleteOk: '删除成功',
 
-  // 连接
+  setting: {
+    title: '设置',
+    appearance: '外观',
+    theme: '主题',
+    system: 'Auto',
+    light: '浅色',
+    dark: '深色',
+    language: '语言'
+  },
+
   conn: {
     // 列表展示
     add: '新增连接',

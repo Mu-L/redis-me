@@ -1,16 +1,17 @@
 <script setup>
-import {useDark, useLocalStorage, usePreferredDark, useStorage} from '@vueuse/core'
+import {useDark, useLocalStorage, usePreferredDark} from '@vueuse/core'
 import {ref} from 'vue'
-import {getVersion} from '@tauri-apps/api/app'
-import {meOk} from '@/utils/util.js'
+import {useI18n} from 'vue-i18n'
+
+const { t, locale } = useI18n()
 
 // 主题
 const theme = ref('system')
-const themeList = [
-  {value: 'system', label: '跟随系统'},
-  {value: 'light', label: '浅色主题'},
-  {value: 'dark', label: '深色主题'}
-]
+const themeList = computed( () => [
+  {value: 'light', label: t('setting.light')},
+  {value: 'dark', label: t('setting.dark')},
+  {value: 'system', label: t('setting.system')},
+])
 
 // 主题初始化值
 const isPreferredDark = usePreferredDark()
@@ -29,7 +30,7 @@ function changeTheme(theme) {
     isDark.value = theme === 'dark'
   }
 }
-
+watch(theme, () => {changeTheme(theme.value)})
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 语言
 const lang = useLocalStorage('lang', 'en')
@@ -39,22 +40,20 @@ const langList = [
   {value: 'zhTw', label: '繁体中文'}
 ]
 
-// 切换语言
-function changeLanguage() {
-  meOk('TODO 多语言支持')
-}
-
+// 自动切换语言
+watch(lang, () => {locale.value = lang.value})
 </script>
 
 <template>
-  <el-card header="外观" header-class="me-card">
+  <el-card :header="$t('setting.appearance')" header-class="me-card">
     <el-form inline label-position="left">
-      <el-form-item label="主题">
-        <el-select v-model="theme" style="width: 120px" @change="changeTheme">
+      <el-form-item :label="$t('setting.theme')">
+<!--        <el-select v-model="theme" style="width: 120px" @change="changeTheme">
           <el-option v-for="item in themeList" :label="item.label" :value="item.value" :key="item.value"/>
-        </el-select>
+        </el-select>-->
+        <el-segmented v-model="theme" :options="themeList"/>
       </el-form-item>
-      <el-form-item label="语言">
+      <el-form-item :label="$t('setting.language')">
         <el-select v-model="lang" style="width: 120px">
           <el-option v-for="item in langList" :label="item.label" :value="item.value" :key="item.value"/>
         </el-select>
