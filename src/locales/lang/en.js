@@ -61,6 +61,8 @@ export default {
     portRequired: 'Please Input port',
     testOk: 'Conn Success'
   },
+
+  // 工具类
   util: {
     day: 'D',
     deleteKey: 'Delete【{key}】?',

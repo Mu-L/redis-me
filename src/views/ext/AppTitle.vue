@@ -1,6 +1,6 @@
 <script setup>
 import {Window} from '@tauri-apps/api/window'
-import {useDark, useToggle} from '@vueuse/core'
+import {useDark, useLocalStorage, useToggle} from '@vueuse/core'
 import {type} from '@tauri-apps/plugin-os'
 
 // 模拟窗口操作
@@ -26,6 +26,16 @@ const marginLeft = computed(() => {
     return isMacOS ? '70px' : '5px'
   }
 })
+
+// 点击名称切换语言或未来其他功能的快速测试验证
+const lang = useLocalStorage('lang', 'en')
+const toggleName = () => {
+  if (lang.value === 'en') {
+    lang.value = 'zhCn'
+  } else {
+    lang.value = 'en'
+  }
+}
 </script>
 
 <template>
@@ -33,7 +43,7 @@ const marginLeft = computed(() => {
     <div class="me-flex" style="align-items: center" :style="{marginLeft}">
       <me-icon icon="me-icon-redis-me" class="icon-btn" style="font-size: 16px;"
                @click="toggleDark()"/>
-      <div style="margin-left: 5px;font-size: 12px">RedisME</div>
+      <div style="margin-left: 5px;font-size: 12px" @click="toggleName">RedisME</div>
     </div>
     <div style="font-size: 12px;" v-if="!isMacOS">
       <me-icon icon="me-icon-window-minimize" class="title-button normal-btn" @click="appWindow.minimize()"/>

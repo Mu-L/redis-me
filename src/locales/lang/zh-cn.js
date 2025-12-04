@@ -61,6 +61,8 @@ export default {
     portRequired: '请输入端口',
     testOk: '测试连接成功'
   },
+
+  // 工具类
   util: {
     day: '天',
     deleteKey: '确定删除键【{key}】吗？',
