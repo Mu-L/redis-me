@@ -32,7 +32,7 @@ const marginLeft = computed(() => {
 })
 
 // 点击名称切换语言或未来其他功能的快速测试验证
-const lang = useLocalStorage('lang', 'en')
+const lang = useLocalStorage('lang')
 const toggleName = () => {
   if (lang.value === 'en') {
     lang.value = 'zhCn'

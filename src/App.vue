@@ -11,7 +11,7 @@ import {useLocalStorage} from '@vueuse/core'
 
 // 区域语言映射
 const localeLangMap = {zhCn, en}
-const lang = useLocalStorage('lang', 'en')
+const lang = useLocalStorage('lang')
 const locale = computed(() => localeLangMap[lang.value])
 
 // 检查更新

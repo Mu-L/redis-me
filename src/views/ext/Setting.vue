@@ -33,7 +33,7 @@ function changeTheme(theme) {
 watch(theme, () => {changeTheme(theme.value)})
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 语言
-const lang = useLocalStorage('lang', 'en')
+const lang = useLocalStorage('lang')
 const langList = [
   {value: 'en', label: 'English'},
   {value: 'zhCn', label: '简体中文'},
