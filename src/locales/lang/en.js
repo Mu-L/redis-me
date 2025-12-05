@@ -9,6 +9,7 @@ export default {
   delete: 'Delete',
   action: 'Action',
   cancel: 'Cancel',
+  refresh: 'Refresh',
 
   ok: 'OK',
   warn: 'Warning',
@@ -205,4 +206,32 @@ export default {
     defaultConfig: 'default config'
   },
 
+  redisInfo: {
+    rdbDisabled: 'RDB Disabled',
+    total: 'Total',
+    uptimeInDays: 'Uptime',
+    days: 'Days',
+    keyTotal: 'Keys',
+    connectedClients: 'Clients',
+    maxClients: 'Max',
+    persistence: 'Persistence',
+    memory: 'Memory',
+    peak: 'Peak',
+    rss: 'RSS',
+    os: 'OS',
+    system: 'System',
+    executable: 'Executable',
+    config: 'Config',
+    infoDetail: 'Info Detail',
+    jumpWebsite: 'Jump To Redis Official Website',
+    redisWebsite: 'https://redis.io/docs/latest/commands/info/',
+    rawInfo: 'Raw Info',
+    tag: 'Tag',
+    keyword: 'Filter (Key/Value)',
+    key: 'Key',
+    value: 'Value',
+    tip: 'Tip',
+    client: 'Client',
+    runConfig: 'Run Config'
+  }
 }

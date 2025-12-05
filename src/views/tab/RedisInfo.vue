@@ -6,7 +6,9 @@ import {meInvoke} from '@/utils/util.js'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 import RedisMemory from '@/views/tab/RedisMemory.vue'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 
@@ -29,7 +31,7 @@ const loading = ref(false)
 const config = ref('')
 const rdbChecked = computed(() => config.value.save ? true : false)
 const aofChecked = computed(() => dic.value['aof_enabled'] === '1')
-const rdbTooltip = computed(() => config.value.save || '未开启RDB')
+const rdbTooltip = computed(() => config.value.save || t('redisInfo.rdbDisabled'))
 
 // raw原始值发生变化后，其他的值重新计算
 watchEffect(() => {
@@ -44,19 +46,14 @@ watchEffect(() => {
   lines.forEach(line => {
     if (line.startsWith('#')) {
       tagKey = line.substring(1).trim()
-
-      if (tagKey !== 'Ark') {
-        tagList.value.push(tagKey)
-      }
+      tagList.value.push(tagKey)
     } else {
       const index = line.indexOf(':')
       const key = line.substring(0, index).trim()
       const value = line.substring(index + 1).trim()
 
       if (key !== '') {
-        if (tagKey !== 'Ark') {
-          tagTable.value.push({key, value, tag: tagKey})
-        }
+        tagTable.value.push({key, value, tag: tagKey})
         dic.value[key] = value
       }
 
@@ -88,7 +85,7 @@ const filterDataList = computed(() => {
 
 // 合计列
 function getSummaries() {
-  return ['合计', '', filterDataList.value.length + ' / ' + dataList.value.length, '']
+  return [t('redisInfo.total'), '', filterDataList.value.length + ' / ' + dataList.value.length, '']
 }
 
 const tableRef = useTemplateRef(('table'))
@@ -135,34 +132,34 @@ function goMemory() {
             <el-tag type="success" style="margin-left: 10px" v-if="dic['role']">{{ dic['role'] }}</el-tag>
           </div>
           <div class="me-flex">
-            <me-icon class="refresh icon-btn" name="刷新" icon="el-icon-refresh" placement="left" hint @click="refresh" :loading="loading"/>
+            <me-icon class="refresh icon-btn" :name="t('refresh')" icon="el-icon-refresh" placement="left" hint @click="refresh" :loading="loading"/>
             <node-list v-model="node" style="margin-left: 10px" @change="refresh" clearable/>
           </div>
         </div>
       </template>
 
       <el-descriptions-item>
-        <template #label><me-icon name="运行时间" icon="el-icon-timer"/></template>
-        {{dic['uptime_in_days']}}天
+        <template #label><me-icon :name="t('redisInfo.uptimeInDays')" icon="el-icon-timer"/></template>
+        {{dic['uptime_in_days']}} {{t('redisInfo.days')}}
       </el-descriptions-item>
 
       <el-descriptions-item>
-        <template #label><me-icon name="键总数" icon="el-icon-key"/></template>
+        <template #label><me-icon :name="t('redisInfo.keyTotal')" icon="el-icon-key"/></template>
         {{ keyCount }}
       </el-descriptions-item>
 
       <el-descriptions-item>
-        <template #label><me-icon name="连接数" icon="me-icon-conn"/></template>
+        <template #label><me-icon :name="t('redisInfo.connectedClients')" icon="me-icon-conn"/></template>
         <div class="me-flex">
           <el-link @click="goClient" underline="never" type="primary">{{dic['connected_clients']}}</el-link>
           <el-text type="info" style="margin-left: 10px">
-            [ 限制: {{dic['maxclients']}} ]
+            [ {{ t('redisInfo.maxClients') }}: {{dic['maxclients']}} ]
           </el-text>
         </div>
       </el-descriptions-item>
 
       <el-descriptions-item :span="1">
-        <template #label><me-icon name="持久化" icon="me-icon-save"/></template>
+        <template #label><me-icon :name="t('redisInfo.persistence')" icon="me-icon-save"/></template>
         <!-- rdb需要通过config get save命令去确认 -->
         <el-checkbox v-model="rdbChecked" disabled>
           <el-tooltip :content="rdbTooltip" placement="top-start">RDB</el-tooltip>
@@ -171,31 +168,31 @@ function goMemory() {
       </el-descriptions-item>
 
       <el-descriptions-item :span="2">
-        <template #label><me-icon name="内存" icon="me-icon-memory"/></template>
+        <template #label><me-icon :name="t('redisInfo.memory')" icon="me-icon-memory"/></template>
         <div class="me-flex">
           <el-link underline="never" @click="goMemory" type="primary">{{dic['used_memory_human']}}</el-link>
           <el-text type="info" style="margin-left: 10px">
             [
-            <span style="margin-left:  0px">峰值: {{dic['used_memory_peak_human']}}</span>
-            <span style="margin-left: 20px">RSS:  {{dic['used_memory_rss_human']}}</span>
-            <span style="margin-left: 20px">系统: {{dic['total_system_memory_human']}}</span>
+            <span style="margin-left:  0px">{{ t('redisInfo.peak') }}: {{dic['used_memory_peak_human']}}</span>
+            <span style="margin-left: 20px">{{ t('redisInfo.rss') }}:  {{dic['used_memory_rss_human']}}</span>
+            <span style="margin-left: 20px">{{ t('redisInfo.os') }}: {{dic['total_system_memory_human']}}</span>
             ]
           </el-text>
         </div>
       </el-descriptions-item>
 
       <el-descriptions-item :span="3">
-        <template #label><me-icon name="执行程序" icon="el-icon-video-play"/></template>
+        <template #label><me-icon :name="t('redisInfo.executable')" icon="el-icon-video-play"/></template>
         <div class="me-flex">
           {{dic['executable']}}
           <el-text type="info" style="margin-left: 10px">
-            [ <el-link underline="never" @click="goConfig" type="primary">配置</el-link>: {{dic['config_file'] || '--'}} ]
+            [ <el-link underline="never" @click="goConfig" type="primary">{{ t('redisInfo.config') }}</el-link>: {{dic['config_file'] || '--'}} ]
           </el-text>
         </div>
       </el-descriptions-item>
 
       <el-descriptions-item :span="3">
-        <template #label><me-icon name="系统" icon="el-icon-monitor"/></template>
+        <template #label><me-icon :name="t('redisInfo.system')" icon="el-icon-monitor"/></template>
         <div class="me-flex">
           {{dic['os']}}
           <el-text type="info" style="margin-left: 10px">
@@ -209,19 +206,19 @@ function goMemory() {
       <template #header>
         <div class="me-flex detail-header">
           <div>
-            <el-text size="large">参数详情</el-text>
+            <el-text size="large">{{ t('redisInfo.infoDetail') }}</el-text>
             <el-link type="success" target="_blank" style="margin-left: 10px"
-                     href="https://redis.ac.cn/docs/latest/commands/info/">
-              <me-icon info="跳转官网参数详解" icon="me-icon-link"/>
+                     :href="t('redisInfo.redisWebsite')">
+              <me-icon :info="t('redisInfo.jumpWebsite')" icon="me-icon-link"/>
             </el-link>
           </div>
 
           <div class="detail-header-right">
-            <me-icon info="原始信息" icon="me-icon-raw" class="raw-info icon-btn" @click="dialog.raw = true"/>
-            <el-select v-model="tagSelected" placeholder="分类" clearable style="width: 150px; margin: 0 10px" @change="tagChange">
+            <me-icon :info="t('redisInfo.rawInfo')" icon="me-icon-raw" class="raw-info icon-btn" @click="dialog.raw = true"/>
+            <el-select v-model="tagSelected" :placeholder="t('redisInfo.tag')" clearable style="width: 150px; margin: 0 10px" @change="tagChange">
               <el-option v-for="tag in tagList" :key="tag" :label="tag" :value="tag"/>
             </el-select>
-            <el-input v-model="keyword" clearable style="width: 200px" prefix-icon="el-icon-search" placeholder="键值过滤"/>
+            <el-input v-model="keyword" clearable style="width: 200px" prefix-icon="el-icon-search" :placeholder="t('redisInfo.keyword')"/>
           </div>
         </div>
       </template>
@@ -229,10 +226,10 @@ function goMemory() {
       <el-table ref="table" :data="filterDataList"
                 show-summary :summary-method="getSummaries"
                 stripe height="100%">
-        <el-table-column prop="tag" label="分类" width="100"/>
-        <el-table-column prop="key" label="键" show-overflow-tooltip/>
-        <el-table-column prop="value" label="值" show-overflow-tooltip/>
-        <el-table-column label="说明" show-overflow-tooltip>
+        <el-table-column prop="tag" :label="t('redisInfo.tag')" width="100"/>
+        <el-table-column prop="key" :label="t('redisInfo.key')" show-overflow-tooltip/>
+        <el-table-column prop="value" :label="t('redisInfo.value')" show-overflow-tooltip/>
+        <el-table-column :label="t('redisInfo.tip')" show-overflow-tooltip>
           <template #default="scope">
             <span style="color: var(--el-color-info)">{{tips[scope.row.key]}}</span>
           </template>
@@ -245,15 +242,15 @@ function goMemory() {
     <me-code :value="raw" mode="properties" read-only/>
   </me-dialog>
 
-  <me-dialog v-model="dialog.client" icon="el-icon-mic" title="客户端" width="80vw" >
+  <me-dialog v-model="dialog.client" icon="el-icon-mic" :title="t('redisInfo.client')" width="80vw" >
     <RedisClient :init-node="node || infoNode"/>
   </me-dialog>
 
-  <me-dialog v-model="dialog.memory" icon="me-icon-memory" title="内存" width="80vw" >
+  <me-dialog v-model="dialog.memory" icon="me-icon-memory" :title="t('redisInfo.memory')" width="80vw" >
     <RedisMemory/>
   </me-dialog>
 
-  <me-dialog v-model="dialog.config" icon="el-icon-wallet" title="运行配置" width="80vw" >
+  <me-dialog v-model="dialog.config" icon="el-icon-wallet" :title="t('redisInfo.runConfig')" width="80vw" >
     <RedisConfig :init-node="node || infoNode"/>
   </me-dialog>
 </template>

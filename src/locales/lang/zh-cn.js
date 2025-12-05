@@ -9,6 +9,7 @@ export default {
   delete: '删除',
   action: '操作',
   cancel: '取消',
+  refresh: '刷新',
 
   ok: '确定',
   warn: '提示',
@@ -205,7 +206,33 @@ export default {
     defaultConfig: '默认配置'
   },
 
-
-
+  redisInfo: {
+    rdbDisabled: '未开启RDB',
+    total: '合计',
+    uptimeInDays: '运行时间',
+    days: '天',
+    keyTotal: '键总数',
+    connectedClients: '连接数',
+    maxClients: '限制',
+    persistence: '持久化',
+    memory: '内存',
+    peak: '峰值',
+    rss: 'RSS',
+    os: '系统',
+    system: '系统',
+    executable: '执行程序',
+    config: '配置',
+    infoDetail: '参数详情',
+    jumpWebsite: '跳转官网参数详解',
+    redisWebsite: 'https://redis.ac.cn/docs/latest/commands/info/',
+    rawInfo: '原始信息',
+    tag: '分类',
+    keyword: '键值过滤',
+    key: '键',
+    value: '值',
+    tip: '说明',
+    client: '客户端',
+    runConfig: '运行配置'
+  }
 
 }
