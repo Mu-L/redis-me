@@ -253,7 +253,7 @@ export default {
     scanTotal: 'Scan Total',
     sizeLimit: 'Size Limit',
     countLimit: 'Count Limit',
-    unit: 'Keys',
+    unit: '-',
     batchDelete: 'Batch Delete',
     keyword: 'Key Filter',
     startScan: 'Start Scan',
@@ -289,5 +289,22 @@ export default {
     message: 'Message',
     messageContent: 'Message Content',
     send: 'Send'
+  },
+
+  redisSlow: {
+    slowParam: 'Slow Param',
+    slowerThanHint: 'slowlog-log-slower-than, default 10000 μs',
+    slowerThan: 'Than',
+    slowerMaxLenHint: 'slowlog-max-len, default 128',
+    slowerMaxLen: 'Count',
+    slowerGetCount: 'Limit',
+    unit: '-',
+    keyword: 'Filter (Command、Client、ClientName）',
+    command: 'Command',
+    cost: 'Cost',
+    clientName: 'ClientName',
+    time: 'DateTime',
+    node: 'Node',
+    client: 'Client'
   },
 }

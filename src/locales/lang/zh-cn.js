@@ -291,4 +291,23 @@ export default {
     messageContent: '消息内容',
     send: '发送'
   },
+
+  redisSlow: {
+    slowParam: '慢参数',
+    slowerThanHint: '命令执行时间超过的阈值 [ slowlog-log-slower-than ]，单位微秒，默认 10000',
+    slowerThan: '阈值',
+    slowerMaxLenHint: '慢日志中条目的最大数量 [ slowlog-max-len ]，默认 128',
+    slowerMaxLen: '数量',
+    slowerGetCount: '限制',
+    unit: '个',
+    keyword: '模糊筛选（命令、客户端、名称）',
+    command: '命令',
+    cost: '耗时',
+    clientName: '客户端名称',
+    time: '执行时间',
+    node: '节点',
+    client: '客户端'
+  },
+
+
 }
