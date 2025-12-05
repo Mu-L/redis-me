@@ -309,5 +309,13 @@ export default {
     client: '客户端'
   },
 
+  redisTerminal: {
+    hint: `
+① 自动广播开启时 CONFIG SET 和 SLOWLOG RESET 等命令会在所有节点执行<br>
+② 正常情况下无需指定节点，仅在查看特定节点配置等特殊场景可手动指定节点
+    `,
+    welcome: '欢迎使用 \x1B[1;3;32mRedisME\x1B[0m Terminal',
+    autoBroadcast: '自动广播'
+  }
 
 }

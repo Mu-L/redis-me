@@ -307,4 +307,13 @@ export default {
     node: 'Node',
     client: 'Client'
   },
+
+  redisTerminal: {
+    hint: `
+① When automatic broadcasting is enabled, commands such as CONFIG SET and SLOWLOG RESET will be executed on all nodes<br>
+② Under normal circumstances, there is no need to specify a node. Manual node specification is only required in special scenarios such as viewing the configuration of a specific node
+    `,
+    welcome: 'Welcome to \x1B[1;3;32mRedisME\x1B[0m Terminal',
+    autoBroadcast: 'Auto Broadcast'
+  }
 }
