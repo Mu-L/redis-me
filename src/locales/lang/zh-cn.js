@@ -233,6 +233,35 @@ export default {
     tip: '说明',
     client: '客户端',
     runConfig: '运行配置'
+  },
+
+  redisMemory: {
+    hint: `
+    <b>原理：scan / memory usage / pipeline / type</b> <br/>
+说明：使用scan方法扫描所有master节点，寻找匹配 {matchParam} 的键。每次扫描{scanCount}个键，然后pipeline批量发送memory usage命令获取占用内存大小，将>={sizeLimitKb}Kb的键记录下来。
+如果扫描键的总数已经到达{scanTotal}个（小于等于0表示扫描所有 或 结果数量已经满足{countLimit}个则返回，否则睡眠{sleepMillis}ms 再使用游标继续扫描。<br/>
+备注：memory usage 命令报告键及其值存储在内存中所需的字节数。报告的用量是一个键及其值所需的数据和管理开销的总内存分配量。
+    `,
+    total: '合计',
+    longTimeHint: '确定开始内存分析吗？耗时可能较长，请耐心等待！',
+    batchDeleteHint: '确定批量删除【{size}】个键吗？',
+    scanConfig: '扫描配置',
+
+    fuzzy: '模糊',
+    matchParam: '匹配参数',
+    scanEach: '每次扫描',
+    sleepMillis: '每次睡眠',
+    scanTotal: '扫描总数',
+    sizeLimit: '大小限制',
+    countLimit: '数量限制',
+    unit: '个',
+    batchDelete: '批量删除',
+    keyword: '键模糊筛选',
+    startScan: '开启分析',
+    type: '类型',
+    key: '键',
+    size: '大小',
+    chooseKey: '详情'
   }
 
 }

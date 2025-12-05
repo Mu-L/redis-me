@@ -233,5 +233,34 @@ export default {
     tip: 'Tip',
     client: 'Client',
     runConfig: 'Run Config'
+  },
+
+  redisMemory: {
+    hint: `
+    <b>Remark：scan / memory usage / pipeline / type</b> <br/>
+    Description: Use the scan method to scan all master nodes, searching for keys that match {matchParam}. Each scan processes {scanCount} keys, then uses the pipeline to batch send the memory usage command to obtain the memory size occupied, and records keys that are >= {sizeLimitKb}Kb. If the total number of scanned keys reaches {scanTotal} (a value less than or equal to 0 means scanning all) or the result count meets {countLimit}, the process returns. Otherwise, it sleeps for {sleepMillis}ms and continues scanning using the cursor.<br/> 
+    Note: The memory usage command reports the number of bytes required for a key and its value to be stored in memory. The reported usage is the total memory allocation for a key and its value, including data and administrative overhead.
+    `,
+    total: 'Total',
+    longTimeHint: 'Are you sure to start memory analysis? It may take a long time, please be patient!',
+    batchDeleteHint: 'Batch Delete {size} Keys？',
+    scanConfig: 'Scan Config',
+
+    fuzzy: 'fuzzy',
+    matchParam: 'Match Param',
+    scanEach: 'Scan Each',
+    sleepMillis: 'Sleep Millis',
+    scanTotal: 'Scan Total',
+    sizeLimit: 'Size Limit',
+    countLimit: 'Count Limit',
+    unit: 'Keys',
+    batchDelete: 'Batch Delete',
+    keyword: 'Key Filter',
+    startScan: 'Start Scan',
+    type: 'Type',
+    key: 'Key',
+    size: 'Size',
+    chooseKey: 'Detail'
   }
+
 }

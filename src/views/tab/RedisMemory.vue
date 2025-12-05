@@ -12,17 +12,22 @@ import {
   meOk
 } from '@/utils/util.js'
 import {capitalize} from 'lodash'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 const canEdit = computed(() => true)
 const hint = computed(() => {
-  return `
-<b>原理：scan / memory usage / pipeline / type</b> <br/>
-说明：使用scan方法扫描所有slave节点，寻找匹配 ${matchParam.value} 的键。每次扫描${scanCount.value}个键，然后pipeline批量发送memory usage命令获取占用内存大小，将>=${sizeLimitKb.value}Kb的键记录下来。
-如果扫描键的总数已经到达${scanTotal.value}个（小于等于0表示扫描所有 或 结果数量已经满足${countLimit.value}个则返回，否则睡眠${sleepMillis.value}ms 再使用游标继续扫描。<br/>
-备注：memory usage 命令报告键及其值存储在内存中所需的字节数。报告的用量是一个键及其值所需的数据和管理开销的总内存分配量。
-`.trim()
+  const params = {
+    matchParam: matchParam.value,
+    scanCount: scanCount.value,
+    sizeLimitKb: sizeLimitKb.value,
+    scanTotal: scanTotal.value,
+    countLimit: countLimit.value,
+    sleepMillis: sleepMillis.value
+  }
+  return t('redisMemory.hint', params)
 })
 
 const sizeLimitKb = ref(100)
@@ -58,7 +63,7 @@ function getSummaries() {
   const count = filterDataList.value.length + ' / ' + dataList.value.length
   const size = humanTotalSize(filterDataList) + ' / ' + humanTotalSize(dataList)
   const show = h('div', {class: 'me-flex'}, [h('div', null, count), h('div', null, size)])
-  return ['', '合计', show, '']
+  return ['', t('redisMemory.total'), show, '']
 }
 
 async function refresh() {
@@ -83,7 +88,7 @@ refresh()
 
 function memoryUsage() {
   if (scanTotal.value > 10_0000 || scanTotal.value <= 0 || sleepMillis.value > 100) {
-    meConfirm('确定开始内存分析吗？耗时可能较长，请耐心等待！', () => refresh())
+    meConfirm(t('redisMemory.longTimeHint'), () => refresh())
   } else {
     refresh()
   }
@@ -111,13 +116,13 @@ function selectionChange(newSelection) {
 }
 
 function batchDelKey() {
-  meConfirm(`确定批量删除【${selection.value.length}】个键吗？`, async () => {
+  meConfirm(t('redisMemory.batchDeleteHint', {size: selection.value.length}), async () => {
     const param = {
       match: '',
       keyList: selection.value.map(row => ({key: row.key, bytes: row.bytes})),
     }
     await meInvoke('batch_del', {id: share.conn.id, param})
-    meOk('删除成功')
+    meOk(t('deleteOk'))
     const keyBytesArr = param.keyList.map(rk => rk.bytes)
     dataList.value = dataList.value.filter(rk => keyBytesArr.indexOf(rk.bytes) < 0)
   })
@@ -129,13 +134,13 @@ function batchDelKey() {
     <div class="me-flex header">
       <div class="me-flex">
         <el-dropdown placement="bottom-start" :hide-on-click="false" :teleported="false">
-          <el-button icon="el-icon-setting">扫描配置</el-button>
+          <el-button icon="el-icon-setting">{{ t('redisMemory.scanConfig') }}</el-button>
 
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item>
-                <el-input v-model.number="match" style="width: 200px" placeholder="模糊">
-                  <template #prepend>匹配参数</template>
+                <el-input v-model.number="match" style="width: 220px" :placeholder="t('redisMemory.fuzzy')">
+                  <template #prepend>{{ t('redisMemory.matchParam') }}</template>
                   <template #append>
                     <el-tooltip raw-content :content="hint" popper-style="max-width: 600px">
                       <el-icon>
@@ -146,27 +151,27 @@ function batchDelKey() {
                 </el-input>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-input v-model.number="scanCount" style="width: 200px">
-                  <template #prepend>每次扫描</template>
-                  <template #append>个</template>
+                <el-input v-model.number="scanCount" style="width: 220px">
+                  <template #prepend>{{ t('redisMemory.scanEach') }}</template>
+                  <template #append>{{ t('redisMemory.unit') }}</template>
                 </el-input>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-input v-model.number="sleepMillis" style="width: 200px;">
-                  <template #prepend>每次睡眠</template>
+                <el-input v-model.number="sleepMillis" style="width: 220px;">
+                  <template #prepend>{{ t('redisMemory.sleepMillis') }}</template>
                   <template #append>ms</template>
                 </el-input>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-input v-model.number="scanTotal" style="width: 200px;">
-                  <template #prepend>扫描总数</template>
-                  <template #append>个</template>
+                <el-input v-model.number="scanTotal" style="width: 220px;">
+                  <template #prepend>{{ t('redisMemory.scanTotal') }}</template>
+                  <template #append>{{ t('redisMemory.unit') }}</template>
                 </el-input>
               </el-dropdown-item>
 
               <el-dropdown-item divided>
-                <el-input v-model.number="sizeLimitKb" style="width: 200px; ">
-                  <template #prepend>大小限制</template>
+                <el-input v-model.number="sizeLimitKb" style="width: 220px; ">
+                  <template #prepend>{{ t('redisMemory.sizeLimit') }}</template>
                   <template #prefix>
                     <div style="margin-right: 10px">&gE;</div>
                   </template>
@@ -174,9 +179,9 @@ function batchDelKey() {
                 </el-input>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-input v-model.number="countLimit" style="width: 200px; ">
-                  <template #prepend>数量限制</template>
-                  <template #append>个</template>
+                <el-input v-model.number="countLimit" style="width: 220px; ">
+                  <template #prepend>{{ t('redisMemory.countLimit') }}</template>
+                  <template #append>{{ t('redisMemory.unit') }}</template>
                 </el-input>
               </el-dropdown-item>
             </el-dropdown-menu>
@@ -185,7 +190,7 @@ function batchDelKey() {
 
         <el-button icon="el-icon-delete" type="danger"
                    :disabled="selection.length === 0"
-                   @click="batchDelKey" style="margin-left: 10px">批量删除
+                   @click="batchDelKey" style="margin-left: 10px">{{ t('redisMemory.batchDelete') }}
         </el-button>
 
         <el-input v-model.number="sizeLimitKb" style="width: 120px; margin-left: 10px">
@@ -197,8 +202,8 @@ function batchDelKey() {
       </div>
 
       <div>
-        <el-input v-model="keyword" placeholder="键模糊筛选" style="width: 260px; margin:0 10px" clearable/>
-        <el-button icon="el-icon-search" @click="memoryUsage" type="primary" :loading="loading">开始分析</el-button>
+        <el-input v-model="keyword" :placeholder="t('redisMemory.keyword')" style="width: 260px; margin:0 10px" clearable/>
+        <el-button icon="el-icon-search" @click="memoryUsage" type="primary" :loading="loading">{{ t('redisMemory.startScan') }}</el-button>
       </div>
     </div>
     <el-table :data="filterDataList" ref="table"
@@ -209,28 +214,28 @@ function batchDelKey() {
               @selection-change="selectionChange"
               border stripe height="100%">
       <el-table-column type="selection" width="50" align="center"/>
-      <el-table-column label="类型" prop="type" width="100" show-overflow-tooltip sortable :filters="filterTypes"
+      <el-table-column :label="t('redisMemory.type')" prop="type" width="100" show-overflow-tooltip sortable :filters="filterTypes"
                        :filter-method="meFilterHandler">
         <template #default="scope">
           {{ capitalize(scope.row.type) }}
         </template>
       </el-table-column>
-      <el-table-column label="键" prop="key" show-overflow-tooltip>
+      <el-table-column :label="t('redisMemory.key')" prop="key" show-overflow-tooltip>
         <template #default="scope">
           {{ scope.row.key }}
         </template>
       </el-table-column>
-      <el-table-column label="大小" prop="size" width="120" sortable show-overflow-tooltip>
+      <el-table-column :label="t('redisMemory.size')" prop="size" width="120" sortable show-overflow-tooltip>
         <template #default="scope">
           {{ meHumanSize(scope.row.size) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" :width="canEdit ? 100 : 80" fixed="right" align="center">
+      <el-table-column :label="t('action')" :width="canEdit ? 100 : 80" fixed="right" align="center">
         <template #default="scope">
           <div class="me-flex">
-            <me-icon info="复制" icon="el-icon-document-copy" class="icon-btn" @click="meCopy(scope.row.key) "/>
-            <me-icon info="详情" icon="el-icon-view" class="icon-btn" @click="chooseKey(scope.row)"/>
-            <me-icon info="删除" icon="el-icon-delete" class="icon-btn" @click="delKey(scope.row)" v-if="canEdit"/>
+            <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn" @click="meCopy(scope.row.key) "/>
+            <me-icon :info="t('redisMemory.chooseKey')" icon="el-icon-view" class="icon-btn" @click="chooseKey(scope.row)"/>
+            <me-icon :info="t('delete')" icon="el-icon-delete" class="icon-btn" @click="delKey(scope.row)" v-if="canEdit"/>
           </div>
         </template>
       </el-table-column>
@@ -248,11 +253,12 @@ function batchDelKey() {
 
   .header {
     :deep(.el-input-group__prepend) {
-      padding: 0 14px;
+      //padding: 0 14px;
+      width: 100px; // 适配中英文宽度
     }
 
     :deep(.el-input-group__append) {
-      width: 40px;
+      width: 42px;
     }
   }
 }
