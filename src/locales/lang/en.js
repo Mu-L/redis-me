@@ -18,6 +18,7 @@ export default {
   copyOk: 'Copied to Clipboard',
   addOk: 'Success',
   editOk: 'Saved',
+  saveOk: 'Saved',
   deleteOk: 'Deleted',
 
   setting: {
@@ -210,7 +211,7 @@ export default {
     rdbDisabled: 'RDB Disabled',
     total: 'Total',
     uptimeInDays: 'Uptime',
-    days: 'Days',
+    days: 'days',
     keyTotal: 'Keys',
     connectedClients: 'Clients',
     maxClients: 'Max',

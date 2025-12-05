@@ -18,6 +18,7 @@ export default {
   copyOk: '复制成功',
   addOk: '新增成功',
   editOk: '保存成功',
+  saveOk: '保存成功',
   deleteOk: '删除成功',
 
   setting: {
