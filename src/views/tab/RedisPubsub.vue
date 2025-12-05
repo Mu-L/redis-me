@@ -1,8 +1,9 @@
 <script setup>
-import {meConfirm, meCopy, meInvoke, meOk} from '@/utils/util.js'
-import {debounce} from 'lodash'
+import {meCopy, meInvoke, meOk} from '@/utils/util.js'
 import {listen} from '@tauri-apps/api/event'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 
@@ -19,19 +20,25 @@ const filterDataList = computed(() => {
 })
 
 // 订阅按钮防抖
-const subscribe = debounce(async () => {
-  if (subscribing.value) {
-    await unlisten()
-    await meInvoke('subscribe_stop', {id: share.conn.id})
-    subscribing.value = false
-    meOk('订阅已停止')
-  } else {
-    await tauriListen()
-    await meInvoke('subscribe', {id: share.conn.id, channel: channel.value})
-    subscribing.value = true
-    meOk('订阅已开始')
+const loading = ref(false)
+const subscribe = async () => {
+  loading.value = true
+  try {
+    if (subscribing.value) {
+      await unlisten()
+      await meInvoke('subscribe_stop', {id: share.conn.id})
+      subscribing.value = false
+      meOk(t('redisPubSub.subscribeStopped'))
+    } else {
+      await tauriListen()
+      await meInvoke('subscribe', {id: share.conn.id, channel: channel.value})
+      subscribing.value = true
+      meOk(t('redisPubSub.subscribeStarted'))
+    }
+  } finally {
+    loading.value = false
   }
-}, 200)
+}
 
 // 发送消息
 const sendChannel = ref('')
@@ -41,7 +48,7 @@ async function publish() {
   sendLoading.value = true
   try {
     await meInvoke('publish', {id: share.conn.id, channel: sendChannel.value, message: sendMessage.value})
-    meOk("发布消息成功")
+    meOk(t('redisPubSub.publishOk'))
   } finally {
     sendLoading.value = false
   }
@@ -75,34 +82,37 @@ onUnmounted(() => tauriUnlisten())
     <div class="me-flex header">
       <div>
         <el-input v-model="channel" style="width: 160px; margin-right: 10px"
-                  placeholder="订阅频道" :disabled="subscribing" clearable/>
+                  :placeholder="t('redisPubSub.subscribeChannel')" :disabled="subscribing" clearable/>
       </div>
       <div>
-        <me-button icon="el-icon-delete" info="清空消息" @click="clearData" :disabled="dataList.length === 0" placement="top"/>
-        <el-input  v-model="keyword" placeholder="模糊筛选（频道、消息）" style="width: 280px; margin:0 10px" clearable/>
+        <me-button icon="el-icon-delete" :info="t('redisPubSub.clearMessage')"
+                   @click="clearData" :disabled="dataList.length === 0" placement="top"/>
+        <el-input  v-model="keyword" :placeholder="t('redisPubSub.keyword')" style="width: 280px; margin:0 10px" clearable/>
         <el-button :icon="subscribing ? 'el-icon-video-pause' : 'el-icon-video-play'"
+                   :loading="loading"
                    @click="subscribe" type="primary">
-          {{subscribing ? '停止订阅' : '开启订阅'}}
+          {{subscribing ? t('redisPubSub.subscribeStop') : t('redisPubSub.subscribeStart')}}
         </el-button>
       </div>
     </div>
     <div class="table">
       <el-table :data="filterDataList" ref="table" border stripe height="100%">
-        <el-table-column label="时间" prop="datetime" sortable width="200"/>
-        <el-table-column label="频道" prop="channel"  show-overflow-tooltip/>
-        <el-table-column label="消息" prop="message"  show-overflow-tooltip/>
-        <el-table-column label="操作" width="60" align="center">
+        <el-table-column :label="t('redisPubSub.datetime')" prop="datetime" sortable width="200"/>
+        <el-table-column :label="t('redisPubSub.channel')" prop="channel"  show-overflow-tooltip/>
+        <el-table-column :label="t('redisPubSub.message')" prop="message"  show-overflow-tooltip/>
+        <el-table-column :label="t('action')" width="80" align="center">
           <template #default="scope">
-            <me-icon info="复制" icon="el-icon-document-copy" class="icon-btn"
+            <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn"
                      @click="meCopy(scope.row.message)" style="justify-content: center"/>
           </template>
         </el-table-column>
       </el-table>
     </div>
     <div class="footer">
-      <el-input v-model="sendChannel" placeholder="频道" style="width: 200px"></el-input>
-      <el-input v-model="sendMessage" placeholder="消息内容" style="margin: 0 10px"></el-input>
-      <el-button icon="el-icon-promotion" @click="publish" type="warning" :loading="sendLoading" :disabled="!(sendChannel && sendMessage)">发送</el-button>
+      <el-input v-model="sendChannel" :placeholder="t('redisPubSub.channel')" style="width: 200px"></el-input>
+      <el-input v-model="sendMessage" :placeholder="t('redisPubSub.messageContent')" style="margin: 0 10px"></el-input>
+      <el-button icon="el-icon-promotion" @click="publish" type="warning" :loading="sendLoading"
+                 :disabled="!(sendChannel && sendMessage)">{{ t('redisPubSub.send') }}</el-button>
     </div>
   </div>
 </template>

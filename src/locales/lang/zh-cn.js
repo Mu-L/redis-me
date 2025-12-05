@@ -267,7 +267,7 @@ export default {
   redisMonitor: {
     monitorHint: '监控命令可能造成服务端阻塞，生产环境谨慎使用！',
     monitorStarted: '监控已开始',
-    monitorStoped: '监控已停止',
+    monitorStopped: '监控已停止',
     clearMessage: '清空消息',
     keyword: '模糊筛选',
     monitorStart: '开启监控',
@@ -276,4 +276,19 @@ export default {
     command: '命令'
   },
 
+  redisPubSub: {
+    subscribeStarted: '订阅已开始',
+    subscribeStopped: '订阅已停止',
+    publishOk: '发布消息成功',
+    subscribeChannel: '订阅频道',
+    clearMessage: '清空消息',
+    keyword: '模糊筛选（频道、消息）',
+    subscribeStart: '开启订阅',
+    subscribeStop: '停止订阅',
+    datetime: '时间',
+    channel: '频道',
+    message: '消息',
+    messageContent: '消息内容',
+    send: '发送'
+  },
 }

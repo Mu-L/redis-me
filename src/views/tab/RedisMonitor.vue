@@ -26,7 +26,7 @@ const monitor = async () => {
       await unlisten()
       await meInvoke('monitor_stop', {id: share.conn.id})
       monitoring.value = false
-      meOk(t('redisMonitor.monitorStoped'))
+      meOk(t('redisMonitor.monitorStopped'))
     } else {
       meConfirm(t('redisMonitor.monitorHint'), async () => {
         await tauriListen()

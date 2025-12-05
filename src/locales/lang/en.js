@@ -266,13 +266,28 @@ export default {
   redisMonitor: {
     monitorHint: 'Monitor command may cause server blocking, use with caution in production environment !',
     monitorStarted: 'Monitor Started',
-    monitorStoped: 'Monitor Stoped',
+    monitorStopped: 'Monitor Stoped',
     clearMessage: 'Clear Message',
     keyword: 'Filter Command',
     monitorStart: 'Start Monitor',
     monitorStop: 'Stop Monitor',
-    time: 'Time',
+    time: 'DateTime',
     command: 'Command'
   },
 
+  redisPubSub: {
+    subscribeStarted: 'Subscribe Started',
+    subscribeStopped: 'Subscribe Stopped',
+    publishOk: 'Publish Success',
+    subscribeChannel: 'Subscribe Channel',
+    clearMessage: 'Clear Message',
+    keyword: 'Filter (Channel/Message) ',
+    subscribeStart: 'Subscribe Start',
+    subscribeStop: 'Subscribe Stop',
+    datetime: 'DateTime',
+    channel: 'Channel',
+    message: 'Message',
+    messageContent: 'Message Content',
+    send: 'Send'
+  },
 }
