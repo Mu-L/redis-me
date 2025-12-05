@@ -261,6 +261,18 @@ export default {
     key: 'Key',
     size: 'Size',
     chooseKey: 'Detail'
-  }
+  },
+
+  redisMonitor: {
+    monitorHint: 'Monitor command may cause server blocking, use with caution in production environment !',
+    monitorStarted: 'Monitor Started',
+    monitorStoped: 'Monitor Stoped',
+    clearMessage: 'Clear Message',
+    keyword: 'Filter Command',
+    monitorStart: 'Start Monitor',
+    monitorStop: 'Stop Monitor',
+    time: 'Time',
+    command: 'Command'
+  },
 
 }

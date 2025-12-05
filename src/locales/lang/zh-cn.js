@@ -262,6 +262,18 @@ export default {
     key: '键',
     size: '大小',
     chooseKey: '详情'
-  }
+  },
+
+  redisMonitor: {
+    monitorHint: '监控命令可能造成服务端阻塞，生产环境谨慎使用！',
+    monitorStarted: '监控已开始',
+    monitorStoped: '监控已停止',
+    clearMessage: '清空消息',
+    keyword: '模糊筛选',
+    monitorStart: '开启监控',
+    monitorStop: '停止监控',
+    time: '时间',
+    command: '命令'
+  },
 
 }

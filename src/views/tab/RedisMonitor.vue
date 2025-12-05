@@ -3,7 +3,9 @@ import NodeList from '@/views/ext/NodeList.vue'
 import {meConfirm, meCopy, meInvoke, meOk} from '@/utils/util.js'
 import {debounce} from 'lodash'
 import {listen} from '@tauri-apps/api/event'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 
@@ -22,13 +24,13 @@ const monitor = debounce(async () => {
     await unlisten()
     await meInvoke('monitor_stop', {id: share.conn.id})
     monitoring.value = false
-    meOk('监控已停止')
+    meOk(t('redisMonitor.monitorStoped'))
   } else {
-    meConfirm('命令监控可能造成服务端阻塞，生产环境谨慎使用！', async () => {
+    meConfirm(t('redisMonitor.monitorHint'), async () => {
       await tauriListen()
       await meInvoke('monitor', {id: share.conn.id, node: node.value})
       monitoring.value = true
-      meOk('监控已开始')
+      meOk(t('redisMonitor.monitorStarted'))
     })
   }
 }, 200)
@@ -63,21 +65,21 @@ onUnmounted(() => tauriUnlisten())
         <node-list v-model="node" style="margin-right: 10px" init-node :disabled="monitoring"/>
       </div>
       <div>
-        <me-button icon="el-icon-delete" info="清空消息" @click="clearData" :disabled="dataList.length === 0" placement="top"/>
-        <el-input v-model="keyword" placeholder="模糊搜索" style="width: 280px; margin: 0 10px" clearable/>
+        <me-button icon="el-icon-delete" :info="t('redisMonitor.clearMessage')" @click="clearData" :disabled="dataList.length === 0" placement="top"/>
+        <el-input v-model="keyword" :placeholder="t('redisMonitor.keyword')" style="width: 280px; margin: 0 10px" clearable/>
         <el-button :icon="monitoring ? 'el-icon-video-pause' : 'el-icon-video-play'"
                    @click="monitor" type="primary">
-          {{ monitoring ? '停止监控' : '开始监控' }}
+          {{ monitoring ? t('redisMonitor.monitorStop') : t('redisMonitor.monitorStart') }}
         </el-button>
       </div>
     </div>
     <div class="table">
       <el-table :data="filterDataList" ref="table" border stripe height="100%">
-        <el-table-column label="时间" prop="datetime" sortable width="200"/>
-        <el-table-column label="命令" prop="command"  show-overflow-tooltip/>
-        <el-table-column label="操作" width="60" align="center">
+        <el-table-column :label="t('redisMonitor.time')" prop="datetime" sortable width="200"/>
+        <el-table-column :label="t('redisMonitor.command')" prop="command"  show-overflow-tooltip/>
+        <el-table-column :label="t('action')" width="60" align="center">
           <template #default="scope">
-            <me-icon info="复制" icon="el-icon-document-copy" class="icon-btn"
+            <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn"
                      @click="meCopy(scope.row.command)" style="justify-content: center"/>
           </template>
         </el-table-column>
