@@ -8,8 +8,8 @@ import {open, save} from '@tauri-apps/plugin-dialog'
 import {readTextFile, writeTextFile} from '@tauri-apps/plugin-fs'
 import dayjs from 'dayjs'
 import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
 
+const { t } = useI18n()
 const share = inject('share')
 const keyword = ref('')
 const filterDataList = computed(() => {

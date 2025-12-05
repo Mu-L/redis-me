@@ -41,7 +41,7 @@ const toggleName = () => {
     lang.value = 'en'
     locale.value = 'en'
   }
-  meOk(`Change Lang: ${lang.value}`)
+  meOk(`Lang: ${lang.value}`)
 }
 </script>
 
