@@ -6,7 +6,9 @@ import {bus, meDeleteKey, CONN_REFRESH, meCopy, KEY_DELETE, meInvoke, KEY_REFRES
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatchDel from './key/KeyBatchDel.vue'
 import KeyMemory from './key/KeyMemory.vue'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 const canEdit = computed(() => true)
@@ -145,7 +147,7 @@ function contextKey(command, redisKey) {
   } else if (command == 'deleteKey') {
     meDeleteKey(share.conn.id, redisKey)
   } else {
-    meOk(`TODO: 键右键 ${command}`)
+    meOk(`TODO: ${command}`)
   }
 }
 
@@ -170,7 +172,7 @@ function contextFolder(command, folder){
   } else if (command === 'deleteFolder') {
     deleteFolder(folder)
   } else {
-    meOk(`TODO: 文件夹右键 ${command}`)
+    meOk(`TODO: ${command}`)
   }
 }
 
@@ -204,7 +206,7 @@ function keyMemory(folder) {
   <div class="key-main">
     <el-input class="key-search"
               v-model="keyword"
-              placeholder="Enter 键进行搜索"
+              :placeholder="t('keyMain.keyword')"
               @keyup.enter="scanKey(false, false)"
               clearable>
       <template #prepend>
@@ -222,14 +224,14 @@ function keyMemory(folder) {
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-tooltip content="精确搜素">
+        <el-tooltip :content="t('keyMain.exactSearch')">
           <el-checkbox size="small" v-model="exact" style="margin-left: 10px"/>
         </el-tooltip>
       </template>
       <template #append>
         <el-button-group>
-          <me-button info="刷新键" @click="scanKey(false, false)" icon="el-icon-search"></me-button>
-          <me-button info="新增键" @click="addKey" style="border-color: var(--el-button-border-color)" v-if="canEdit"
+          <me-button :info="t('keyMain.refreshKey')" @click="scanKey(false, false)" icon="el-icon-search"></me-button>
+          <me-button :info="t('keyMain.addKey')" @click="addKey" style="border-color: var(--el-button-border-color)" v-if="canEdit"
                      icon="el-icon-plus"></me-button>
         </el-button-group>
       </template>
@@ -256,8 +258,8 @@ function keyMemory(folder) {
       <div class="me-flex" style="align-items: center">
         <el-segmented v-model="keyShowType" :options="keyShowTypeList">
           <template #default="scope">
-            <me-icon name="键平铺展示" icon="me-icon-list" hint placement="top" v-if="scope.item === 'list'"/>
-            <me-icon name="键树形展示" icon="me-icon-tree" hint placement="top" v-else/>
+            <me-icon :name="t('keyMain.listView')" icon="me-icon-list" hint placement="top" v-if="scope.item === 'list'"/>
+            <me-icon :name="t('keyMain.treeView')" icon="me-icon-tree" hint placement="top" v-else/>
           </template>
         </el-segmented>
       </div>
@@ -266,8 +268,8 @@ function keyMemory(folder) {
 
       <div class="me-flex">
         <div class="btn-rb" v-if="!(cursor?.finished)">
-          <me-icon name="加载更多"      icon="me-icon-load-more" hint placement="top" class="icon-btn" @click="scanKey(true, false)"/>
-          <me-icon name="加载剩余所有键" icon="me-icon-load-all"  hint placement="top" class="icon-btn" @click="scanKey(true, true)"/>
+          <me-icon :name="t('keyMain.loadMore')"icon="me-icon-load-more" hint placement="top" class="icon-btn" @click="scanKey(true, false)"/>
+          <me-icon :name="t('keyMain.loadAll')" icon="me-icon-load-all"  hint placement="top" class="icon-btn" @click="scanKey(true, true)"/>
         </div>
 
         <!-- 集群不显示数据库列表 -->

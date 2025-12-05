@@ -335,6 +335,17 @@ export default {
     jsonView: 'JSON展示',
     tableView: '表格展示',
     noKeySelected: '未选择任何键'
+  },
+
+  keyMain: {
+    keyword: 'Enter 键进行搜索',
+    exactSearch: '精确匹配',
+    refreshKey: '刷新键',
+    addKey: '新增键',
+    listView: '键平铺展示',
+    treeView: '键树形展示',
+    loadMore: '加载更多',
+    loadAll: '加载剩余所有键',
   }
 
 }

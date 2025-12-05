@@ -334,7 +334,18 @@ export default {
     jsonView: 'JSON View',
     tableView: 'Table View',
     noKeySelected: 'No Key Selected'
+  },
 
+  keyMain: {
+    keyword: 'Enter to Search',
+    exactSearch: 'Exact Search',
+    refreshKey: 'Refresh Key',
+    addKey: 'Add Key',
+    listView: 'List View',
+    treeView: 'Tree View',
+    loadMore: 'Load More',
+    loadAll: 'Load All',
   }
+
 
 }
