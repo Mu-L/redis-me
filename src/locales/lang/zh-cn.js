@@ -160,6 +160,9 @@ export default {
   },
 
   keyMemory: {
-
+    title: '目录内存分析',
+    match: '键名表达式',
+    info: '总数：{total}，大小：{size}',
+    limit: '（数据量达到扫描限制：${limit}）'
   }
 }

@@ -37,8 +37,8 @@ export default {
     keyword: 'Filter (Name, Host)',
     color: 'Color',
     name: 'Name',
-    hostPort: 'Host/Port',
-    otherProp: 'Ext',
+    hostPort: 'Host:Port',
+    otherProp: 'Other Prop',
     cluster: 'Cluster',
 
     exportOk: 'Export Success',
@@ -153,13 +153,16 @@ export default {
     title: 'Batch Delete Key',
     match: 'Key match expression',
     deleteDirect: 'Delete Direct',
-    impactKeys: 'Impact Keys({size})',
+    impactKeys: 'Impact Keys ({size})',
     confirmDelete: 'Confirm Delete',
     showImpactKeys: 'Show Impact Keys',
     confirmDeleteSize: 'Delete {size} Keys'
   },
 
   keyMemory: {
-
+    title: 'Folder Memory Usage',
+    match: 'Key match expression',
+    info: 'Total: {total}，Size: {size}',
+    limit: '(Data has reached limit：${limit})'
   }
 }

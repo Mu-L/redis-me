@@ -50,15 +50,15 @@ const {list, containerProps, wrapperProps} = useVirtualList(
 </script>
 
 <template>
-  <el-dialog title="目录内存分析" v-model="visible" :width="600">
+  <el-dialog :title="t('keyMemory.title')" v-model="visible" :width="600">
 
     <el-form label-position="top">
-      <el-form-item label="键名表达式">
+      <el-form-item :label="t('keyMemory.match')">
         <!-- 此处保留可编辑，使用更加方便 -->
         <el-input type="text" v-model="form.match" disabled/>
       </el-form-item>
 
-      <el-form-item :label="`总数：${keyList.length}，大小：${meHumanSize(totalSize)}` + (keyList.length >= form.countLimit ? `（数据量达到扫描限制：${form.countLimit}）` : '')" :loading="loading">
+      <el-form-item :label="t('keyMemory.info', {total: keyList.length, size: meHumanSize(totalSize)}) + (keyList.length >= form.countLimit ? t('keyMemory.limit', {size: form.countLimit}) : '')" :loading="loading">
         <div v-bind="containerProps" :style="{height: '300px', width: '100%'}">
           <div v-bind="wrapperProps">
             <div v-for="item in list" :key="item.index" class="key me-flex">
