@@ -114,7 +114,7 @@ export default {
     keyRequired: '请输入键名',
     typeRequired: '请选择类型',
     ttlRequired: '请输入TTL',
-    ttlValidator: 'TTL超时时长只允许-1或正整数',
+    ttlValidator: 'TTL超时时长只允许-1(永久)或正整数(秒)',
     valueRequired: '值不允许为空',
     hashValidator: '哈希键和值不允许为空',
     hashHint: '(哈希键: 值)',
@@ -316,6 +316,25 @@ export default {
     `,
     welcome: '欢迎使用 \x1B[1;3;32mRedisME\x1B[0m Terminal',
     autoBroadcast: '自动广播'
+  },
+
+  redisValue: {
+    ttlValidator: 'TTL超时时长只允许-1(永久)或正整数(秒)',
+    ttlOk: '设置TTL成功',
+    optional: '可选输入',
+    hashKey: '哈希键',
+    ttlHint: '点击修改键的过期时间（单位为秒，-1代表永久）',
+    deleteKey: '删除键',
+    prettyHint: '默认开启美化，开启后针对hash/list/set/json等进行格式化，关闭后显示原始值toString',
+    tableKeyword: '模糊筛选',
+    insertRow: '插入行',
+    key: '键',
+    value: '值',
+    score: '分数',
+    deleteConfirm: '确定删除吗？',
+    jsonView: 'JSON展示',
+    tableView: '表格展示',
+    noKeySelected: '未选择任何键'
   }
 
 }

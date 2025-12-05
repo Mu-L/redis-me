@@ -114,7 +114,7 @@ export default {
     keyRequired: 'Please input key',
     typeRequired: 'Please select type',
     ttlRequired: 'Please input TTL',
-    ttlValidator: 'TTL timeout duration only allows -1 or positive integers',
+    ttlValidator: 'TTL timeout duration only allows -1(Permanent) or positive integer (Seconds)',
     valueRequired: 'Please input value',
     hashValidator: 'HashKey and hashValue required',
     hashHint: '(HashKey: HashValue)',
@@ -315,5 +315,26 @@ export default {
     `,
     welcome: 'Welcome to \x1B[1;3;32mRedisME\x1B[0m Terminal',
     autoBroadcast: 'Auto Broadcast'
+  },
+
+  redisValue: {
+    ttlValidator: 'TTL timeout duration only allows -1(Permanent) or positive integer (Seconds)',
+    ttlOk: 'Set TTL Success',
+    optional: 'Optional',
+    hashKey: 'HashKey',
+    ttlHint: 'Click to modify the expiration time of the key (unit is seconds, -1 means permanent)',
+    deleteKey: 'Delete Key',
+    prettyHint: 'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',
+    tableKeyword: 'Fuzzy Filter',
+    insertRow: 'Insert Row',
+    key: 'Key',
+    value: 'Value',
+    score: 'Score',
+    deleteConfirm: 'Confirm Delete ?',
+    jsonView: 'JSON View',
+    tableView: 'Table View',
+    noKeySelected: 'No Key Selected'
+
   }
+
 }
