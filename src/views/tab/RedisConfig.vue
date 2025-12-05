@@ -1,10 +1,12 @@
 <script setup>
-import {configTip as tips, redisConfList} from '@/utils/tip.js'
+import {configTip as tips} from '@/utils/tip.js'
+import {redisConfObject} from '@/utils/redis.js'
 import NodeList from '../ext/NodeList.vue'
 import {meInvoke} from '@/utils/util.js'
 import {sortBy} from 'lodash'
-import {BaseDirectory, readTextFile} from '@tauri-apps/plugin-fs'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 const {initNode} = defineProps({
@@ -26,7 +28,7 @@ const filterDataList = computed(() => {
 
 // 合计列
 function getSummaries() {
-  return ['配置数', filterDataList.value.length + ' / ' + dataList.value.length, '']
+  return [t('redisConfig.total'), filterDataList.value.length + ' / ' + dataList.value.length, '']
 }
 
 async function apiConfigGet() {
@@ -51,15 +53,18 @@ refresh()
 const dialog = reactive({
   raw: false
 })
-const configVersion = ref(redisConfList[0])  // 版本
+
+const configVersionList = Object.keys(redisConfObject).reverse()
+const configVersion = ref(configVersionList[0])  // 版本
 const configRaw = ref('')
 
 watchEffect(async () => {
   try {
-    const content = await readTextFile(`resources/conf/${configVersion.value}.conf`, {baseDir: BaseDirectory.Resource})
+    // const content = await readTextFile(`resources/conf/${configVersion.value}.conf`, {baseDir: BaseDirectory.Resource})
+    const content = redisConfObject[configVersion.value]
     configRaw.value = content
   } catch (e) {
-    configRaw.value = '暂无配置文件'
+    configRaw.value = t('redisConfig.noConfig')
   }
 })
 
@@ -76,17 +81,17 @@ function handleCommand(command){
         <div class="me-flex">
           <node-list v-model="node" style="margin-right: 10px" @change="refresh"/>
           <el-dropdown @command="handleCommand">
-            <el-button plain icon="el-icon-notebook" type="info">参考</el-button>
+            <el-button plain icon="el-icon-notebook" type="info">{{ t('redisConfig.reference') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item :command="item" v-for="item in redisConfList">{{item}}</el-dropdown-item>
+                <el-dropdown-item :command="item" v-for="item in configVersionList">{{item}}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
       </div>
       <div>
-        <el-input  v-model="keyword" placeholder="模糊筛选（配置项、配置值）" style="width: 300px; margin-right: 10px" clearable/>
+        <el-input  v-model="keyword" :placeholder="t('redisConfig.keyword')" style="width: 300px; margin-right: 10px" clearable/>
         <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading"/>
       </div>
     </div>
@@ -96,16 +101,16 @@ function handleCommand(command){
               v-loading="loading"
               show-summary :summary-method="getSummaries"
               border stripe height="100%">
-      <el-table-column label="配置项" prop="param" sortable show-overflow-tooltip/>
-      <el-table-column label="配置值" prop="value" show-overflow-tooltip/>
-      <el-table-column label="说明" show-overflow-tooltip>
+      <el-table-column :label="t('redisConfig.param')" prop="param" sortable show-overflow-tooltip/>
+      <el-table-column :label="t('redisConfig.value')" prop="value" show-overflow-tooltip/>
+      <el-table-column :label="t('redisConfig.tip')" show-overflow-tooltip>
         <template #default="scope">
           <span style="color: var(--el-color-info)">{{tips[scope.row.param]}}</span>
         </template>
       </el-table-column>
     </el-table>
 
-    <me-dialog icon="me-icon-redis" :title="`${configVersion} 默认配置`" v-model="dialog.raw" width="60vw">
+    <me-dialog icon="me-icon-redis" :title="`${configVersion} ${t('redisConfig.defaultConfig')}`" v-model="dialog.raw" width="60vw">
       <me-code :value="configRaw" mode="properties" read-only />
     </me-dialog>
   </div>

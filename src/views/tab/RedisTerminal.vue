@@ -2,20 +2,17 @@
 import NodeList from '../ext/NodeList.vue'
 import {meInvoke} from '@/utils/util.js'
 import MeIcon from '@/components/MeIcon.vue'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 
 const autoBroadcast = ref(true)
 const node  = ref('')
-const hint = `
-① 自动广播开启时 CONFIG SET 和 SLOWLOG RESET 命令会在所有节点执行<br>
-② 正常情况下无需指定节点，仅在查看特定节点配置等特殊场景可手动指定节点
-`.trim()
-
-const prefix = computed(() =>
-  node.value ? `\x1B[1;3;32m${node.value}> \x1B[0m` : '\x1B[1;3;32m$ \x1B[0m'
-)
+const hint = computed(() => t('redisTerminal.hint'))
+const prefix = computed(() => node.value ? `\x1B[1;3;32m${node.value}> \x1B[0m` : '\x1B[1;3;32m$ \x1B[0m')
+const welcome = computed(() => t('redisTerminal.welcome'))
 
 // 定制化执行命令
 async function execCommand(command) {
@@ -44,10 +41,10 @@ function replaceEnter(data) {
 
 <template>
   <div class="redis-terminal">
-    <me-xterm class="terminal" :exec-command="execCommand" :prefix/>
+    <me-xterm class="terminal" :exec-command="execCommand" :prefix :welcome/>
     <div class="node me-flex" v-if="share.conn?.cluster">
       <me-icon icon="el-icon-question-filled" :info="hint" raw-content placement="top" :show-after="0"/>
-      <el-checkbox v-model="autoBroadcast" label="自动广播" border style="margin-left: 10px"/>
+      <el-checkbox v-model="autoBroadcast" :label="t('redisTerminal.autoBroadcast')" border style="margin-left: 10px"/>
       <node-list v-model="node" clearable style="margin-left: 10px"/>
     </div>
   </div>

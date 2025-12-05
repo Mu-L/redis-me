@@ -1,7 +1,9 @@
 <script setup>
 import {cloneDeep} from 'lodash'
 import {meInvoke, meOk} from '@/utils/util.js'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({open, close})
 
@@ -35,10 +37,10 @@ function close() {
   visible.value = false
 }
 
-const rules = {
-  fieldValue: [{required: true, message: '值不能为空'}],
-  fieldScore: [{required: true, message: '请输入分数'}],
-}
+const rules = computed(() => ({
+  fieldValue: [{required: true, message: t('fieldSet.fieldValueRequired')}],
+  fieldScore: [{required: true, message: t('fieldSet.fieldScoreRequired')}],
+}))
 
 // 取消
 function cancel() {
@@ -57,7 +59,7 @@ function submit() {
       await meInvoke('field_set',{id: share.conn.id, param: form.value})
       visible.value = false
       emit('success')
-      meOk('编辑成功')
+      meOk(t('editOk'))
     } finally {
       isSaving.value = false
     }
@@ -66,25 +68,25 @@ function submit() {
 </script>
 
 <template>
-  <el-card header="编辑字段" v-show="visible" class="field-set">
+  <el-card :header="t('fieldSet.editField')" v-show="visible" class="field-set">
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top"
              style="display: flex; flex-direction: column; height: 100%">
-      <el-form-item label="哈希键" v-if="form.type === 'hash'">
+      <el-form-item :label="t('fieldSet.hashKey')" v-if="form.type === 'hash'">
         <el-input v-model="form.fieldKey" disabled/>
       </el-form-item>
-      <el-form-item label="索引" v-if="form.type === 'list'">
+      <el-form-item :label="t('fieldSet.index')" v-if="form.type === 'list'">
         <el-input v-model="form.fieldIndex" disabled/>
       </el-form-item>
-      <el-form-item label="分数" prop="fieldScore" v-if="form.type === 'zset'">
+      <el-form-item :label="t('fieldSet.score')" prop="fieldScore" v-if="form.type === 'zset'">
         <el-input-number :controls="false" v-model="form.fieldScore" align="left" style="width: 100%"/>
       </el-form-item>
-      <el-form-item label="值" prop="fieldValue" style="display: flex; flex-direction: column; flex: 1">
+      <el-form-item :label="t('fieldSet.value')" prop="fieldValue" style="display: flex; flex-direction: column; flex: 1">
         <me-code v-model:value="form.fieldValue" style="flex: 1"/>
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="cancel">取 消</el-button>
-      <el-button type="primary" :loading="isSaving" @click="submit">更 新</el-button>
+      <el-button @click="cancel">{{t('cancel')}}</el-button>
+      <el-button type="primary" :loading="isSaving" @click="submit">{{t('save')}}</el-button>
     </template>
   </el-card>
 </template>

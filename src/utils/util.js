@@ -5,6 +5,7 @@ import {ElMessage, ElMessageBox} from 'element-plus'
 import {invoke} from '@tauri-apps/api/core'
 import {check} from '@tauri-apps/plugin-updater'
 import {relaunch} from '@tauri-apps/plugin-process'
+import i18n from '@/locales'
 
 // 全局事件总线: setup直接导入，app全局属性也添加
 export const bus = mitt()
@@ -28,17 +29,27 @@ export const PREDEFINE_COLORS = [
   '#909399',  // info
 ]
 
+// 是否开发模式
+const isDev = import.meta.env.DEV
+const t = i18n.global.t
+
 // 打印日志
 export async function meInvoke(command, params, alert = true) {
   try {
     const data = await invoke(command, params)
-    console.log(`命令: ${command}, 参数: `, params, '结果: ', data)
+    if (isDev) {
+      console.log(`命令: ${command}, 参数: `, params, '结果: ', data)
+    }
+
     return data
   } catch (error) {
     if (alert) {
-      meErr(error, `错误: ${command}`)
+      meErr(error, t('error') + (isDev ? ': ' + command : ''))
     }
-    console.log(`命令: ${command}, 参数:`, params, `, 错误: ${error}`)
+
+    if (isDev) {
+      console.log(`命令: ${command}, 参数:`, params, `, 错误: ${error}`)
+    }
     throw error;
   }
 }
@@ -50,7 +61,7 @@ export function meOk(message) {
   ElMessage.success(message)
 }
 
-export function meErr(message, title = '错误') {
+export function meErr(message, title = t('error')) {
   if (message instanceof Error) {
     message = message.message
   }
@@ -58,7 +69,7 @@ export function meErr(message, title = '错误') {
 }
 
 export function meConfirm(message, thenFun) {
-  ElMessageBox.confirm(message, '提示', {type: 'warning'})
+  ElMessageBox.confirm(message, t('warn'), {type: 'warning'})
     .then(thenFun)
     .catch(DoNothing)
 }
@@ -73,7 +84,7 @@ export function mePrompt(message, options, thenFun) {
 // 复制文本
 export function meCopy(text) {
   useClipboard({legacy: true}).copy(text)
-  ElMessage({message: '复制成功', type: 'success'})
+  ElMessage({message: t('copyOk'), type: 'success'})
 }
 
 // 随机N个字符
@@ -123,7 +134,7 @@ export function meHumanSeconds(seconds) {
   // 组合结果
   let result = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
   if (days > 0) {
-    result = `${days}天 ${result}`
+    result = `${days}${t('day')} ${result}`
   }
   return result
 }
@@ -137,10 +148,10 @@ export function meFilterHandler(value, row, column){
 
 // 删除键
 export function meDeleteKey(id, redisKey, thenFn) {
-  meConfirm(`确定删除键【${redisKey.key}】吗？`, async () => {
+  meConfirm(t('util.deleteKey', {key: redisKey.key}), async () => {
     await meInvoke('del', {id, key: redisKey})
     bus.emit(KEY_DELETE, redisKey)
-    meOk('删除成功')
+    meOk(t('deleteOk'))
     if (thenFn) {
       thenFn()
     }
@@ -153,13 +164,13 @@ export async function meCheckUpdate() {
   console.log('检查更新')
   const update = await check().catch(DoNothing)
   if (update) {
-    meConfirm(`有新版本${update.version}，是否更新？`,
+    meConfirm(t('updateHint', {version: update.version}),
       async () => {
         try {
           await update.downloadAndInstall(DoNothing)
-          meConfirm('更新完成，是否立刻重启', async () => await relaunch())
+          meConfirm(t('updateDone'), async () => await relaunch())
         } catch (e) {
-          meOk(`更新失败: ${e.message}`)
+          meOk(t('updateErr', {message: e.message}))
         }
       }
     )

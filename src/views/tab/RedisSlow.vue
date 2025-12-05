@@ -1,7 +1,9 @@
 <script setup>
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import {meCopy, meInvoke} from '@/utils/util.js'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 
@@ -79,14 +81,14 @@ refresh()
     <div class="me-flex header">
       <div>
         <el-dropdown placement="bottom-start" :hide-on-click="false" :teleported="false">
-          <el-button icon="el-icon-setting">慢参数</el-button>
+          <el-button icon="el-icon-setting">{{ t('redisSlow.slowParam') }}</el-button>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item>
                 <el-input :value="slowerThan / 1000" style="width: 150px;" disabled>
                   <template #prepend>
-                    <el-tooltip placement="top-end" content="命令执行时间超过的阈值 [ slowlog-log-slower-than ]，单位微秒，默认 10000" :show-after="1000">
-                      <div>阈值</div>
+                    <el-tooltip placement="top-end" :content="t('redisSlow.slowerThanHint')" :show-after="1000">
+                      <div>{{ t('redisSlow.slowerThan') }}</div>
                     </el-tooltip>
                   </template>
                   <template #append>ms</template>
@@ -96,18 +98,18 @@ refresh()
               <el-dropdown-item>
                 <el-input v-model.number="slowerMaxLen" style="width: 150px;" disabled>
                   <template #prepend>
-                    <el-tooltip placement="top-end" content="慢日志中条目的最大数量 [ slowlog-max-len ]，默认 128" :show-after="1000">
-                      <div>数量</div>
+                    <el-tooltip placement="top-end" :content="t('redisSlow.slowerMaxLenHint')" :show-after="1000">
+                      <div>{{ t('redisSlow.slowerMaxLen') }}</div>
                     </el-tooltip>
                   </template>
-                  <template #append>个</template>
+                  <template #append>{{ t('redisSlow.unit') }}</template>
                 </el-input>
               </el-dropdown-item>
 
               <el-dropdown-item>
                 <el-input v-model.number="slowerGetCount" style="width: 150px;">
-                  <template #prepend>限制</template>
-                  <template #append>个</template>
+                  <template #prepend>{{ t('redisSlow.slowerGetCount') }}</template>
+                  <template #append>{{ t('redisSlow.unit') }}</template>
                 </el-input>
               </el-dropdown-item>
             </el-dropdown-menu>
@@ -116,7 +118,7 @@ refresh()
       </div>
 
       <div>
-        <el-input v-model="keyword" placeholder="模糊筛选（命令、客户端、名称）" style="width: 250px; margin-right: 10px" clearable/>
+        <el-input v-model="keyword" :placeholder="t('redisSlow.keyword')" style="width: 300px; margin-right: 10px" clearable/>
         <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading" />
       </div>
     </div>
@@ -125,22 +127,22 @@ refresh()
                 :default-sort="{prop: 'cost', order: 'descending'}"
                 @sort-change="sortChange"
                 border stripe>
-        <el-table-column label="命令" prop="command" sortable show-overflow-tooltip/>
-        <el-table-column label="操作" width="60" align="center">
+        <el-table-column :label="t('redisSlow.command')" prop="command" sortable show-overflow-tooltip/>
+        <el-table-column :label="t('action')" width="80" align="center">
           <template #default="scope">
-            <me-icon info="复制" icon="el-icon-document-copy" class="icon-btn"
+            <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn"
                      @click="meCopy(scope.row.command)" style="justify-content: center"/>
           </template>
         </el-table-column>
-        <el-table-column label="耗时" prop="cost" width="100" sortable show-overflow-tooltip>
+        <el-table-column :label="t('redisSlow.cost')" prop="cost" width="100" sortable show-overflow-tooltip>
           <template #default="scope">
             {{ scope.row.cost.toFixed(2) }} ms
           </template>
         </el-table-column>
-        <el-table-column label="客户端名称"   prop="clientName" width="120" sortable show-overflow-tooltip/>
-        <el-table-column label="执行时间" prop="time" width="170" sortable/>
-        <!--<el-table-column label="节点" prop="node" width="160" sortable/>-->
-        <el-table-column label="客户端" prop="client" width="160" sortable show-overflow-tooltip/>
+        <el-table-column :label="t('redisSlow.clientName')"   prop="clientName" width="140" sortable show-overflow-tooltip/>
+        <el-table-column :label="t('redisSlow.time')" prop="time" width="170" sortable/>
+        <!--<el-table-column :label="t('redisSlow.node')" prop="node" width="160" sortable/>-->
+        <el-table-column :label="t('redisSlow.client')" prop="client" width="160" sortable show-overflow-tooltip/>
       </me-table>
     </div>
   </div>
@@ -156,7 +158,8 @@ refresh()
 
   .header {
     :deep(.el-input-group__prepend) {
-      padding: 0 14px;
+      //padding: 0 14px;
+      width: 60px;
     }
     :deep(.el-input-group__append) {
       width: 40px;

@@ -1,20 +1,22 @@
 <script setup>
 import {bus, CONN_REFRESH, meInvoke, meOk, mePrompt} from '@/utils/util.js'
 import Setting from '@/views/ext/Setting.vue'
-import AppInfo from '@/views/ext/AppInfo.vue'
+import About from '@/views/ext/About.vue'
+import {useI18n} from 'vue-i18n'
 
 // 共享数据
 const share = inject('share')
+const { t } = useI18n()
 
 // 新增模拟数据
 async function mockData() {
-  mePrompt('请输入每种数据类型条数（N×5）', {
+  mePrompt(t('keyHeader.mockHint'), {
         inputValue: 10,
         inputType: 'number'
       },
       async ({value}) => {
         await meInvoke('mock_data', {id: share.conn.id, count: parseInt(value)})
-        meOk('模拟数据插入完成')
+        meOk(t('keyHeader.mockOk'))
         bus.emit(CONN_REFRESH)
       })
 }
@@ -44,7 +46,7 @@ async function handleCommand(command) {
 
 <template>
   <div class="key-header">
-    <el-select v-model="share.conn" placeholder="请选择连接" class="conn" clearable
+    <el-select v-model="share.conn" :placeholder="t('keyHeader.connHint')" class="conn" clearable
                filterable :disabled="share.connList.length == 0" value-key="id">
       <el-option v-for="item in share.connList" :label="item.name" :value="item" :key="item.id">
         <div :style="{color: item?.color}">{{ item.name }}</div>
@@ -63,30 +65,30 @@ async function handleCommand(command) {
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item command="refreshConn" :disabled="!share.conn">
-            <me-icon name="刷新连接" icon="el-icon-refresh"/>
+            <me-icon :name="t('keyHeader.refreshConn')" icon="el-icon-refresh"/>
           </el-dropdown-item>
           <el-dropdown-item command="closeConn" :disabled="!share.conn">
-            <me-icon name="关闭连接" icon="el-icon-circle-close"/>
+            <me-icon :name="t('keyHeader.closeConn')" icon="el-icon-circle-close"/>
           </el-dropdown-item>
           <el-dropdown-item command="mockData" :disabled="!share.conn">
-            <me-icon name="模拟数据" icon="el-icon-coffee-cup"/>
+            <me-icon :name="t('keyHeader.mockData')" icon="el-icon-coffee-cup"/>
           </el-dropdown-item>
           <el-dropdown-item command="setting" divided>
-            <me-icon name="基础设置" icon="el-icon-setting"/>
+            <me-icon :name="t('keyHeader.setting')" icon="el-icon-setting"/>
           </el-dropdown-item>
           <el-dropdown-item command="info">
-            <me-icon name="关于" icon="me-icon-info"/>
+            <me-icon :name="t('keyHeader.about')" icon="me-icon-info"/>
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
 
     <!--为了方便主题语言等初始化，组件一直存在；为了方便v-model直接绑定弹框是否显示直接传入dialog-->
-    <el-dialog title="基础设置" v-model="dialog.setting" width="500" align-center draggable>
+    <el-dialog :title="t('setting.title')" v-model="dialog.setting" width="600" align-center draggable>
       <Setting/>
     </el-dialog>
     <el-dialog v-model="dialog.info" width="400" align-center draggable>
-      <AppInfo/>
+      <About/>
     </el-dialog>
   </div>
 </template>

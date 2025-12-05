@@ -2,7 +2,9 @@
 import {useVirtualList} from '@vueuse/core'
 import {cloneDeep} from 'lodash'
 import {meInvoke, meOk} from '@/utils/util.js'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({open})
 function open(data) {
@@ -30,9 +32,9 @@ watch(() => form.value.match, () => {
   form.value.keyList = []
 })
 
-const rules = {
-  match: [{required: true, message: '键名表达式不能为空'}]
-}
+const rules = computed(() => ({
+  match: [{required: true, message: t('keyBatchDel.matchRequired')}]
+}))
 
 // 提交数据
 const formRef = useTemplateRef('formRef')
@@ -43,7 +45,7 @@ function submit() {
     loading.value = true
     try {
       await meInvoke('batch_del', {id: share.conn.id, param: form.value})
-      meOk("删除成功")
+      meOk(t('deleteOk'))
       emit('success')
       visible.value = false
     } finally {
@@ -80,17 +82,17 @@ const {list, containerProps, wrapperProps} = useVirtualList(
 </script>
 
 <template>
-  <el-dialog title="批量删除键"
+  <el-dialog :title="t('keyBatchDel.title')"
              v-model="visible" :width="600"
              @closed="emit('closed')">
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-      <el-form-item label="键名表达式">
+      <el-form-item :label="t('keyBatchDel.match')">
         <!-- 此处保留可编辑，使用更加方便 -->
         <el-input type="text" v-model="form.match"/>
-        <el-checkbox v-model="form.deleteDirect" v-if="form.keyList.length === 0">直接匹配删除</el-checkbox>
+        <el-checkbox v-model="form.deleteDirect" v-if="form.keyList.length === 0">{{t('keyBatchDel.deleteDirect')}}</el-checkbox>
       </el-form-item>
 
-      <el-form-item :label="`受影响的键名（${form.keyList.length}）`" v-if="!showScan">
+      <el-form-item :label="t('keyBatchDel.impactKeys', {size: form.keyList.length})" v-if="!showScan">
         <div v-bind="containerProps" :style="{height: '300px', width: '100%'}">
           <div v-bind="wrapperProps">
             <div v-for="item in list" :key="item.index" class="key single-line-ellipsis">
@@ -102,11 +104,11 @@ const {list, containerProps, wrapperProps} = useVirtualList(
     </el-form>
 
     <template #footer>
-      <el-button @click="visible=false" >取 消</el-button>
-      <el-button type="primary" :loading="loading" @click="submit" v-if="form.deleteDirect">确认删除</el-button>
+      <el-button @click="visible=false" >{{ t('cancel') }}</el-button>
+      <el-button type="primary" :loading="loading" @click="submit" v-if="form.deleteDirect">{{ t('keyBatchDel.confirmDelete') }}</el-button>
       <template v-else>
-        <el-button type="primary" :loading="loading" @click="scanKey" v-if="showScan">查看受影响的键名</el-button>
-        <el-button type="primary" :loading="loading" @click="submit" v-else :disabled="form.keyList.length == 0">确认删除{{form.keyList.length}}个键</el-button>
+        <el-button type="primary" :loading="loading" @click="scanKey" v-if="showScan">{{ t('keyBatchDel.showImpactKeys') }}</el-button>
+        <el-button type="primary" :loading="loading" @click="submit" v-else :disabled="form.keyList.length == 0"> {{t('keyBatchDel.confirmDeleteSize', {size: form.keyList.length})}}</el-button>
       </template>
     </template>
   </el-dialog>

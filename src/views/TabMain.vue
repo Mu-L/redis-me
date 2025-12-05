@@ -5,9 +5,10 @@ import RedisSlow from './tab/RedisSlow.vue'
 import RedisTerminal from './tab/RedisTerminal.vue'
 import RedisMonitor from './tab/RedisMonitor.vue'
 import RedisPubsub from './tab/RedisPubsub.vue'
+import {useI18n} from 'vue-i18n'
 // import RedisDemo from '@/views/tab/RedisDemo.vue'
 // import RedisTauri from './tab/RedisTauri.vue'
-
+const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 const canEdit = computed(() => true)
@@ -26,42 +27,42 @@ const canEdit = computed(() => true)
 
     <el-tab-pane name="info">
       <template #label>
-        <me-icon name="信息" icon="el-icon-calendar"/>
+        <me-icon :name="t('tabMain.info')" icon="el-icon-calendar"/>
       </template>
       <RedisInfo/>
     </el-tab-pane>
 
     <el-tab-pane name="value">
       <template #label>
-        <me-icon name="键值" icon="el-icon-memo"/>
+        <me-icon :name="t('tabMain.value')" icon="el-icon-memo"/>
       </template>
       <RedisValue/>
     </el-tab-pane>
 
     <el-tab-pane name="console" lazy v-if="canEdit">
       <template #label>
-        <me-icon name="终端" icon="me-icon-console"/>
+        <me-icon :name="t('tabMain.console')" icon="me-icon-console"/>
       </template>
       <RedisTerminal/>
     </el-tab-pane>
 
     <el-tab-pane name="slow" lazy>
       <template #label>
-        <me-icon name="慢日志" icon="me-icon-slow"/>
+        <me-icon :name="t('tabMain.slow')" icon="me-icon-slow"/>
       </template>
       <RedisSlow/>
     </el-tab-pane>
 
     <el-tab-pane name="monitor" lazy v-if="canEdit">
       <template #label>
-        <me-icon name="监控" icon="el-icon-monitor"/>
+        <me-icon :name="t('tabMain.monitor')" icon="el-icon-monitor"/>
       </template>
       <RedisMonitor/>
     </el-tab-pane>
 
     <el-tab-pane name="pubsub" lazy v-if="canEdit">
       <template #label>
-        <me-icon name="发布订阅" icon="me-icon-pubsub"/>
+        <me-icon :name="t('tabMain.pubsub')" icon="me-icon-pubsub"/>
       </template>
       <RedisPubsub/>
     </el-tab-pane>
@@ -75,16 +76,8 @@ const canEdit = computed(() => true)
   padding: 0 10px 10px 10px;
   height: 100%;
 
-  //:deep(.el-tabs--border-card) {
-  //  border: 1px solid var(--el-border-color);
-  //}
-
   :deep(.el-tab-pane) {
     height: 100%;
   }
-
-  //:deep(.el-tabs__new-tab) {
-  //  border: none;
-  //}
 }
 </style>

@@ -5,7 +5,6 @@ mod utils;
 use crate::utils::setup::{app_setup, init_logger};
 use api::*;
 use client::state::AppState;
-use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -14,7 +13,8 @@ pub fn run() {
         .expect("Failed to install rustls crypto provider");
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_window_state::Builder::new().build())
+        // 窗口状态插件暂时注释
+        // .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())

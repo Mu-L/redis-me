@@ -1,5 +1,6 @@
-// import {pluginFs} from '@tauri-apps/plugin-fs'
-//
-// export default function (app) {
-//   pluginFs().register()
-// }
+// 打包后关闭右键菜单
+if (import.meta.env.PROD) {
+  document.addEventListener('contextmenu', event => event.preventDefault());
+}
+
+export default function (app) {}

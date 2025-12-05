@@ -7,7 +7,9 @@ import {Sortable} from 'sortablejs'
 import {open, save} from '@tauri-apps/plugin-dialog'
 import {readTextFile, writeTextFile} from '@tauri-apps/plugin-fs'
 import dayjs from 'dayjs'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const share = inject('share')
 const keyword = ref('')
 const filterDataList = computed(() => {
@@ -104,9 +106,9 @@ async function exportConn() {
   if (path) {
     try {
       await writeTextFile(path, JSON.stringify(share.connList, null, 2))
-      meOk('导出成功')
+      meOk(t('conn.exportOk'))
     } catch (e) {
-      meErr(e, '导出失败')
+      meErr(e, t('conn.exportErr'))
     }
   }
 }
@@ -125,9 +127,9 @@ async function importConn() {
       newConnList.push(...share.connList.filter(conn => !impIds.includes(conn.id)))
       newConnList.push(...impConnList)
       share.connList = newConnList
-      meOk('导入成功')
+      meOk(t('conn.importOk'))
     } catch (e) {
-      meErr(e, '导入失败')
+      meErr(e, t('conn.importErr'))
     }
   }
 }
@@ -138,18 +140,18 @@ async function checkImportContent(content) {
   try {
     connList = JSON.parse(content)
   } catch (e) {
-    throw new Error('文件JSON解析错误')
+    throw new Error(t('conn.importJsonErr'))
   }
 
   // 数组检查
   if (!Array.isArray(connList) || connList.length === 0) {
-    throw new Error('文件不包含有效连接')
+    throw new Error(t('conn.importConnErr'))
   }
 
   // 属性检查（简单检查）
   connList.forEach(conn => {
     if (!conn.id || !conn.name || !conn.host || !conn.port) {
-      throw new Error('文件连接格式错误')
+      throw new Error(t('conn.importFormatErr'))
     }
   })
 
@@ -167,7 +169,7 @@ async function checkImportContent(content) {
   <div class="redis-conn">
     <div class="me-flex header">
       <div>
-        <el-button icon="el-icon-plus" type="primary" @click="addConn">新增连接</el-button>
+        <el-button icon="el-icon-plus" type="primary" @click="addConn">{{t('conn.add')}}</el-button>
       </div>
       <div>
         <el-dropdown placement="bottom-start" @command="handleCommand" style="margin-right: 10px">
@@ -175,16 +177,15 @@ async function checkImportContent(content) {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="export" :disabled="share.connList.length === 0 ">
-                <me-icon name="导出" icon="el-icon-upload"/>
+                <me-icon :name="t('conn.export')" icon="el-icon-upload"/>
               </el-dropdown-item>
               <el-dropdown-item command="import">
-                <me-icon name="导入" icon="el-icon-download"/>
+                <me-icon :name="t('conn.import')" icon="el-icon-download"/>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-input v-model="keyword" placeholder="模糊筛选（名称、主机）" style="width: 300px; margin-right: 10px"
-                  clearable/>
+        <el-input v-model="keyword" :placeholder="t('conn.keyword')" style="width: 300px; margin-right: 10px" clearable/>
       </div>
     </div>
     <el-table ref="table"
@@ -194,12 +195,12 @@ async function checkImportContent(content) {
               border stripe
               height="100%">
       <el-table-column label="#" type="index" width="50" align="center" class-name="drag-handle"/>
-      <el-table-column label="颜色" prop="color" width="60">
+      <el-table-column :label="t('conn.color')" prop="color" width="64" align="center">
         <template #default="scope">
           <el-color-picker size="small" v-model="scope.row.color" :predefine="PREDEFINE_COLORS"/>
         </template>
       </el-table-column>
-      <el-table-column label="名称" prop="name" show-overflow-tooltip>
+      <el-table-column :label="t('conn.name')" prop="name" show-overflow-tooltip>
         <template #default="scope">
           <div style="display: flex">
             <el-link underline="never" type="primary"
@@ -210,23 +211,23 @@ async function checkImportContent(content) {
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="主机端口" prop="host" width="160" show-overflow-tooltip>
+      <el-table-column :label="t('conn.hostPort')" prop="host" width="180" show-overflow-tooltip>
         <template #default="scope">
           {{ scope.row.host + ':' + scope.row.port }}
         </template>
       </el-table-column>
-      <el-table-column label="其他属性" width="180">
+      <el-table-column :label="t('conn.otherProp')" width="180">
         <template #default="scope">
-          <el-checkbox disabled size="small" v-model="scope.row.cluster">集群</el-checkbox>
+          <el-checkbox disabled size="small" v-model="scope.row.cluster">{{ t('conn.cluster') }}</el-checkbox>
           <el-checkbox disabled size="small" v-model="scope.row.ssl">SSL</el-checkbox>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="100" fixed="right" align="center">
+      <el-table-column :label="t('action')" width="100" fixed="right" align="center">
         <template #default="scope">
           <div class="me-flex">
-            <me-icon info="复制" icon="el-icon-document-copy" class="icon-btn" @click="copyConn(scope.row) "/>
-            <me-icon info="编辑" icon="el-icon-edit" class="icon-btn" @click="editConn(scope.row)"/>
-            <me-icon info="删除" icon="el-icon-delete" class="icon-btn" @click="deleteConn(scope.row)"/>
+            <me-icon :info="t('copy')"   icon="el-icon-document-copy" class="icon-btn" @click="copyConn(scope.row) "/>
+            <me-icon :info="t('edit')"   icon="el-icon-edit" class="icon-btn" @click="editConn(scope.row)"/>
+            <me-icon :info="t('delete')" icon="el-icon-delete" class="icon-btn" @click="deleteConn(scope.row)"/>
           </div>
         </template>
       </el-table-column>
