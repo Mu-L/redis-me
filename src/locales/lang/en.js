@@ -182,6 +182,16 @@ export default {
     loadFolder: 'Load Folder',
     memoryUsage: 'Memory Usage',
     deleteFolder: 'Batch Delete Keys'
-  }
+  },
+
+  redisClient: {
+    clientType: 'Client Type',
+    keyword: 'Filter (Addr、Name) ',
+    addr: 'Addr',
+    name: 'Name',
+    age: 'Age',
+    idle: 'Idle',
+    cmd: 'Last Cmd'
+  },
 
 }

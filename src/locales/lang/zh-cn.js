@@ -182,6 +182,18 @@ export default {
     loadFolder: '只加载该目录',
     memoryUsage: '目录内存分析',
     deleteFolder: '批量删除键'
-  }
+  },
+
+  redisClient: {
+    clientType: '客户端类型',
+    keyword: '模糊筛选（客户端、名称）',
+    addr: '客户端',
+    name: '客户端名称',
+    age: '持续时间',
+    idle: '空闲时间',
+    cmd: '最后命令'
+  },
+
+
 
 }

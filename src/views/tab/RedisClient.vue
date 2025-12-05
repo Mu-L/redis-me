@@ -1,7 +1,9 @@
 <script setup>
 import NodeList from '@/views/ext/NodeList.vue'
 import {meHumanSeconds, meInvoke} from '@/utils/util.js'
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 const {initNode} = defineProps({
@@ -52,7 +54,6 @@ async function refresh() {
   }
 }
 refresh()
-// onUnmounted(() => console.log('销毁'))
 </script>
 
 <template>
@@ -60,7 +61,7 @@ refresh()
     <div class="me-flex header">
       <div>
         <node-list v-model="node" style="margin-right: 10px" @change="refresh"/>
-        <el-select v-model="clientType" style="width: 120px;margin-right: 10px;" placeholder="客户端类型" clearable>
+        <el-select v-model="clientType" style="width: 120px;margin-right: 10px;" :placeholder="t('redisClient.clientType')" clearable>
           <el-option value="NORMAL"/>
           <el-option value="MASTER"/>
           <el-option value="SLAVE"/>
@@ -69,7 +70,7 @@ refresh()
         </el-select>
       </div>
       <div>
-        <el-input v-model="keyword" placeholder="模糊筛选（客户端、名称）" style="width: 280px; margin-right: 10px"
+        <el-input v-model="keyword" :placeholder="t('redisClient.keyword')" style="width: 280px; margin-right: 10px"
                   clearable/>
         <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading"/>
       </div>
@@ -80,16 +81,16 @@ refresh()
                 @sort-change="sortChange"
                 border stripe height="100%">
         <el-table-column label="ID" prop="id" show-overflow-tooltip sortable width="100" align="right"/>
-        <el-table-column label="客户端" prop="addr" show-overflow-tooltip width="160"/>
-        <el-table-column label="客户端名称" prop="name" show-overflow-tooltip width="160"/>
-        <el-table-column label="持续时间" prop="age" show-overflow-tooltip sortable width="120" align="right"
+        <el-table-column :label="t('redisClient.addr')" prop="addr" show-overflow-tooltip width="180"/>
+        <el-table-column :label="t('redisClient.name')" prop="name" show-overflow-tooltip width="160"/>
+        <el-table-column :label="t('redisClient.age')" prop="age" show-overflow-tooltip sortable width="140" align="right"
                          :formatter="row => meHumanSeconds(row.age)"/>
-        <el-table-column label="空闲时间" prop="idle" show-overflow-tooltip sortable width="120" align="right"
+        <el-table-column :label="t('redisClient.idle')" prop="idle" show-overflow-tooltip sortable width="120" align="right"
                          :formatter="row => meHumanSeconds(row.idle)"/>
-        <el-table-column label="最后命令" prop="cmd" show-overflow-tooltip sortable min-width="200"/>
+        <el-table-column :label="t('redisClient.cmd')" prop="cmd" show-overflow-tooltip sortable min-width="200"/>
         <el-table-column label="user" prop="user" show-overflow-tooltip sortable width="100"/>
         <el-table-column label="db" prop="db" show-overflow-tooltip sortable width="80" align="center"/>
-        <el-table-column label="totMem" prop="totMem" show-overflow-tooltip sortable width="100" align="right"/>
+        <el-table-column label="totMem" prop="totMem" show-overflow-tooltip sortable width="120" align="right"/>
         <el-table-column label="rbs" prop="rbs" show-overflow-tooltip sortable width="100" align="right"/>
       </me-table>
     </div>
