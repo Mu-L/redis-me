@@ -1,8 +1,10 @@
 <script setup>
 import {useVirtualList} from '@vueuse/core'
 import {computed} from 'vue'
+import {useI18n} from 'vue-i18n'
 
 // 共享数据
+const { t } = useI18n()
 const share = inject('share')
 const canEdit = computed(() => true)
 
@@ -63,9 +65,9 @@ function getKeyClass(item){
 
     <!-- 右键菜单 -->
     <me-context ref="meContextRef" @handle-command="handleCommand" @handle-close="handleClose">
-      <el-dropdown-item command="refreshKey"><me-icon icon="el-icon-refresh"       name="重新载入"/></el-dropdown-item>
-      <el-dropdown-item command="copyKey"   ><me-icon icon="el-icon-document-copy" name="复制键名"/></el-dropdown-item>
-      <el-dropdown-item command="deleteKey" divided v-if="canEdit"><me-icon icon="el-icon-delete" name="删除键"/></el-dropdown-item>
+      <el-dropdown-item command="refreshKey"><me-icon icon="el-icon-refresh"       :name="t('keyList.refreshKey')"/></el-dropdown-item>
+      <el-dropdown-item command="copyKey"   ><me-icon icon="el-icon-document-copy" :name="t('keyList.copyKey')"/></el-dropdown-item>
+      <el-dropdown-item command="deleteKey" divided v-if="canEdit"><me-icon icon="el-icon-delete" :name="t('keyList.deleteKey')"/></el-dropdown-item>
     </me-context>
   </div>
 </template>

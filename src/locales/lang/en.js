@@ -14,10 +14,10 @@ export default {
   warn: 'Warning',
   error: 'Error',
 
-  copyOk: 'Copy OK',
-  addOk: 'Add OK',
-  editOk: 'Save OK',
-  deleteOk: 'Delete OK',
+  copyOk: 'Copied to Clipboard',
+  addOk: 'Success',
+  editOk: 'Saved',
+  deleteOk: 'Deleted',
 
   setting: {
     title: 'Settings',
@@ -164,5 +164,24 @@ export default {
     match: 'Key match expression',
     info: 'Total: {total}，Size: {size}',
     limit: '(Data has reached limit：${limit})'
+  },
+
+  keyList: {
+    refreshKey: 'Reload',
+    copyKey: 'Copy',
+    deleteKey: 'Delete',
+  },
+
+  keyTree: {
+    noData: 'No Data',
+    refreshKey: 'Reload',
+    copyKey: 'Copy',
+    deleteKey: 'Delete',
+    addKey: 'Add Key',
+    copyFolder: 'Copy Folder',
+    loadFolder: 'Load Folder',
+    memoryUsage: 'Memory Usage',
+    deleteFolder: 'Batch Delete Keys'
   }
+
 }

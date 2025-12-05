@@ -1,6 +1,9 @@
 <script setup>
 
 // 共享数据
+import {useI18n} from 'vue-i18n'
+
+const { t } = useI18n()
 const share = inject('share')
 const canEdit = computed(() => true)
 
@@ -51,7 +54,7 @@ function getNodeClass(node){
 }
 
 // 计算树的数据
-const emptyText = ref('没有数据')
+const emptyText = computed(() => t('keyTree.noData'))
 const treeData = computed(() => {
   const root = buildTree(filterKeyList)
   root.forEach(node => countLeaves(node))
@@ -159,16 +162,16 @@ function countLeaves(node) {
       <!-- 右键菜单 -->
       <me-context ref="meContextRef" @handle-command="handleCommand" @handle-close="handleClose">
         <template v-if="contextMenuNode.isLeaf">
-          <el-dropdown-item command="refreshKey"><me-icon icon="el-icon-refresh"       name="重新载入"/></el-dropdown-item>
-          <el-dropdown-item command="copyKey"   ><me-icon icon="el-icon-document-copy" name="复制键名"/></el-dropdown-item>
-          <el-dropdown-item command="deleteKey" divided v-if="canEdit"><me-icon icon="el-icon-delete" name="删除键"/></el-dropdown-item>
+          <el-dropdown-item command="refreshKey"><me-icon icon="el-icon-refresh"       :name="t('keyTree.refreshKey')"/></el-dropdown-item>
+          <el-dropdown-item command="copyKey"   ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')"/></el-dropdown-item>
+          <el-dropdown-item command="deleteKey" divided v-if="canEdit"><me-icon icon="el-icon-delete" :name="t('keyTree.deleteKey')"/></el-dropdown-item>
         </template>
         <template v-else>
-          <el-dropdown-item command="addKey"    v-if="canEdit"><me-icon icon="el-icon-circle-plus"   name="添加新键"/></el-dropdown-item>
-          <el-dropdown-item command="copyFolder"><me-icon icon="el-icon-document-copy" name="复制路径"/></el-dropdown-item>
-          <el-dropdown-item command="loadFolder" divided><me-icon icon="el-icon-search" name="只加载该目录"/></el-dropdown-item>
-          <el-dropdown-item command="memoryUsage" v-if="canEdit"><me-icon icon="me-icon-memory" name="目录内存分析"/></el-dropdown-item>
-          <el-dropdown-item command="deleteFolder" divided v-if="canEdit"><me-icon icon="el-icon-delete" name="批量删除键"/></el-dropdown-item>
+          <el-dropdown-item command="addKey"    v-if="canEdit"><me-icon icon="el-icon-circle-plus"   :name="t('keyTree.addKey')"/></el-dropdown-item>
+          <el-dropdown-item command="copyFolder"><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyFolder')"/></el-dropdown-item>
+          <el-dropdown-item command="loadFolder" divided><me-icon icon="el-icon-search" :name="t('keyTree.loadFolder')"/></el-dropdown-item>
+          <el-dropdown-item command="memoryUsage" v-if="canEdit"><me-icon icon="me-icon-memory" :name="t('keyTree.memoryUsage')"/></el-dropdown-item>
+          <el-dropdown-item command="deleteFolder" divided v-if="canEdit"><me-icon icon="el-icon-delete" :name="t('keyTree.deleteFolder')"/></el-dropdown-item>
         </template>
       </me-context>
     </template>

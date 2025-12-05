@@ -1,6 +1,6 @@
 <script setup>
-import ListKey from './key/ListKey.vue'
-import TreeKey from './key/TreeKey.vue'
+import KeyList from './key/KeyList.vue'
+import KeyTree from './key/KeyTree.vue'
 import {computed, ref} from 'vue'
 import {bus, meDeleteKey, CONN_REFRESH, meCopy, KEY_DELETE, meInvoke, KEY_REFRESH, meOk} from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
@@ -236,13 +236,13 @@ function keyMemory(folder) {
     </el-input>
 
     <div class="key-list" v-loading="loading">
-      <ListKey v-if="keyShowType === 'list'"
+      <KeyList v-if="keyShowType === 'list'"
                :filter-key-list="filterKeyList"
                :redis-key="share.redisKey"
                :color="share.color"
                @chooseKey="chooseKey"
                @contextKey="contextKey"/>
-      <TreeKey v-else
+      <KeyTree v-else
                :filter-key-list="filterKeyList"
                :redis-key="share.redisKey"
                :color="share.color"

@@ -164,5 +164,24 @@ export default {
     match: '键名表达式',
     info: '总数：{total}，大小：{size}',
     limit: '（数据量达到扫描限制：${limit}）'
+  },
+
+  keyList: {
+    refreshKey: '重新载入',
+    copyKey: '复制键名',
+    deleteKey: '删除键',
+  },
+
+  keyTree: {
+    noData: '没有数据',
+    refreshKey: '重新载入',
+    copyKey: '复制键名',
+    deleteKey: '删除键',
+    addKey: '添加新键',
+    copyFolder: '复制路径',
+    loadFolder: '只加载该目录',
+    memoryUsage: '目录内存分析',
+    deleteFolder: '批量删除键'
   }
+
 }
