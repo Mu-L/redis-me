@@ -194,6 +194,18 @@ export default {
     cmd: '最后命令'
   },
 
+  redisConfig: {
+    total: '配置数',
+    noConfig: '暂无配置文件',
+    reference: '参考',
+    keyword: '模糊筛选（配置项、配置值）',
+    param: '配置项',
+    value: '配置值',
+    tip: '说明',
+    defaultConfig: '默认配置'
+  },
+
+
 
 
 }

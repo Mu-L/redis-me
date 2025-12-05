@@ -194,4 +194,15 @@ export default {
     cmd: 'Last Cmd'
   },
 
+  redisConfig: {
+    total: 'Total',
+    noConfig: 'No Config File',
+    reference: 'Reference',
+    keyword: 'Filter (Param / Value)',
+    param: 'Param',
+    value: 'Value',
+    tip: 'Tip',
+    defaultConfig: 'default config'
+  },
+
 }
