@@ -88,6 +88,7 @@ export default {
     info: 'INFO',
     value: 'Value',
     console: 'Console',
+    memory: 'Memory',
     slow: 'SlowLog',
     monitor: 'Monitor',
     pubsub: 'Pub/Sub',
