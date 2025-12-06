@@ -1,8 +1,7 @@
 <script setup>
-import {LazyStore} from '@tauri-apps/plugin-store'
 import TabMain from './TabMain.vue'
 import {sortBy} from 'lodash'
-import {bus, CONN_REFRESH, meInvoke, STORE_CONN_LIST, STORE_FILE_NAME} from '@/utils/util.js'
+import {bus, CONN_REFRESH, meInvoke} from '@/utils/util.js'
 import TabConn from '@/views/TabConn.vue'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
@@ -10,37 +9,15 @@ import {onMounted, ref} from 'vue'
 
 // 共享数据
 const share = reactive({
-  conn: null,    // 当前连接
-  connList: [],  // 连接列表
-  nodeList: [],  // 节点列表
-  color: 'var(--el-color-primary)', // 即 share.conn.color（便于使用和移植）
+  conn: null,                         // 当前连接
+  connList: meTauri.connList,  // 连接列表, 初始化从存储中已读取
+  nodeList: [],                       // 节点列表
+  color: 'var(--el-color-primary)',   // 即 share.conn.color（便于使用和移植）
   redisKey: null,
   tabName: 'info',
   dbSizeMap: {}, // 数据库大小显示
-  store: null    // 共享存储对象（连接和设置都需要使用）
 })
-
 provide('share', share)
-
-// 导入存储的连接信息
-let initConnListReady = false
-async function loadStore() {
-  // markRaw 将一个对象标记为不可被转为代理。返回该对象本身。
-  // 避免报错: Cannot read private member from an object whose class did not declare it
-  try {
-    // const store = await load(STORE_FILE_NAME)
-    const store = new LazyStore(STORE_FILE_NAME)
-    share.store = markRaw(store)
-    share.connList = await share.store.get(STORE_CONN_LIST) || []
-  } catch (e) {
-    console.error('加载存储文件失败', e)
-  }
-
-  await nextTick(() => {
-    initConnListReady = true
-  })
-}
-onMounted(() => loadStore())
 
 // 当环境发生变化时，销毁整个key和tag组件（避免状态保留）
 onMounted(() => bus.on(CONN_REFRESH, toggleKeyTag))
@@ -90,13 +67,8 @@ watch(() => share.conn, async (newConn, oldConn) => {
 // 保存连接列表: 列表真实变化时才发送命令
 const connListToString = computed(() => JSON.stringify(share.connList))
 watch(connListToString, async (newConnList) => {
-  // 应用启动读取到所有连接信息发送给后端
   await meInvoke('conn_list', {connList: JSON.parse(newConnList)})
-  if (initConnListReady) {
-    // 首次读取无需写入，后续有变化时才需写入
-    await share.store?.set(STORE_CONN_LIST, share.connList)
-  }
-})
+}, {immediate: true})
 </script>
 
 <template>

@@ -2,20 +2,29 @@
 import AppMain from '@/views/AppMain.vue'
 import AppTitle from '@/views/ext/AppTitle.vue'
 import {meCheckUpdate} from '@/utils/util.js'
+import {useDark} from '@vueuse/core'
+import {useI18n} from 'vue-i18n'
 
-import 'dayjs/locale/en'
-import 'dayjs/locale/zh-cn'
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
-import en from 'element-plus/es/locale/lang/en'
-import {useLocalStorage} from '@vueuse/core'
-
-// 区域语言映射
-const localeLangMap = {zhCn, en}
-const lang = useLocalStorage('lang')
-const locale = computed(() => localeLangMap[lang.value])
+const {locale: i18nLocale} = useI18n()
 
 // 检查更新
 onMounted(() => meCheckUpdate())
+
+let locale = null
+
+// 主题切换
+const isDark = useDark()
+watch(() => meTauri.settings.theme, (newValue) => {
+  const newTheme = newValue === 'system' ? meTauri.systemTheme : newValue
+  isDark.value = newTheme === 'dark'
+}, {immediate: true})
+
+// 语言切换
+watch(() => meTauri.settings.language, (newValue) => {
+  const language = newValue === 'system' ? meTauri.systemLanguage : newValue
+  locale = window.ElementPlusLanguageMap[language] // ElementPlus的语言切换
+  i18nLocale.value = language // RedisME的语言切换, 只能在组件中使用
+}, {immediate: true})
 </script>
 
 <template>

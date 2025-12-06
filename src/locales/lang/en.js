@@ -25,10 +25,12 @@ export default {
     title: 'Settings',
     appearance: 'Appearance',
     theme: 'Theme',
+
     system: 'Auto',
     light: 'Light',
     dark: 'Dark',
-    language: 'Language'
+    language: 'Language',
+    systemLanguage: 'System'
   },
 
   conn: {

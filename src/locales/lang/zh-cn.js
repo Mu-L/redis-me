@@ -25,10 +25,11 @@ export default {
     title: '设置',
     appearance: '外观',
     theme: '主题',
-    system: 'Auto',
+    system: '系统',
     light: '浅色',
     dark: '深色',
-    language: '语言'
+    language: '语言',
+    systemLanguage: '跟随系统'
   },
 
   conn: {

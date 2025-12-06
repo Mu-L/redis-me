@@ -10,11 +10,6 @@ import i18n from '@/locales'
 // 全局事件总线: setup直接导入，app全局属性也添加
 export const bus = mitt()
 
-// 存储
-export const STORE_FILE_NAME = 'store.json'
-export const STORE_CONN_LIST = 'connList'
-export const STORE_SETTING = 'setting'
-
 // 常量
 export const KEY_DELETE = 'DELETE_KEY'
 export const KEY_REFRESH = 'REFRESH_KEY'
