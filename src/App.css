@@ -1,8 +1,25 @@
-/*文本选择: 整体禁用，个别地方放开*/
+/* 文本选择: 整体禁用，个别地方放开 */
 html {
   user-select: none;
   -webkit-user-select: none; /* Chrome, Safari */
   -moz-user-select: none;    /* Firefox */
+}
+
+/* 字体 */
+:root {
+  /* https://element-plus.org/zh-CN/component/typography#%E5%AD%97%E4%BD%93 */
+  /* 系统UI字体, 添加system-ui最高优先级 */
+  --ui-font: system-ui, Inter, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+  'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+
+  /* vscode的默认字体: Menlo, Monaco, 'Courier New', monospace */
+  /*
+     MacOS: Menlo 支持中英文, Monaco 也支持中英文
+    Window: Consolas/黑体,
+     Linux: 可以自定义字体
+     system-ui: 兜底
+  */
+  --code-font: Menlo, Monaco, Consolas, 黑体, system-ui;
 }
 
 .el-descriptions__content,
@@ -32,23 +49,13 @@ html, body {
   padding: 0;
   height: 100%; /*app的height单独加高度100%不生效*/
 
-  /* https://element-plus.org/zh-CN/component/typography#%E5%AD%97%E4%BD%93 */
-  /* 系统UI字体, 添加system-ui最高优先级 */
-  font-family: system-ui, Inter, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
-  'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-family: var(--ui-font);
   overflow: hidden;
 }
 
 /* CodeMirror */
 .CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like {
-  /* vscode的默认字体: Menlo, Monaco, 'Courier New', monospace */
-  /*
-     MacOS: Menlo 支持中英文, Monaco 也支持中英文
-    Window: Consolas/黑体,
-     Linux: TODO验证
-     system-ui: 兜底
-  */
-  font-family: Menlo, Monaco, Consolas, 黑体, system-ui !important;
+  font-family: var(--code-font);
 }
 
 .codemirror-opacity {

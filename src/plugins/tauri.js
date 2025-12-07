@@ -15,9 +15,9 @@ console.log('系统主题:', systemTheme, '系统语言:', systemLanguage)
 // 存储及初始化数据读取
 const store = new LazyStore('store.json')
 const connList = await store.get('connList') || []
-const settings = await store.get('settings')
-  || { language: 'system', theme: 'system', uiFont: 'system', codeFont: 'system' }
-
+const storeSettings = await store.get('settings')
+const initSettings =  { language: 'system', theme: 'system', uiFont: '', codeFont: '' }
+const settings = { ...initSettings, ...storeSettings }
 const meTauri = reactive({
   systemTheme,
   systemLanguage,

@@ -25,6 +25,14 @@ watch(() => meTauri.settings.language, (newValue) => {
   locale = window.ElementPlusLanguageMap[language] // ElementPlus的语言切换
   i18nLocale.value = language // RedisME的语言切换, 只能在组件中使用
 }, {immediate: true})
+
+// 字体切换
+const defaultUiFont = "system-ui, Inter, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif"
+const defaultCodeFont = "Menlo, Monaco, Consolas, 黑体, system-ui"
+const appUiFont = computed(() => meTauri.settings.uiFont || defaultUiFont)
+const appCodeFont = computed(() => meTauri.settings.codeFont || defaultCodeFont)
+watch(appUiFont, () => document.documentElement.style.setProperty('--ui-font', appUiFont.value), {immediate: true})
+watch(appCodeFont, () => document.documentElement.style.setProperty('--code-font', appUiFont.value), {immediate: true})
 </script>
 
 <template>
