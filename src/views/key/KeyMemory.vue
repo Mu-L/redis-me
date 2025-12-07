@@ -20,7 +20,7 @@ const visible = ref(false)
 const loading = ref(false)
 const form = ref({
   match: '',
-  addKeyType: false,
+  needKeyType: false,
   sizeLimit: 0,
   countLimit: 10000,
   scanCount: 10000,

@@ -18,16 +18,24 @@ export default {
   copyOk: 'Copied to Clipboard',
   addOk: 'Success',
   editOk: 'Saved',
+  saveOk: 'Saved',
   deleteOk: 'Deleted',
 
   setting: {
     title: 'Settings',
     appearance: 'Appearance',
     theme: 'Theme',
+
     system: 'Auto',
     light: 'Light',
     dark: 'Dark',
-    language: 'Language'
+    language: 'Language',
+    systemLanguage: 'System',
+
+    uiFont: 'UI Font',
+    codeFont: 'Code Font',
+    uiFontHint: 'Optional Choose UI Font',
+    codeFontHint: 'Optional Choose Code Font（CodeMirror, Terminal）'
   },
 
   conn: {
@@ -85,6 +93,7 @@ export default {
     info: 'INFO',
     value: 'Value',
     console: 'Console',
+    memory: 'Memory',
     slow: 'SlowLog',
     monitor: 'Monitor',
     pubsub: 'Pub/Sub',
@@ -210,7 +219,7 @@ export default {
     rdbDisabled: 'RDB Disabled',
     total: 'Total',
     uptimeInDays: 'Uptime',
-    days: 'Days',
+    days: 'days',
     keyTotal: 'Keys',
     connectedClients: 'Clients',
     maxClients: 'Max',

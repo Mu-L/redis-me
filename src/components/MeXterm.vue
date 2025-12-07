@@ -74,9 +74,10 @@ const computedTheme = computed(() => {
 })
 
 // 设置终端尺寸
+const codeFont = getComputedStyle(document.documentElement).getPropertyValue('--code-font')
 const term = new Terminal({
   theme: computedTheme.value,
-  fontFamily: "Menlo, Monaco, Consolas, 黑体, system-ui",
+  fontFamily: codeFont,
   cursorBlink: true,  // 光标闪烁
   cursorStyle: 'bar', // 竖线
 })

@@ -30,10 +30,10 @@ const hint = computed(() => {
   return t('redisMemory.hint', params)
 })
 
-const sizeLimitKb = ref(100)
+const sizeLimitKb = ref(10)
 const countLimit = ref(500)
 const scanCount = ref(1000)
-const scanTotal = ref(10000)
+const scanTotal = ref(2000)
 const sleepMillis = ref(0)
 const match = ref('')
 const matchParam = computed(() => {
@@ -84,7 +84,7 @@ async function refresh() {
     loading.value = false
   }
 }
-refresh()
+// refresh()
 
 function memoryUsage() {
   if (scanTotal.value > 10_0000 || scanTotal.value <= 0 || sleepMillis.value > 100) {

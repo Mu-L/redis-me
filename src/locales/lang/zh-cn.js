@@ -18,16 +18,24 @@ export default {
   copyOk: '复制成功',
   addOk: '新增成功',
   editOk: '保存成功',
+  saveOk: '保存成功',
   deleteOk: '删除成功',
 
   setting: {
     title: '设置',
     appearance: '外观',
     theme: '主题',
-    system: 'Auto',
+
+    system: '系统',
     light: '浅色',
     dark: '深色',
-    language: '语言'
+    language: '语言',
+    systemLanguage: '跟随系统',
+
+    uiFont: '界面字体',
+    codeFont: '代码字体',
+    uiFontHint: '可选界面字体（UI）',
+    codeFontHint: '可选代码字体（CodeMirror, Terminal）'
   },
 
   conn: {
@@ -85,6 +93,7 @@ export default {
     info: '信息',
     value: '键值',
     console: '终端',
+    memory: '内存',
     slow: '慢日志',
     monitor: '监控',
     pubsub: '发布订阅',
@@ -99,7 +108,7 @@ export default {
     refreshConn: '刷新连接',
     closeConn: '关闭连接',
     mockData: '模拟数据',
-    setting: '基础设置',
+    setting: '设置',
     about: '关于',
   },
 

@@ -228,16 +228,18 @@ impl RedisMeClient for RedisMeSingle {
             cursor = next_cursor;
 
             // 计算键大小
-            let mut pipe = Pipeline::with_capacity(new_keys.len());
-            for key in new_keys.iter() {
-                pipe.cmd("memory").arg("usage").arg(key);
-            }
+            if new_keys.len() > 0 {
+                let mut pipe = Pipeline::with_capacity(new_keys.len());
+                for key in new_keys.iter() {
+                    pipe.cmd("memory").arg("usage").arg(key);
+                }
 
-            let sizes: Vec<Option<u64>> = pipe.query(&mut conn)?;
-            for (index, size) in sizes.into_iter().enumerate() {
-                if let Some(size) = size {
-                    if size >= param.size_limit {
-                        keys.push((new_keys[index].clone(), size, "unknown".into()));
+                let sizes: Vec<Option<u64>> = pipe.query(&mut conn)?;
+                for (index, size) in sizes.into_iter().enumerate() {
+                    if let Some(size) = size {
+                        if size >= param.size_limit {
+                            keys.push((new_keys[index].clone(), size, "unknown".into()));
+                        }
                     }
                 }
             }
@@ -262,7 +264,7 @@ impl RedisMeClient for RedisMeSingle {
         }
 
         // 计算键类型
-        if param.need_key_type.unwrap_or(false) {
+        if param.need_key_type.unwrap_or(false) && keys.len() > 0 {
             let mut pipe = Pipeline::with_capacity(keys.len());
             for key in keys.iter() {
                 pipe.cmd("type").arg(&key.0);

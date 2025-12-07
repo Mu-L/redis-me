@@ -6,6 +6,7 @@ import RedisTerminal from './tab/RedisTerminal.vue'
 import RedisMonitor from './tab/RedisMonitor.vue'
 import RedisPubsub from './tab/RedisPubsub.vue'
 import {useI18n} from 'vue-i18n'
+import RedisMemory from '@/views/tab/RedisMemory.vue'
 // import RedisDemo from '@/views/tab/RedisDemo.vue'
 // import RedisTauri from './tab/RedisTauri.vue'
 const { t } = useI18n()
@@ -44,6 +45,13 @@ const canEdit = computed(() => true)
         <me-icon :name="t('tabMain.console')" icon="me-icon-console"/>
       </template>
       <RedisTerminal/>
+    </el-tab-pane>
+
+    <el-tab-pane name="memory" lazy>
+      <template #label>
+        <me-icon :name="t('tabMain.memory')" icon="me-icon-memory"/>
+      </template>
+      <RedisMemory/>
     </el-tab-pane>
 
     <el-tab-pane name="slow" lazy>

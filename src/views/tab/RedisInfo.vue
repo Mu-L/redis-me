@@ -5,7 +5,6 @@ import NodeList from '../ext/NodeList.vue'
 import {meInvoke} from '@/utils/util.js'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
-import RedisMemory from '@/views/tab/RedisMemory.vue'
 import {useI18n} from 'vue-i18n'
 
 const { t } = useI18n()
@@ -116,7 +115,8 @@ function goConfig() {
   dialog.config = true
 }
 function goMemory() {
-  dialog.memory = true
+  // dialog.memory = true
+  share.tabName = 'memory'
 }
 </script>
 
@@ -246,9 +246,11 @@ function goMemory() {
     <RedisClient :init-node="node || infoNode"/>
   </me-dialog>
 
+  <!--
   <me-dialog v-model="dialog.memory" icon="me-icon-memory" :title="t('redisInfo.memory')" width="80vw" >
     <RedisMemory/>
   </me-dialog>
+  -->
 
   <me-dialog v-model="dialog.config" icon="el-icon-wallet" :title="t('redisInfo.runConfig')" width="80vw" >
     <RedisConfig :init-node="node || infoNode"/>
