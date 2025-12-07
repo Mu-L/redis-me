@@ -34,8 +34,8 @@ export default {
 
     uiFont: 'UI Font',
     codeFont: 'Code Font',
-    uiFontHint: 'Optional Input UI Font',
-    codeFontHint: 'Optional Input Code Font（CodeMirror, Terminal）'
+    uiFontHint: 'Optional Choose UI Font',
+    codeFontHint: 'Optional Choose Code Font（CodeMirror, Terminal）'
   },
 
   conn: {

@@ -17,6 +17,15 @@ const langList = computed(() => [
   {value: 'en', label: 'English'},
   {value: 'zhCN', label: '简体中文'},
 ])
+
+// 字体
+let fonts = ref([])
+const loadFonts = async () => {
+  const localFonts = await window.queryLocalFonts()
+  // 只显示常规字体
+  fonts.value = localFonts.filter(f => f.style === 'Regular').map(f => f.fullName).sort()
+}
+onMounted(loadFonts)
 </script>
 
 <template>
@@ -39,12 +48,18 @@ const langList = computed(() => [
 
       <el-row>
         <el-form-item :label="t('setting.uiFont')" style="width: 100%">
-          <el-input v-model="settings.uiFont" :placeholder="t('setting.uiFontHint')"></el-input>
+          <el-select v-model="settings.uiFont" :placeholder="t('setting.uiFontHint')"
+                     clearable multiple allow-create filterable :reserve-keyword="false">
+            <el-option v-for="item in fonts" :label="item" :value="item" :key="item"/>
+          </el-select>
         </el-form-item>
       </el-row>
       <el-row>
         <el-form-item :label="t('setting.codeFont')" style="width: 100%">
-          <el-input v-model="settings.codeFont" :placeholder="t('setting.codeFontHint')"></el-input>
+          <el-select v-model="settings.codeFont" :placeholder="t('setting.codeFontHint')"
+                     clearable multiple allow-create filterable :reserve-keyword="false">
+            <el-option v-for="item in fonts" :label="item" :value="item" :key="item"/>
+          </el-select>
         </el-form-item>
       </el-row>
     </el-form>

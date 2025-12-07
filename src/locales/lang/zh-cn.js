@@ -34,8 +34,8 @@ export default {
 
     uiFont: '界面字体',
     codeFont: '代码字体',
-    uiFontHint: '可选输入界面字体（UI）',
-    codeFontHint: '可选输入代码字体（CodeMirror, Terminal）'
+    uiFontHint: '可选界面字体（UI）',
+    codeFontHint: '可选代码字体（CodeMirror, Terminal）'
   },
 
   conn: {
