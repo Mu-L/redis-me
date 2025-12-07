@@ -16,7 +16,7 @@ console.log('系统主题:', systemTheme, '系统语言:', systemLanguage)
 const store = new LazyStore('store.json')
 const connList = await store.get('connList') || []
 const settings = await store.get('settings')
-  || { language: 'system', theme: 'system' }
+  || { language: 'system', theme: 'system', uiFont: 'system', codeFont: 'system' }
 
 const meTauri = reactive({
   systemTheme,

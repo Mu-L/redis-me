@@ -25,11 +25,17 @@ export default {
     title: '设置',
     appearance: '外观',
     theme: '主题',
+
     system: '系统',
     light: '浅色',
     dark: '深色',
     language: '语言',
-    systemLanguage: '跟随系统'
+    systemLanguage: '跟随系统',
+
+    uiFont: '界面字体',
+    codeFont: '代码字体',
+    uiFontHint: '可选输入界面字体（UI）',
+    codeFontHint: '可选输入代码字体（CodeMirror, Terminal）'
   },
 
   conn: {
@@ -102,7 +108,7 @@ export default {
     refreshConn: '刷新连接',
     closeConn: '关闭连接',
     mockData: '模拟数据',
-    setting: '基础设置',
+    setting: '设置',
     about: '关于',
   },
 

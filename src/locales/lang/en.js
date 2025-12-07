@@ -30,7 +30,12 @@ export default {
     light: 'Light',
     dark: 'Dark',
     language: 'Language',
-    systemLanguage: 'System'
+    systemLanguage: 'System',
+
+    uiFont: 'UI Font',
+    codeFont: 'Code Font',
+    uiFontHint: 'Optional Input UI Font',
+    codeFontHint: 'Optional Input Code Font（CodeMirror, Terminal）'
   },
 
   conn: {

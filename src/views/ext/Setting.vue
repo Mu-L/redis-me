@@ -20,16 +20,33 @@ const langList = computed(() => [
 </script>
 
 <template>
-  <el-card :header="t('setting.appearance')" header-class="me-card">
-    <el-form inline label-position="left">
-      <el-form-item :label="t('setting.theme')">
-        <el-segmented v-model="settings.theme" :options="themeList"/>
-      </el-form-item>
-      <el-form-item :label="t('setting.language')">
-        <el-select v-model="settings.language" style="width: 120px">
-          <el-option v-for="item in langList" :label="item.label" :value="item.value" :key="item.value"/>
-        </el-select>
-      </el-form-item>
+  <el-card>
+    <el-form inline label-position="right" label-width="86px">
+      <el-row>
+        <el-col :span="12">
+          <el-form-item :label="t('setting.theme')">
+            <el-segmented v-model="settings.theme" :options="themeList"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12" align="right">
+          <el-form-item :label="t('setting.language')">
+            <el-select v-model="settings.language" style="width: 120px">
+              <el-option v-for="item in langList" :label="item.label" :value="item.value" :key="item.value"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row>
+        <el-form-item :label="t('setting.uiFont')" style="width: 100%">
+          <el-input v-model="settings.uiFont" :placeholder="t('setting.uiFontHint')"></el-input>
+        </el-form-item>
+      </el-row>
+      <el-row>
+        <el-form-item :label="t('setting.codeFont')" style="width: 100%">
+          <el-input v-model="settings.codeFont" :placeholder="t('setting.codeFontHint')"></el-input>
+        </el-form-item>
+      </el-row>
     </el-form>
   </el-card>
 </template>
