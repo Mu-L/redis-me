@@ -9,8 +9,7 @@ const i18n = createI18n({
   locale: 'en',
   fallbackLocale: 'en',
   messages: {zhCN, en},
-
-  warnHtmlInMessage: false // 关闭html警告
+  warnHtmlMessage: false // 关闭html警告
 })
 
 export default i18n
