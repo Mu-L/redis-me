@@ -92,7 +92,7 @@ const {list, containerProps, wrapperProps} = useVirtualList(
         <el-checkbox v-model="form.deleteDirect" v-if="form.keyList.length === 0">{{t('keyBatchDel.deleteDirect')}}</el-checkbox>
       </el-form-item>
 
-      <el-form-item :label="t('keyBatchDel.impactKeys', {size: form.keyList.length})" v-if="!showScan">
+      <el-form-item :label="t('keyBatchDel.impactKeys', form.keyList.length, {count: form.keyList.length})" v-if="!showScan">
         <div v-bind="containerProps" :style="{height: '300px', width: '100%'}">
           <div v-bind="wrapperProps">
             <div v-for="item in list" :key="item.index" class="key single-line-ellipsis">
@@ -108,7 +108,7 @@ const {list, containerProps, wrapperProps} = useVirtualList(
       <el-button type="primary" :loading="loading" @click="submit" v-if="form.deleteDirect">{{ t('keyBatchDel.confirmDelete') }}</el-button>
       <template v-else>
         <el-button type="primary" :loading="loading" @click="scanKey" v-if="showScan">{{ t('keyBatchDel.showImpactKeys') }}</el-button>
-        <el-button type="primary" :loading="loading" @click="submit" v-else :disabled="form.keyList.length == 0"> {{t('keyBatchDel.confirmDeleteSize', {size: form.keyList.length})}}</el-button>
+        <el-button type="primary" :loading="loading" @click="submit" v-else :disabled="form.keyList.length == 0"> {{ t('keyBatchDel.confirmDeleteSize', form.keyList.length, {count: form.keyList.length}) }}</el-button>
       </template>
     </template>
   </el-dialog>

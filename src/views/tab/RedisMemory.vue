@@ -124,7 +124,7 @@ function selectionChange(newSelection) {
 }
 
 function batchDelKey() {
-  meConfirm(t('redisMemory.batchDeleteHint', {size: selection.value.length}), async () => {
+  meConfirm(t('redisMemory.batchDeleteHint', selection.value.length, {count: selection.value.length}), async () => {
     const param = {
       match: '',
       keyList: selection.value.map(row => ({key: row.key, bytes: row.bytes})),

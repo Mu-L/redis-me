@@ -70,7 +70,7 @@ export default {
     key: 'Key',
     ca: 'CA',
 
-    nameHint: '【Optional】Automatically generated based on Host and Port',
+    nameHint: '[Optional] Automatically generated based on Host and Port',
     certHint: 'Public Key File format',
     keyHint: 'Private Key File in PEM format',
     caHint: 'Certificate Authority File in PEM format',
@@ -83,7 +83,7 @@ export default {
 
   util: {
     day: 'D',
-    deleteKey: 'Delete【{key}】?',
+    deleteKey: 'Delete [{key}]?',
     updateHint: 'new version v{version}，update？',
     updateDone: 'update done, restart now?',
     updateErr: 'update error: {message}'
@@ -136,7 +136,7 @@ export default {
     ttl: 'TTL',
     negativeOneHint: '-1 means Permanent',
     permanent: 'Permanent',
-    second: 'Second',
+    second: 'Second | Seconds',
     value: 'Value',
     element: 'Element',
     hashKey: 'HashKey'
@@ -160,13 +160,13 @@ export default {
 
   keyBatchDel: {
     matchRequired: 'Key match expression required',
-    title: 'Batch Delete Key',
+    title: 'Batch Delete Keys',
     match: 'Key match expression',
     deleteDirect: 'Delete Direct',
-    impactKeys: 'Impact Keys ({size})',
+    impactKeys: 'Impact Key ({count}) | Impact Keys ({count})',
     confirmDelete: 'Confirm Delete',
     showImpactKeys: 'Show Impact Keys',
-    confirmDeleteSize: 'Delete {size} Keys'
+    confirmDeleteSize: 'Delete 1 Key | Delete {count} Keys'
   },
 
   keyMemory: {
@@ -219,7 +219,7 @@ export default {
     rdbDisabled: 'RDB Disabled',
     total: 'Total',
     uptimeInDays: 'Uptime',
-    days: 'days',
+    days: 'day | days',
     keyTotal: 'Keys',
     connectedClients: 'Clients',
     maxClients: 'Max',
@@ -252,7 +252,7 @@ export default {
     `,
     total: 'Total',
     longTimeHint: 'Are you sure to start memory analysis? It may take a long time, please be patient!',
-    batchDeleteHint: 'Batch Delete {size} Keys？',
+    batchDeleteHint: 'Batch Delete 1 Key? | Batch Delete {count} Keys?',
     scanConfig: 'Scan Config',
 
     fuzzy: 'fuzzy',
@@ -355,6 +355,5 @@ export default {
     loadMore: 'Load More',
     loadAll: 'Load All',
   }
-
 
 }
