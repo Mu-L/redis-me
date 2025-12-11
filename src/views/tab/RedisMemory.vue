@@ -2,11 +2,11 @@
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import {
   bus,
-  meDeleteKey,
-  meFilterHandler,
   KEY_REFRESH,
   meConfirm,
   meCopy,
+  meDeleteKey,
+  meFilterHandler,
   meHumanSize,
   meInvoke,
   meOk
@@ -39,6 +39,15 @@ const match = ref('')
 const matchParam = computed(() => {
   if (match.value === '') return '*'
   return '*' + match.value + '*'
+})
+
+// 要求为正整数, 避免调用Rust时转换为u64报错
+watchEffect(() => {
+  if (sizeLimitKb.value < 0) sizeLimitKb.value = 0
+  if (countLimit.value < 0) countLimit.value = 0
+  if (scanCount.value < 0) scanCount.value = 0
+  if (scanTotal.value < 0) scanTotal.value = 0
+  if (sleepMillis.value < 0) sleepMillis.value = 0
 })
 
 const keyword = ref('')
@@ -78,8 +87,7 @@ async function refresh() {
       sleepMillis: sleepMillis.value,
       needKeyType: true
     }
-    const data = await meInvoke('memory_usage', {id: share.conn.id, param})
-    dataList.value = data
+    dataList.value = await meInvoke('memory_usage', {id: share.conn.id, param})
   } finally {
     loading.value = false
   }
@@ -116,7 +124,7 @@ function selectionChange(newSelection) {
 }
 
 function batchDelKey() {
-  meConfirm(t('redisMemory.batchDeleteHint', {size: selection.value.length}), async () => {
+  meConfirm(t('redisMemory.batchDeleteHint', selection.value.length, {count: selection.value.length}), async () => {
     const param = {
       match: '',
       keyList: selection.value.map(row => ({key: row.key, bytes: row.bytes})),
@@ -139,7 +147,7 @@ function batchDelKey() {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item>
-                <el-input v-model.number="match" style="width: 220px" :placeholder="t('redisMemory.fuzzy')">
+                <el-input v-model="match" style="width: 220px" :placeholder="t('redisMemory.fuzzy')">
                   <template #prepend>{{ t('redisMemory.matchParam') }}</template>
                   <template #append>
                     <el-tooltip raw-content :content="hint" popper-style="max-width: 600px">

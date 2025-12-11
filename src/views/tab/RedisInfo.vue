@@ -140,7 +140,7 @@ function goMemory() {
 
       <el-descriptions-item>
         <template #label><me-icon :name="t('redisInfo.uptimeInDays')" icon="el-icon-timer"/></template>
-        {{dic['uptime_in_days']}} {{t('redisInfo.days')}}
+        {{dic['uptime_in_days']}} {{t('redisInfo.days', parseInt(dic['uptime_in_days']))}}
       </el-descriptions-item>
 
       <el-descriptions-item>

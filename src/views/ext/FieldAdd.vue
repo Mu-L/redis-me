@@ -134,7 +134,7 @@ const hint = computed(() => {
             <el-input v-model.number="form.ttl">
               <template #append>
                 <el-tooltip :content="t('fieldAdd.negativeOneHint')" placement="top">
-                  <div>{{form.ttl == -1 ? t('fieldAdd.permanent') : t('fieldAdd.second')}}</div>
+                  <div>{{form.ttl == -1 ? t('fieldAdd.permanent') : t('fieldAdd.second', form.ttl)}}</div>
                 </el-tooltip>
               </template>
             </el-input>

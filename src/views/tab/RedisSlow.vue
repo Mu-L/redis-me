@@ -16,6 +16,11 @@ const dataList = ref([])
 const sortProperty = ref('cost')
 const sortOrder = ref('descending')
 
+// 最小为1
+watchEffect(() => {
+  if (slowerGetCount.value < 1) slowerGetCount.value = 1
+})
+
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   const arr = dataList.value.filter(row => !key
