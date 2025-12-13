@@ -40,7 +40,7 @@ html.dark {
   --el-bg-color: var(--me-bg-color);         /* el-dialog的背景色: 基础设置-标题 */
   --el-card-bg-color: var(--me-bg-color);    /* el-tab的背景色: 基础设置-外观    */
   --el-bg-color-overlay: var(--me-bg-color); /* el-tabs的背景色: Redis信息      */
-
+  --el-fill-color-blank: var(--me-bg-color); /* el-select的填充颜色 */
   --el-fill-color-lighter: #2F2F2F;          /* el-table表格斑马纹 */
 }
 
