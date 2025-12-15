@@ -82,7 +82,7 @@ export default {
   },
 
   util: {
-    day: '天',
+    days: '天',
     deleteKey: '确定删除键【{key}】吗？',
     updateHint: '有新版本 v{version}，是否更新？',
     updateDone: '更新完成，是否立刻重启？',

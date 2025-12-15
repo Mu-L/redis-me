@@ -82,7 +82,7 @@ export default {
   },
 
   util: {
-    day: 'D',
+    days: 'day | days',
     deleteKey: 'Delete [{key}]?',
     updateHint: 'new version v{version}，update？',
     updateDone: 'update done, restart now?',

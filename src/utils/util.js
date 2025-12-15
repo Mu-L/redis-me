@@ -129,7 +129,7 @@ export function meHumanSeconds(seconds) {
   // 组合结果
   let result = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
   if (days > 0) {
-    result = `${days}${t('day')} ${result}`
+    result = `${days}${t('util.days', days)} ${result}`
   }
   return result
 }
@@ -158,14 +158,15 @@ export function meDeleteKey(id, redisKey, thenFn) {
 export async function meCheckUpdate() {
   console.log('检查更新')
   const update = await check().catch(DoNothing)
+  console.log('检查结果:', update)
   if (update) {
-    meConfirm(t('updateHint', {version: update.version}),
+    meConfirm(t('util.updateHint', {version: update.version}),
       async () => {
         try {
           await update.downloadAndInstall(DoNothing)
-          meConfirm(t('updateDone'), async () => await relaunch())
+          meConfirm(t('util.updateDone'), async () => await relaunch())
         } catch (e) {
-          meOk(t('updateErr', {message: e.message}))
+          meErr(t('util.updateErr', {message: e.message}))
         }
       }
     )
