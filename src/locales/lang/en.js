@@ -35,7 +35,12 @@ export default {
     uiFont: 'UI Font',
     codeFont: 'Code Font',
     uiFontHint: 'Optional Choose UI Font',
-    codeFontHint: 'Optional Choose Code Font（CodeMirror, Terminal）'
+    codeFontHint: 'Optional Choose Code Font（CodeMirror, Terminal）',
+    update: 'Update',
+    updateAuto: 'Auto Check',
+    nowVersion: 'Version',
+    updateNow: 'Check Now',
+    updateProxy: 'Update Proxy',
   },
 
   conn: {
@@ -84,9 +89,13 @@ export default {
   util: {
     days: 'day | days',
     deleteKey: 'Delete [{key}]?',
-    updateHint: 'new version v{version}，update？',
-    updateDone: 'update done, restart now?',
-    updateErr: 'update error: {message}'
+    checking: 'Checking for update, wait a moment...',
+    updateHint: 'New version v{version}, update?',
+    downloadDown: 'Download done, install now?',
+    updateDone: 'Update done, restart now?',
+    updateErr: 'Download Package Fail',
+    latestVersion: "You're up-to-date",
+    checkUpdateErr: 'Check Update Fail'
   },
 
   tabMain: {

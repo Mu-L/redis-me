@@ -8,7 +8,11 @@ import {useI18n} from 'vue-i18n'
 const {locale: i18nLocale} = useI18n()
 
 // 检查更新
-onMounted(() => meCheckUpdate())
+onMounted(() => {
+  if (meTauri.settings.autoUpdate) {
+    meCheckUpdate()
+  }
+})
 
 let locale = null
 
