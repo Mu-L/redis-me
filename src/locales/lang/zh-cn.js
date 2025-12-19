@@ -32,10 +32,16 @@ export default {
     language: '语言',
     systemLanguage: '跟随系统',
 
-    uiFont: '界面字体',
-    codeFont: '代码字体',
+    uiFont: '界面',
+    codeFont: '代码',
     uiFontHint: '可选界面字体（UI）',
-    codeFontHint: '可选代码字体（CodeMirror, Terminal）'
+    codeFontHint: '可选代码字体（CodeMirror, Terminal）',
+
+    update: '更新',
+    updateAuto: '自动检查更新',
+    nowVersion: '当前版本',
+    updateNow: '检查更新',
+    updateProxy: '更新代理',
   },
 
   conn: {
@@ -82,11 +88,15 @@ export default {
   },
 
   util: {
-    day: '天',
+    days: '天',
     deleteKey: '确定删除键【{key}】吗？',
+    checking: '检查更新中，请稍后...',
     updateHint: '有新版本 v{version}，是否更新？',
+    downloadDown: '下载完成，是否立刻安装？',
     updateDone: '更新完成，是否立刻重启？',
-    updateErr: '更新失败: {message}'
+    updateErr: '下载安装包失败',
+    latestVersion: '当前为最新版本',
+    checkUpdateErr: '检查更新失败'
   },
 
   tabMain: {

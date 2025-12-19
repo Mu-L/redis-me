@@ -16,13 +16,13 @@ console.log('系统主题:', systemTheme, '系统语言:', systemLanguage)
 const store = new LazyStore('store.json')
 const connList = await store.get('connList') || []
 const storeSettings = await store.get('settings')
-const initSettings =  { language: 'system', theme: 'system', uiFont: [], codeFont: [] }
+const initSettings =  { language: 'system', theme: 'system', uiFont: [], codeFont: [], autoUpdate: true }
 const settings = { ...initSettings, ...storeSettings }
 const meTauri = reactive({
   systemTheme,
   systemLanguage,
   connList,
-  settings
+  settings,
 })
 // 放在Window全局变量中方便使用
 window.meTauri = meTauri

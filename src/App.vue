@@ -8,7 +8,11 @@ import {useI18n} from 'vue-i18n'
 const {locale: i18nLocale} = useI18n()
 
 // 检查更新
-onMounted(() => meCheckUpdate())
+onMounted(() => {
+  if (meTauri.settings.autoUpdate) {
+    meCheckUpdate()
+  }
+})
 
 let locale = null
 
@@ -32,7 +36,7 @@ const defaultCodeFont = "Menlo, Monaco, Consolas, 黑体, system-ui"
 const appUiFont = computed(() => meTauri.settings.uiFont || defaultUiFont)
 const appCodeFont = computed(() => meTauri.settings.codeFont || defaultCodeFont)
 watch(appUiFont, () => document.documentElement.style.setProperty('--ui-font', appUiFont.value), {immediate: true})
-watch(appCodeFont, () => document.documentElement.style.setProperty('--code-font', appUiFont.value), {immediate: true})
+watch(appCodeFont, () => document.documentElement.style.setProperty('--code-font', appCodeFont.value), {immediate: true})
 </script>
 
 <template>

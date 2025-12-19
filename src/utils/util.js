@@ -6,6 +6,7 @@ import {invoke} from '@tauri-apps/api/core'
 import {check} from '@tauri-apps/plugin-updater'
 import {relaunch} from '@tauri-apps/plugin-process'
 import i18n from '@/locales'
+import {type} from '@tauri-apps/plugin-os'
 
 // 全局事件总线: setup直接导入，app全局属性也添加
 export const bus = mitt()
@@ -129,7 +130,7 @@ export function meHumanSeconds(seconds) {
   // 组合结果
   let result = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
   if (days > 0) {
-    result = `${days}${t('day')} ${result}`
+    result = `${days}${t('util.days', days)} ${result}`
   }
   return result
 }
@@ -155,19 +156,44 @@ export function meDeleteKey(id, redisKey, thenFn) {
 
 
 // 检查更新
-export async function meCheckUpdate() {
-  console.log('检查更新')
-  const update = await check().catch(DoNothing)
+export async function meCheckUpdate(quiet = true, checkOptions = {}) {
+  if (!quiet) {
+    ElMessage.primary(t('util.checking'))
+  }
+
+  const update = await check(checkOptions).catch(DoNothing)
+  console.log('检查结果:', update)
+
   if (update) {
-    meConfirm(t('updateHint', {version: update.version}),
+    meConfirm(t('util.updateHint', {version: update.version}),
       async () => {
-        try {
-          await update.downloadAndInstall(DoNothing)
-          meConfirm(t('updateDone'), async () => await relaunch())
-        } catch (e) {
-          meOk(t('updateErr', {message: e.message}))
+        // 在 Windows 上，由于 Windows 安装程序的限制，应用程序在执行安装步骤时将自动退出。
+        const isWindows = type() === 'windows'
+        if (isWindows) {
+          try {
+            await update.download()
+            meConfirm(t('util.downloadDown'), async () => await update.install())
+          } catch (e) {
+            meErr(t('util.updateErr', {message: e.message}))
+          }
+        } else {
+          // Mac等其他系统，下载和安装都可以在后台运行
+          try {
+            await update.downloadAndInstall()
+            meConfirm(t('util.updateDone'), async () => await relaunch())
+          } catch (e) {
+            meErr(t('util.updateErr', {message: e.message}))
+          }
         }
       }
     )
+  } else if (update === null){
+    if (!quiet) {
+      ElMessage.success(t('util.latestVersion'))
+    }
+  } else {
+    if (!quiet) {
+      ElMessage.error(t('util.checkUpdateErr'))
+    }
   }
 }
