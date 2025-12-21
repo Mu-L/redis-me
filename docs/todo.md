@@ -8,6 +8,8 @@
 - 软件和网站的国际化支持
 - 站点文档目录优化
 
+- Gitee的api暂不支直接获取最新release的latest.json文件，已提issue意向
+> https://gitee.com/oschina/git-osc/issues/IDERPB?from=project-issue
 - v-model.number优化 √
 - 监控、发布/订阅优化
 - 标准线程无法取消，是否必要使用异步？
