@@ -24,8 +24,9 @@ export default {
   setting: {
     title: '设置',
     appearance: '外观',
-    theme: '主题',
+    labelWidth: '60px',
 
+    theme: '主题',
     system: '系统',
     light: '浅色',
     dark: '深色',
@@ -37,11 +38,12 @@ export default {
     uiFontHint: '可选界面字体（UI）',
     codeFontHint: '可选代码字体（CodeMirror, Terminal）',
 
+    app: '应用',
     update: '更新',
     updateAuto: '自动检查更新',
     nowVersion: '当前版本',
     updateNow: '检查更新',
-    updateProxy: '更新代理',
+    updateSource: '更新源',
   },
 
   conn: {

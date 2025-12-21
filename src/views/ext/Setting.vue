@@ -46,11 +46,17 @@ async function checkUpdate() {
     loading.value = false
   }
 }
+
+// 更新源
+const updateOptions = ['github', 'gitee']
 </script>
 
 <template>
   <el-card>
-    <el-form inline label-position="right" label-width="86px">
+    <template #header>
+      <div class="card-header">{{ t('setting.appearance')}}</div>
+    </template>
+    <el-form inline label-position="right" :label-width="t('setting.labelWidth')">
       <el-row>
         <el-col :span="12">
           <el-form-item :label="t('setting.theme')">
@@ -74,8 +80,8 @@ async function checkUpdate() {
           </el-select>
         </el-form-item>
       </el-row>
-      <el-row>
 
+      <el-row>
         <el-form-item :label="t('setting.codeFont')" style="width: 100%">
           <el-select v-model="settings.codeFont" :placeholder="t('setting.codeFontHint')"
                      clearable multiple allow-create filterable :reserve-keyword="false">
@@ -83,20 +89,37 @@ async function checkUpdate() {
           </el-select>
         </el-form-item>
       </el-row>
+    </el-form>
+  </el-card>
 
+  <el-card style="margin-top: 20px">
+    <template #header>
+      <div class="me-flex">
+        <div>
+          <span class="card-header">{{ t('setting.app') }}</span>
+          <el-tag type="info" style="margin-left: 10px">v{{ appVersion }}</el-tag>
+        </div>
+        <el-button plain @click="checkUpdate" :loading="loading" icon="el-icon-check">
+          {{t('setting.updateNow') }}
+        </el-button>
+      </div>
+    </template>
+    <el-form inline label-position="right" :label-width="t('setting.labelWidth')">
       <el-row>
         <el-col :span="10">
           <el-form-item :label="t('setting.update')">
             <el-checkbox v-model="settings.autoUpdate" :label="t('setting.updateAuto')"/>
-
           </el-form-item>
         </el-col>
 
         <el-col :span="14" align="right">
-          <el-form-item :label="t('setting.nowVersion')">
-            <span style="margin-right: 10px">v{{appVersion}}</span>
-            <el-button plain @click="checkUpdate" :loading="loading" icon="el-icon-check">{{ t('setting.updateNow') }}</el-button>
-          </el-form-item>
+            <el-form-item :label="t('setting.updateSource')">
+              <el-segmented v-model="settings.updateSource" :options="updateOptions" >
+                <template #default="scope">
+                  <me-icon :icon="'me-icon-' + scope.item" :name="scope.value" hint/>
+                </template>
+              </el-segmented>
+            </el-form-item>
         </el-col>
       </el-row>
     </el-form>
@@ -110,5 +133,9 @@ async function checkUpdate() {
 
 .me-link {
   margin-left: 10px;
+}
+
+.card-header {
+  font-weight: bold;
 }
 </style>
