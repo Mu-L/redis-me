@@ -24,9 +24,8 @@ export default {
   setting: {
     title: 'Settings',
     appearance: 'Appearance',
-    labelWidth: '86px',
-
     theme: 'Theme',
+
     system: 'Auto',
     light: 'Light',
     dark: 'Dark',
@@ -37,13 +36,11 @@ export default {
     codeFont: 'Code Font',
     uiFontHint: 'Optional Choose UI Font',
     codeFontHint: 'Optional Choose Code Font（CodeMirror, Terminal）',
-
-    app: 'Application',
     update: 'Update',
     updateAuto: 'Auto Check',
     nowVersion: 'Version',
     updateNow: 'Check Now',
-    updateSource: 'Source',
+    updateProxy: 'Update Proxy',
   },
 
   conn: {
