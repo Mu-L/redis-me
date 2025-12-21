@@ -22,6 +22,7 @@ export default {
   deleteOk: 'Deleted',
 
   setting: {
+    labelWidth: '86px',
     title: 'Settings',
     appearance: 'Appearance',
     theme: 'Theme',

@@ -22,6 +22,7 @@ export default {
   deleteOk: '删除成功',
 
   setting: {
+    labelWidth: '60px',
     title: '设置',
     appearance: '外观',
     theme: '主题',
@@ -39,7 +40,7 @@ export default {
 
     update: '更新',
     updateAuto: '自动检查更新',
-    nowVersion: '当前版本',
+    nowVersion: '版本',
     updateNow: '检查更新',
     updateProxy: '更新代理',
   },

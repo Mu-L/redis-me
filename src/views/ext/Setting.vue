@@ -50,7 +50,7 @@ async function checkUpdate() {
 
 <template>
   <el-card>
-    <el-form inline label-position="right" label-width="86px">
+    <el-form inline label-position="right" :label-width="t('setting.labelWidth')">
       <el-row>
         <el-col :span="12">
           <el-form-item :label="t('setting.theme')">
@@ -94,7 +94,7 @@ async function checkUpdate() {
 
         <el-col :span="14" align="right">
           <el-form-item :label="t('setting.nowVersion')">
-            <span style="margin-right: 10px">v{{appVersion}}</span>
+            <span style="margin-right: 10px"><el-tag type="info">v{{appVersion}}</el-tag></span>
             <el-button plain @click="checkUpdate" :loading="loading" icon="el-icon-check">{{ t('setting.updateNow') }}</el-button>
           </el-form-item>
         </el-col>
