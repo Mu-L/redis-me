@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "RedisME",
-  "version": "0.1.8",
+  "version": "0.9.0",
   "identifier": "com.hepengju.redis",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -52,8 +52,8 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZEOUEwQjM0QkRCRjUxQjQKUldTMFViKzlOQXVhL2NZVEpaWlVqazNQNkVFaytuOUZnUmFWa2FBbE1tWFgyYWZWajd6cDlKMk4K",
       "endpoints": [
-        "https://github.com/hepengju/redis-me/releases/latest/download/latest.json",
-        "https://gitee.com/hepengju/redis-me/blob/master/docs/latest.json"
+        "https://github.com/hepengju/redis-me/raw/master/docs/latest.json",
+        "https://gitee.com/hepengju/redis-me/raw/master/docs/latest.json"
       ]
     }
   }
