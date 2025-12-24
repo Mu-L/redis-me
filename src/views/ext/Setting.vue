@@ -51,19 +51,15 @@ async function checkUpdate() {
 <template>
   <el-card>
     <el-form inline label-position="right" :label-width="t('setting.labelWidth')">
-      <el-row>
-        <el-col :span="12">
-          <el-form-item :label="t('setting.theme')">
-            <el-segmented v-model="settings.theme" :options="themeList"/>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12" align="right">
-          <el-form-item :label="t('setting.language')">
-            <el-select v-model="settings.language" style="width: 120px">
-              <el-option v-for="item in langList" :label="item.label" :value="item.value" :key="item.value"/>
-            </el-select>
-          </el-form-item>
-        </el-col>
+      <el-row class="me-flex">
+        <el-form-item :label="t('setting.theme')">
+          <el-segmented v-model="settings.theme" :options="themeList"/>
+        </el-form-item>
+        <el-form-item :label="t('setting.language')">
+          <el-select v-model="settings.language" style="width: 120px">
+            <el-option v-for="item in langList" :label="item.label" :value="item.value" :key="item.value"/>
+          </el-select>
+        </el-form-item>
       </el-row>
 
       <el-row>
@@ -84,20 +80,15 @@ async function checkUpdate() {
         </el-form-item>
       </el-row>
 
-      <el-row>
-        <el-col :span="10">
-          <el-form-item :label="t('setting.update')">
-            <el-checkbox v-model="settings.autoUpdate" :label="t('setting.updateAuto')"/>
+      <el-row class="me-flex">
+        <el-form-item :label="t('setting.update')">
+          <el-checkbox v-model="settings.autoUpdate" :label="t('setting.updateAuto')"/>
+        </el-form-item>
 
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="14" align="right">
-          <el-form-item :label="t('setting.nowVersion')">
-            <span style="margin-right: 10px"><el-tag type="info">v{{appVersion}}</el-tag></span>
-            <el-button plain @click="checkUpdate" :loading="loading" icon="el-icon-check">{{ t('setting.updateNow') }}</el-button>
-          </el-form-item>
-        </el-col>
+        <el-form-item :label="t('setting.nowVersion')">
+          <span style="margin-right: 10px"><el-tag type="info">v{{appVersion}}</el-tag></span>
+          <el-button plain @click="checkUpdate" :loading="loading" icon="el-icon-check">{{ t('setting.updateNow') }}</el-button>
+        </el-form-item>
       </el-row>
     </el-form>
   </el-card>
