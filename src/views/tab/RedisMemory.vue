@@ -210,7 +210,7 @@ function batchDelKey() {
       </div>
 
       <div>
-        <el-input v-model="keyword" :placeholder="t('redisMemory.keyword')" style="width: 260px; margin:0 10px" clearable/>
+        <el-input v-model="keyword" :placeholder="t('redisMemory.keyword')" style="width: 240px; margin:0 10px" clearable/>
         <el-button icon="el-icon-search" @click="memoryUsage" type="primary" :loading="loading">{{ t('redisMemory.startScan') }}</el-button>
       </div>
     </div>
