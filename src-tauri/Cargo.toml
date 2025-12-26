@@ -42,6 +42,7 @@ tauri-plugin-store = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-process = "2"
 tauri-plugin-os = "2"
+tauri-plugin-system-fonts = "2.0.2"
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-updater = "2"

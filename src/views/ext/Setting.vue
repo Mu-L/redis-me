@@ -3,6 +3,9 @@ import {useI18n} from 'vue-i18n'
 import {meCheckUpdate} from '@/utils/util.js'
 import {ref} from 'vue'
 import {getVersion} from '@tauri-apps/api/app'
+import { getSystemFonts } from "tauri-plugin-system-fonts-api";
+
+
 
 const {t} = useI18n()
 const settings = window.meTauri.settings
@@ -24,9 +27,16 @@ const langList = computed(() => [
 // 字体
 let fonts = ref([])
 const loadFonts = async () => {
+  // webview 获取系统字体
   const localFonts = await window.queryLocalFonts()
-  // 只显示常规字体
-  fonts.value = localFonts.filter(f => f.style === 'Regular').map(f => f.fullName).sort()
+  if (localFonts.length > 0) {
+    // 只显示常规字体
+    fonts.value = localFonts.filter(f => f.style === 'Regular').map(f => f.fullName).sort()
+  } else {
+    // 用户未授权时采用rust获取字体（名称就没有中文了）
+    const systemFonts = await getSystemFonts()
+    fonts.value = [...new Set(systemFonts.map(f => f.name))].sort()
+  }
 }
 onMounted(loadFonts)
 
