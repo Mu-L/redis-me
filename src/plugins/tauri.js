@@ -15,7 +15,9 @@ console.log('系统主题:', systemTheme, '系统语言:', systemLanguage)
 // 存储及初始化数据读取
 const store = new LazyStore('store.json')
 const connList = await store.get('connList') || []
+console.log('读取连接:', connList)
 const storeSettings = await store.get('settings')
+console.log('读取设置:', storeSettings)
 const initSettings =  { language: 'system', theme: 'system', uiFont: [], codeFont: [], autoUpdate: true }
 const settings = { ...initSettings, ...storeSettings }
 const meTauri = reactive({
@@ -28,7 +30,8 @@ const meTauri = reactive({
 window.meTauri = meTauri
 
 // 配置保存
-watch(meTauri.connList, async (newValue) => await store.set('connList', newValue))
-watch(meTauri.settings, async (newValue) => await store.set('settings', newValue))
-
+watch(meTauri, async (newValue) => {
+  await store.set('connList', newValue.connList)
+  await store.set('settings', newValue.settings)
+})
 export default function (app) {}

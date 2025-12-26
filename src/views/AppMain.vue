@@ -10,7 +10,7 @@ import {onMounted, ref} from 'vue'
 // 共享数据
 const share = reactive({
   conn: null,                         // 当前连接
-  connList: meTauri.connList,  // 连接列表, 初始化从存储中已读取
+  connList: meTauri.connList,         // 连接列表, 初始化从存储中已读取
   nodeList: [],                       // 节点列表
   color: 'var(--el-color-primary)',   // 即 share.conn.color（便于使用和移植）
   redisKey: null,
@@ -67,7 +67,9 @@ watch(() => share.conn, async (newConn, oldConn) => {
 // 保存连接列表: 列表真实变化时才发送命令
 const connListToString = computed(() => JSON.stringify(share.connList))
 watch(connListToString, async (newConnList) => {
-  await meInvoke('conn_list', {connList: JSON.parse(newConnList)})
+  const connList = JSON.parse(newConnList)
+  meTauri.connList = connList // 保证导入导出连接时也进行持久化更新
+  await meInvoke('conn_list', {connList})
 }, {immediate: true})
 </script>
 
