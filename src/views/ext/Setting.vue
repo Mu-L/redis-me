@@ -27,9 +27,13 @@ const langList = computed(() => [
 // 字体
 let fonts = ref([])
 const loadFonts = async () => {
-  // 浏览器直接获取系统字体, safari不支持
-  const localFonts = await window?.queryLocalFonts()
-  if (localFonts?.length > 0) {
+  // 浏览器直接获取系统字体, safari不支持、
+  let localFonts = []
+  if (window.queryLocalFonts) {
+    localFonts = await window.queryLocalFonts()
+  }
+
+  if (localFonts.length > 0) {
     // 只显示常规字体
     fonts.value = localFonts.filter(f => f.style === 'Regular').map(f => f.fullName).sort()
   } else {
