@@ -1,3 +1,4 @@
+// https://redis.io/docs/latest/operate/oss_and_stack/management/config/
 export const redisConfObject = {
   'redis-4.0': `
 # Redis configuration file example.
