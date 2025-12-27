@@ -265,7 +265,7 @@ const zhInfoTip = {
   'allocator_resident_lua': '分配器专门为 Lua 驻留 (RSS) 的总字节数。这包括可以释放给 OS 的页面（通过 MEMORY PURGE 或仅等待释放的页面）。',
   'allocator_frag_bytes_lua': 'allocator_active_lua 和 allocator_allocated_lua 之间的差值。'
 }
-const configTip = {
+const zhConfigTip = {
   'bind': '绑定的IP地址列表，限制Redis监听的网络接口，例如\'127.0.0.1 -::1\'表示只监听本地回环地址',
   'port': 'Redis服务器监听的TCP端口号，默认为6379',
   'tls-port': 'Redis服务器监听的TLS端口号，默认为0（禁用TLS）',
@@ -726,9 +726,19 @@ const enInfoTip = {
   allocator_resident_lua: 'Total bytes resident (RSS) in the allocator specifically for Lua. This includes pages that can be released to the OS (by MEMORY PURGE, or just waiting).',
   allocator_frag_bytes_lua: 'Delta between allocator_active_lua and allocator_allocated_lua'
 }
+const enConfigTip = {
+
+}
+
+
+// 中文语言返回中文提示，否则返回英文提示
 const infoTip = computed(() => {
   const language = meTauri.settings.language === 'system' ? meTauri.systemLanguage : meTauri.settings.language
   return language?.startsWith('zh') ? zhInfoTip : enInfoTip
 })
 
+const configTip = computed(() => {
+  const language = meTauri.settings.language === 'system' ? meTauri.systemLanguage : meTauri.settings.language
+  return language?.startsWith('zh') ? zhConfigTip : enConfigTip
+})
 export {infoTip, configTip}
