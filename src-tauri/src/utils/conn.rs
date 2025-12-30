@@ -126,6 +126,7 @@ pub fn set_client_name(conn: &mut dyn ConnectionLike) -> AnyResult<()> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
     use super::*;
     use redis::TypedCommands;
 
@@ -190,6 +191,38 @@ mod tests {
         let mut conn = client.get_connection()?;
         conn.set("redis-me:cluster-ssl", "RedisME-集群-ssl")?;
         Ok(())
+    }
+
+    // 获取Redis Docker的默认配置值
+    // docker run -d --name redis6 -p 8006:6379  redis:6
+    // docker run -d --name redis7 -p 8007:6379  redis:7
+    // docker run -d --name redis8 -p 8008:6379  redis:8
+    #[test]
+    fn test_config() -> AnyResult<()>{
+        let redis_conn = get_redis_conn(8008);
+        let client = get_client_single(&redis_conn)?;
+        let mut conn = client.get_connection()?;
+        let result: HashMap<String, String> = redis::cmd("config")
+            .arg("get")
+            .arg("*")
+            .query(&mut conn)?;
+        println!("{:?}", result);
+        Ok(())
+    }
+
+    fn get_redis_conn(port: u16) -> RedisConn {
+        RedisConn {
+            id: "single".into(),
+            name: "单机".into(),
+            host: "127.0.0.1".into(),
+            port,
+            username: "".into(),
+            password: "".into(),
+            db: 0,
+            cluster: false,
+            ssl: false,
+            ssl_option: None,
+        }
     }
 
     /*#[test]

@@ -222,7 +222,9 @@ export default {
     param: 'Param',
     value: 'Value',
     tip: 'Tip',
-    defaultConfig: 'default config'
+    defaultConfig: 'Default',
+    all: 'All',
+    diff: 'Diff',
   },
 
   redisInfo: {

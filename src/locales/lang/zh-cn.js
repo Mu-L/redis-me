@@ -223,7 +223,9 @@ export default {
     param: '配置项',
     value: '配置值',
     tip: '说明',
-    defaultConfig: '默认配置'
+    defaultConfig: '默认配置',
+    all: '全部',
+    diff: '差异',
   },
 
   redisInfo: {

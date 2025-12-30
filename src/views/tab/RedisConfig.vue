@@ -1,6 +1,6 @@
 <script setup>
 import {configTip as tips} from '@/utils/tip.js'
-import {redisConfObject} from '@/utils/redis.js'
+import {redisConfText, redisConfDict} from '@/utils/redis.js'
 import NodeList from '../ext/NodeList.vue'
 import {meInvoke} from '@/utils/util.js'
 import {sortBy} from 'lodash'
@@ -18,11 +18,40 @@ const keyword = ref('')
 const loading = ref(false)
 const dataList = ref([])
 
+// 文件格式的配置文件
+const configVersionList = Object.keys(redisConfText).reverse()
+const configVersion = ref(configVersionList[0])  // 版本
+const configRaw = ref('')
+
+watchEffect(async () => {
+  try {
+    // const content = await readTextFile(`resources/conf/${configVersion.value}.conf`, {baseDir: BaseDirectory.Resource})
+    configRaw.value = redisConfText[configVersion.value]
+  } catch (e) {
+    configRaw.value = t('redisConfig.noConfig')
+  }
+})
+
+function handleCommand(command){
+  configVersion.value = command
+  nextTick(() => dialog.raw = true)
+}
+
+// Json格式的默认配置
+const dictVersionList = Object.keys(redisConfDict).reverse()
+const dictVersion = ref(dictVersionList[0])
+const dictRaw = computed(() => redisConfDict[dictVersion.value])
+const showTypeOptions = [
+  {label: t('redisConfig.all'), value: 'All'},
+  {label: t('redisConfig.diff'), value: 'Diff'},
+]
+const showType = ref('All')
+
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return dataList.value.filter(row => !key
-    || row.param?.toLowerCase().indexOf(key) > -1
-    || row.value?.toLowerCase().indexOf(key) > -1
+  return dataList.value.filter(row =>
+       (!key || row.param?.toLowerCase().indexOf(key) > -1 || row.value?.toLowerCase().indexOf(key) > -1)
+    && (showType.value === 'All' || showType.value === 'Diff' && row.value !== dictRaw.value[row.param])
   )
 })
 
@@ -34,8 +63,7 @@ function getSummaries() {
 async function apiConfigGet() {
   const data = await meInvoke('config_get', {id: share.conn.id, pattern: '*', node: node.value})
   const tableData = []
-  const configMap = data
-  Object.entries(configMap).forEach(([key, value]) => tableData.push({param: key, value}))
+  Object.entries(data).forEach(([key, value]) => tableData.push({param: key, value}))
   dataList.value = sortBy(tableData, ['param'])
 }
 
@@ -54,23 +82,9 @@ const dialog = reactive({
   raw: false
 })
 
-const configVersionList = Object.keys(redisConfObject).reverse()
-const configVersion = ref(configVersionList[0])  // 版本
-const configRaw = ref('')
-
-watchEffect(async () => {
-  try {
-    // const content = await readTextFile(`resources/conf/${configVersion.value}.conf`, {baseDir: BaseDirectory.Resource})
-    const content = redisConfObject[configVersion.value]
-    configRaw.value = content
-  } catch (e) {
-    configRaw.value = t('redisConfig.noConfig')
-  }
-})
-
-function handleCommand(command){
-  configVersion.value = command
-  nextTick(() => dialog.raw = true)
+// 行样式展示
+function calcRowStyle({row}) {
+  return {'color': row.value === dictRaw.value[row.param] ? '' : share.color}
 }
 </script>
 
@@ -90,8 +104,12 @@ function handleCommand(command){
           </el-dropdown>
         </div>
       </div>
-      <div>
-        <el-input  v-model="keyword" :placeholder="t('redisConfig.keyword')" style="width: 300px; margin-right: 10px" clearable/>
+      <div class="me-flex">
+        <el-segmented v-model="showType" :options="showTypeOptions"></el-segmented>
+        <el-select v-model="dictVersion" style="width: 120px; margin: 0 10px">
+          <el-option v-for="item in dictVersionList" :key="item" :label="item" :value="item"/>
+        </el-select>
+        <el-input  v-model="keyword" :placeholder="t('redisConfig.keyword')" style="width: 250px; margin-right: 10px" clearable/>
         <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading"/>
       </div>
     </div>
@@ -99,10 +117,16 @@ function handleCommand(command){
     <el-table :data="filterDataList" ref="table"
               style="margin-top: 10px"
               v-loading="loading"
+              :row-style="calcRowStyle"
               show-summary :summary-method="getSummaries"
               border stripe height="100%">
       <el-table-column :label="t('redisConfig.param')" prop="param" sortable show-overflow-tooltip/>
       <el-table-column :label="t('redisConfig.value')" prop="value" show-overflow-tooltip/>
+      <el-table-column :label="dictVersion + ' ' + t('redisConfig.defaultConfig')" prop="value" show-overflow-tooltip>
+        <template #default="scope">
+          {{dictRaw[scope.row.param]}}
+        </template>
+      </el-table-column>
       <el-table-column :label="t('redisConfig.tip')" show-overflow-tooltip>
         <template #default="scope">
           <span style="color: var(--el-color-info)">{{tips[scope.row.param]}}</span>
