@@ -8,8 +8,10 @@ import RedisPubsub from './tab/RedisPubsub.vue'
 import {useI18n} from 'vue-i18n'
 import RedisMemory from '@/views/tab/RedisMemory.vue'
 // import RedisDemo from '@/views/tab/RedisDemo.vue'
-// import RedisTauri from './tab/RedisTauri.vue'
+import RedisTauri from './tab/RedisTauri.vue'
 const { t } = useI18n()
+
+const isDev = import.meta.env.DEV
 // 共享数据
 const share = inject('share')
 const canEdit = computed(() => true)
@@ -17,14 +19,7 @@ const canEdit = computed(() => true)
 
 <template>
   <el-tabs class="redis-tag" v-model="share.tabName">
-    <!--
-    <el-tab-pane name="tauri" lazy>
-      <template #label>
-        <me-icon name="Tauri" icon="el-icon-data-line"/>
-      </template>
-      <RedisTauri/>
-    </el-tab-pane>
-    -->
+
 
     <el-tab-pane name="info">
       <template #label>
@@ -73,6 +68,13 @@ const canEdit = computed(() => true)
         <me-icon :name="t('tabMain.pubsub')" icon="me-icon-pubsub"/>
       </template>
       <RedisPubsub/>
+    </el-tab-pane>
+
+    <el-tab-pane name="tauri" lazy v-if="isDev">
+      <template #label>
+        <me-icon name="Tauri" icon="el-icon-data-line"/>
+      </template>
+      <RedisTauri/>
     </el-tab-pane>
   </el-tabs>
 </template>
