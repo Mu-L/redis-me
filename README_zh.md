@@ -37,14 +37,14 @@
 # Mac: Xcode
 # Linux: libwebkit2gtk, build-essential 等
 
-# 安装RUST
+# 安装 Rust （国内镜像 https://rsproxy.cn/）
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # 安装Node（推荐使用fnm安装）
 curl -o- https://fnm.vercel.app/install | bash
 fnm install 22
 
-# 安装pnpm
+# 安装pnpm （国内镜像 https://npmmirror.com/）
 npm install -g pnpm
 
 # 克隆项目
