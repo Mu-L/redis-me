@@ -2,7 +2,7 @@
 <a href="https://github.com/hepengju/redis-me/"><img src="docs/image/logo.svg" width="100"/></a>
 </div>
 <h1 align="center">RedisME</h1>
-<h4 align="center"><strong>English</strong> | <a href="https://github.com/hepengju/redis-me/blob/master/README_zh.md">
+<h4 align="center"><strong>English</strong> | <a href="/README_zh.md">
 简体中文</a> 
 </h4>
 <div align="center">
@@ -18,11 +18,11 @@
 ![dark.png](docs/image/dark.png)
 
 ## Feature
-- Extremely lightweight: Based on Webview2, no embedded browser (thanks to [Tauri](https://tauri.app))
-- Beautiful interface: Provides light/dark themes(thanks to [ElementPlus](https://element-plus.org))
+- Extremely lightweight: Based on Webview2, no embedded browser (Thanks to [Tauri](https://tauri.app))
+- Pretty UI: Provides light/dark themes(Thanks to [ElementPlus](https://element-plus.org))
 - Multi-language support: English, Chinese, more languages coming soon
-- Rich functionality: Supports info, key-value, terminal, memory analysis, slow logs, command monitoring, pub/sub, etc.
-- Special feature:
+- Rich functionality: info, value, terminal, memory analysis, slow logs, command monitoring, pub/sub etc
+- Special features:
     * Highlighting and detailed explanations of info fields
     * Configuration field comparison, detailed explanations, and default value references
     * Fine-grained memory scan parameter configuration for quick memory issue troubleshooting
