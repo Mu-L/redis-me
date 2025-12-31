@@ -1,19 +1,16 @@
 <div align="center">
-<a href="https://github.com/hepengju/redis-me/"><img src="docs/image/logo.svg" width="100"/></a>
+<a href="https://github.com/hepengju/redis-me/"><img src="docs/image/logo.svg" width="120"/></a>
 </div>
 <h1 align="center">RedisME</h1>
-<h4 align="center"><strong>English</strong> | <a href="https://github.com/hepengju/redis-me/blob/main/README_zh.md">
-简体中文</a> 
-</h4>
+<h4 align="center"><strong><a href="/">English</a></strong> | 简体中文 </h4>
 <div align="center">
 
 [![License](https://img.shields.io/github/license/hepengju/redis-me)](https://github.com/hepengju/redis-me/blob/main/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/hepengju/redis-me)](https://github.com/hepengju/redis-me/releases)
 ![GitHub All Releases](https://img.shields.io/github/downloads/hepengju/redis-me/total)
 
-
-<strong>RedisME is a modern lightweight cross-platform Redis desktop manager </strong>
+<strong>一个现代、轻量、跨平台的Redis桌面客户端</strong>
 </div>
 
-![light.png](docs/image/light.png)
-![dark.png](docs/image/dark.png)
+![light-zh.png](docs/image/light-zh.png)
+![dark-zh.png](docs/image/dark-zh.png)
