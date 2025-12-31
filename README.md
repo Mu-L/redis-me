@@ -11,9 +11,50 @@
 [![GitHub release](https://img.shields.io/github/release/hepengju/redis-me)](https://github.com/hepengju/redis-me/releases)
 ![GitHub All Releases](https://img.shields.io/github/downloads/hepengju/redis-me/total)
 
-
 <strong>RedisME is a modern lightweight cross-platform Redis desktop manager </strong>
 </div>
 
 ![light.png](docs/image/light.png)
 ![dark.png](docs/image/dark.png)
+
+## Feature
+- Extremely lightweight: Based on Webview2, no embedded browser, installation package is less than 10M (thanks to [Tauri](https://tauri.app))
+- Beautiful interface: Provides light/dark themes(感谢 [ElementPlus](https://element-plus.org)
+- Multi-language support: English, Chinese, more languages coming soon
+- Rich functionality: Supports info, key-value, terminal, memory analysis, slow logs, command monitoring, pub/sub, etc.
+- Special feature:
+    * Highlighting and detailed explanations of info fields
+    * Configuration field comparison, detailed explanations, and default value references
+    * Fine-grained memory scan parameter configuration for quick memory issue troubleshooting
+    * Terminal command execution with automatic broadcasting to multiple nodes in a cluster
+    * Cluster operations can specify nodes
+
+## Installation
+Available to download for free from [here](https://github.com/hepengju/redis-me/releases)
+
+## Build Guidelines
+```shell
+# System Prerequisites: TauriPage  https://tauri.app/start/prerequisites/
+# Windows: Microsoft C++
+# Mac: Xcode
+# Linux: libwebkit2gtk, build-essential etc
+
+# rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# node (fnm)
+curl -o- https://fnm.vercel.app/install | bash
+fnm install 22
+
+# pnpm
+npm install -g pnpm
+
+# clone
+git clone https://github.com/hepengju/redis-me.git --depth=1
+
+# install package.json and start dev
+pnpm install
+pnpm tauri dev
+
+# If SSL compilation fails, you can refer to, refer: https://aws.github.io/aws-lc-rs/index.html 
+```
