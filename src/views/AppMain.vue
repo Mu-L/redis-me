@@ -1,11 +1,12 @@
 <script setup>
 import TabMain from './TabMain.vue'
 import {sortBy} from 'lodash'
-import {bus, CONN_REFRESH, meInvoke} from '@/utils/util.js'
+import {bus, CONN_REFRESH, DoNothing, meInvoke} from '@/utils/util.js'
 import TabConn from '@/views/TabConn.vue'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
 import {onMounted, ref} from 'vue'
+import {check} from '@tauri-apps/plugin-updater'
 
 // 共享数据
 const share = reactive({
@@ -34,7 +35,7 @@ function toggleKeyTag() {
 const loading = ref(false)
 watch(() => share.conn, async (newConn, oldConn) => {
   // 连接id未发生改变时，无需断开重连（比如颜色或db改变）
-  if (newConn?.id == oldConn?.id) return
+  if (newConn?.id === oldConn?.id) return
 
   loading.value = true
   connPrepared.value = false
@@ -71,6 +72,21 @@ watch(connListToString, async (newConnList) => {
   meTauri.connList = connList // 保证导入导出连接时也进行持久化更新
   await meInvoke('conn_list', {connList})
 }, {immediate: true})
+
+// 软件自动更新
+const app = reactive({
+    // 软件更新
+    update: null,
+    downloading: false,
+    downloadPercentage: 0,
+  }
+)
+provide('app', app)
+async function checkAutoUpdate() {
+  if (!meTauri.settings.autoUpdate) return
+  app.update = await check().catch(DoNothing)
+}
+onMounted(checkAutoUpdate)
 </script>
 
 <template>

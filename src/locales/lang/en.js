@@ -84,7 +84,9 @@ export default {
     readonly: 'Read Only',
     nameRequired: 'Please Input host',
     portRequired: 'Please Input port',
-    testOk: 'Conn Success'
+    testOk: 'Conn Success',
+
+    downloading: 'Downloading',
   },
 
   util: {

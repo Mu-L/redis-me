@@ -48,14 +48,11 @@ onMounted(loadFonts)
 const appVersion = ref('')
 getVersion().then(res => appVersion.value = res).catch(_ => {})
 const loading = ref(false)
+const app = inject('app')
 async function checkUpdate() {
   loading.value = true
   try {
-    await meCheckUpdate(false, {
-      // github网络访问不畅通，可加代理验证
-      // proxy: 'http://127.0.0.1:7897',
-      timeout: 10000
-    })
+    await meCheckUpdate(false, {timeout: 10000}, app)
   } finally {
     loading.value = false
   }
@@ -101,7 +98,7 @@ async function checkUpdate() {
 
         <el-form-item :label="t('setting.nowVersion')">
           <span style="margin-right: 10px"><el-tag type="info">v{{appVersion}}</el-tag></span>
-          <el-button plain @click="checkUpdate" :loading="loading" icon="el-icon-check">{{ t('setting.updateNow') }}</el-button>
+          <el-button plain @click="checkUpdate" :loading="loading" icon="el-icon-check" :disabled="app.downloading">{{ t('setting.updateNow') }}</el-button>
         </el-form-item>
       </el-row>
     </el-form>

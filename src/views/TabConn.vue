@@ -1,5 +1,5 @@
 <script setup>
-import {meConfirm, meErr, meOk, PREDEFINE_COLORS} from '@/utils/util.js'
+import {meConfirm, meDownloadUpdate, meErr, meOk, PREDEFINE_COLORS} from '@/utils/util.js'
 import ConnSave from '@/views/ext/ConnSave.vue'
 import {nextTick, useTemplateRef} from 'vue'
 import {debounce} from 'lodash'
@@ -11,6 +11,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const share = inject('share')
+
 const keyword = ref('')
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
@@ -163,15 +164,22 @@ async function checkImportContent(content) {
   // }
   return connList
 }
+
+// 应用更新
+const app = inject('app')
+function clickNew() {
+  meDownloadUpdate(false, toRaw(app.update), app)
+}
 </script>
 
 <template>
   <div class="redis-conn">
     <div class="me-flex header">
-      <div>
+      <div class="me-flex">
         <el-button icon="el-icon-plus" type="primary" @click="addConn">{{t('conn.add')}}</el-button>
       </div>
-      <div>
+      <div class="me-flex">
+        <me-icon icon="me-icon-new" class="icon-new" @click="clickNew" v-if="app.update?.version"/>
         <el-dropdown placement="bottom-start" @command="handleCommand" style="margin-right: 10px">
           <el-button>...</el-button>
           <template #dropdown>
@@ -234,6 +242,14 @@ async function checkImportContent(content) {
     </el-table>
 
     <ConnSave ref="conn" v-if="dialog.conn" @closed="dialog.conn = false"/>
+
+    <!-- 应用升级时的下载进度显示 -->
+    <el-progress class="downloading" type="dashboard" :percentage="app.downloadPercentage" v-if="app.downloading">
+      <template #default="{ percentage }">
+        <div class="percentage-value">{{ percentage }}%</div>
+        <div class="percentage-label">{{ t('conn.downloading') }}</div>
+      </template>
+    </el-progress>
   </div>
 </template>
 
@@ -245,7 +261,14 @@ async function checkImportContent(content) {
   flex-direction: column;
 
   .header {
-    margin: 0px 0 10px 0px;
+    margin-bottom: 10px;
+
+    .icon-new {
+      margin: 0 10px;
+      font-size: 30px;
+      color: var(--el-color-danger);
+      cursor: pointer;
+    }
   }
 
   :deep(.drag-handle) {
@@ -254,6 +277,23 @@ async function checkImportContent(content) {
 
   :deep(.sortable-ghost) {
     background-color: var(--el-color-primary-light-8);
+  }
+
+  .downloading {
+    position: absolute;
+    right: 0 ;
+    bottom: 0;
+    z-index: 100;
+
+    .percentage-value {
+      font-size: 28px;
+      color: var(--el-color-primary);
+    }
+
+    .percentage-label {
+      margin-top: 10px;
+      font-size: 14px;
+    }
   }
 }
 </style>

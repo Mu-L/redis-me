@@ -1,20 +1,10 @@
 <script setup>
 import AppMain from '@/views/AppMain.vue'
 import AppTitle from '@/views/ext/AppTitle.vue'
-import {meCheckUpdate} from '@/utils/util.js'
 import {useDark} from '@vueuse/core'
 import {useI18n} from 'vue-i18n'
 
 const {locale: i18nLocale} = useI18n()
-
-// 检查更新
-onMounted(() => {
-  if (meTauri.settings.autoUpdate) {
-    meCheckUpdate()
-  }
-})
-
-let locale = null
 
 // 主题切换
 const isDark = useDark()
@@ -24,6 +14,7 @@ watch(() => meTauri.settings.theme, (newValue) => {
 }, {immediate: true})
 
 // 语言切换
+let locale = null
 watch(() => meTauri.settings.language, (newValue) => {
   const language = newValue === 'system' ? meTauri.systemLanguage : newValue
   locale = window.ElementPlusLanguageMap[language] // ElementPlus的语言切换

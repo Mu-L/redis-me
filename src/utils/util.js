@@ -51,7 +51,7 @@ export async function meInvoke(command, params, alert = true) {
 }
 
 // ~~~~~~~~~~~~~确认、提示、错误
-const DoNothing = () => {}
+export const DoNothing = () => {}
 
 export function meOk(message) {
   ElMessage.success(message)
@@ -64,8 +64,8 @@ export function meErr(message, title = t('error')) {
   ElMessageBox.alert(message, title, {type: 'error'}).then(DoNothing)
 }
 
-export function meConfirm(message, thenFun) {
-  ElMessageBox.confirm(message, t('warn'), {type: 'warning'})
+export function meConfirm(message, thenFun, boxOptions = {}) {
+  ElMessageBox.confirm(message, t('warn'), {type: 'warning', ...boxOptions})
     .then(thenFun)
     .catch(DoNothing)
 }
@@ -156,38 +156,16 @@ export function meDeleteKey(id, redisKey, thenFn) {
 
 
 // 检查更新
-export async function meCheckUpdate(quiet = true, checkOptions = {}) {
+export async function meCheckUpdate(quiet = true, checkOptions = {}, app) {
   if (!quiet) {
     ElMessage.primary(t('util.checking'))
   }
 
+  // 判断是否获得检查更新结果
   const update = await check(checkOptions).catch(DoNothing)
-  console.log('检查结果:', update)
-
   if (update) {
-    meConfirm(t('util.updateHint', {version: update.version}),
-      async () => {
-        // 在 Windows 上，由于 Windows 安装程序的限制，应用程序在执行安装步骤时将自动退出。
-        const isWindows = type() === 'windows'
-        if (isWindows) {
-          try {
-            await update.download()
-            meConfirm(t('util.downloadDown'), async () => await update.install())
-          } catch (e) {
-            meErr(t('util.updateErr', {message: e.message}))
-          }
-        } else {
-          // Mac等其他系统，下载和安装都可以在后台运行
-          try {
-            await update.downloadAndInstall()
-            meConfirm(t('util.updateDone'), async () => await relaunch())
-          } catch (e) {
-            meErr(t('util.updateErr', {message: e.message}))
-          }
-        }
-      }
-    )
-  } else if (update === null){
+    await meDownloadUpdate(quiet, update, app)
+  } else if (update === null) {
     if (!quiet) {
       ElMessage.success(t('util.latestVersion'))
     }
@@ -196,4 +174,52 @@ export async function meCheckUpdate(quiet = true, checkOptions = {}) {
       ElMessage.error(t('util.checkUpdateErr'))
     }
   }
+}
+
+const manualCloseOptions = {closeOnClickModal: false, closeOnPressEscape: false}
+export async function meDownloadUpdate(quiet = true, update, app) {
+  console.log('检查结果:', update)
+  // 更新过程中的提示: 避免Esc及点击遮罩层关闭提示框
+  meConfirm(t('util.updateHint', {version: update.version}),
+    async () => {
+      try {
+        app.downloading = true
+        app.downloadPercentage = 0
+
+        let downloaded = 0
+        let contentLength = 0
+        const downloadingHandle = event => {
+          switch (event.event) {
+            case 'Started':
+              contentLength = event.data.contentLength
+              console.log(`downloadAppSize: ${meHumanSize(event.data.contentLength)}`)
+              break
+            case 'Progress':
+              downloaded += event.data.chunkLength
+              app.downloadPercentage = Math.round(downloaded / contentLength * 100)
+              //console.log(`downloaded ${downloaded} from ${contentLength}`)
+              break
+            case 'Finished':
+              app.downloadPercentage = 100
+              //console.log('download finished')
+              break
+          }
+        }
+
+        // 在 Windows 上，由于 Windows 安装程序的限制，应用程序在执行安装步骤时将自动退出。Mac等其他系统，下载和安装都可以在后台运行
+        const isWindows = type() === 'windows'
+        if (isWindows) {
+          await update.download(downloadingHandle)
+          meConfirm(t('util.downloadDown'), async () => await update.install(), manualCloseOptions )
+        } else {
+          await update.downloadAndInstall(downloadingHandle)
+          meConfirm(t('util.updateDone'), async () => await relaunch(), manualCloseOptions)
+        }
+      } catch (e) {
+        meErr(t('util.updateErr', {message: e.message}))
+      } finally {
+        app.downloading = false
+      }
+    }
+    , manualCloseOptions)
 }

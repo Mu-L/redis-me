@@ -85,7 +85,9 @@ export default {
     readonly: '只读',
     nameRequired: '请输入主机',
     portRequired: '请输入端口',
-    testOk: '测试连接成功'
+    testOk: '测试连接成功',
+
+    downloading: '下载中...',
   },
 
   util: {
