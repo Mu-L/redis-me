@@ -35,6 +35,9 @@
       "resources/icons/icon.png",
       "resources/icons/icon.svg"
     ],
+    "resources": [
+      "resources/conf/*"
+    ],
     "createUpdaterArtifacts": true,
     "windows": {
       "wix": {

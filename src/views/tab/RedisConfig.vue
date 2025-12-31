@@ -1,10 +1,12 @@
 <script setup>
 import {configTip as tips} from '@/utils/tip.js'
-import {redisConfText, redisConfDict} from '@/utils/redis.js'
+import {redisConfDict} from '@/utils/redis.js'
 import NodeList from '../ext/NodeList.vue'
 import {meInvoke} from '@/utils/util.js'
 import {sortBy} from 'lodash'
 import {useI18n} from 'vue-i18n'
+import {BaseDirectory} from '@tauri-apps/api/path'
+import {readTextFile} from '@tauri-apps/plugin-fs'
 
 const { t } = useI18n()
 // 共享数据
@@ -19,15 +21,17 @@ const loading = ref(false)
 const dataList = ref([])
 
 // 文件格式的配置文件
-const configVersionList = Object.keys(redisConfText).reverse()
-const configVersion = ref(configVersionList[0])  // 版本
+// const configVersionList = Object.keys(redisConfText).reverse()
+const configVersionList = ['Redis8.4', 'Redis7.4', 'Redis6.2', 'Redis5.0', 'Redis4.0']
+const configVersion = ref('Redis8.4')  // 版本
 const configRaw = ref('')
 
 watchEffect(async () => {
   try {
-    // const content = await readTextFile(`resources/conf/${configVersion.value}.conf`, {baseDir: BaseDirectory.Resource})
-    configRaw.value = redisConfText[configVersion.value]
+    // configRaw.value = redisConfText[configVersion.value]
+    configRaw.value = await readTextFile(`resources/conf/${configVersion.value}.conf`, {baseDir: BaseDirectory.Resource})
   } catch (e) {
+    console.log(e)
     configRaw.value = t('redisConfig.noConfig')
   }
 })

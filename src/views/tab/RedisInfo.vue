@@ -252,7 +252,8 @@ function goMemory() {
   </me-dialog>
   -->
 
-  <me-dialog v-model="dialog.config" icon="el-icon-wallet" :title="t('redisInfo.runConfig')" width="80vw" >
+  <me-dialog v-model="dialog.config" icon="el-icon-wallet" :title="t('redisInfo.runConfig')"
+             width="80vw" :close-on-press-escape="false" :close-on-click-modal="false">
     <RedisConfig :init-node="node || infoNode"/>
   </me-dialog>
 </template>
