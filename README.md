@@ -18,8 +18,8 @@
 ![dark.png](docs/image/dark.png)
 
 ## Feature
-- Extremely lightweight: Based on Webview2, no embedded browser, installation package is less than 10M (thanks to [Tauri](https://tauri.app))
-- Beautiful interface: Provides light/dark themes(感谢 [ElementPlus](https://element-plus.org)
+- Extremely lightweight: Based on Webview2, no embedded browser (thanks to [Tauri](https://tauri.app))
+- Beautiful interface: Provides light/dark themes(thanks to [ElementPlus](https://element-plus.org))
 - Multi-language support: English, Chinese, more languages coming soon
 - Rich functionality: Supports info, key-value, terminal, memory analysis, slow logs, command monitoring, pub/sub, etc.
 - Special feature:
@@ -34,7 +34,7 @@ Available to download for free from [here](https://github.com/hepengju/redis-me/
 
 ## Build Guidelines
 ```shell
-# System Prerequisites: TauriPage  https://tauri.app/start/prerequisites/
+# System Prerequisites: Refer Tauri  https://tauri.app/start/prerequisites/
 # Windows: Microsoft C++
 # Mac: Xcode
 # Linux: libwebkit2gtk, build-essential etc

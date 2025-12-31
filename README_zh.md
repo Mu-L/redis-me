@@ -28,7 +28,7 @@
   * 集群操作可指定节点
 
 ## 应用安装
-提供Mac、Windows和Linux安装包，可[免费下载](https://github.com/hepengju/redis-me/releases)
+提供Mac、Windows和Linux安装包，可免费下载[Github](https://github.com/hepengju/redis-me/releases)、[Gitee](https://gitee.com/hepengju/redis-me/releases)
 
 ## 构建项目
 ```shell
