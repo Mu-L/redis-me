@@ -2,7 +2,7 @@
 <a href="https://github.com/hepengju/redis-me/"><img src="docs/image/logo.svg" width="100"/></a>
 </div>
 <h1 align="center">RedisME</h1>
-<h4 align="center"><strong>English</strong> | <a href="https://github.com/hepengju/redis-me/blob/main/README_zh.md">
+<h4 align="center"><strong>English</strong> | <a href="https://github.com/hepengju/redis-me/blob/master/README_zh.md">
 简体中文</a> 
 </h4>
 <div align="center">
