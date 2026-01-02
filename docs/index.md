@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: "RedisME"
-  tagline: 轻量、现代的Redis桌面客户端
+  tagline: Tiny Modern Redis Desktop Manager
   image:
     src: /image/logo.png
     alt: RedisME

@@ -3,16 +3,11 @@ import {defineConfig} from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: 'RedisME',
-  description: 'Redis Official Website',
+  description: 'RedisME Official Website',
   head: [
     ['link', {rel: 'icon', type: 'image/svg+xml', href: '/image/logo.svg'}],
     ['link', {rel: 'icon', type: 'image/png', href: '/image/logo.png'}]
   ],
-  locales: {
-    root: { label: 'English', lang: 'en-US', dir: 'ltr' },
-    zh: { label: '简体中文', lang: 'zh-Hans', dir: 'ltr' },
-  },
-  srcExclude: ['/resources/**'],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     logo: '/image/logo.svg',
@@ -32,5 +27,16 @@ export default defineConfig({
       message: '友情链接 <a href="https://redis.tinycraft.cc/zh/" target="_blank">TinyRDM</a> | <a href="https://xterminal.cn/" target="_blank">XTerminal</a> <br/><br/>基于GPL-3.0开源许可协议',
       copyright: 'Copyright © 2025 All Rights Reserved'
     }
-  }
+  },
+
+  locales: {
+    root: { label: 'English', lang: 'en-US' },
+    zh: { label: '简体中文', lang: 'zh-Hans', dir: 'ltr' },
+  },
+  srcExclude: ['latest.json', '/zz/**'],
 })
+
+// 中文配置
+const zhConfig = {
+  description: ''
+}
