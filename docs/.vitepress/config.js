@@ -3,21 +3,27 @@ import {defineConfig} from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: 'RedisME',
-  description: 'RedisME Doc Site',
+  description: 'Redis Official Website',
   head: [
     ['link', {rel: 'icon', type: 'image/svg+xml', href: '/image/logo.svg'}],
     ['link', {rel: 'icon', type: 'image/png', href: '/image/logo.png'}]
   ],
+  locales: {
+    root: { label: 'English', lang: 'en-US', dir: 'ltr' },
+    zh: { label: '简体中文', lang: 'zh-Hans', dir: 'ltr' },
+  },
+  srcExclude: ['/resources/**'],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     logo: '/image/logo.svg',
     nav: [
       {text: '主页', link: '/'},
-      {text: '使用指南', link: '/guide'}
+      {text: '使用指南', link: '/guide'},
+      {text: '更新日志', link: '/changelog'},
     ],
     sidebar: [],
     socialLinks: [
-      {icon: 'github', link: 'https://github.com/hepengju/redis-me'}
+      {icon: 'github', link: 'https://github.com/hepengju/redis-me'},
     ],
     search: {
       provider: 'local'
