@@ -29,9 +29,12 @@ export default defineConfig({
     }
   },
 
+  rewrites: {
+    'en/:rest*': ':rest*'
+  },
   locales: {
     root: { label: 'English', lang: 'en-US' },
-    zh: { label: '简体中文', lang: 'zh-Hans', dir: 'ltr' },
+    zh: { label: '简体中文', lang: 'zh-Hans' },
   },
   srcExclude: ['latest.json', '/zz/**'],
 })
