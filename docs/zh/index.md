@@ -5,7 +5,7 @@ hero:
   name: "RedisME"
   tagline: 轻量、现代的Redis桌面客户端
   image:
-    src: /image/logo.png
+    src: /image/logo-color.svg
     alt: RedisME
   actions:
     - theme: brand
