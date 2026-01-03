@@ -7,13 +7,13 @@ hero:
   image:
     src: /images/logo-color.svg
     alt: RedisME
-  actions:
-    - theme: brand
-      text: Download
-      link: https://github.com/hepengju/redis-me/releases
-    - theme: alt
-      text: View on GitHub
-      link: https://github.com/hepengju/redis-me
+#  actions:
+#    - theme: brand
+#      text: Download
+#      link: https://github.com/hepengju/redis-me/releases
+#    - theme: alt
+#      text: View on GitHub
+#      link: https://github.com/hepengju/redis-me
 
 features:
   - title: Super Lightweight

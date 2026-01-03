@@ -8,7 +8,7 @@ export default {
   extends: DefaultTheme,
   Layout() {
     return h(DefaultTheme.Layout, null, {
-      // 'home-hero-actions-after': () => h(HeroActions),
+      'home-hero-actions-after': () => h(HeroActions),
       'home-hero-after': () => h(AppPreview)
     })
   }

@@ -7,13 +7,13 @@ hero:
   image:
     src: /images/logo-color.svg
     alt: RedisME
-  actions:
-    - theme: brand
-      text: 下载安装
-      link: https://gitee.com/hepengju/redis-me/releases
-    - theme: alt
-      text: 进入GitHub
-      link: https://github.com/hepengju/redis-me
+#  actions:
+#    - theme: brand
+#      text: 下载安装
+#      link: https://gitee.com/hepengju/redis-me/releases
+#    - theme: alt
+#      text: 进入GitHub
+#      link: https://github.com/hepengju/redis-me
 
 features:
   - title: 极致轻量
