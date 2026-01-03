@@ -18,12 +18,17 @@ export default defineConfig({
     },
   },
 
-  rewrites: {
-    'en/:rest*': ':rest*'
-  },
+  // 多语言设置, 其中英文为默认语言（重写路径）
   locales: {
     root: { label: 'English', lang: 'en-US' },
     zh: { label: '简体中文', lang: 'zh-Hans' }, // zh-Hans 简体中文
   },
+  rewrites: {
+    'en/:rest*': ':rest*'
+  },
+
+  // 显示最后更新时间
+  lastUpdated: true,
+
   srcExclude: ['latest.json', '/zz/**'],
 })
