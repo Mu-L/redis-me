@@ -16,17 +16,17 @@ hero:
       link: https://github.com/hepengju/redis-me
 
 features:
-  - title: 极致轻量
-    details: 安装包小 (<10M)，内存占用小
-  - title: 友好外观
-    details: 支持深浅色，多语言，字体配置
-  - title: 跨平台
-    details: 支持Windows、Mac、Linux系统
-    linkText: 下载地址
+  - title: Super Lightweight
+    details: Based on Rust/Tauri, package size is less than 10M
+  - title: Pretty UI
+    details: Light/dark themes, multi-language, font settings
+  - title: Cross Platform
+    details: Support Windows, Mac, Linux
+    linkText: Download
     link: https://github.com/hepengju/redis-me/releases
-  - title: 代码开源
-    details: 本软件完全开源，用户可放心使用
-    linkText: 源码地址
+  - title: Open Source
+    details: Completely open source, safe
+    linkText: Source Code
     link: https://github.com/hepengju/redis-me
 ---
 

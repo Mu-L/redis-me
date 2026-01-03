@@ -19,7 +19,7 @@ features:
   - title: 极致轻量
     details: 安装包小 (<10M)，内存占用小
   - title: 友好外观
-    details: 支持深浅色，多语言，字体配置
+    details: 深浅色主题，多语言，字体配置
   - title: 跨平台
     details: 支持Windows、Mac、Linux系统
     linkText: 下载地址
