@@ -1,5 +1,5 @@
 <div align="center">
-<a href="https://github.com/hepengju/redis-me/"><img src="docs/image/logo.svg" width="120"/></a>
+<a href="https://github.com/hepengju/redis-me/"><img src="docs/public/images/logo.svg" width="120"/></a>
 </div>
 <h1 align="center">RedisME</h1>
 <h4 align="center"><strong><a href="/README.md">English</a></strong> | 简体中文 </h4>
