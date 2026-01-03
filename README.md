@@ -14,8 +14,8 @@
 <strong>RedisME is a modern lightweight cross-platform Redis desktop manager </strong>
 </div>
 
-![light.png](docs/image/light.png)
-![dark.png](docs/image/dark.png)
+![light.png](docs/public/images/light.png)
+![dark.png](docs/public/images/dark.png)
 
 ## Feature
 - Super Lightweight: Based on Webview2, no embedded browser (Thanks to [Tauri](https://tauri.app))

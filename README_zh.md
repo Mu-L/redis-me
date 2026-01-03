@@ -12,8 +12,8 @@
 <strong>一个现代、轻量、跨平台的Redis桌面客户端</strong>
 </div>
 
-![light-zh.png](docs/image/light-zh.png)
-![dark-zh.png](docs/image/dark-zh.png)
+![light.png](docs/public/images/light-zh.png)
+![dark.png](docs/public/images/dark-zh.png)
 
 ## 功能特性
 - 极度轻量：基于Webview2，无内嵌浏览器，安装包小于10M（感谢 [Tauri](https://tauri.app/zh-cn)）
