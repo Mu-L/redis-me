@@ -9,7 +9,7 @@ export default defineConfig({
     ['link', {rel: 'icon', type: 'image/png', href: '/image/logo.png'}]
   ],
   themeConfig: {
-    logo: '/image/logo.svg',
+    logo: '/images/logo.svg',
     socialLinks: [
       {icon: 'github', link: 'https://github.com/hepengju/redis-me'},
     ],

@@ -5,7 +5,7 @@ hero:
   name: "RedisME"
   tagline: Lightweight, Modern Redis Desktop Manager
   image:
-    src: /image/logo-color.svg
+    src: /images/logo-color.svg
     alt: RedisME
   actions:
     - theme: brand
