@@ -9,10 +9,10 @@ hero:
     alt: RedisME
   actions:
     - theme: brand
-      text: 下载安装
+      text: Download
       link: https://github.com/hepengju/redis-me/releases
     - theme: alt
-      text: 进入GitHub
+      text: View on GitHub
       link: https://github.com/hepengju/redis-me
 
 features:

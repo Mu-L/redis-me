@@ -10,7 +10,7 @@ hero:
   actions:
     - theme: brand
       text: 下载安装
-      link: https://github.com/hepengju/redis-me/releases
+      link: https://gitee.com/hepengju/redis-me/releases
     - theme: alt
       text: 进入GitHub
       link: https://github.com/hepengju/redis-me
