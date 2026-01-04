@@ -8,6 +8,7 @@ export default defineAdditionalConfig({
     nav: nav(),
     sidebar: {
       '/guide/': {base: '/guide/', items: sidebarGuide()},
+      '/changelog/': {base: '/changelog/', items: sidebarChangelog()},
     },
     footer: {
       message: 'Links: <a href="https://redis.tinycraft.cc/zh/" target="_blank">TinyRDM</a> | <a href="https://xterminal.cn/" target="_blank">XTerminal</a> <br/><br/>Released under the MIT License',
@@ -19,11 +20,11 @@ export default defineAdditionalConfig({
 function nav() {
   return [
     {text: 'Home', link: '/'},
-    {text: 'Guide', link: '/guide'},
+    {text: 'Guide', link: '/guide', activeMatch: '/guide/'},
     {
       text: `v${version}`,
       items: [
-        {text: 'Changelog', link: '/changelog'}
+        {text: 'Changelog', link: '/changelog/1.x', activeMatch: '/changelog/'}
       ]
     }
   ]
@@ -31,4 +32,16 @@ function nav() {
 
 function sidebarGuide() {
   return []
+}
+
+function sidebarChangelog(){
+  return [
+    {
+      text: 'Changelog',
+      items: [
+        {text: '1.x', link: '1.x'},
+        {text: '0.x', link: '0.x'},
+      ]
+    }
+  ]
 }
