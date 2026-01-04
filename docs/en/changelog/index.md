@@ -1,71 +1,76 @@
+## v1.1.0 (2026-01-04)
+- Auto-upgrade mechanism: unified use of static files on both GitHub and Gitee
+- Version number management unified using package.json: official website, frontend, and App versions
+- Added support for Windows Arm64 version and Linux AppImage version
+
 ## v1.0.0 (2026-01-01)
-- 🎉 迎接新年，第一个正式版本发布
-- 升级: 支持自动更新、手动更新; 添加New标识和下载进度显示; 支持Gitee/Github双端更新
-- 配置: 添加默认值展示, 可选展示全部/差异, 差异值特殊颜色展示, 新增Redis8.4配置
-- 主题: 支持浅色深色主题
-- 字体: 支持自定义字体, 支持浏览器字体获取和Rust读取系统字体两种方式，以便适应不同环境
-- i18n: 支持中英文, 支持英文的复数处理, 信息和配置的选项详细解释支持中英文
+- 🎉 Welcome the new year, first official version released
+- Upgrade: supports auto-update and manual update; added New label and download progress display; supports Gitee/Github dual-end updates
+- Configuration: added default value display, optional display of all/differences, special color display for differences, added Redis 8.4 configuration
+- Theme: supports light and dark themes
+- Font: supports custom fonts, supports browser font retrieval and Rust system font reading, to adapt to different environments
+- i18n: supports Chinese and English, supports plural handling in English, detailed explanations for messages and configuration options support Chinese and English
 
 ## v0.9.3 (2025-12-30)
-- 配置: 新增默认值显示
-- 配置: 可选展示全部/差异
-- 配置: 差异值特殊颜色
+- Config: added default value display
+- Config: optional display of all/differences
+- Config: special color for differences
 
 ## v0.9.2 (2025-12-28)
-- 打包时恢复app的打包，以便mac可以自动更新
-- Info、Config的说明添加英文
-- Redis配置新增8.4版本
+- Restored app packaging during build to enable Mac auto-update
+- Added English explanations for Info and Config
+- Added Redis 8.4 configuration
 
 ## v0.9.1 (2025-12-28)
-- 修复导入连接时没有持久化的缺陷
-- 修复英文版本Mac下Memory标签的样式问题
-- 字体支持浏览器字体获取和rust代码获取两种
-- 自动化打包改为标签tag推送触发
+- Fixed defect where imported connections were not persisted
+- Fixed style issue for Memory tab under Mac in English version
+- Font support now includes both browser font retrieval and Rust code retrieval
+- Automated packaging now triggered by tag push
 
 ## v0.9.0 (2025-12-24)
-- 支持Github、Gitee两端更新
-- 版本号升级到0.9.0，为2026年初发布新版做准备
-- 升级依赖包版本
+- Supports updates on both GitHub and Gitee
+- Version upgraded to 0.9.0, preparing for new release in early 2026
+- Upgraded dependency package versions
 
 ## v0.1.8 (2025-12-21)
-- 同步Release到Gitee
+- Synced Release to Gitee
 
 ## v0.1.7 (2025-12-19)
-- 更新优化: 支持配置是否自动更新及手动检查更新
-- 字体设置的缺陷修复: codeFont
+- Update optimization: supports configuring auto-update and manual update check
+- Fixed font setting defect: codeFont
 
 ## v0.1.6 (2025-12-13)
-- 黑色主题修复el-select样式
-- 尝试发布[微软商店](https://partner.microsoft.com/zh-CN/dashboard/apps-and-games/overview)，参考: [免费上架](https://huayemao.run/posts/337)
+- Fixed el-select style in dark theme
+- Attempted release on Microsoft Store, reference: Free Listing
 
 ## v0.1.5 (2025-12-11)
-- 首页截图英中文显示
-- 内存分析参数只能输入正整数
-- i18的html告警处理
-- 国际化处理英文的单数复数
+- Homepage screenshot display in English and Chinese
+- Memory analysis parameters can only input positive integers
+- i18n HTML warning handling
+- Internationalization handling for English singular and plural
 
 ## v0.1.4 (2025-12-07)
-- 添加字体选择
-- 设置持久化（主题、语言、字体）
-- 核心高级功能: 内存分析, 弹窗改为标签页展示
-- 修复部分场景Pipeline命令个数为零的报错
+- Added font selection
+- Settings persistence (theme, language, font)
+- Core advanced feature: memory analysis, popup changed to tab display
+- Fixed error where Pipeline command count was zero in some scenarios
 
 ## v0.1.3 (2025-12-05)
-- 国际化i18n, 支持中文、英文
-- App关闭右键菜单
-- 日志关闭密码显示
-- Redis配置文件查看改为JSON配置以便单个exe绿色版（无需额外资源）即可运行
-- 窗口状态记录去掉，还是默认的大小好看，后期考虑添加到设置中
+- Internationalization i18n, supports Chinese and English
+- Disabled right-click menu in App
+- Disabled password display in logs
+- Redis configuration file view changed to JSON configuration for single exe green version (no additional resources required) to run
+- Removed window state recording, default size looks better, may add to settings later
 
 ## v0.1.2 (2025-11-18)
-- 标题栏适配MacOS
-- 默认字体跨平台适配
-- 关闭MacOS的拼写检查
-- 保存窗口位置和大小，并在应用程序重新打开时恢复它们
-- 慢日志命令支持复制、执行时间列宽优化
+- Title bar adapted for macOS
+- Default font cross-platform adaptation
+- Disabled macOS spell check
+- Saved window position and size, and restored them when app reopened
+- Slow log command supports copy, execution time column width optimized
 
 ## v0.1.1 (2025-11-09)
-- SSL支持问题修复
+- Fixed SSL support issue
 
 ## v0.1.0 (2025-11-09)
-- 首个小版本发布
+- First minor version released

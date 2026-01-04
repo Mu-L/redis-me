@@ -13,6 +13,11 @@
 - 软件和网站的国际化支持
 - 站点文档目录优化
 
+- 发布苹果商店（还需要缴费！）
+- 升级内容可以点击更新日志查看
+- RedisME官方网站的上线
+- Redis哨兵模式的支持
+
 - Gitee的api暂不支直接获取最新release的latest.json文件，已提issue意向
 > https://gitee.com/oschina/git-osc/issues/IDERPB?from=project-issue
 - v-model.number优化 √

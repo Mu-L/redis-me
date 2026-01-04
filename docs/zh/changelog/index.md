@@ -1,6 +1,6 @@
 ## v1.1.0 (2026-01-04)
 - 自动升级机制: github/gitee双端统一使用静态文件
-- 版本号管理统一使用package.json: 官网，前端，App版本读取
+- 版本号管理统一使用package.json: 官网，前端，App版本
 - 新增支持Windows Arm64版本，Linux的AppImage版本
 
 ## v1.0.0 (2026-01-01)
