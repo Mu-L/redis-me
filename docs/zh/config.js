@@ -1,4 +1,5 @@
 import {defineAdditionalConfig} from 'vitepress'
+import {version} from '../../package.json'
 
 export default defineAdditionalConfig({
   lang: 'zh-Hans',
@@ -20,7 +21,7 @@ function nav() {
     {text: '主页', link: '/'},
     {text: '指南', link: '/guide'},
     {
-      text: 'v1.0.0',
+      text: `v${version}`,
       items: [
         {text: '更新日志', link: '/changelog'}
       ]
