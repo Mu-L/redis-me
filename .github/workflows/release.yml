@@ -20,7 +20,9 @@ jobs:
           - platform: 'ubuntu-22.04' # for Tauri v1 you could replace this with ubuntu-20.04.
             args: ''
           - platform: 'windows-latest'
-            args: ''
+            args: '--target x86_64-pc-windows-msvc'
+          - platform: 'windows-latest'
+            args: '--target aarch64-pc-windows-msvc'
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -61,7 +63,7 @@ jobs:
         with:
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: '__VERSION__ 🌈'
-          releaseBody: 'See the assets to download this version and install.'
+          releaseBody: 'See www.hepengju.com for more info'
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
