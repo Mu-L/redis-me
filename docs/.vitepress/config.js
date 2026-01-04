@@ -5,8 +5,8 @@ export default defineConfig({
   title: 'RedisME',
   description: 'RedisME Official Website',
   head: [
-    ['link', {rel: 'icon', type: 'image/svg+xml', href: '/image/logo.svg'}],
-    ['link', {rel: 'icon', type: 'image/png', href: '/image/logo.png'}]
+    ['link', {rel: 'icon', type: 'image/svg+xml', href: '/images/logo.svg'}],
+    ['link', {rel: 'icon', type: 'image/png', href: '/images/logo.png'}]
   ],
   themeConfig: {
     logo: '/images/logo.svg',
