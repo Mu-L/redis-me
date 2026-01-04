@@ -20,7 +20,7 @@ export default defineAdditionalConfig({
 function nav() {
   return [
     {text: 'Home', link: '/'},
-    {text: 'Guide', link: '/guide', activeMatch: '/guide/'},
+    {text: 'Guide', link: '/guide/intro/about', activeMatch: '/guide/'},
     {
       text: `v${version}`,
       items: [
@@ -31,10 +31,42 @@ function nav() {
 }
 
 function sidebarGuide() {
-  return []
+  return [
+    {
+      text: 'Introduction',
+      items: [
+        {text: 'About', link: '/intro/about'},
+        {text: 'Installation', link: '/intro/install'},
+      ]
+    },
+    {
+      text: 'Usage and Configuration',
+      items: [
+        {text: 'Connection', link: '/usage/connection'},
+        {text: 'Info', link: '/usage/info'},
+        {text: 'Value', link: '/usage/value'},
+        {text: 'Terminal', link: '/usage/terminal'},
+      ]
+    },
+    {
+      text: 'Redis Server',
+      items: [
+        {text: 'Single', link: '/server/single'},
+        {text: 'Cluster', link: '/server/cluster'},
+        {text: 'SSL', link: '/server/ssl'},
+      ]
+    },
+    {
+      text: 'Other',
+      items: [
+        {text: 'Q&A', link: '/other/faq'},
+        {text: 'Privacy Policy', link: '/other/privacy'}
+      ]
+    }
+  ]
 }
 
-function sidebarChangelog(){
+function sidebarChangelog() {
   return [
     {
       text: 'Changelog',

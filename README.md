@@ -17,7 +17,7 @@
 ![light.png](docs/public/images/light.png)
 ![dark.png](docs/public/images/dark.png)
 
-## Feature
+## Features
 - Super Lightweight: Based on Webview2, no embedded browser (Thanks to [Tauri](https://tauri.app))
 - Pretty UI: Provides light/dark themes(Thanks to [ElementPlus](https://element-plus.org))
 - Multi-language support: English, Chinese, more languages coming soon

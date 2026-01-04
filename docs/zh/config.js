@@ -47,7 +47,7 @@ export default defineAdditionalConfig({
 function nav() {
   return [
     {text: '主页', link: '/zh/'},
-    {text: '指南', link: '/zh/guide', activeMatch: '/zh/guide/'},
+    {text: '指南', link: '/zh/guide/intro/about', activeMatch: '/zh/guide/'},
     {
       text: `v${version}`,
       items: [
@@ -58,7 +58,39 @@ function nav() {
 }
 
 function sidebarGuide() {
-  return []
+  return [
+    {
+      text: '简介',
+      items: [
+        {text: '关于RedisME', link: '/intro/about'},
+        {text: '安装使用', link: '/intro/install'},
+      ]
+    },
+    {
+      text: '使用手册',
+      items: [
+        {text: '连接管理', link: '/usage/connection'},
+        {text: '信息', link: '/usage/info'},
+        {text: '键值', link: '/usage/value'},
+        {text: '终端', link: '/usage/terminal'},
+      ]
+    },
+    {
+      text: 'Redis服务器',
+      items: [
+        {text: '单机', link: '/server/single'},
+        {text: '集群', link: '/server/cluster'},
+        {text: 'SSL', link: '/server/ssl'},
+      ]
+    },
+    {
+      text: '其他',
+      items: [
+        {text: '常见问题', link: '/other/faq'},
+        {text: '隐私政策', link: '/other/privacy'}
+      ]
+    }
+  ]
 }
 
 function sidebarChangelog(){
