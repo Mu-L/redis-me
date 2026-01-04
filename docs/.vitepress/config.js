@@ -12,6 +12,7 @@ export default defineConfig({
     logo: '/images/logo.svg',
     socialLinks: [
       {icon: 'github', link: 'https://github.com/hepengju/redis-me'},
+      {icon: 'gitee', link: 'https://gitee.com/hepengju/redis-me'},
     ],
     search: {
       provider: 'local',
