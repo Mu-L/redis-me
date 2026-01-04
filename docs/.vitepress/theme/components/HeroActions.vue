@@ -24,7 +24,12 @@ const downloadMenu = computed(() => {
       icon: Windows,
     },
     {
-      text: 'macOS Silicon (.dmg)',
+      text: 'Windows arm64 (.exe)',
+      link: downloadLink(`RedisME_${version}_arm64-setup.exe`),
+      icon: Windows,
+    },
+    {
+      text: 'macOS Apple (.dmg)',
       link: downloadLink(`RedisME_${version}_aarch64.dmg`),
       icon: Apple,
     },
@@ -43,6 +48,11 @@ const downloadMenu = computed(() => {
       link: downloadLink(`RedisME-${version}-1.x86_64.rpm`),
       icon: Linux,
     },
+    {
+      text: 'Linux (.AppImage)',
+      link: downloadLink(`RedisME_${version}_amd64.AppImage`),
+      icon: Linux,
+    },
   ]
 })
 </script>
@@ -59,9 +69,7 @@ const downloadMenu = computed(() => {
       </ul>
     </div>
     <div class="action">
-      <a class="action-button alt"
-         href="https://github.com/hepengju/redis-me" rel="noreferrer"
-         target="_blank">
+      <a class="action-button alt" href="https://github.com/hepengju/redis-me" rel="noreferrer" target="_blank">
         {{ viewText }}
       </a>
     </div>
