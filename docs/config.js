@@ -11,7 +11,12 @@ export default defineAdditionalConfig({
       '/changelog/': {base: '/changelog/', items: sidebarChangelog()},
     },
     footer: {
-      message: 'Links: <a href="https://redis.tinycraft.cc/zh/" target="_blank">TinyRDM</a> | <a href="https://xterminal.cn/" target="_blank">XTerminal</a> <br/><br/>Released under the MIT License',
+      message: `Links: 
+             <a href="https://redis.tinycraft.cc" target="_blank">Tiny RDM</a> | 
+             <a href="https://goanother.com/cn" target="_blank">Another RDM</a> | 
+             <a href="https://redis.io/insight" target="_blank">Redis Insight</a>
+             <br/><br/>
+             Released under the MIT License`,
       copyright: 'Copyright © 2025-present All Rights Reserved'
     }
   },
