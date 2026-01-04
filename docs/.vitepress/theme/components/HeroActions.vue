@@ -29,27 +29,27 @@ const downloadMenu = computed(() => {
       icon: Windows,
     },
     {
-      text: 'macOS Apple (.dmg)',
-      link: downloadLink(`RedisME_${version}_aarch64.dmg`),
-      icon: Apple,
-    },
-    {
-      text: 'macOS Intel (.dmg)',
+      text: 'MacOS x64 (.dmg)',
       link: downloadLink(`RedisME_${version}_x64.dmg`),
       icon: Apple,
     },
     {
-      text: 'Linux (.deb)',
+      text: 'MacOS arm64 (.dmg)',
+      link: downloadLink(`RedisME_${version}_aarch64.dmg`),
+      icon: Apple,
+    },
+    {
+      text: 'Linux amd64 (.deb)',
       link: downloadLink(`RedisME_${version}_amd64.deb`),
       icon: Linux,
     },
     {
-      text: 'Linux (.rpm)',
+      text: 'Linux amd64 (.rpm)',
       link: downloadLink(`RedisME-${version}-1.x86_64.rpm`),
       icon: Linux,
     },
     {
-      text: 'Linux (.AppImage)',
+      text: 'Linux amd64 (.AppImage)',
       link: downloadLink(`RedisME_${version}_amd64.AppImage`),
       icon: Linux,
     },
