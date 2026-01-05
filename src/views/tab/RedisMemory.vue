@@ -17,7 +17,7 @@ import {useI18n} from 'vue-i18n'
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
-const canEdit = computed(() => true)
+const canEdit = computed(() => share.readonly)
 const hint = computed(() => {
   const params = {
     matchParam: matchParam.value,
@@ -196,17 +196,17 @@ function batchDelKey() {
           </template>
         </el-dropdown>
 
-        <el-button icon="el-icon-delete" type="danger"
-                   :disabled="selection.length === 0"
-                   @click="batchDelKey" style="margin-left: 10px">{{ t('redisMemory.batchDelete') }}
-        </el-button>
-
         <el-input v-model.number="sizeLimitKb" style="width: 120px; margin-left: 10px">
           <template #prefix>
             <div style="margin-right: 10px">&gE;</div>
           </template>
           <template #append>Kb</template>
         </el-input>
+
+        <el-button icon="el-icon-delete" type="danger" v-if="canEdit"
+                   :disabled="selection.length === 0"
+                   @click="batchDelKey" style="margin-left: 10px">{{ t('redisMemory.batchDelete') }}
+        </el-button>
       </div>
 
       <div>
@@ -238,7 +238,7 @@ function batchDelKey() {
           {{ meHumanSize(scope.row.size) }}
         </template>
       </el-table-column>
-      <el-table-column :label="t('action')" :width="canEdit ? 100 : 80" fixed="right" align="center">
+      <el-table-column :label="t('action')" :width="canEdit ? 100 : 65" fixed="right" align="center">
         <template #default="scope">
           <div class="me-flex">
             <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn" @click="meCopy(scope.row.key) "/>
