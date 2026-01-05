@@ -17,7 +17,7 @@ import {useI18n} from 'vue-i18n'
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
-const canEdit = computed(() => share.readonly)
+const canEdit = computed(() => !share.readonly)
 const hint = computed(() => {
   const params = {
     matchParam: matchParam.value,

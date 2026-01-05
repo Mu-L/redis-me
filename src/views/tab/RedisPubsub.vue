@@ -6,6 +6,7 @@ import {useI18n} from 'vue-i18n'
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
+const canEdit = computed(() => !share.readonly)
 
 const channel = ref('')
 const keyword = ref('')
@@ -108,7 +109,7 @@ onUnmounted(() => tauriUnlisten())
         </el-table-column>
       </el-table>
     </div>
-    <div class="footer">
+    <div class="footer" v-if="canEdit">
       <el-input v-model="sendChannel" :placeholder="t('redisPubSub.channel')" style="width: 200px"></el-input>
       <el-input v-model="sendMessage" :placeholder="t('redisPubSub.messageContent')" style="margin: 0 10px"></el-input>
       <el-button icon="el-icon-promotion" @click="publish" type="warning" :loading="sendLoading"

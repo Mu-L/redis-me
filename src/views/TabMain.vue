@@ -15,7 +15,7 @@ const { t } = useI18n()
 
 // 共享数据
 const share = inject('share')
-const canEdit = computed(() => share.readonly)
+const canEdit = computed(() => !share.readonly)
 </script>
 
 <template>
