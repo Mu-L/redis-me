@@ -3,19 +3,28 @@ import NodeList from '../ext/NodeList.vue'
 import {meInvoke} from '@/utils/util.js'
 import MeIcon from '@/components/MeIcon.vue'
 import {useI18n} from 'vue-i18n'
+import {useDark} from '@vueuse/core'
 
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
+const canEdit = computed(() => !share.readonly)
+
+const isDark = useDark()
+const color  = computed(() => isDark.value ? '32m' : '34m')
 
 const autoBroadcast = ref(true)
 const node  = ref('')
 const hint = computed(() => t('redisTerminal.hint'))
-const prefix = computed(() => node.value ? `\x1B[1;3;32m${node.value}> \x1B[0m` : '\x1B[1;3;32m$ \x1B[0m')
-const welcome = computed(() => t('redisTerminal.welcome'))
+const prefix = computed(() => node.value ? `\x1B[1;3;${color.value}${node.value}> \x1B[0m` : `\x1B[1;3;${color.value}$ \x1B[0m`)
+const welcome = computed(() => t('redisTerminal.welcome', {RedisME: `\x1B[1;3;${color.value}RedisME\x1B[0m`}))
 
 // 定制化执行命令
 async function execCommand(command) {
+  if (!canEdit.value) {
+    return '\x1B[1;3;' + color.value + t('redisTerminal.readonlyHint') + '\x1B[0m'
+  }
+
   try {
     const param = {
       command, node: node.value, autoBroadcast: autoBroadcast.value
