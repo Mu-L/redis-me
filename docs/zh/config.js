@@ -67,7 +67,7 @@ function sidebarGuide() {
     {
       text: '简介',
       items: [
-        {text: '关于RedisME', link: '/intro/about'},
+        {text: '关于', link: '/intro/about'},
         {text: '安装使用', link: '/intro/install'},
       ]
     },
