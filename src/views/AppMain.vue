@@ -1,7 +1,7 @@
 <script setup>
 import TabMain from './TabMain.vue'
 import {sortBy} from 'lodash'
-import {bus, CONN_REFRESH, DoNothing, meInvoke} from '@/utils/util.js'
+import {bus, CONN_REFRESH, DoNothing, meInvoke, meOk} from '@/utils/util.js'
 import TabConn from '@/views/TabConn.vue'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
@@ -92,6 +92,12 @@ async function checkAutoUpdate() {
   app.update = await check().catch(DoNothing)
 }
 onMounted(checkAutoUpdate)
+
+// 切换只读
+function changeReadonly() {
+  share.readonly = !share.readonly
+  meOk(share.readonly ? t('appMain.readonlyTip') : t('appMain.writableTip'))
+}
 </script>
 
 <template>
@@ -112,10 +118,10 @@ onMounted(checkAutoUpdate)
         <template v-else-if="connPrepared">
           <TabMain/>
           <me-icon class="readonly-icon" plain
-                     :icon="share.readonly ? 'el-icon-lock' : 'el-icon-unlock'"
+                     :icon="share.readonly ? 'me-icon-lock' : 'me-icon-unlock'"
                      :name="share.readonly ? t('appMain.readonly') : t('appMain.writable')"
                      :hint="true" :show-after="0"
-                     @click="share.readonly = !share.readonly"
+                     @click="changeReadonly"
           />
         </template>
 
@@ -163,6 +169,7 @@ onMounted(checkAutoUpdate)
     right: 10px;
     font-size: 20px;
     z-index: 100;
+    color: var(--el-color-success);
 
     cursor: pointer;
     &:hover {

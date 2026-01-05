@@ -23,7 +23,9 @@ export default {
 
   appMain: {
     readonly: '只读',
-    writable: '可写'
+    writable: '可写',
+    readonlyTip: '切换为只读模式',
+    writableTip: '切换为可写模式'
   },
 
   setting: {

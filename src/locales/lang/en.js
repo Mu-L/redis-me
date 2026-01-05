@@ -23,7 +23,9 @@ export default {
 
   appMain: {
     readonly: 'Readonly',
-    writable: 'Writable'
+    writable: 'Writable',
+    readonlyTip: 'Changed To Readonly',
+    writableTip: 'Changed To Writable'
   },
 
   setting: {
