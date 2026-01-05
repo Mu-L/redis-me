@@ -6,7 +6,7 @@ import {useI18n} from 'vue-i18n'
 // 共享数据
 const { t } = useI18n()
 const share = inject('share')
-const canEdit = computed(() => true)
+const canEdit = computed(() => !share.readonly)
 
 const emit = defineEmits(['chooseKey', 'contextKey'])
 const {color, redisKey, filterKeyList} = defineProps({

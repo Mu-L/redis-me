@@ -2,10 +2,11 @@
 
 // 共享数据
 import {useI18n} from 'vue-i18n'
+import {computed} from 'vue'
 
 const { t } = useI18n()
 const share = inject('share')
-const canEdit = computed(() => true)
+const canEdit = computed(() => !share.readonly)
 
 const emit = defineEmits(['chooseKey', 'chooseFolder', 'contextKey', 'contextFolder'])
 const {filterKeyList} = defineProps({
