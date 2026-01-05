@@ -12,8 +12,8 @@ onUnmounted(() => bus.off(KEY_REFRESH, refreshKey))
 
 // 共享数据
 const share = inject('share')
-const canEdit = computed(() => true)
-const canSave = computed(() => stringType.value && canEdit)
+const canEdit = computed(() => !share.readonly)
+const canSave = computed(() => stringType.value && canEdit.value)
 
 // 值的显示方式
 const viewTypeList = ['json', 'table']
@@ -305,7 +305,7 @@ async function fieldDel(row) {
               <el-table-column :label="t('redisValue.value')" prop="value" show-overflow-tooltip/>
               <el-table-column :label="t('redisValue.score')" prop="score" show-overflow-tooltip v-if="redisValue.type === 'zset'"/>
 
-              <el-table-column :label="t('action')" :width="canEdit ? 100 : 80" fixed="right" align="center">
+              <el-table-column :label="t('action')" :width="canEdit ? 100 : 60" fixed="right" align="center">
                 <template #default="scope">
                   <div class="me-flex" :style="{justifyContent: canEdit ? 'space-between' : 'center'}">
                     <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn"  @click.stop="meCopy(scope.row.value) "/>
