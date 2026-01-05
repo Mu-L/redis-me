@@ -18,11 +18,13 @@
 ![dark.png](docs/public/images/dark.png)
 
 ## Features
+
 - Super Lightweight: Based on Webview2, no embedded browser (Thanks to [Tauri](https://tauri.app))
 - Pretty UI: Provides light/dark themes(Thanks to [ElementPlus](https://element-plus.org))
 - Multi-language support: English, Chinese, more languages coming soon
 - Rich functionality: info, value, terminal, memory analysis, slow logs, command monitoring, pub/sub etc
 - Special features:
+    * Read-only writable mode real-time conversion
     * Highlighting and detailed explanations of info fields
     * Configuration field comparison, detailed explanations, and default value references
     * Fine-grained memory scan parameter configuration for quick memory issue troubleshooting
@@ -30,9 +32,11 @@
     * Cluster operations can specify nodes
 
 ## Installation
+
 Available to download for free from [here](https://github.com/hepengju/redis-me/releases)
 
 ## Build Guidelines
+
 ```shell
 # System Prerequisites: Refer Tauri  https://tauri.app/start/prerequisites/
 # Windows: Microsoft C++
