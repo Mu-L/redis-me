@@ -224,8 +224,9 @@ function clickNew() {
           {{ scope.row.host + ':' + scope.row.port }}
         </template>
       </el-table-column>
-      <el-table-column :label="t('conn.otherProp')" width="180">
+      <el-table-column :label="t('conn.otherProp')" width="200" show-overflow-tooltip>
         <template #default="scope">
+          <el-checkbox disabled size="small" v-model="scope.row.readonly">{{ t('conn.readonlyShort') }}</el-checkbox>
           <el-checkbox disabled size="small" v-model="scope.row.cluster">{{ t('conn.cluster') }}</el-checkbox>
           <el-checkbox disabled size="small" v-model="scope.row.ssl">SSL</el-checkbox>
         </template>
@@ -263,6 +264,7 @@ function clickNew() {
   .header {
     margin-bottom: 10px;
 
+    //新版本图标提示
     .icon-new {
       margin: 0 10px;
       font-size: 30px;
@@ -271,6 +273,12 @@ function clickNew() {
     }
   }
 
+  // 其他属性，默认右侧30px改为10px，降低宽度占用
+  :deep(.el-checkbox) {
+    margin-right: 10px;
+  }
+
+  // 拖拽进行连接的上下调整
   :deep(.drag-handle) {
     cursor: move;
   }
@@ -279,6 +287,7 @@ function clickNew() {
     background-color: var(--el-color-primary-light-8);
   }
 
+  // 版本升级过程中显示下载进度
   .downloading {
     position: absolute;
     right: 0 ;

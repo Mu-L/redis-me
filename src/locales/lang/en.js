@@ -87,6 +87,7 @@ export default {
     caHint: 'Certificate Authority File in PEM format',
     testConn: 'Test Conn',
     readonly: 'Read Only',
+    readonlyShort: 'RO',
     nameRequired: 'Please Input host',
     portRequired: 'Please Input port',
     testOk: 'Conn Success',

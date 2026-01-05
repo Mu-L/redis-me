@@ -88,6 +88,7 @@ export default {
     caHint: 'PEM格式授权文件 (CA)',
     testConn: '测试连接',
     readonly: '只读',
+    readonlyShort: '只读',
     nameRequired: '请输入主机',
     portRequired: '请输入端口',
     testOk: '测试连接成功',
