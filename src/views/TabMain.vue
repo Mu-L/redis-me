@@ -15,7 +15,7 @@ const { t } = useI18n()
 
 // 共享数据
 const share = inject('share')
-const canEdit = computed(() => true)
+const canEdit = computed(() => share.readonly)
 </script>
 
 <template>
@@ -55,14 +55,14 @@ const canEdit = computed(() => true)
       <RedisSlow/>
     </el-tab-pane>
 
-    <el-tab-pane name="monitor" lazy v-if="canEdit">
+    <el-tab-pane name="monitor" lazy>
       <template #label>
         <me-icon :name="t('tabMain.monitor')" icon="el-icon-monitor"/>
       </template>
       <RedisMonitor/>
     </el-tab-pane>
 
-    <el-tab-pane name="pubsub" lazy v-if="canEdit">
+    <el-tab-pane name="pubsub" lazy>
       <template #label>
         <me-icon :name="t('tabMain.pubsub')" icon="me-icon-pubsub"/>
       </template>
