@@ -21,6 +21,11 @@ export default {
   saveOk: 'Saved',
   deleteOk: 'Deleted',
 
+  appMain: {
+    readonly: 'Readonly',
+    writable: 'Writable'
+  },
+
   setting: {
     labelWidth: '86px',
     title: 'Settings',

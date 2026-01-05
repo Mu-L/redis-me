@@ -21,6 +21,11 @@ export default {
   saveOk: '保存成功',
   deleteOk: '删除成功',
 
+  appMain: {
+    readonly: '只读',
+    writable: '可写'
+  },
+
   setting: {
     labelWidth: '60px',
     title: '设置',

@@ -7,6 +7,9 @@ import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
 import {onMounted, ref} from 'vue'
 import {check} from '@tauri-apps/plugin-updater'
+import {useI18n} from 'vue-i18n'
+
+const {t} = useI18n()
 
 // 共享数据
 const share = reactive({
@@ -14,6 +17,7 @@ const share = reactive({
   connList: meTauri.connList,         // 连接列表, 初始化从存储中已读取
   nodeList: [],                       // 节点列表
   color: 'var(--el-color-primary)',   // 即 share.conn.color（便于使用和移植）
+  readonly: false,                    // 即 share.conn.readonly 当前连接是否只读(此处另外存储1份，避免影响连接默认的只读设置)
   redisKey: null,
   tabName: 'info',
   dbSizeMap: {}, // 数据库大小显示
@@ -48,6 +52,7 @@ watch(() => share.conn, async (newConn, oldConn) => {
     // 打开新连接，获取节点列表和数据库列表（TODO）
     if (newConn) {
       share.color = newConn.color
+      share.readonly = !!newConn.readonly
       share.tabName = 'info'
       await meInvoke('connect', {id: newConn.id})
       connPrepared.value = true
@@ -104,7 +109,16 @@ onMounted(checkAutoUpdate)
       <!-- 右侧值 -->
       <el-splitter-panel :min="250">
         <TabConn     v-if="!share.conn"/>
-        <TabMain v-else-if="connPrepared"/>
+        <template v-else-if="connPrepared">
+          <TabMain/>
+          <me-icon class="readonly-icon" plain
+                     :icon="share.readonly ? 'el-icon-lock' : 'el-icon-unlock'"
+                     :name="share.readonly ? t('appMain.readonly') : t('appMain.writable')"
+                     :hint="true" :show-after="0"
+                     @click="share.readonly = !share.readonly"
+          />
+        </template>
+
       </el-splitter-panel>
     </el-splitter>
   </div>
@@ -122,7 +136,6 @@ onMounted(checkAutoUpdate)
     height: 100%;
     display: flex;
     flex-direction: column;
-
   }
     /* 中间分隔面板的样式调整 */
   :deep(.el-splitter-bar) {
@@ -138,6 +151,20 @@ onMounted(checkAutoUpdate)
   :deep(.icon-btn) {
     cursor: pointer;
 
+    &:hover {
+      color: var(--el-color-primary);
+    }
+  }
+
+  /* 只读按钮图标 */
+  :deep(.readonly-icon) {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    z-index: 100;
+
+    cursor: pointer;
     &:hover {
       color: var(--el-color-primary);
     }
