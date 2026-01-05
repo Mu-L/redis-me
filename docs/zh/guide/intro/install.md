@@ -1,4 +1,4 @@
-# 安装使用
+# 安装
 
 ## Windows
 - 64位: 下载 `RedisME_${version}_x64-setup.exe` 完成后双击安装即可

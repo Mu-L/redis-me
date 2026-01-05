@@ -9,6 +9,7 @@ export default defineAdditionalConfig({
     sidebar: {
       '/guide/': {base: '/guide/', items: sidebarGuide()},
       '/changelog/': {base: '/changelog/', items: sidebarChangelog()},
+      '/server/': {base: '/server/', items: sidebarServer()},
     },
     footer: {
       message: `Links: 
@@ -29,7 +30,8 @@ function nav() {
     {
       text: `v${version}`,
       items: [
-        {text: 'Changelog', link: '/changelog/1.x', activeMatch: '/changelog/'}
+        {text: 'Changelog', link: '/changelog/1.x', activeMatch: '/changelog/'},
+        {text: 'Redis Install', link: '/server/single', activeMatch: '/server/'}
       ]
     }
   ]
@@ -47,18 +49,18 @@ function sidebarGuide() {
     {
       text: 'Usage and Configuration',
       items: [
+        {text: 'Special Features', link: '/usage/special'},
+        {text: 'Setting', link: '/usage/setting'},
         {text: 'Connection', link: '/usage/connection'},
         {text: 'Info', link: '/usage/info'},
+        {text: 'Client', link: '/usage/client'},
+        {text: 'Config', link: '/usage/config'},
         {text: 'Value', link: '/usage/value'},
         {text: 'Terminal', link: '/usage/terminal'},
-      ]
-    },
-    {
-      text: 'Redis Server',
-      items: [
-        {text: 'Single', link: '/server/single'},
-        {text: 'Cluster', link: '/server/cluster'},
-        {text: 'SSL', link: '/server/ssl'},
+        {text: 'Memory', link: '/usage/memory'},
+        {text: 'SlowLog', link: '/usage/slowlog'},
+        {text: 'Monitor', link: '/usage/monitor'},
+        {text: 'Pub/Sub', link: '/usage/pubsub'},
       ]
     },
     {
@@ -80,5 +82,18 @@ function sidebarChangelog() {
         {text: '0.x', link: '0.x'},
       ]
     }
+  ]
+}
+
+function sidebarServer() {
+  return [
+    {
+      text: 'Redis Install',
+      items: [
+        {text: 'Single', link: '/single'},
+        {text: 'Cluster', link: '/cluster'},
+        {text: 'SSL Cert', link: '/ssl'},
+      ]
+    },
   ]
 }

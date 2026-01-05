@@ -9,6 +9,7 @@ export default defineAdditionalConfig({
     sidebar: {
       '/zh/guide/': {base: '/zh/guide/', items: sidebarGuide()},
       '/zh/changelog/': {base: '/zh/changelog/', items: sidebarChangelog()},
+      '/zh/server/': {base: '/zh/server/', items: sidebarServer()},
     },
     footer: {
       message: `友情链接
@@ -56,7 +57,8 @@ function nav() {
     {
       text: `v${version}`,
       items: [
-        {text: '更新日志', link: '/zh/changelog/1.x', activeMatch: '/zh/changelog/'}
+        {text: '更新日志', link: '/zh/changelog/1.x', activeMatch: '/zh/changelog/'},
+        {text: 'Redis安装', link: '/zh/server/single', activeMatch: '/zh/server/'}
       ]
     }
   ]
@@ -68,24 +70,24 @@ function sidebarGuide() {
       text: '简介',
       items: [
         {text: '关于', link: '/intro/about'},
-        {text: '安装使用', link: '/intro/install'},
+        {text: '安装', link: '/intro/install'},
       ]
     },
     {
       text: '使用手册',
       items: [
-        {text: '连接管理', link: '/usage/connection'},
+        {text: '特色功能', link: '/usage/special'},
+        {text: '应用设置', link: '/usage/setting'},
+        {text: '连接列表', link: '/usage/connection'},
         {text: '信息', link: '/usage/info'},
+        {text: '客户端', link: '/usage/client'},
+        {text: '配置', link: '/usage/config'},
         {text: '键值', link: '/usage/value'},
         {text: '终端', link: '/usage/terminal'},
-      ]
-    },
-    {
-      text: 'Redis服务器',
-      items: [
-        {text: '单机', link: '/server/single'},
-        {text: '集群', link: '/server/cluster'},
-        {text: 'SSL', link: '/server/ssl'},
+        {text: '内存分析', link: '/usage/memory'},
+        {text: '慢日志', link: '/usage/slowlog'},
+        {text: '命令监控', link: '/usage/monitor'},
+        {text: '发布订阅', link: '/usage/pubsub'},
       ]
     },
     {
@@ -105,6 +107,19 @@ function sidebarChangelog(){
       items: [
         {text: '1.x', link: '1.x'},
         {text: '0.x', link: '0.x'},
+      ]
+    }
+  ]
+}
+
+function sidebarServer() {
+  return [
+    {
+      text: 'Redis安装',
+      items: [
+        {text: '单机', link: '/single'},
+        {text: '集群', link: '/cluster'},
+        {text: 'SSL证书', link: '/ssl'},
       ]
     }
   ]
