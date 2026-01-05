@@ -51,7 +51,7 @@ export default defineConfig({
           : undefined,
         watch: {
             // 3. tell vite to ignore watching `src-tauri`
-            ignored: ["**/src-tauri/**", "**/docs/**"],
+            ignored: ["dist/**", "node_modules/**", "**/src-tauri/**", "**/docs/**"],
         },
     },
 })

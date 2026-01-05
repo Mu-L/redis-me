@@ -199,6 +199,7 @@ function clickNew() {
     <el-table ref="table"
               :data="filterDataList"
               :cell-style="cellStyle"
+              row-key="id"
               @row-dblclick="selectConn"
               border stripe
               height="100%">
