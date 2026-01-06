@@ -11,7 +11,7 @@
     <Properties>
         <DisplayName>RedisME</DisplayName>
         <PublisherDisplayName>hepengju</PublisherDisplayName>
-        <Description>Redis Desktop Manage</Description>
+        <Description>Redis Desktop Manager</Description>
         <Logo>Assets\StoreLogo.png</Logo>
         <uap10:PackageIntegrity>
             <uap10:Content Enforcement="on"/>
