@@ -1,3 +1,4 @@
+export const commands =
 [
   {
     "group": "generic",
