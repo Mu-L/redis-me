@@ -160,6 +160,11 @@ export function meDeleteKey(id, redisKey, thenFn) {
 
 // 检查更新
 export async function meCheckUpdate(quiet = true, checkOptions = {}, app) {
+  if (window?.meTauri?.isAppStore) {
+    meLog('应用商店内部的应用更新，忽略检查接口')
+    return
+  }
+
   if (!quiet) {
     ElMessage.primary(t('util.checking'))
   }

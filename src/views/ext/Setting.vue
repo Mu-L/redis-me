@@ -7,6 +7,7 @@ import { getSystemFonts } from "tauri-plugin-system-fonts-api";
 
 const {t} = useI18n()
 const settings = window.meTauri.settings
+const isAppStore = window.meTauri.isAppStore
 
 // 主题
 const themeList = computed(() => [
@@ -91,12 +92,13 @@ async function checkUpdate() {
 
       <el-row class="me-flex">
         <el-form-item :label="t('setting.update')">
-          <el-checkbox v-model="settings.autoUpdate" :label="t('setting.updateAuto')"/>
+          <el-tag v-if="isAppStore" type="info">{{ t('setting.updateAppStore') }}</el-tag>
+          <el-checkbox v-else v-model="settings.autoUpdate" :label="t('setting.updateAuto')"/>
         </el-form-item>
 
         <el-form-item :label="t('setting.nowVersion')">
-          <span style="margin-right: 10px"><el-tag type="info">v{{appVersion}}</el-tag></span>
-          <el-button plain @click="checkUpdate" :loading="loading" icon="el-icon-check" :disabled="app.downloading">{{ t('setting.updateNow') }}</el-button>
+          <span><el-tag type="info">v{{appVersion}}</el-tag></span>
+          <el-button style="margin-left: 10px" plain @click="checkUpdate" :loading="loading" icon="el-icon-check" :disabled="app.downloading" v-if="!isAppStore">{{ t('setting.updateNow') }}</el-button>
         </el-form-item>
       </el-row>
     </el-form>

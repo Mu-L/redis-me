@@ -50,6 +50,7 @@ export default {
     nowVersion: '版本',
     updateNow: '检查更新',
     updateProxy: '更新代理',
+    updateAppStore: '应用商店控制更新'
   },
 
   conn: {

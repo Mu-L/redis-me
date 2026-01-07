@@ -15,13 +15,16 @@ const systemLanguage = (await locale())?.replace('-', '') || 'en' // // zh-CN ==
 meLog('系统主题:', systemTheme, '系统语言:', systemLanguage)
 
 // 数据目录，判断是否在微软应用商店
-// C:\Users\he_pe\AppData\Roaming\com.hepengju.redis
 const configDir = await appConfigDir()
 const dataDir = await appDataDir()
 const logDir = await appLogDir()
-meLog('配置目录:', configDir)
+meLog('配置目录:', configDir) // C:\Users\he_pe\AppData\Roaming\com.hepengju.redis
 meLog('数据目录:', dataDir)
 meLog('日志目录:', logDir)
+
+// 应用商店里面的更新依赖应用商店自身的更新机制
+// 微软应用商店示例: C:\Program Files\WindowsApps\hepengju.RedisME_1.2.0.0_x64__v2a7j12f6a642\VFS\Local AppData\RedisME
+const isAppStore = configDir.includes('WindowsApps')
 
 // 存储及初始化数据读取
 const store = new LazyStore('store.json')
@@ -32,10 +35,14 @@ meLog('读取设置:', storeSettings)
 const initSettings =  { language: 'system', theme: 'system', uiFont: [], codeFont: [], autoUpdate: true }
 const settings = { ...initSettings, ...storeSettings }
 const meTauri = reactive({
-  systemTheme,
-  systemLanguage,
+  // 响应式，自动保存
   connList,
   settings,
+
+  // 纯记录
+  systemTheme,
+  systemLanguage,
+  isAppStore,
 })
 // 放在Window全局变量中方便使用
 window.meTauri = meTauri

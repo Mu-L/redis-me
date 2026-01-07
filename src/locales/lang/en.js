@@ -49,6 +49,7 @@ export default {
     nowVersion: 'Version',
     updateNow: 'Check Now',
     updateProxy: 'Update Proxy',
+    updateAppStore: 'Update By AppStore'
   },
 
   conn: {
