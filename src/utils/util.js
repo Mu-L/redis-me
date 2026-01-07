@@ -29,13 +29,18 @@ export const PREDEFINE_COLORS = [
 const isDev = import.meta.env.DEV
 const t = i18n.global.t
 
-// 打印日志
+// 打印日志（仅开发环境）
+export function meLog(...args) {
+  if (isDev) {
+    console.log(...args)
+  }
+}
+
+// invoke命令: 打印日志
 export async function meInvoke(command, params, alert = true) {
   try {
     const data = await invoke(command, params)
-    if (isDev) {
-      console.log(`命令: ${command}, 参数: `, params, '结果: ', data)
-    }
+    meLog(`命令: ${command}, 参数: `, params, '结果: ', data)
 
     return data
   } catch (error) {
@@ -43,9 +48,7 @@ export async function meInvoke(command, params, alert = true) {
       meErr(error, t('error') + (isDev ? ': ' + command : ''))
     }
 
-    if (isDev) {
-      console.log(`命令: ${command}, 参数:`, params, `, 错误: ${error}`)
-    }
+    meLog(`命令: ${command}, 参数:`, params, `, 错误: ${error}`)
     throw error;
   }
 }
