@@ -112,7 +112,7 @@ const downloadMenu = computed(() => {
 .action-button.alt {
   border-color: var(--vp-button-alt-border);
   color: var(--vp-button-alt-text);
-  //background-color: var(--vp-button-alt-bg);
+  /*background-color: var(--vp-button-alt-bg);*/
 }
 
 .action-button {
