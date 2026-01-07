@@ -36,6 +36,12 @@ export function meLog(...args) {
   }
 }
 
+// 是否是中文模式
+export function isZh() {
+  const language = meTauri.settings.language === 'system' ? meTauri.systemLanguage : meTauri.settings.language
+  return language?.startsWith('zh')
+}
+
 // invoke命令: 打印日志
 export async function meInvoke(command, params, alert = true) {
   try {

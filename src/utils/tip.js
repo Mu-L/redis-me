@@ -1,5 +1,7 @@
 // https://redis.ac.cn/docs/latest/commands/info/
 
+import {isZh} from '@/utils/util.js'
+
 const zhInfoTip = {
   'monotonic_clock': '单调时钟',
 
@@ -981,13 +983,6 @@ const enConfigTip = {
 
 
 // 中文语言返回中文提示，否则返回英文提示
-const infoTip = computed(() => {
-  const language = meTauri.settings.language === 'system' ? meTauri.systemLanguage : meTauri.settings.language
-  return language?.startsWith('zh') ? zhInfoTip : enInfoTip
-})
-
-const configTip = computed(() => {
-  const language = meTauri.settings.language === 'system' ? meTauri.systemLanguage : meTauri.settings.language
-  return language?.startsWith('zh') ? zhConfigTip : enConfigTip
-})
+const infoTip = computed(() => isZh() ? zhInfoTip : enInfoTip)
+const configTip = computed(() => isZh() ? zhConfigTip : enConfigTip)
 export {infoTip, configTip}
