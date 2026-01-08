@@ -26,8 +26,6 @@
     "@tauri-apps/plugin-updater": "~2.9.0",
     "@tauri-apps/plugin-window-state": "~2.4.1",
     "@vueuse/core": "^12.8.2",
-    "@xterm/addon-fit": "^0.10.0",
-    "@xterm/xterm": "^5.5.0",
     "codemirror": "^5.65.20",
     "codemirror-editor-vue3": "^2.8.0",
     "dayjs": "^1.11.19",
@@ -38,7 +36,8 @@
     "sortablejs": "^1.15.6",
     "tauri-plugin-system-fonts-api": "^2.0.2",
     "vue": "^3.5.26",
-    "vue-i18n": "^11.2.7"
+    "vue-i18n": "^11.2.7",
+    "xterminal": "^2.1.15"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.9.6",
