@@ -18,7 +18,7 @@ export default defineAdditionalConfig({
              <a href="https://redis.io/insight" target="_blank">Redis Insight</a>
              <br/><br/>
              Released under the MIT License`,
-      copyright: 'Copyright © 2025-present All Rights Reserved'
+      copyright: 'Copyright © 2025-present All Rights Reserved. 沪ICP备2026000918号'
     }
   },
 })

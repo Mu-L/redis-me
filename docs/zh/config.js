@@ -18,7 +18,7 @@ export default defineAdditionalConfig({
              <a href="https://redis.io/insight" target="_blank">Redis Insight</a>
              <br/><br/>
              基于GPL-3.0开源许可协议`,
-      copyright: 'Copyright © 2025-present All Rights Reserved'
+      copyright: 'Copyright © 2025-present All Rights Reserved. 沪ICP备2026000918号'
     },
 
     //#region 以下直接从官网复制: https://github.com/vuejs/vitepress/blob/main/docs/zh/config.ts
