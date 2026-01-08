@@ -9,7 +9,7 @@ import XTerminal from 'xterminal'
 const {welcome, prefix, execCommand} = defineProps({
   welcome: {
     type: String,
-    default: '欢迎使用 RedisME Terminal',
+    default: '欢迎使用 XTerminal',
   },
   prefix: {
     type: String,
@@ -53,7 +53,7 @@ term.on('keypress', e => {
   }
 })
 
-
+// 挂载和卸载
 onMounted(() => {
   term.mount('#terminal')
   prompt(true)
@@ -62,14 +62,8 @@ onUnmounted(() => term?.dispose())
 
 // 命令行提示符
 function prompt(printWelcome = false, printlnPrefix = true) {
-  if (printWelcome) {
-    term.write(welcome)
-  }
-
-  if (printlnPrefix) {
-    term.writeln('')
-  }
-
+  term.write(printWelcome ? welcome : '')
+  term.write(printlnPrefix ? '\n' : '')
   term.write(prefix)
   term.resume()
   term.focus()
@@ -81,7 +75,7 @@ const terminalClass = computed(() => isDark.value ? 'dark' : '')
 </script>
 
 <template>
-  <div id="terminal" :class="terminalClass"></div>
+  <div id="terminal" :class="terminalClass"/>
 </template>
 
 <style scoped lang="scss">

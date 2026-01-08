@@ -9,24 +9,29 @@ const { t } = useI18n()
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 
+// 待颜色的文本
+function colorText(color, text) {
+  return `<span style="color: ${color}">${text}</span>`
+}
+
 const autoBroadcast = ref(true)
 const node  = ref('')
 const hint = computed(() => t('redisTerminal.hint'))
-const prefix = computed(() => `<span style="color: var(--el-color-primary)">${node.value ? node.value + '> ' : '$ '}</span>`)
-const welcome = computed(() => t('redisTerminal.welcome', {RedisME: `<span style="color: var(--el-color-primary)">RedisME</span>`}))
+const prefix = computed(() => colorText('var(--el-color-primary)', node.value ? node.value + '> ' : '$ '))
+const welcome = computed(() => t('redisTerminal.welcome', {RedisME: colorText('var(--el-color-primary)', 'RedisME')}))
 
 // 定制化执行命令
 async function execCommand(command) {
   if (!canEdit.value) {
-    return `<span style="color: var(--el-color-error)">${t('redisTerminal.readonlyHint')}</span>`
+    return colorText('var(--el-color-warning)', t('redisTerminal.readonlyHint'))
   }
 
   try {
     const param = {command, node: node.value, autoBroadcast: autoBroadcast.value}
     const data = await meInvoke('execute_command', {id: share.conn.id, param}, false)
-    return `<span style="color: var(--el-color-success)">${data}</span`
+    return colorText('var(--el-color-success)', data)
   } catch (e) {
-    return `<span style="color: var(--el-color-error)">(error) ${e}</span`
+    return colorText('var(--el-color-error)', `(error) ${e}`)
   }
 }
 </script>
