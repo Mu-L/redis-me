@@ -5,6 +5,15 @@ html {
   -moz-user-select: none;    /* Firefox */
 }
 
+.el-descriptions__content,
+.el-table__body-wrapper .el-table__cell,
+.el-tooltip,
+#terminal {
+  user-select: text;
+  -webkit-user-select: text; /* Chrome, Safari */
+  -moz-user-select: text;    /* Firefox */
+}
+
 /* 字体 */
 :root {
   /* https://element-plus.org/zh-CN/component/typography#%E5%AD%97%E4%BD%93 */
@@ -20,15 +29,6 @@ html {
      system-ui: 兜底
   */
   --code-font: Menlo, Monaco, Consolas, 黑体, system-ui;
-}
-
-.el-descriptions__content,
-.el-table__body-wrapper .el-table__cell,
-.el-tooltip,
-.xterm {
-  user-select: text;
-  -webkit-user-select: text; /* Chrome, Safari */
-  -moz-user-select: text;    /* Firefox */
 }
 
 /* 黑色主题 */
