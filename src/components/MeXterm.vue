@@ -89,4 +89,27 @@ const terminalClass = computed(() => isDark.value ? 'dark' : '')
   --xt-bg: #191a22;
   --xt-fg: #efefef;
 }
+
+</style>
+
+<style lang="scss">
+// 光标样式修改, 默认样式为块状（我喜欢闪烁的竖线）
+@keyframes blink {
+  0%  {opacity: 1;}
+  50% {opacity: 0;}
+}
+
+.terminal {
+  .xt>.xt-stdout>.xt-cursor {
+    border: none;
+    border-left: 1.5px solid var(--xt-fg);
+    background-color: transparent;
+    animation: blink 1s step-end infinite;
+  }
+
+  .xt.xt-inactive>.xt-stdout>.xt-cursor {
+    border: 1px solid currentColor;
+    animation: none;
+  }
+}
 </style>
