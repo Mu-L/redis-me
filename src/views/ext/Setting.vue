@@ -26,18 +26,25 @@ const langList = computed(() => [
 // 字体
 let fonts = ref([])
 const loadFonts = async () => {
-  // 浏览器直接获取系统字体, safari不支持、
+  // 浏览器直接获取系统字体, safari不支持
+  // 取fullName作为显示, style过滤Regular去除粗体/斜体
+  // 示例1: FontData {postscriptName: 'SimHei', fullName: '黑体', family: 'SimHei', style: 'Regular'}
+  // 示例2: FontData {postscriptName: 'Arial-Black', fullName: 'Arial Black Normal', family: 'Arial', style: 'Black'}
   let localFonts = []
   if (window.queryLocalFonts) {
     localFonts = await window.queryLocalFonts()
+    //console.log('localFonts:', localFonts)
   }
 
   if (localFonts.length > 0) {
-    // 只显示常规字体
     fonts.value = localFonts.filter(f => f.style === 'Regular').map(f => f.fullName).sort()
   } else {
-    // 用户未授权时采用rust获取字体（名称就没有中文了）
+    // 用户未授权时采用rust获取字体（名称就没有中文了）, 但可以判断是否为等宽字体
+    // 示例1: {"id":"4294967481","name":"SimHei","fontName":"SimHei","path":"C:\\Windows\\Fonts\\simhei.ttf","weight":400,"style":"Normal","monospaced":false}
+    // 示例2: {"id":"4294967341","name":"Consolas","fontName":"Consolas","path":"C:\\Windows\\Fonts\\consola.ttf","weight":400,"style":"Normal","monospaced":true}
+    // 示例3: {"id":"4294967479","name":"Segoe UI Variable","fontName":"SegoeUIVariable","path":"C:\\Windows\\Fonts\\SegUIVar.ttf","weight":400,"style":"Normal","monospaced":false}
     const systemFonts = await getSystemFonts()
+    //console.log('systemFonts:', systemFonts)
     fonts.value = [...new Set(systemFonts.map(f => f.name))].sort()
   }
 }
