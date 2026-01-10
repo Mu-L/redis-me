@@ -5,11 +5,12 @@
 ## 功能特性
 
 - 极度轻量：基于Webview2，无内嵌浏览器，安装包小于10M（感谢 [Tauri](https://tauri.app/zh-cn)）
-- 界面美观：提供浅色/深色主题（感谢 [ElementPlus](https://cn.element-plus.org/zh-CN/), [CodeMirror](https://codemirror.net/), [XTerminal](https://xterminal.js.org/)）
+- 界面美观：提供浅色/深色主题（感谢 [ElementPlus](https://element-plus.org), [CodeMirror](https://codemirror.net/), [XTerminal](https://xterminal.js.org/)）
 - 多语言支持：英文、中文，敬请期待其他语言
 - 功能丰富：支持信息、键值、终端、内存分析、慢日志、命令监控、发布订阅等
 - 特色功能：
-    * 只读可写模式实时转换
+    * 只读/可写模式动态切换
+    * 终端命令提示及详细解释
     * 信息字段的重点标记和详细解释
     * 配置字段的差异比对、详细解释、默认值参考
     * 精细化的内存扫描参数配置，快速排查内存问题
