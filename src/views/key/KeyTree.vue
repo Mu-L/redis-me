@@ -69,27 +69,31 @@ const treeData = computed(() => {
   return root
 })
 
-// 构建树：这个方法是由AI（豆包）生成的，非常不赖！
+// 构建树：这个方法是由AI（豆包）生成的，非常不赖！ 但由BUG，还得亲自修复边界问题
 function buildTree(keyList) {
   const root = []
   keyList.forEach(rk => {
     const parts = rk.key.split(/:+/)
     let nowLevel = root
     parts.forEach((part, index) => {
-      let node = nowLevel.find(item => item.label === part)
+      // 叶子节点显示全称且保存原始值
+      // hepengju 这种键直接返回
+      if (index === parts.length - 1) {
+        // 叶子节点显示全称且保存原始值
+        let node = {id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk}
+        nowLevel.push(node)
+        return
+      }
+
+      // hepengju:
+      // hepengju:string
+      let node = nowLevel.find(item => item.label === part && item.redisKey === undefined) // 此处过滤去掉上面的叶子节点
       if (!node) {
         // 避免叶子节点的id与部分非叶子节点一致
         node = {id: parts.slice(0, index + 1).join(':'), label: part, children: []}
         nowLevel.push(node)
       }
-      if (index < parts.length - 1) {
-        nowLevel = node.children
-      } else {
-        // 叶子节点显示全称且保存原始值
-        node.id = 'leaf-' + rk.key
-        node.label = rk.key
-        node.redisKey = rk
-      }
+      nowLevel = node.children
     })
   })
   return root
