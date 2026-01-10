@@ -5,17 +5,17 @@ use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
 use log::info;
+use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo;
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
 use redis::{FromRedisValue, Value};
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use std::sync::{Arc};
 use std::thread;
 use std::time::Duration;
-use parking_lot::{Mutex, MutexGuard};
 use tauri::AppHandle;
 
 pub struct RedisMeCluster {
@@ -294,7 +294,7 @@ impl RedisMeClient for RedisMeCluster {
                         }
                     }
                 }
-                
+
                 scan_times += 1;
 
                 if param.count_limit > 0 && keys.len() >= param.count_limit as usize {

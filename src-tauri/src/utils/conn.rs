@@ -12,10 +12,12 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
     let prefix = if conn.ssl { "rediss" } else { "redis" };
     let suffix = if conn.ssl { "/#insecure" } else { "" };
 
-    let redis_url = format!("{}://{}:{}@{}:{}{}",
+    let redis_url = format!(
+        "{}://{}:{}@{}:{}{}",
         prefix, conn.username, conn.password, conn.host, conn.port, suffix
     );
-    let redis_url_log = format!("{}://{}:{}@{}:{}{}",
+    let redis_url_log = format!(
+        "{}://{}:{}@{}:{}{}",
         prefix, conn.username, "******", conn.host, conn.port, suffix
     );
     // 日志打印中去除密码显示
@@ -126,9 +128,9 @@ pub fn set_client_name(conn: &mut dyn ConnectionLike) -> AnyResult<()> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
     use super::*;
     use redis::TypedCommands;
+    use std::collections::HashMap;
 
     fn get_ssl_option() -> SslOption {
         let path = r"C:\Users\he_pe\software\redis";
@@ -198,14 +200,12 @@ mod tests {
     // docker run -d --name redis7 -p 8007:6379  redis:7
     // docker run -d --name redis8 -p 8008:6379  redis:8
     #[test]
-    fn test_config() -> AnyResult<()>{
+    fn test_config() -> AnyResult<()> {
         let redis_conn = get_redis_conn(8008);
         let client = get_client_single(&redis_conn)?;
         let mut conn = client.get_connection()?;
-        let result: HashMap<String, String> = redis::cmd("config")
-            .arg("get")
-            .arg("*")
-            .query(&mut conn)?;
+        let result: HashMap<String, String> =
+            redis::cmd("config").arg("get").arg("*").query(&mut conn)?;
         println!("{:?}", result);
         Ok(())
     }

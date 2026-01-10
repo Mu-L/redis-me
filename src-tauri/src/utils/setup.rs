@@ -47,7 +47,9 @@ pub fn app_setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>>
     let window = app
         .get_webview_window("main")
         .expect("main window not exists");
-    window.set_decorations(type_.to_string() == "macos").unwrap();
+    window
+        .set_decorations(type_.to_string() == "macos")
+        .unwrap();
     window.set_title_bar_style(TitleBarStyle::Overlay).unwrap();
     Ok(())
 }
