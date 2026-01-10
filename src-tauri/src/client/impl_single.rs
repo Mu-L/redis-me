@@ -5,10 +5,11 @@ use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
 use log::info;
+use parking_lot::{Mutex, MutexGuard};
 use redis::{Client, Connection, Pipeline, Value};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc};
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
@@ -356,10 +357,17 @@ impl RedisMeSingle {
 
     // 获取已经建立的连接
     fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, Connection>> {
-        match self.conn.lock() {
-            Ok(conn) => Ok(conn),
-            Err(_) => {
-                bail!("获取连接加锁失败");
+        // match self.conn.lock() {
+        //     Ok(conn) => Ok(conn),
+        //     Err(_) => {
+        //         bail!("获取连接加锁失败");
+        //     }
+        // }
+        // 标准库的Mutex不支持重入及超时时间设置，因此引入parking_lot解决此问题
+        match self.conn.try_lock_for(Duration::from_secs(10)) {
+            Some(conn) => Ok(conn),
+            None => {
+                bail!("获取连接加锁超时");
             }
         }
     }

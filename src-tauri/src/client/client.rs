@@ -9,9 +9,10 @@ use log::info;
 use redis::{Commands, Connection, Msg, SetExpiry, SetOptions, ValueType, from_redis_value};
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, MutexGuard};
+use std::sync::{Arc};
 use std::thread;
 use std::thread::JoinHandle;
+use parking_lot::MutexGuard;
 use tauri::{AppHandle, Emitter};
 
 /// RedisME服务接口

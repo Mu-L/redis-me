@@ -12,9 +12,10 @@ use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
 use redis::{FromRedisValue, Value};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc};
 use std::thread;
 use std::time::Duration;
+use parking_lot::{Mutex, MutexGuard};
 use tauri::AppHandle;
 
 pub struct RedisMeCluster {
@@ -428,10 +429,10 @@ impl RedisMeCluster {
 
     // 获取已创建的连接
     fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, ClusterConnection>> {
-        match self.conn.lock() {
-            Ok(conn) => Ok(conn),
-            Err(_) => {
-                bail!("获取连接加锁失败");
+        match self.conn.try_lock_for(Duration::from_secs(10)) {
+            Some(conn) => Ok(conn),
+            None => {
+                bail!("获取连接加锁超时");
             }
         }
     }
