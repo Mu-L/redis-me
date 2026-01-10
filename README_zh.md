@@ -18,7 +18,7 @@
 ## 功能特性
 
 - 极度轻量：基于Webview2，无内嵌浏览器，安装包小于10M（感谢 [Tauri](https://tauri.app/zh-cn)）
-- 界面美观：提供浅色/深色主题（感谢 [ElementPlus](https://cn.element-plus.org/zh-CN/)）
+- 界面美观：提供浅色/深色主题（感谢 [ElementPlus](https://cn.element-plus.org/zh-CN/), [CodeMirror](https://codemirror.net/), [XTerminal](https://xterminal.js.org/)）
 - 多语言支持：英文、中文，敬请期待其他语言
 - 功能丰富：支持信息、键值、终端、内存分析、慢日志、命令监控、发布订阅等
 - 特色功能：

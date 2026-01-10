@@ -20,7 +20,7 @@
 ## Features
 
 - Super Lightweight: Based on Webview2, no embedded browser (Thanks to [Tauri](https://tauri.app))
-- Pretty UI: Provides light/dark themes(Thanks to [ElementPlus](https://element-plus.org))
+- Pretty UI: Provides light/dark themes(Thanks to [ElementPlus](https://element-plus.org), [CodeMirror](https://codemirror.net/), [XTerminal](https://xterminal.js.org/))
 - Multi-language support: English, Chinese, more languages coming soon
 - Rich functionality: info, value, terminal, memory analysis, slow logs, command monitoring, pub/sub etc
 - Special features:
