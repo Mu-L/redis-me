@@ -407,7 +407,6 @@ pub fn monitor_stop0(running: Arc<AtomicBool>) -> AnyResult<()> {
 macro_rules! implement_pipeline_commands {
     ($struct_name:ident) => {
         fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()> {
-            let mut conn = self.get_conn()?;
             let key_list = if param.key_list.is_empty() {
                 if param.pattern.is_empty() {
                     bail!("键列表和匹配参数不能同时为空")
@@ -428,15 +427,14 @@ macro_rules! implement_pipeline_commands {
             for key in key_list.into_iter() {
                 pipe.del(&key).ignore();
             }
+            let mut conn = self.get_conn()?;
             let _: () = pipe.query(&mut conn)?;
             info!("批量删除键完成: {}", size);
             Ok(())
         }
 
         fn mock_data(&self, count: u64) -> AnyResult<()> {
-            let mut conn = self.get_conn()?;
             let mut pipe = $struct_name::with_capacity(count as usize);
-
             for _ in 0..count {
                 // string
                 let key = format!("redis-me-mock:string:{}", random_string(10));
@@ -470,6 +468,7 @@ macro_rules! implement_pipeline_commands {
                 }
             }
 
+            let mut conn = self.get_conn()?;
             let _: () = pipe.query(&mut conn)?;
             Ok(())
         }
