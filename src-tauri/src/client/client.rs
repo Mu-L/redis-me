@@ -245,11 +245,9 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         _ => todo!(),
     };
 
-    if "key" == mode {
-        if param.ttl > 0 {
+    if "key" == mode && param.ttl > 0 {
             let _: () = conn.expire(&key, param.ttl)?;
         }
-    }
     Ok(())
 }
 

@@ -31,10 +31,10 @@ api_model!(RedisConn {
 
 impl RedisConn {
     pub fn test(&self) -> AnyResult<()> {
-        let _ = if self.cluster {
-            get_client_cluster(&self)?;
+        if self.cluster {
+            get_client_cluster(self)?;
         } else {
-            get_client_single(&self)?;
+            get_client_single(self)?;
         };
         Ok(())
     }

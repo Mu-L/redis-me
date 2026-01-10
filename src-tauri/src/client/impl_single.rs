@@ -166,7 +166,7 @@ impl RedisMeClient for RedisMeSingle {
 
     fn execute_command(&self, param: RedisCommand) -> AnyResult<String> {
         let (cmd, args) = parse_command(param.command.as_str())?;
-        if cmd == "" {
+        if cmd.is_empty() {
             return Ok("".into());
         };
 
@@ -229,7 +229,7 @@ impl RedisMeClient for RedisMeSingle {
             cursor = next_cursor;
 
             // 计算键大小
-            if new_keys.len() > 0 {
+            if !new_keys.is_empty() {
                 let mut pipe = Pipeline::with_capacity(new_keys.len());
                 for key in new_keys.iter() {
                     pipe.cmd("memory").arg("usage").arg(key);
@@ -237,11 +237,9 @@ impl RedisMeClient for RedisMeSingle {
 
                 let sizes: Vec<Option<u64>> = pipe.query(&mut conn)?;
                 for (index, size) in sizes.into_iter().enumerate() {
-                    if let Some(size) = size {
-                        if size >= param.size_limit {
+                    if let Some(size) = size && size >= param.size_limit {
                             keys.push((new_keys[index].clone(), size, "unknown".into()));
                         }
-                    }
                 }
             }
 
@@ -265,7 +263,7 @@ impl RedisMeClient for RedisMeSingle {
         }
 
         // 计算键类型
-        if param.need_key_type.unwrap_or(false) && keys.len() > 0 {
+        if param.need_key_type.unwrap_or(false) && !keys.is_empty() {
             let mut pipe = Pipeline::with_capacity(keys.len());
             for key in keys.iter() {
                 pipe.cmd("type").arg(&key.0);
@@ -296,8 +294,8 @@ impl RedisMeClient for RedisMeSingle {
         let client: String = cmd.query(&mut conn)?;
 
         let mut clients = vec![];
-        for client_info in client.lines().into_iter() {
-            let client: RedisClientInfo = parse_client_info(&client_info)?;
+        for client_info in client.lines() {
+            let client: RedisClientInfo = parse_client_info(client_info)?;
             clients.push(client);
         }
         Ok(clients)

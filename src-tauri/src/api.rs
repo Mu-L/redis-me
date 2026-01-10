@@ -27,7 +27,7 @@ pub fn conn_list(app_handle: AppHandle, conn_list: Vec<RedisConn>) -> ApiResult<
 // 连接
 #[command]
 pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
-    to_api_result(app_handle.connect(id)).and_then(|_| Ok(()))
+    to_api_result(app_handle.connect(id)).map(|_| ())
 }
 
 // 断开

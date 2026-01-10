@@ -20,7 +20,7 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
     match result {
         Ok(value) => Ok(value),
         Err(err) => {
-            error!("错误: {}", err.to_string());
+            error!("错误: {}", err);
             Err(err.to_string())
         }
     }
@@ -158,7 +158,7 @@ pub fn timestamp_to_string(timestamp: i64) -> String {
 pub fn parse_client_info(client_info: &str) -> AnyResult<RedisClientInfo> {
     let mut map = HashMap::with_capacity(32);
 
-    for key_eq_val in client_info.split_whitespace().into_iter() {
+    for key_eq_val in client_info.split_whitespace() {
         if let Some((key, val)) = key_eq_val.split_once("=") {
             map.insert(key, val);
         }
