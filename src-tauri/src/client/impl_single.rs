@@ -364,6 +364,7 @@ impl RedisMeSingle {
         //     }
         // }
         // 标准库的Mutex不支持重入及超时时间设置，因此引入parking_lot解决此问题
+        // 备注: parking_lot的 ReentrantMutexGuard 不支持 deref_mut 所以暂不支持重入
         match self.conn.try_lock_for(Duration::from_secs(10)) {
             Some(conn) => Ok(conn),
             None => {
