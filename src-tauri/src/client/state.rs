@@ -1,4 +1,4 @@
-use crate::client::client::RedisMeClient;
+use crate::client::client_trait::RedisMeClient;
 use crate::client::impl_cluster::RedisMeCluster;
 use crate::client::impl_single::RedisMeSingle;
 use crate::utils::model::RedisConn;
@@ -56,9 +56,9 @@ impl ClientAccess for AppHandle {
 
         let mut clients = state.clients.write().unwrap();
         let client = Arc::new(if conn.cluster {
-            RedisMeCluster::new(conn)?
+            RedisMeCluster::init(conn)?
         } else {
-            RedisMeSingle::new(conn)?
+            RedisMeSingle::init(conn)?
         });
 
         clients.insert(id.to_string(), Arc::clone(&client));

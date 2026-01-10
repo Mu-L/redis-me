@@ -51,7 +51,7 @@ pub fn assert_is_true(value: bool, message: String) -> AnyResult<()> {
 }
 
 // vec中随机选择一个
-pub fn random_item<T>(vec: &Vec<T>) -> &T {
+pub fn random_item<T>(vec: &[T]) -> &T {
     vec.iter().choose(&mut rand::rng()).unwrap()
 }
 

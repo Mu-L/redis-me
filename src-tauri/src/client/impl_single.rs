@@ -1,4 +1,4 @@
-use crate::client::client::*;
+use crate::client::client_trait::*;
 use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_single, set_client_name};
 use crate::utils::model::*;
@@ -36,7 +36,7 @@ impl RedisMeClient for RedisMeSingle {
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         let map = self.config_get("databases", None)?;
         let db_count = map
-            .get(&"databases".to_string())
+            .get("databases")
             .unwrap_or(&"0".to_string())
             .parse::<u8>()?;
         info!("db_count: {}", db_count);
@@ -332,7 +332,7 @@ impl RedisMeClient for RedisMeSingle {
 
 // 个性化方法
 impl RedisMeSingle {
-    pub fn new(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
+    pub fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
         let client = get_client_single(redis_conn)?;
         let mut conn = client.get_connection()?;
         set_client_name(&mut conn)?;

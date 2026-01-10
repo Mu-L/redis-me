@@ -1,4 +1,4 @@
-use crate::client::client::*;
+use crate::client::client_trait::*;
 use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name};
 use crate::utils::model::*;
@@ -399,7 +399,7 @@ impl RedisMeClient for RedisMeCluster {
 
 // 个性化方法
 impl RedisMeCluster {
-    pub fn new(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
+    pub fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
         let client = get_client_cluster(redis_conn)?;
         let mut conn = client.get_connection()?;
 

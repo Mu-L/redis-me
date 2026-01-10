@@ -1,4 +1,4 @@
-pub mod client;
+pub mod client_trait;
 pub mod impl_cluster;
 pub mod impl_single;
 pub mod state;
@@ -6,7 +6,7 @@ pub mod state;
 // ~~~~~~~~~~~~~~~~~~~~~模块测试~~~~~~~~~~~~~~~~~~~~~
 #[cfg(test)]
 mod tests {
-    use crate::client::client::RedisMeClient;
+    use crate::client::client_trait::RedisMeClient;
     use crate::client::impl_cluster::RedisMeCluster;
     use crate::utils::model::*;
     use redis::TlsMode;
@@ -25,7 +25,7 @@ mod tests {
             ssl: false,
             ssl_option: None,
         };
-        RedisMeCluster::new(&conn).unwrap()
+        RedisMeCluster::init(&conn).unwrap()
     }
 
     #[test]
