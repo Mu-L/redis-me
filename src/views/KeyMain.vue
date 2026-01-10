@@ -2,7 +2,7 @@
 import KeyList from './key/KeyList.vue'
 import KeyTree from './key/KeyTree.vue'
 import {computed, ref} from 'vue'
-import {bus, meDeleteKey, CONN_REFRESH, meCopy, KEY_DELETE, meInvoke, KEY_REFRESH, meOk} from '@/utils/util.js'
+import {bus, CONN_REFRESH, KEY_DELETE, KEY_REFRESH, meCopy, meDeleteKey, meInvoke, meOk} from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatchDel from './key/KeyBatchDel.vue'
 import KeyMemory from './key/KeyMemory.vue'
@@ -114,8 +114,7 @@ const keyShowType = ref('tree')
 // 数据库列表
 const dbList = ref([])
 async function refreshDbList() {
-  const data = await meInvoke('db_list', {id: share.conn.id})
-  dbList.value = data
+  dbList.value = await meInvoke('db_list', {id: share.conn.id})
 }
 refreshDbList()
 
@@ -140,11 +139,11 @@ function chooseFolder(folder) {
 
 // 键右键
 function contextKey(command, redisKey) {
-  if (command == 'refreshKey') {
+  if (command === 'refreshKey') {
     chooseKey(redisKey)
-  } else if (command == 'copyKey') {
+  } else if (command === 'copyKey') {
     meCopy(redisKey.key)
-  } else if (command == 'deleteKey') {
+  } else if (command === 'deleteKey') {
     meDeleteKey(share.conn.id, redisKey)
   } else {
     meOk(`TODO: ${command}`)
@@ -180,7 +179,7 @@ function contextFolder(command, folder){
 const fieldAddRef = useTemplateRef('fieldAddRef')
 
 function addKey() {
-  const prefix = keyShowType.value == 'list' ? '' : (keyPrefix.value ? keyPrefix.value + ':' : '')
+  const prefix = keyShowType.value === 'list' ? '' : (keyPrefix.value ? keyPrefix.value + ':' : '')
   fieldAddRef.value?.open({mode: 'key', key: prefix})
 }
 
@@ -381,6 +380,4 @@ function keyMemory(folder) {
     background-color: var(--el-color-info-light-8);
   }
 }
-
-
 </style>

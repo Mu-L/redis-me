@@ -15,9 +15,14 @@ async function mockData() {
         inputType: 'number'
       },
       async ({value}) => {
-        await meInvoke('mock_data', {id: share.conn.id, count: parseInt(value)})
-        meOk(t('keyHeader.mockOk'))
-        bus.emit(CONN_REFRESH)
+        share.loading = true
+        try {
+          await meInvoke('mock_data', {id: share.conn.id, count: parseInt(value)})
+          meOk(t('keyHeader.mockOk'))
+          bus.emit(CONN_REFRESH)
+        } finally {
+          share.loading = false
+        }
       })
 }
 

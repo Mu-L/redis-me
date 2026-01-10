@@ -16,6 +16,7 @@ const share = reactive({
   conn: null,                         // 当前连接
   connList: meTauri.connList,         // 连接列表, 初始化从存储中已读取
   nodeList: [],                       // 节点列表
+  loading: false,                     // 整个主体界面loading（其他地方也会使用到）
   color: 'var(--el-color-primary)',   // 即 share.conn.color（便于使用和移植）
   readonly: false,                    // 即 share.conn.readonly 当前连接是否只读(此处另外存储1份，避免影响连接默认的只读设置)
   redisKey: null,
@@ -36,12 +37,11 @@ function toggleKeyTag() {
 }
 
 // 切换连接时loading
-const loading = ref(false)
 watch(() => share.conn, async (newConn, oldConn) => {
   // 连接id未发生改变时，无需断开重连（比如颜色或db改变）
   if (newConn?.id === oldConn?.id) return
 
-  loading.value = true
+  share.loading = true
   connPrepared.value = false
 
   try { // 关闭旧连接
@@ -65,7 +65,7 @@ watch(() => share.conn, async (newConn, oldConn) => {
     // 如果从连接列表页进入的，则返回连接列表页
     if (!oldConn) share.conn = null
   } finally {
-    loading.value = false
+    share.loading = false
   }
 
 }, {deep: true})
@@ -101,7 +101,7 @@ function changeReadonly() {
 </script>
 
 <template>
-  <div class="redis-main" v-loading="loading">
+  <div class="redis-main" v-loading="share.loading">
     <el-splitter>
       <!-- 左侧键 -->
       <el-splitter-panel :min="250" size="30%">
