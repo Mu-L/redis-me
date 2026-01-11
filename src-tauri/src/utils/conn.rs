@@ -2,13 +2,19 @@ use crate::utils::model::{RedisConn, SslOption};
 use crate::utils::util::AnyResult;
 use anyhow::Context;
 use log::info;
-use redis::cluster::{ClusterClient, ClusterConfig};
-use redis::{Client, ClientTlsConfig, ConnectionLike, TlsCertificates, TlsMode, TypedCommands};
+use r2d2::{CustomizeConnection, ManageConnection, NopConnectionCustomizer, Pool};
+use redis::cluster::{ClusterClient, ClusterConfig, ClusterConnection};
+use redis::{
+    Client, ClientTlsConfig, Connection, ConnectionLike, ErrorKind, RedisError, TlsCertificates,
+    TlsMode, TypedCommands,
+};
 use std::fs;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::time::Duration;
 
 // 获取单机连接
-pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
+pub fn get_client_single(conn: &RedisConn, db: Arc<AtomicU8>) -> AnyResult<Pool<Client>> {
     let prefix = if conn.ssl { "rediss" } else { "redis" };
     let suffix = if conn.ssl { "/#insecure" } else { "" };
 
@@ -33,15 +39,23 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
     } else {
         Client::open(redis_url)?
     };
-    // 测试连接是否可以成功，注意超时时间比较短，用户可以快速感知到。此连接使用后丢弃即可
-    let mut conn = client.get_connection_with_timeout(Duration::from_secs(1))?;
-    let _ = conn.ping()?;
+
+    let customizer = SingleClientNameCustomizer { db };
+    let pool = get_pool_builder()
+        .connection_customizer(Box::new(customizer))
+        .build(client)?;
     info!("Redis单机测试连接成功");
-    Ok(client)
+    Ok(pool)
+    //get_pool_single(client)?
+    // 测试连接是否可以成功，注意超时时间比较短，用户可以快速感知到。此连接使用后丢弃即可
+    // let mut conn = client.get_connection_with_timeout(Duration::from_secs(1))?;
+    // let _ = conn.ping()?;
+    // info!("Redis单机测试连接成功");
+    // Ok(client)
 }
 
 // 获取集群连接
-pub fn get_client_cluster(conn: &RedisConn) -> AnyResult<ClusterClient> {
+pub fn get_client_cluster(conn: &RedisConn, db: Arc<AtomicU8>) -> AnyResult<Pool<ClusterClient>> {
     let prefix = if conn.ssl { "rediss" } else { "redis" };
     let redis_url = format!("{}://{}:{}", prefix, conn.host, conn.port);
     info!("redis_url: {redis_url}");
@@ -63,11 +77,18 @@ pub fn get_client_cluster(conn: &RedisConn) -> AnyResult<ClusterClient> {
         };
     }
     let client = builder.build()?;
-    let cc = ClusterConfig::new().set_connection_timeout(Duration::from_secs(1));
-    let mut conn = client.get_connection_with_config(cc)?;
-    let _ = conn.ping()?;
-    info!("测试集群测试连接成功");
-    Ok(client)
+    let customizer = ClusterClientNameCustomizer { db };
+    let pool = get_pool_builder()
+        .connection_customizer(Box::new(customizer))
+        .build(client)?;
+    info!("Redis单机测试连接成功");
+    Ok(pool)
+    //
+    // let cc = ClusterConfig::new().set_connection_timeout(Duration::from_secs(1));
+    // let mut conn = client.get_connection_with_config(cc)?;
+    // let _ = conn.ping()?;
+    // info!("测试集群测试连接成功");
+    // Ok(client)
 }
 
 // 获取证书
@@ -104,6 +125,58 @@ pub fn set_client_name(conn: &mut dyn ConnectionLike) -> AnyResult<()> {
         .query(conn)?;
     info!("设置客户端名称RedisME成功");
     Ok(())
+}
+
+#[derive(Debug)]
+struct SingleClientNameCustomizer {
+    db: Arc<AtomicU8>,
+}
+impl CustomizeConnection<Connection, RedisError> for SingleClientNameCustomizer {
+    fn on_acquire(&self, conn: &mut Connection) -> Result<(), RedisError> {
+        let db = self.db.load(Ordering::Relaxed);
+        let _: () = redis::cmd("CLIENT").arg("SETNAME").arg("RedisME").query(conn)?;
+        let _: () = redis::cmd("SELECT").arg(db).query(conn)?;
+        info!("select db: {}", db);
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+struct ClusterClientNameCustomizer {
+    db: Arc<AtomicU8>,
+}
+impl CustomizeConnection<ClusterConnection, RedisError> for ClusterClientNameCustomizer {
+    fn on_acquire(&self, conn: &mut ClusterConnection) -> Result<(), RedisError> {
+        let _: () = redis::cmd("CLIENT").arg("SETNAME").arg("RedisME").query(conn)?;
+        Ok(())
+    }
+}
+
+// 获取连接池(单机)
+pub fn get_pool_single(client: Client) -> AnyResult<Pool<Client>> {
+    Ok(get_pool_builder()
+        .connection_customizer(Box::new(SingleClientNameCustomizer {}))
+        .build(client)?)
+}
+
+// 获取连接池(集群)
+pub fn get_pool_cluster(client: ClusterClient) -> AnyResult<Pool<ClusterClient>> {
+    Ok(get_pool_builder()
+        .connection_customizer(Box::new(ClusterClientNameCustomizer {}))
+        .build(client)?)
+}
+
+// 获取连接池构建器
+fn get_pool_builder<M>() -> r2d2::Builder<M>
+where
+    M: ManageConnection,
+{
+    Pool::builder()
+        // 最小1个，最大5个
+        .min_idle(Some(1))
+        .max_size(5)
+        // 默认30s超时，改为3秒超时（优化用户体验，连接不上时快速提醒）
+        .connection_timeout(Duration::from_secs(3))
 }
 
 // 获取连接池(单机)
