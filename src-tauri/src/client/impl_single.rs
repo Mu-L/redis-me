@@ -1,25 +1,25 @@
 use crate::client::client_trait::*;
-use crate::client::me_conn::MeConn;
 use crate::implement_pipeline_commands;
-use crate::utils::conn::get_client_single;
+use crate::utils::conn::{get_client_single, set_client_name};
 use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
 use log::info;
-use r2d2::{Pool, PooledConnection};
-use redis::{Client, Pipeline, Value};
+use parking_lot::{Mutex, MutexGuard};
+use redis::{Client, Connection, Pipeline, Value};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::thread;
 use std::time::Duration;
+use tauri::AppHandle;
 
 pub struct RedisMeSingle {
     id: String,
     //conf: RedisConn,
-    //client: Client,
-    //conn: Mutex<Connection>,
-    pool: Pool<Client>,
+    client: Client,
+    conn: Mutex<Connection>,
+
     db: Arc<AtomicU8>,
     subscribe_running: Arc<AtomicBool>,
     monitor_running: Arc<AtomicBool>,
@@ -33,12 +33,6 @@ impl Drop for RedisMeSingle {
 }
 
 impl RedisMeClient for RedisMeSingle {
-
-    fn get_conn(&'_ self) -> AnyResult<MeConn> {
-        let client = self.pool.get_timeout(Duration::from_secs(10))?;
-        Ok(MeConn::Single(client))
-    }
-
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         let map = self.config_get("databases", None)?;
         let db_count = map
@@ -140,6 +134,34 @@ impl RedisMeClient for RedisMeSingle {
             cursor: cc,
             key_list,
         })
+    }
+
+    fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {
+        get0(self.get_conn()?, key, hash_key)
+    }
+
+    fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
+        ttl0(self.get_conn()?, key, ttl)
+    }
+
+    fn set(&self, key: RedisKey, value: String, ttl: i64) -> AnyResult<()> {
+        set0(self.get_conn()?, key, value, ttl)
+    }
+
+    fn del(&self, key: RedisKey) -> AnyResult<()> {
+        del0(self.get_conn()?, key)
+    }
+
+    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
+        field_add0(self.get_conn()?, param)
+    }
+
+    fn field_set(&self, param: RedisFieldSet) -> AnyResult<()> {
+        field_set0(self.get_conn()?, param)
+    }
+
+    fn field_del(&self, param: RedisFieldDel) -> AnyResult<()> {
+        field_del0(self.get_conn()?, param)
     }
 
     fn execute_command(&self, param: RedisCommand) -> AnyResult<String> {
@@ -279,12 +301,30 @@ impl RedisMeClient for RedisMeSingle {
         Ok(clients)
     }
 
-    fn subscribe_running(&self) -> Arc<AtomicBool> {
-        self.subscribe_running.clone()
+    fn publish(&self, channel: &str, message: &str) -> AnyResult<()> {
+        publish0(self.get_conn()?, channel, message)
     }
 
-    fn monitor_running(&self) -> Arc<AtomicBool> {
-        self.monitor_running.clone()
+    fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
+        let conn = self.client.get_connection()?;
+        let id = self.id.clone();
+        let running = self.subscribe_running.clone();
+        subscribe0(conn, running, app_handle, channel, id)
+    }
+
+    fn subscribe_stop(&self) -> AnyResult<()> {
+        subscribe_stop0(self.subscribe_running.clone())
+    }
+
+    fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {
+        let conn = self.client.get_connection()?;
+        let id = self.id.clone();
+        let running = self.monitor_running.clone();
+        monitor0(conn, running, app_handle, id)
+    }
+
+    fn monitor_stop(&self) -> AnyResult<()> {
+        monitor_stop0(self.monitor_running.clone())
     }
 
     implement_pipeline_commands!(Pipeline);
@@ -293,20 +333,41 @@ impl RedisMeClient for RedisMeSingle {
 // 个性化方法
 impl RedisMeSingle {
     pub fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
-        // let mut conn = client.get_connection()?;
-        // set_client_name(&mut conn)?;
+        let client = get_client_single(redis_conn)?;
+        let mut conn = client.get_connection()?;
+        set_client_name(&mut conn)?;
+
         // 单机初始化db
-        //let _: () = redis::cmd("SELECT").arg(redis_conn.db).query(&mut conn)?;
-        //info!("初始化select db: {}", redis_conn.db);
-        let db = Arc::new(AtomicU8::new(redis_conn.db));
-        let pool = get_client_single(redis_conn, db.clone())?;
+        let _: () = redis::cmd("SELECT").arg(redis_conn.db).query(&mut conn)?;
+        info!("初始化select db: {}", redis_conn.db);
+
         info!("Redis单机连接初始化成功: {}", redis_conn.name);
         Ok(Box::new(RedisMeSingle {
             id: redis_conn.id.clone(),
-            db,
-            pool,
+            //conf: redis_conn.clone(),
+            client,
+            conn: Mutex::new(conn),
+            db: Arc::new(AtomicU8::new(redis_conn.db)),
             subscribe_running: Arc::new(AtomicBool::new(false)),
             monitor_running: Arc::new(AtomicBool::new(false)),
         }))
+    }
+
+    // 获取已经建立的连接
+    fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, Connection>> {
+        // match self.conn.lock() {
+        //     Ok(conn) => Ok(conn),
+        //     Err(_) => {
+        //         bail!("获取连接加锁失败");
+        //     }
+        // }
+        // 标准库的Mutex不支持重入及超时时间设置，因此引入parking_lot解决此问题
+        // 备注: parking_lot的 ReentrantMutexGuard 不支持 deref_mut 所以暂不支持重入
+        match self.conn.try_lock_for(Duration::from_secs(10)) {
+            Some(conn) => Ok(conn),
+            None => {
+                bail!("获取连接加锁超时");
+            }
+        }
     }
 }
