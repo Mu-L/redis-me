@@ -129,7 +129,7 @@ pub fn set_client_name(conn: &mut dyn ConnectionLike) -> AnyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use redis::TypedCommands;
+    use redis::{AsyncTypedCommands, TypedCommands};
     use std::collections::HashMap;
 
     fn get_ssl_option() -> SslOption {
@@ -320,4 +320,14 @@ mod tests {
         let mut con = client.get_connection()?;
         Ok(())
     }*/
+
+    #[tokio::test]
+    async fn test_get_conn_async() -> AnyResult<()> {
+        let redis_url = "redis://:hepengju@ali.hepengju.com:6379";
+        let client = Client::open(redis_url)?;
+        let mut conn = client.get_multiplexed_async_connection().await?;
+        let result = conn.get("hepengju").await?;
+        println!("result: {:?}", result);
+        Ok(())
+    }
 }
