@@ -1,8 +1,6 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{
-    AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string,
-};
+use crate::utils::util::{AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string, random_string, random_range};
 use anyhow::bail;
 use chrono::Local;
 use log::info;
@@ -401,75 +399,68 @@ pub fn monitor_stop0(running: Arc<AtomicBool>) -> AnyResult<()> {
     Ok(())
 }
 
-// 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)
-#[macro_export]
-macro_rules! implement_pipeline_commands {
-    ($struct_name:ident) => {
-        fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()> {
-            let key_list = if param.key_list.is_empty() {
-                if param.pattern.is_empty() {
-                    bail!("键列表和匹配参数不能同时为空")
-                }
-                let scan_result = self.scan(ScanParam::all(param.pattern))?;
-                info!("扫描出键个数: {}", scan_result.key_list.len());
-                scan_result.key_list
-            } else {
-                param.key_list
-            };
-
-            if key_list.is_empty() {
-                return Ok(());
-            }
-
-            let size = key_list.len();
-            let mut pipe = $struct_name::with_capacity(size);
-            for key in key_list.into_iter() {
-                pipe.del(&key).ignore();
-            }
-            let mut conn = self.get_conn()?;
-            let _: () = pipe.query(&mut conn)?;
-            info!("批量删除键完成: {}", size);
-            Ok(())
+pub fn batch_del0(client: &impl RedisMeClient, mut conn: MutexGuard<impl Commands>, param: RedisBatchDelete) -> AnyResult<()> {
+    let key_list = if param.key_list.is_empty() {
+        if param.pattern.is_empty() {
+            bail!("键列表和匹配参数不能同时为空")
         }
-
-        fn mock_data(&self, count: u64) -> AnyResult<()> {
-            let mut pipe = $struct_name::with_capacity(count as usize);
-            for _ in 0..count {
-                // string
-                let key = format!("redis-me-mock:string:{}", random_string(10));
-                pipe.set(&key, random_string(10)).ignore();
-
-                // hash
-                let field_count = random_range(3, 20);
-                let key = format!("redis-me-mock:hash:{}", random_string(10));
-                for x in 0..field_count {
-                    pipe.hset(&key, format!("key{x}"), random_string(10))
-                        .ignore();
-                }
-
-                // list
-                let key = format!("redis-me-mock:list:{}", random_string(10));
-                for _ in 0..field_count {
-                    pipe.rpush(&key, random_string(10)).ignore();
-                }
-
-                // set
-                let key = format!("redis-me-mock:set:{}", random_string(10));
-                for _ in 0..field_count {
-                    pipe.sadd(&key, random_string(10)).ignore();
-                }
-
-                // zset
-                let key = format!("redis-me-mock:zset:{}", random_string(10));
-                for _ in 0..field_count {
-                    pipe.zadd(&key, random_string(10), random_range(1, 100))
-                        .ignore();
-                }
-            }
-
-            let mut conn = self.get_conn()?;
-            let _: () = pipe.query(&mut conn)?;
-            Ok(())
-        }
+        let scan_result = client.scan(ScanParam::all(param.pattern))?;
+        info!("扫描出键个数: {}", scan_result.key_list.len());
+        scan_result.key_list
+    } else {
+        param.key_list
     };
+
+    if key_list.is_empty() {
+        return Ok(());
+    }
+
+    let size = key_list.len();
+    let mut pipe = redis::pipe();
+    for key in key_list.into_iter() {
+        pipe.del(&key).ignore();
+    }
+    let _: () = pipe.query(&mut conn)?;
+    info!("批量删除键完成: {}", size);
+    Ok(())
+}
+
+
+pub fn mock_data0(mut conn: MutexGuard<impl Commands>, count: u64) -> AnyResult<()> {
+    let mut pipe = redis::pipe();
+    for _ in 0..count {
+        // string
+        let key = format!("redis-me-mock:string:{}", random_string(10));
+        pipe.set(&key, random_string(10)).ignore();
+
+        // hash
+        let field_count = random_range(3, 20);
+        let key = format!("redis-me-mock:hash:{}", random_string(10));
+        for x in 0..field_count {
+            pipe.hset(&key, format!("key{x}"), random_string(10))
+                .ignore();
+        }
+
+        // list
+        let key = format!("redis-me-mock:list:{}", random_string(10));
+        for _ in 0..field_count {
+            pipe.rpush(&key, random_string(10)).ignore();
+        }
+
+        // set
+        let key = format!("redis-me-mock:set:{}", random_string(10));
+        for _ in 0..field_count {
+            pipe.sadd(&key, random_string(10)).ignore();
+        }
+
+        // zset
+        let key = format!("redis-me-mock:zset:{}", random_string(10));
+        for _ in 0..field_count {
+            pipe.zadd(&key, random_string(10), random_range(1, 100))
+                .ignore();
+        }
+    }
+
+    let _: () = pipe.query(&mut conn)?;
+    Ok(())
 }
