@@ -1,4 +1,5 @@
 use crate::client::client_trait::*;
+use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_single, set_client_name};
 use crate::utils::model::*;
 use crate::utils::util::*;
@@ -7,8 +8,8 @@ use log::info;
 use parking_lot::{Mutex, MutexGuard};
 use redis::{Client, Connection, Pipeline, Value};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
@@ -326,15 +327,7 @@ impl RedisMeClient for RedisMeSingle {
         monitor_stop0(self.monitor_running.clone())
     }
 
-    fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()> {
-        let conn = self.get_conn()?;
-        batch_del0(self, conn, param)
-    }
-
-    fn mock_data(&self, count: u64) -> AnyResult<()> {
-        let conn = self.get_conn()?;
-        mock_data0(conn, count)
-    }
+    implement_pipeline_commands!(Pipeline);
 }
 
 // 个性化方法
