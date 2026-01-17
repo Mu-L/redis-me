@@ -1,33 +1,26 @@
 use crate::client::client_trait::*;
-use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name};
 use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
 use log::info;
-use parking_lot::{Mutex, MutexGuard};
-use redis::cluster::{ClusterConnection, ClusterPipeline};
+use redis::cluster::{ClusterPipeline};
 use redis::cluster_routing::RoutingInfo;
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
-use redis::{FromRedisValue, Value};
+use redis::{Connection, FromRedisValue, Value};
 use std::collections::HashMap;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
+use std::sync::atomic::{Ordering};
 use std::thread;
 use std::time::Duration;
+use redis::cluster_async::ClusterConnection;
 use tauri::AppHandle;
+use crate::client::unified::{UnifiedClient, UnifiedConn, UnifiedProp};
 
 pub struct RedisMeCluster {
-    id: String,
-    conf: RedisConn,
-    //client: ClusterClient,
-    conn: Mutex<ClusterConnection>,
+    prop: UnifiedProp,
+    conn: ClusterConnection,
     node_list: Vec<RedisNode>,
-
-    db: Arc<AtomicU8>,
-    subscribe_running: Arc<AtomicBool>,
-    monitor_running: Arc<AtomicBool>,
 }
 
 impl Drop for RedisMeCluster {
@@ -38,6 +31,32 @@ impl Drop for RedisMeCluster {
 }
 
 impl RedisMeClient for RedisMeCluster {
+    fn get_prop(&self) -> &UnifiedProp {
+        &self.prop
+    }
+
+    async fn get_conn(&self) -> AnyResult<UnifiedConn> {
+        let conn = UnifiedConn::Cluster(self.conn.clone());
+        Ok(conn)
+    }
+
+    async fn init(redis_conn: &RedisConn) -> AnyResult<UnifiedClient> {
+        let client = get_client_cluster(redis_conn)?;
+        let mut conn = client.get_async_connection().await?;
+
+        // 设置客户端名, 获取节点信息并保存起来
+        set_client_name(&mut conn)?;
+        let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query(&mut conn)?;
+        let node_list = Self::parse_node_list(cluster_nodes)?;
+        info!("Redis集群连接初始化成功: {}", redis_conn.name);
+
+        let client = RedisMeCluster {
+            prop: redis_conn.into(),
+            conn,
+            node_list,
+        };
+        Ok(UnifiedClient::Cluster(client))
+    }
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         Ok(vec![])
     }
@@ -394,42 +413,10 @@ impl RedisMeClient for RedisMeCluster {
         monitor_stop0(self.monitor_running.clone())
     }
 
-    implement_pipeline_commands!(ClusterPipeline);
 }
 
 // 个性化方法
 impl RedisMeCluster {
-    pub fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
-        let client = get_client_cluster(redis_conn)?;
-        let mut conn = client.get_connection()?;
-
-        // 设置客户端名, 获取节点信息并保存起来
-        set_client_name(&mut conn)?;
-        let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query(&mut conn)?;
-        let node_list = Self::parse_node_list(cluster_nodes)?;
-        info!("Redis集群连接初始化成功: {}", redis_conn.name);
-
-        Ok(Box::new(RedisMeCluster {
-            id: redis_conn.id.clone(),
-            conf: redis_conn.clone(),
-            //client,
-            conn: Mutex::new(conn),
-            node_list,
-            db: Arc::new(AtomicU8::new(0)),
-            subscribe_running: Arc::new(AtomicBool::new(false)),
-            monitor_running: Arc::new(AtomicBool::new(false)),
-        }))
-    }
-
-    // 获取已创建的连接
-    fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, ClusterConnection>> {
-        match self.conn.try_lock_for(Duration::from_secs(10)) {
-            Some(conn) => Ok(conn),
-            None => {
-                bail!("获取连接加锁超时");
-            }
-        }
-    }
 
     // 获取节点路由
     fn get_node_route(&self, node: Option<String>) -> AnyResult<(RoutingInfo, String)> {

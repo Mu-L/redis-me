@@ -4,6 +4,8 @@ use redis::cluster_async::ClusterConnection;
 use redis::{Cmd, Pipeline, RedisFuture, Value};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8};
+use crate::client::impl_cluster::RedisMeCluster;
+use crate::client::impl_single::RedisMeSingle;
 
 /// 统一的配置属性
 pub struct UnifiedProp {
@@ -12,6 +14,24 @@ pub struct UnifiedProp {
     pub db: Arc<AtomicU8>,
     pub subscribe_running: Arc<AtomicBool>,
     pub monitor_running: Arc<AtomicBool>,
+}
+
+impl From<&RedisConn> for UnifiedProp {
+    fn from(conf: &RedisConn) -> Self {
+        UnifiedProp {
+            id: conf.id.clone(),
+            conf: conf.clone(),
+            db: Arc::new(AtomicU8::new(0)),
+            subscribe_running: Arc::new(AtomicBool::new(false)),
+            monitor_running: Arc::new(AtomicBool::new(false)),
+        }
+    }
+}
+
+
+pub enum UnifiedClient {
+    Single(RedisMeSingle),
+    Cluster(RedisMeCluster)
 }
 
 /// 统一的Redis连接

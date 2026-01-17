@@ -3,7 +3,7 @@ use crate::utils::util::AnyResult;
 use anyhow::Context;
 use log::info;
 use redis::cluster::{ClusterClient, ClusterConfig};
-use redis::{Client, ClientTlsConfig, ConnectionLike, TlsCertificates, TlsMode, TypedCommands};
+use redis::{Client, ClientTlsConfig, Commands, ConnectionLike, TlsCertificates, TlsMode, TypedCommands};
 use std::fs;
 use std::time::Duration;
 
@@ -97,11 +97,11 @@ fn get_tls_certs(ssl_option: Option<SslOption>) -> AnyResult<Option<TlsCertifica
 }
 
 // 设置客户端名称
-pub fn set_client_name(conn: &mut dyn ConnectionLike) -> AnyResult<()> {
+pub async fn set_client_name(conn: &mut impl crate::aio::ConnectionLike) -> AnyResult<()> {
     let _: () = redis::cmd("CLIENT")
         .arg("SETNAME")
         .arg("RedisME")
-        .query(conn)?;
+        .query_async(conn).await?;
     info!("设置客户端名称RedisME成功");
     Ok(())
 }

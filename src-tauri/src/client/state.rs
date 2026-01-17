@@ -1,13 +1,15 @@
 use crate::client::client_trait::RedisMeClient;
 use crate::client::impl_cluster::RedisMeCluster;
 use crate::client::impl_single::RedisMeSingle;
+use crate::client::unified::UnifiedClient;
 use crate::utils::model::RedisConn;
 use crate::utils::util::AnyResult;
 use anyhow::anyhow;
 use log::info;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::Arc;
 use tauri::{AppHandle, Manager, State};
+use tokio::sync::{Mutex, RwLock};
 
 #[derive(Default)]
 pub struct AppState {
@@ -15,20 +17,20 @@ pub struct AppState {
     pub connections: Mutex<HashMap<String, RedisConn>>,
 
     // 缓存连接客户端
-    pub clients: RwLock<HashMap<String, Arc<Box<dyn RedisMeClient>>>>,
+    pub clients: RwLock<HashMap<String, Arc<UnifiedClient>>>,
 }
 
 pub trait ClientAccess {
-    fn conn_list(&self, conn_list: Vec<RedisConn>) -> AnyResult<()>;
-    fn get_client(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>>;
-    fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>>;
-    fn disconnect(&self, id: &str) -> AnyResult<()>;
+    async fn conn_list(&self, conn_list: Vec<RedisConn>) -> AnyResult<()>;
+    async fn get_client(&self, id: &str) -> AnyResult<Arc<UnifiedClient>>;
+    async fn connect(&self, id: &str) -> AnyResult<Arc<UnifiedClient>>;
+    async fn disconnect(&self, id: &str) -> AnyResult<()>;
 }
 
 impl ClientAccess for AppHandle {
-    fn conn_list(&self, conn_list: Vec<RedisConn>) -> AnyResult<()> {
+    async fn conn_list(&self, conn_list: Vec<RedisConn>) -> AnyResult<()> {
         let state: State<AppState> = self.state();
-        let mut map = state.connections.lock().unwrap();
+        let mut map = state.connections.lock()?;
         map.clear();
         for conn in conn_list {
             map.insert(conn.id.clone(), conn);
@@ -37,28 +39,30 @@ impl ClientAccess for AppHandle {
         Ok(())
     }
 
-    fn get_client(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>> {
+    async fn get_client(&self, id: &str) -> AnyResult<Arc<UnifiedClient>> {
         let state: State<AppState> = self.state();
         {
-            // Read lock在此代码块内，自动释放锁
-            let clients = state.clients.read().unwrap();
+            // Read lock在此代码块内，自动释放锁; 即如果客户端已存在则直接返回
+            let clients = state.clients.read()?;
             if let Some(client) = clients.get(id) {
                 return Ok(Arc::clone(client));
             }
         }
+
+        // 客户端不存在则连接后返回
         self.connect(id)
     }
 
-    fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>> {
+    async fn connect(&self, id: &str) -> AnyResult<Arc<UnifiedClient>> {
         let state: State<AppState> = self.state();
-        let map = state.connections.lock().unwrap();
+        let map = state.connections.lock()?;
         let conn = map.get(id).ok_or(anyhow!("未找到连接: {}", id))?;
 
-        let mut clients = state.clients.write().unwrap();
+        let mut clients = state.clients.write()?;
         let client = Arc::new(if conn.cluster {
-            RedisMeCluster::init(conn)?
+            RedisMeCluster::init(conn).await?
         } else {
-            RedisMeSingle::init(conn)?
+            RedisMeSingle::init(conn).await?
         });
 
         clients.insert(id.to_string(), Arc::clone(&client));
@@ -66,7 +70,7 @@ impl ClientAccess for AppHandle {
         Ok(client)
     }
 
-    fn disconnect(&self, id: &str) -> AnyResult<()> {
+    async fn disconnect(&self, id: &str) -> AnyResult<()> {
         let state: State<AppState> = self.state();
         let mut clients = state.clients.write().unwrap();
         if clients.get(id).is_some() {
