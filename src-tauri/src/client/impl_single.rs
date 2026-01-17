@@ -5,7 +5,6 @@ use crate::utils::model::*;
 use crate::utils::util::*;
 use log::info;
 use redis::aio::MultiplexedConnection;
-use redis::{Connection};
 
 pub struct RedisMeSingle {
     prop: UnifiedProp,
@@ -25,12 +24,6 @@ impl RedisMeClient for RedisMeSingle {
         &self.prop
     }
 
-    async fn get_conn(&self) -> AnyResult<UnifiedConn> {
-        // TODO 检查连接是否有效，失效时重连
-        let conn = UnifiedConn::Single(self.conn.clone());
-        Ok(conn)
-    }
-
     async fn init(redis_conn: &RedisConn) -> AnyResult<UnifiedClient> {
         let client = get_client_single(redis_conn)?;
 
@@ -47,6 +40,12 @@ impl RedisMeClient for RedisMeSingle {
             conn
         };
         Ok(UnifiedClient::Single(client))
+    }
+
+    async fn get_conn(&self) -> AnyResult<UnifiedConn> {
+        // TODO 检查连接是否有效，失效时重连
+        let conn = UnifiedConn::Single(self.conn.clone());
+        Ok(conn)
     }
 }
 

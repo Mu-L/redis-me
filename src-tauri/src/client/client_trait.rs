@@ -22,17 +22,17 @@ pub trait RedisMeClient: Send + Sync {
 
     fn get_prop(&self) -> &UnifiedProp;
 
+    async fn init(redis_conn: &RedisConn) -> AnyResult<UnifiedClient>;
+
+    async fn get_conn(&self) -> AnyResult<UnifiedConn>;
+
     async fn new_conn_single(&self) -> AnyResult<MultiplexedConnection> {
         let client = get_client_single(&self.get_prop().conf)?;
         let mut conn = client.get_multiplexed_async_connection().await?;
         set_client_name(&mut conn).await?;
         Ok(conn)
     }
-
-    async fn get_conn(&self) -> AnyResult<UnifiedConn>;
-
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    async fn init(redis_conn: &RedisConn) -> AnyResult<UnifiedClient>;
 
     async fn select_db(&self, db: u8) -> AnyResult<()> {
         let prop = self.get_prop();
@@ -65,7 +65,7 @@ pub trait RedisMeClient: Send + Sync {
         Ok(db_list)
     }
 
-    async fn info(&self, node: Option<String>) -> AnyResult<RedisInfo> {
+    async fn info(&self, _node: Option<String>) -> AnyResult<RedisInfo> {
         let mut conn = self.get_conn().await?;
         let info: String = redis::cmd("info").query_async(&mut conn).await?;
         Ok(RedisInfo {
@@ -405,7 +405,6 @@ pub trait RedisMeClient: Send + Sync {
         let mut conn = self.get_conn().await?;
         let value = redis::cmd(cmd.as_str()).arg(args).query_async(&mut conn).await?;
         Ok(redis_value_to_string(value, "\n"))
-
     }
 
     async fn config_get(&self, pattern: &str, node: Option<String>)

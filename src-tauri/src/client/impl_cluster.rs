@@ -35,11 +35,6 @@ impl RedisMeClient for RedisMeCluster {
         &self.prop
     }
 
-    async fn get_conn(&self) -> AnyResult<UnifiedConn> {
-        let conn = UnifiedConn::Cluster(self.conn.clone());
-        Ok(conn)
-    }
-
     async fn init(redis_conn: &RedisConn) -> AnyResult<UnifiedClient> {
         let client = get_client_cluster(redis_conn)?;
         let mut conn = client.get_async_connection().await?;
@@ -57,24 +52,20 @@ impl RedisMeClient for RedisMeCluster {
         };
         Ok(UnifiedClient::Cluster(client))
     }
-    fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
+
+    async fn get_conn(&self) -> AnyResult<UnifiedConn> {
+        let conn = UnifiedConn::Cluster(self.conn.clone());
+        Ok(conn)
+    }
+
+    async fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         Ok(vec![])
     }
 
-    fn select_db(&self, db: u8) -> AnyResult<()> {
-        if self.db.load(Ordering::Relaxed) == db {
-            return Ok(());
-        }
-
-        self.db.store(db, Ordering::Relaxed);
-        info!("集群模式下不支持切换DB");
-        Ok(())
-    }
-
-    fn info(&self, node: Option<String>) -> AnyResult<RedisInfo> {
-        let mut conn = self.get_conn()?;
+    async fn info(&self, node: Option<String>) -> AnyResult<RedisInfo> {
+        let mut conn = self.get_conn().await?;
         let (route, exec_node) = self.get_node_route(node)?;
-        let value = conn.route_command(&redis::cmd("info"), route)?;
+        let value = conn.route_command(redis::cmd("info"), route).await?;
         let info: String = FromRedisValue::from_redis_value(value)?;
         Ok(RedisInfo {
             node: exec_node,
@@ -82,29 +73,29 @@ impl RedisMeClient for RedisMeCluster {
         })
     }
 
-    fn info_list(&self) -> AnyResult<Vec<RedisInfo>> {
-        let mut conn = self.get_conn()?;
+    async fn info_list(&self) -> AnyResult<Vec<RedisInfo>> {
+        let mut conn = self.get_conn().await?;
         let mut infos = vec![];
         for redis_node in &self.node_list {
             let node = redis_node.node.clone();
             let (route, _) = self.get_node_route(Some(node.clone()))?;
-            let value = conn.route_command(&redis::cmd("info"), route)?;
+            let value = conn.route_command(redis::cmd("info"), route).await?;
             let info: String = FromRedisValue::from_redis_value(value)?;
             infos.push(RedisInfo { node, info })
         }
         Ok(infos)
     }
 
-    fn node_list(&self) -> AnyResult<Vec<RedisNode>> {
+    async fn node_list(&self) -> AnyResult<Vec<RedisNode>> {
         Ok(self.node_list.clone())
     }
 
-    fn scan(&self, param: ScanParam) -> AnyResult<ScanResult> {
+    async fn scan(&self, param: ScanParam) -> AnyResult<ScanResult> {
         // RedisCluster目前不能直接扫描SCAN, 参考Issue进行多个节点处理
         // 参考: https://github.com/redis-rs/redis-rs/pull/1233/commits/997df1834d1bfccdbd56827d39fc4cf08874efec
         // Error: This command cannot be safely routed in cluster mode- ClientError
         // let keys: Vec<String> = conn.scan_options(opts)?.collect();
-        let mut conn = self.get_conn()?;
+        let mut conn = self.get_conn().await?;
         let mut cc = param.cursor.unwrap_or_default();
 
         // 空白或单字母查询，扫描1000槽位数即可；否则扫描10000个槽位数
@@ -149,7 +140,7 @@ impl RedisMeClient for RedisMeCluster {
                     cmd.arg("type").arg(scan_type);
                 }
 
-                let value = conn.route_command(&cmd, route.clone())?;
+                let value = conn.route_command(cmd, route.clone()).await?;
                 let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) =
                     FromRedisValue::from_redis_value(value)?;
 
@@ -188,67 +179,39 @@ impl RedisMeClient for RedisMeCluster {
         })
     }
 
-    fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {
-        get0(self.get_conn()?, key, hash_key)
-    }
-
-    fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
-        ttl0(self.get_conn()?, key, ttl)
-    }
-
-    fn set(&self, key: RedisKey, value: String, ttl: i64) -> AnyResult<()> {
-        set0(self.get_conn()?, key, value, ttl)
-    }
-
-    fn del(&self, key: RedisKey) -> AnyResult<()> {
-        del0(self.get_conn()?, key)
-    }
-
-    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
-        field_add0(self.get_conn()?, param)
-    }
-
-    fn field_set(&self, param: RedisFieldSet) -> AnyResult<()> {
-        field_set0(self.get_conn()?, param)
-    }
-
-    fn field_del(&self, param: RedisFieldDel) -> AnyResult<()> {
-        field_del0(self.get_conn()?, param)
-    }
-
-    fn execute_command(&self, param: RedisCommand) -> AnyResult<String> {
+    async fn execute_command(&self, param: RedisCommand) -> AnyResult<String> {
         let (cmd, args) = parse_command(param.command.as_str())?;
         if cmd.is_empty() {
             return Ok("".into());
         };
 
-        let mut conn = self.get_conn()?;
+        let mut conn = self.get_conn().await?;
         let (route, _) = self.get_node_route(param.node)?;
-        let value = conn.route_command(redis::cmd(cmd.as_str()).arg(args), route)?;
+        let value = conn.route_command(*redis::cmd(cmd.as_str()).arg(args), route).await?;
         Ok(redis_value_to_string(value, "\n"))
     }
 
-    fn config_get(
+    async fn config_get(
         &self,
         pattern: &str,
         node: Option<String>,
     ) -> AnyResult<HashMap<String, String>> {
-        let mut conn = self.get_conn()?;
+        let mut conn = self.get_conn().await?;
         let (route, _) = self.get_node_route(node)?;
-        let value = conn.route_command(redis::cmd("config").arg("get").arg(pattern), route)?;
+        let value = conn.route_command(*redis::cmd("config").arg("get").arg(pattern), route).await?;
         let result: HashMap<String, String> = FromRedisValue::from_redis_value(value)?;
         Ok(result)
     }
 
-    fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()> {
-        let mut conn = self.get_conn()?;
+    async fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()> {
+        let mut conn = self.get_conn().await?;
         let (route, _) = self.get_node_route(node)?;
-        let _ = conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
+        let _ = conn.route_command(*redis::cmd("config").arg("set").arg(key).arg(value), route).await?;
         Ok(())
     }
 
-    fn slow_log(&self, count: Option<u64>, node: Option<String>) -> AnyResult<Vec<RedisSlowLog>> {
-        let mut conn = self.get_conn()?;
+    async fn slow_log(&self, count: Option<u64>, node: Option<String>) -> AnyResult<Vec<RedisSlowLog>> {
+        let mut conn = self.get_conn().await?;
         let mut logs = vec![];
         for redis_node in &self.node_list {
             // 如果参数中包含节点参数，则只返回指定节点的慢日志
@@ -259,7 +222,7 @@ impl RedisMeClient for RedisMeCluster {
             let node = redis_node.node.clone();
             let (route, _) = self.get_node_route(Some(node.clone()))?;
             let value_total = conn.route_command(
-                redis::cmd("slowlog").arg("get").arg(count.unwrap_or(128)),
+                *redis::cmd("slowlog").arg("get").arg(count.unwrap_or(128)),
                 route,
             )?;
             let value_list: Vec<Value> = FromRedisValue::from_redis_value(value_total)?;
@@ -271,8 +234,8 @@ impl RedisMeClient for RedisMeCluster {
         Ok(logs)
     }
 
-    fn memory_usage(&self, param: RedisMemoryParam) -> AnyResult<Vec<RedisKeySize>> {
-        let mut conn = self.get_conn()?;
+    async fn memory_usage(&self, param: RedisMemoryParam) -> AnyResult<Vec<RedisKeySize>> {
+        let mut conn = self.get_conn().await?;
         let mut keys: Vec<(Vec<u8>, u64, String)> = vec![];
 
         // 遍历集群节点: 仅扫描主节点
@@ -290,19 +253,19 @@ impl RedisMeClient for RedisMeCluster {
                     .arg("count")
                     .arg(param.scan_count);
 
-                let value = conn.route_command(&cmd, route.clone())?;
+                let value = conn.route_command(cmd, route.clone()).await?;
                 let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) =
                     FromRedisValue::from_redis_value(value)?;
                 cursor = next_cursor;
 
                 // 计算键大小
                 if !new_keys.is_empty() {
-                    let mut pipe = ClusterPipeline::with_capacity(new_keys.len());
+                    let mut pipe = redis::pipe();
                     for key in new_keys.iter() {
                         pipe.cmd("memory").arg("usage").arg(key);
                     }
                     // 此处用Option接收,避免键被删除或过期
-                    let sizes: Vec<Option<u64>> = pipe.query(&mut conn)?;
+                    let sizes: Vec<Option<u64>> = pipe.query_async(&mut conn)?;
                     for (index, size) in sizes.into_iter().enumerate() {
                         if let Some(size) = size && size >= param.size_limit {
                                 keys.push((new_keys[index].clone(), size, "unknown".into()));
@@ -322,7 +285,7 @@ impl RedisMeClient for RedisMeCluster {
                     break 'outer;
                 }
 
-                thread::sleep(Duration::from_millis(param.sleep_millis));
+                tokio::time::sleep(Duration::from_millis(param.sleep_millis)).await;
 
                 if cursor == 0 {
                     break 'inner;
@@ -332,11 +295,11 @@ impl RedisMeClient for RedisMeCluster {
 
         // 计算键类型
         if param.need_key_type.unwrap_or(false) && !keys.is_empty() {
-            let mut pipe = ClusterPipeline::with_capacity(keys.len());
+            let mut pipe = redis::pipe();
             for key in keys.iter() {
                 pipe.cmd("type").arg(&key.0);
             }
-            let types: Vec<Option<String>> = pipe.query(&mut conn)?;
+            let types: Vec<Option<String>> = pipe.query_async(&mut conn).await?;
             for (index, key_type) in types.into_iter().enumerate() {
                 keys[index].2 = key_type.unwrap_or("deleted".into());
             }
@@ -346,12 +309,12 @@ impl RedisMeClient for RedisMeCluster {
         Ok(tuple_to_key_size(keys))
     }
 
-    fn client_list(
+    async fn client_list(
         &self,
         node: Option<String>,
         client_type: Option<String>,
     ) -> AnyResult<Vec<RedisClientInfo>> {
-        let mut conn = self.get_conn()?;
+        let mut conn = self.get_conn().await?;
 
         let mut clients = vec![];
         for redis_node in &self.node_list {
@@ -371,7 +334,7 @@ impl RedisMeClient for RedisMeCluster {
             {
                 cmd.arg("type").arg(client_type_val);
             }
-            let value = conn.route_command(&cmd, route)?;
+            let value = conn.route_command(cmd, route).await?;
             let client: String = FromRedisValue::from_redis_value(value)?;
             for client_info in client.lines() {
                 let client: RedisClientInfo = parse_client_info(client_info)?;
@@ -380,44 +343,10 @@ impl RedisMeClient for RedisMeCluster {
         }
         Ok(clients)
     }
-
-    fn publish(&self, channel: &str, message: &str) -> AnyResult<()> {
-        publish0(self.get_conn()?, channel, message)
-    }
-
-    fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
-        let conn = get_client_single(&self.conf)?.get_connection()?;
-        let id = self.id.clone();
-        let running = self.subscribe_running.clone();
-        subscribe0(conn, running, app_handle, channel, id)
-    }
-
-    fn subscribe_stop(&self) -> AnyResult<()> {
-        subscribe_stop0(self.subscribe_running.clone())
-    }
-
-    fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()> {
-        // 集群中的monitor命令是针对单个节点的，所以需要获取该节点的连接
-        let mut conf = self.conf.clone();
-        if let Some((host, port)) = node.split_once(":") {
-            conf.host = host.to_string();
-            conf.port = port.parse::<u16>()?;
-        }
-        let conn = get_client_single(&conf)?.get_connection()?;
-        let id = self.id.clone();
-        let running = self.monitor_running.clone();
-        monitor0(conn, running, app_handle, id)
-    }
-
-    fn monitor_stop(&self) -> AnyResult<()> {
-        monitor_stop0(self.monitor_running.clone())
-    }
-
 }
 
 // 个性化方法
 impl RedisMeCluster {
-
     // 获取节点路由
     fn get_node_route(&self, node: Option<String>) -> AnyResult<(RoutingInfo, String)> {
         let node: String = if let Some(node) = node {

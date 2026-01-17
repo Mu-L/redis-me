@@ -10,11 +10,12 @@ mod unified;
 mod tests {
     use crate::client::client_trait::RedisMeClient;
     use crate::client::impl_cluster::RedisMeCluster;
+    use crate::client::unified::UnifiedClient;
     use crate::utils::model::*;
-    use redis::TlsMode;
     use redis::cluster::{ClusterClient, ClusterPipeline};
+    use redis::TlsMode;
 
-    fn client() -> Box<dyn RedisMeClient> {
+    fn client() -> UnifiedClient {
         let conn = RedisConn {
             id: "test".into(),
             name: "test".into(),

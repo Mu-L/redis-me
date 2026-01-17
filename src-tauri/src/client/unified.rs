@@ -1,11 +1,14 @@
-use crate::utils::model::RedisConn;
-use redis::aio::{ConnectionLike, MultiplexedConnection};
-use redis::cluster_async::ClusterConnection;
-use redis::{Cmd, Pipeline, RedisFuture, Value};
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU8};
 use crate::client::impl_cluster::RedisMeCluster;
 use crate::client::impl_single::RedisMeSingle;
+use crate::utils::model::RedisConn;
+use crate::utils::util::AnyResult;
+use anyhow::bail;
+use redis::aio::{ConnectionLike, MultiplexedConnection};
+use redis::cluster_async::ClusterConnection;
+use redis::cluster_routing::RoutingInfo;
+use redis::{Cmd, Pipeline, RedisFuture, RedisResult, Value};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU8};
 
 /// 统一的配置属性
 pub struct UnifiedProp {
@@ -28,10 +31,9 @@ impl From<&RedisConn> for UnifiedProp {
     }
 }
 
-
 pub enum UnifiedClient {
     Single(RedisMeSingle),
-    Cluster(RedisMeCluster)
+    Cluster(RedisMeCluster),
 }
 
 /// 统一的Redis连接
@@ -64,6 +66,15 @@ impl ConnectionLike for UnifiedConn {
         match self {
             UnifiedConn::Single(conn) => conn.get_db(),
             UnifiedConn::Cluster(conn) => conn.get_db(),
+        }
+    }
+}
+
+impl UnifiedConn {
+    pub async fn route_command(&mut self, cmd: Cmd, routing: RoutingInfo) -> RedisResult<Value> {
+        match self {
+            UnifiedConn::Single(_) => Err("single node not support route_command".into()),
+            UnifiedConn::Cluster(conn) => conn.route_command(cmd, routing).await,
         }
     }
 }
