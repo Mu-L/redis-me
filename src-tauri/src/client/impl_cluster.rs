@@ -11,6 +11,7 @@ use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
 use redis::{Connection, FromRedisValue, Value};
 use std::collections::HashMap;
 use std::sync::atomic::{Ordering};
+use std::sync::atomic::Ordering::Relaxed;
 use std::thread;
 use std::time::Duration;
 use redis::cluster_async::ClusterConnection;
@@ -82,6 +83,10 @@ impl RedisMeClient for RedisMeCluster {
 
     async fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         Ok(vec![])
+    }
+
+    async fn select_db(&self, _db: u8) -> AnyResult<()> {
+        Ok(())
     }
 
     async fn info_list(&self) -> AnyResult<Vec<RedisInfo>> {

@@ -13,7 +13,6 @@ use std::sync::atomic::Ordering;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_store::StoreExt;
-use tokio::task::JoinHandle;
 use Ordering::Relaxed;
 
 /// RedisME服务接口
@@ -39,20 +38,6 @@ pub trait RedisMeClient: Send + Sync {
     }
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    async fn select_db(&self, db: u8) -> AnyResult<()> {
-        let prop = self.get_prop();
-        if prop.db.load(Relaxed) == db {
-            return Ok(());
-        }
-        prop.db.store(db, Relaxed);
-
-        let mut conn = self.get_conn().await?;
-        let _: () = redis::cmd("SELECT").arg(db).query_async(&mut conn).await?;
-        info!("select db: {}", db);
-        Ok(())
-    }
-
     async fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         let map = self.config_get("databases", None).await?;
         let db_count = map
@@ -69,6 +54,19 @@ pub trait RedisMeClient: Send + Sync {
             })
         }
         Ok(db_list)
+    }
+
+    async fn select_db(&self, db: u8) -> AnyResult<()> {
+        let prop = self.get_prop();
+        if prop.db.load(Relaxed) == db {
+            return Ok(());
+        }
+        prop.db.store(db, Relaxed);
+
+        let mut conn = self.get_conn().await?;
+        let _: () = redis::cmd("SELECT").arg(db).query_async(&mut conn).await?;
+        info!("select db: {}", db);
+        Ok(())
     }
 
     async fn info(&self, node: Option<String>) -> AnyResult<RedisInfo> {

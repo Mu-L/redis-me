@@ -47,3 +47,28 @@ macro_rules! api_commands {
         )*
     };
 }
+
+// 统一枚举值（DeepSeek生成）
+#[macro_export]
+macro_rules! unified_commands {
+    // 匹配多个函数定义的语法：用分号分隔每个定义
+    (
+        $(
+            $name:ident(
+                $($param:ident: $param_type:ty),*
+            ) -> $return_type:ty
+        );*
+        $(;)?
+    ) => {
+        $(
+            pub fn $name(
+                $($param: $param_type),*
+            ) -> ApiResult<$return_type> {
+                match self {
+                    UnifiedClient::Single(client) => client.$name($($param),*),
+                    UnifiedClient::Cluster(client) => client.$name($($param),*),
+                }
+            }
+        )*
+    };
+}
