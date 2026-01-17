@@ -6,15 +6,15 @@ use anyhow::bail;
 use chrono::Local;
 use log::info;
 use redis::aio::MultiplexedConnection;
-use redis::{from_redis_value, AsyncCommands, FromRedisValue, IntegerReplyOrNoOp, Msg, Pipeline, SetExpiry, SetOptions, Value, ValueType};
+use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
+use redis::{from_redis_value, AsyncCommands, AsyncConnectionConfig, FromRedisValue, IntegerReplyOrNoOp, Msg, Pipeline, SetExpiry, SetOptions, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::Ordering;
-use std::thread;
-use std::thread::JoinHandle;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
+use tauri_plugin_store::StoreExt;
+use tokio::task::JoinHandle;
 use Ordering::Relaxed;
-use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
 
 /// RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
@@ -31,7 +31,7 @@ pub trait RedisMeClient: Send + Sync {
 
     async fn get_conn(&self) -> AnyResult<UnifiedConn>;
 
-    async fn new_conn_single(&self) -> AnyResult<MultiplexedConnection> {
+    async fn new_conn_single(&mut self) -> AnyResult<MultiplexedConnection> {
         let client = get_client_single(&self.get_prop().conf)?;
         let mut conn = client.get_multiplexed_async_connection().await?;
         set_client_name(&mut conn).await?;
@@ -541,23 +541,26 @@ pub trait RedisMeClient: Send + Sync {
     }
 
     async fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
-        let mut conn = self.new_conn_single()?;
-        set_client_name(&mut conn)?;
-        running.store(true, Relaxed);
+        let client = get_client_single(&self.get_prop().conf)?;
+        let mut conn = client.get_connection()?;
+        set_client_name(&mut conn).await?;
+
+        let prop = self.get_prop();
+        prop.subscribe_running.store(true, Relaxed);
 
         let channel = channel
             .filter(|c| !c.is_empty())
             .unwrap_or_else(|| "*".into());
 
-        let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
+        tokio::spawn(async move || {
             conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&channel).get_packed_command())?;
             info!("subscribe start: {}", &channel);
-            while running.load(Relaxed) {
+            while prop.subscribe_running.load(Relaxed) {
                 let response = conn.recv_response()?;
                 if let Some(msg) = Msg::from_value(&response) {
                     let payload: String = msg.get_payload()?;
                     let event = SubscribeEvent {
-                        id: id.clone(),
+                        id: prop.id.clone(),
                         datetime: Local::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string(),
                         channel: msg.get_channel_name().to_string(),
                         message: payload,
@@ -566,27 +569,29 @@ pub trait RedisMeClient: Send + Sync {
                 }
             }
             info!("subscribe end: {}", &channel);
-            Ok(())
         });
         Ok(())
     }
 
-    fn subscribe_stop(&self) -> AnyResult<()> {
+    async fn subscribe_stop(&self) -> AnyResult<()> {
         let prop = self.get_prop();
         prop.subscribe_running.store(false, Relaxed);
         Ok(())
     }
 
-    fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {
+    async fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {
+        let client = get_client_single(&self.get_prop().conf)?;
+        let mut conn = client.get_connection()?;
+        set_client_name(&mut conn).await?;
+
         let prop = self.get_prop();
         prop.monitor_running.store(true, Relaxed);
 
-        let mut conn = self.new_conn_single()?;
-        let _: JoinHandle<AnyResult<()>> = thread::spawn(async move || {
+        let _ = tokio::spawn(async move || {
             conn.send_packed_command(&redis::cmd("MONITOR").get_packed_command())?;
             info!("monitor start");
             while prop.monitor_running.load(Relaxed) {
-                let response = conn.recv_response().await?;
+                let response = conn.recv_response()?;
                 let command: String = from_redis_value(response)?;
                 let event = MonitorEvent {
                     id: prop.id.clone(),
@@ -602,7 +607,7 @@ pub trait RedisMeClient: Send + Sync {
         Ok(())
     }
 
-    fn monitor_stop(&self) -> AnyResult<()> {
+    async fn monitor_stop(&self) -> AnyResult<()> {
         let prop = self.get_prop();
         prop.monitor_running.store(false, Relaxed);
         Ok(())

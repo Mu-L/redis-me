@@ -339,9 +339,6 @@ impl RedisMeClient for RedisMeCluster {
 
 // 个性化方法
 impl RedisMeCluster {
-    // 获取节点路由
-
-
     // 获取主节点列表
     fn get_node_list_master(&self) -> Vec<String> {
         self.node_list

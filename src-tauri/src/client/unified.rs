@@ -1,14 +1,12 @@
 use crate::client::impl_cluster::RedisMeCluster;
 use crate::client::impl_single::RedisMeSingle;
 use crate::utils::model::RedisConn;
-use crate::utils::util::AnyResult;
-use anyhow::bail;
 use redis::aio::{ConnectionLike, MultiplexedConnection};
 use redis::cluster_async::ClusterConnection;
 use redis::cluster_routing::RoutingInfo;
 use redis::{Cmd, Pipeline, RedisFuture, RedisResult, Value};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8};
+use std::sync::Arc;
 
 /// 统一的配置属性
 pub struct UnifiedProp {
