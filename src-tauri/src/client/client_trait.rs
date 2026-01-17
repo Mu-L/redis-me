@@ -1,51 +1,327 @@
+use crate::client::unified_conn::UnifiedConn;
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
 use crate::utils::util::{
-    AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string,
+    assert_is_true, vec8_to_display_string, AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE,
 };
 use anyhow::bail;
 use chrono::Local;
 use log::info;
 use parking_lot::MutexGuard;
-use redis::{Commands, Connection, Msg, SetExpiry, SetOptions, ValueType, from_redis_value};
+use redis::{from_redis_value, AsyncCommands, Connection, IntegerReplyOrNoOp, Msg, SetExpiry, SetOptions, ValueType};
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
 
 /// RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
-    fn db_list(&self) -> AnyResult<Vec<RedisDB>>;
 
-    fn select_db(&self, db: u8) -> AnyResult<()>;
+    async fn get_conn(&self) -> AnyResult<UnifiedConn>;
 
-    fn info(&self, node: Option<String>) -> AnyResult<RedisInfo>;
+    async fn set_client_name(&self) -> AnyResult<()> {
+        let mut conn = self.get_conn().await?;
+        let _: () = redis::cmd("CLIENT")
+            .arg("SETNAME")
+            .arg("RedisME")
+            .query_async(&mut conn).await?;
+        info!("设置客户端名称RedisME成功");
+        Ok(())
+    }
 
-    fn info_list(&self) -> AnyResult<Vec<RedisInfo>>;
+    async fn select_db(&self, db: u8) -> AnyResult<()> {
+        let mut conn = self.get_conn().await?;
+        let _: () = redis::cmd("SELECT").arg(db).query_async(&mut conn).await?;
+        info!("select db: {}", db);
+        Ok(())
+    }
 
-    fn node_list(&self) -> AnyResult<Vec<RedisNode>>;
+    async fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
+        let map = self.config_get("databases", None).await?;
+        let db_count = map
+            .get("databases")
+            .unwrap_or(&"0".to_string())
+            .parse::<u8>()?;
+        info!("db_count: {}", db_count);
+        let mut db_list = vec![];
+        for i in 0..db_count {
+            db_list.push(RedisDB {
+                db: i,
+                name: "".to_string(),
+                size: 0,
+            })
+        }
+        Ok(db_list)
+    }
 
-    fn scan(&self, param: ScanParam) -> AnyResult<ScanResult>;
+    async fn info(&self, node: Option<String>) -> AnyResult<RedisInfo> {
+        let mut conn = self.get_conn().await?;
+        let info: String = redis::cmd("info").query_async(&mut conn).await?;
+        Ok(RedisInfo {
+            node: "".to_string(),
+            info,
+        })
+    }
 
-    fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue>;
+    async fn info_list(&self) -> AnyResult<Vec<RedisInfo>> {
+        let info = self.info(None).await?;
+        Ok(vec![info])
+    }
 
-    fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()>;
+    async fn node_list(&self) -> AnyResult<Vec<RedisNode>> {
+        Ok(vec![])
+    }
 
-    fn set(&self, key: RedisKey, value: String, ttl: i64) -> AnyResult<()>;
+    async fn scan(&self, param: ScanParam) -> AnyResult<ScanResult> {
+        let mut conn = self.get_conn().await?;
 
-    fn del(&self, key: RedisKey) -> AnyResult<()>;
+        let mut cc = param.cursor.unwrap_or_default();
+        let batch_count = if param.pattern.replace("*", "").chars().count() <= 1 {
+            1000
+        } else {
+            10000
+        };
 
-    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()>;
+        let mut keys: Vec<Vec<u8>> = vec![];
 
-    fn field_set(&self, param: RedisFieldSet) -> AnyResult<()>;
+        loop {
+            let mut cmd = redis::cmd("scan");
+            cmd.arg(cc.now_cursor)
+                .arg("match")
+                .arg(param.pattern.clone())
+                .arg("count")
+                .arg(batch_count);
 
-    fn field_del(&self, param: RedisFieldDel) -> AnyResult<()>;
+            if let Some(ref scan_type) = param.scan_type
+                && !scan_type.is_empty()
+            {
+                cmd.arg("type").arg(scan_type);
+            }
 
-    fn execute_command(&self, param: RedisCommand) -> AnyResult<String>;
+            let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = cmd.query_async(&mut conn).await?;
+            keys.extend(new_keys);
 
-    fn config_get(&self, pattern: &str, node: Option<String>)
+            cc.now_cursor = next_cursor;
+            if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
+                break;
+            }
+
+            if next_cursor == 0 {
+                cc.finished = true;
+                break;
+            }
+        }
+
+        // 映射为返回值
+        let key_list = keys
+            .into_iter()
+            .map(|key| RedisKey {
+                key: vec8_to_display_string(&key),
+                bytes: key,
+            })
+            .collect();
+
+        Ok(ScanResult {
+            cursor: cc,
+            key_list,
+        })
+    }
+
+    async fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {
+        let mut conn = self.get_conn().await?;
+        let ttl: i64 = match conn.ttl(&key).await? {
+            IntegerReplyOrNoOp::IntegerReply(ttl) => ttl as i64,
+            IntegerReplyOrNoOp::NotExists => {
+                bail!("NotExists: {}", vec8_to_display_string(key.to_bytes()))
+            }
+            IntegerReplyOrNoOp::ExistsButNotRelevant => {
+                bail!("ExistsButNotRelevant: {}", vec8_to_display_string(key.to_bytes()))
+            }
+            _ => {
+                bail!("TTL error: {}", vec8_to_display_string(key.to_bytes()))
+            }
+        };
+
+        let key_type: ValueType = conn.key_type(&key).await?;
+
+        let value: serde_json::Value = match key_type {
+            ValueType::Unknown(other) => {
+                if "none" == other {
+                    bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
+                } else {
+                    bail!("未知类型: {other}")
+                }
+            }
+            ValueType::String => {
+                let value: Vec<u8> = conn.get(&key).await?;
+                let value: String = vec8_to_display_string(&value);
+                serde_json::to_value(value)
+            }
+            // 注意: 原始返回的信息用Vec<u8>接收，再手动转换为String，避免无效UTF8字符串时直接报错
+            ValueType::List => {
+                let value: Vec<Vec<u8>> = conn.lrange(&key, 0, -1).await?;
+                let value: Vec<String> = value.iter().map(|v| vec8_to_display_string(v)).collect();
+                serde_json::to_value(value)
+            }
+            ValueType::Set => {
+                let value: HashSet<Vec<u8>> = conn.smembers(&key).await?;
+                let value: Vec<String> = value.iter().map(|v| vec8_to_display_string(v)).collect();
+                serde_json::to_value(value)
+            }
+            ValueType::ZSet => {
+                let value: Vec<(Vec<u8>, f64)> = conn.zrange_withscores(&key, 0, -1).await?;
+                let list: Vec<RedisZetItem> = value
+                    .into_iter()
+                    .map(|(value, score)| RedisZetItem {
+                        value: vec8_to_display_string(&value),
+                        score,
+                    })
+                    .collect();
+                serde_json::to_value(list)
+            }
+            ValueType::Hash => {
+                if let Some(hash_key) = hash_key
+                    && !hash_key.is_empty()
+                {
+                    let value: Option<Vec<u8>> = conn.hget(&key, &hash_key).await?;
+                    if let Some(str) = value {
+                        let value: String = vec8_to_display_string(&str);
+                        serde_json::to_value(value)
+                    } else {
+                        bail!("哈希键不存在: {}", hash_key)
+                    }
+                } else {
+                    let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key).await?;
+                    let value = value
+                        .into_iter()
+                        .map(|(key, value)| {
+                            let key: String = vec8_to_display_string(&key);
+                            let value: String = vec8_to_display_string(&value);
+                            (key, value)
+                        })
+                        .collect::<HashMap<String, String>>();
+                    serde_json::to_value(value)
+                }
+            }
+            ValueType::Stream => bail!("stream类型暂不支持获取值"),
+            _ => todo!(),
+        }?;
+
+        Ok(RedisValue {
+            key_type: key_type.into(),
+            ttl,
+            value,
+        })
+
+    }
+
+    async fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
+        let mut conn = self.get_conn().await?;
+        if ttl < 0 {
+            // 移除 key 上已有的过期时间，将键从易失（设置了过期时间的键）变为变为持久
+            // 整型回复: 如果 key 不存在或没有关联的过期时间，则返回 0。
+            // 整型回复: 如果已移除过期时间，则返回 1。
+            let _: () = conn.persist(&key).await?;
+        } else {
+            // 为 key 设置超时时间。超时时间到期后，该 key 将被自动删除。
+            // 请注意，调用 EXPIRE/`PEXPIRE` 时使用非正数超时，或调用 `EXPIREAT`/`PEXPIREAT` 时使用过去的时间，
+            // 将导致 key 被 删除 而非过期（相应地，发出的 key 事件 将是 del，而不是 expired）。
+            // 整数回复：如果未设置超时时间则返回 0；例如，key 不存在，或者由于提供的参数而跳过了操作。
+            // 整数回复：如果已设置超时时间则返回 1。
+            let _: () = conn.expire(&key, ttl).await?;
+        };
+        Ok(())
+    }
+
+    async fn set(&self, key: RedisKey, value: String, ttl: i64) -> AnyResult<()> {
+        let mut conn = self.get_conn().await?;
+        if ttl < 0 {
+            let _: () = conn.set(&key, value).await?;
+        } else {
+            let options = SetOptions::default().with_expiration(SetExpiry::EX(ttl as u64));
+            let _: () = conn.set_options(&key, value, options).await?;
+        };
+        Ok(())
+    }
+
+    async fn del(&self, key: RedisKey) -> AnyResult<()> {
+        let mut conn = self.get_conn().await?;
+        let _: () = conn.del(&key).await?;
+        Ok(())
+    }
+
+    async fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
+        let mut conn = self.get_conn().await?;
+        let key: RedisKey = param.key.into();
+        let mode = param.mode;
+        let mut key_type = ValueType::from(param.key_type);
+
+        if "key" == mode {
+            // 新增键
+            let exists: bool = conn.exists(&key).await?;
+            assert_is_true(
+                !exists,
+                format!("键已存在: {}", vec8_to_display_string(key.to_bytes())),
+            )?
+        } else if "field" == mode {
+            // 新增字段
+            key_type = conn.key_type(&key).await?
+        } else {
+            bail!("模式: {} 暂不支持", mode)
+        }
+
+        let fv_list = param.field_value_list;
+
+        match key_type {
+            ValueType::String => conn.set(&key, &param.value).await?,
+            ValueType::Hash => fv_list
+                .into_iter()
+                .try_for_each(async |f| conn.hset(&key, f.field_key, f.field_value).await)?,
+            ValueType::List => {
+                if "lpush" == param.list_push_method {
+                    // 插入头部时保持原有顺序
+                    fv_list
+                        .into_iter()
+                        .rev()
+                        .try_for_each(|fv| conn.lpush(&key, fv.field_value).await)?;
+                } else {
+                    fv_list
+                        .into_iter()
+                        .try_for_each(|f| conn.rpush(&key, f.field_value).await)?;
+                }
+            }
+            ValueType::Set => fv_list
+                .into_iter()
+                .try_for_each(async |f| conn.sadd(&key, f.field_value).await)?,
+            ValueType::ZSet => fv_list
+                .into_iter()
+                .try_for_each(async |f| conn.zadd(&key, f.field_value, f.field_score).await)?,
+            ValueType::Stream => bail!("stream类型暂不支持新增字段值"),
+            ValueType::Unknown(other) => {
+                if "none" == other {
+                    bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
+                } else {
+                    bail!("未知类型: {other}")
+                }
+            }
+            _ => todo!(),
+        };
+
+        if "key" == mode && param.ttl > 0 {
+            let _: () = conn.expire(&key, param.ttl).await?;
+        }
+        Ok(())
+    }
+
+    async fn field_set(&self, param: RedisFieldSet) -> AnyResult<()>;
+
+    async fn field_del(&self, param: RedisFieldDel) -> AnyResult<()>;
+
+    async fn execute_command(&self, param: RedisCommand) -> AnyResult<String>;
+
+    async fn config_get(&self, pattern: &str, node: Option<String>)
     -> AnyResult<HashMap<String, String>>;
 
     fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()>;
@@ -70,6 +346,8 @@ pub trait RedisMeClient: Send + Sync {
 
     fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()>;
     fn mock_data(&self, count: u64) -> AnyResult<()>;
+
+
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中

@@ -13,6 +13,7 @@ use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
+use crate::client::unified_conn::UnifiedConn;
 
 pub struct RedisMeSingle {
     id: String,
@@ -33,6 +34,10 @@ impl Drop for RedisMeSingle {
 }
 
 impl RedisMeClient for RedisMeSingle {
+    fn get_conn(&self) -> UnifiedConn {
+        todo!()
+    }
+    
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         let map = self.config_get("databases", None)?;
         let db_count = map
@@ -332,8 +337,11 @@ impl RedisMeClient for RedisMeSingle {
 
 // 个性化方法
 impl RedisMeSingle {
-    pub fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
+    pub async fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
         let client = get_client_single(redis_conn)?;
+        
+        let conn = client.get_multiplexed_async_connection().await?;
+        
         let mut conn = client.get_connection()?;
         set_client_name(&mut conn)?;
 
