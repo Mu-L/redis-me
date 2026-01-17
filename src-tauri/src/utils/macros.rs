@@ -62,8 +62,9 @@ macro_rules! unified_commands {
     ) => {
         $(
             pub fn $name(
+                &self,
                 $($param: $param_type),*
-            ) -> ApiResult<$return_type> {
+            ) -> AnyResult<$return_type> {
                 match self {
                     UnifiedClient::Single(client) => client.$name($($param),*),
                     UnifiedClient::Cluster(client) => client.$name($($param),*),

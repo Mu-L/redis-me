@@ -7,13 +7,13 @@ use chrono::Local;
 use log::info;
 use redis::aio::MultiplexedConnection;
 use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
-use redis::{from_redis_value, AsyncCommands, AsyncConnectionConfig, FromRedisValue, IntegerReplyOrNoOp, Msg, Pipeline, SetExpiry, SetOptions, Value, ValueType};
+use redis::{from_redis_value, AsyncCommands, FromRedisValue, IntegerReplyOrNoOp, Msg, Pipeline, SetExpiry, SetOptions, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::Ordering;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
-use tauri_plugin_store::StoreExt;
 use Ordering::Relaxed;
+use std::thread;
 
 /// RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
@@ -538,10 +538,10 @@ pub trait RedisMeClient: Send + Sync {
         Ok(())
     }
 
-    async fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
+    fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
         let client = get_client_single(&self.get_prop().conf)?;
         let mut conn = client.get_connection()?;
-        set_client_name(&mut conn).await?;
+        //set_client_name(&mut conn).await?;
 
         let prop = self.get_prop();
         prop.subscribe_running.store(true, Relaxed);
@@ -550,7 +550,7 @@ pub trait RedisMeClient: Send + Sync {
             .filter(|c| !c.is_empty())
             .unwrap_or_else(|| "*".into());
 
-        tokio::spawn(async move || {
+        thread::spawn(move || {
             conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&channel).get_packed_command())?;
             info!("subscribe start: {}", &channel);
             while prop.subscribe_running.load(Relaxed) {
@@ -571,21 +571,21 @@ pub trait RedisMeClient: Send + Sync {
         Ok(())
     }
 
-    async fn subscribe_stop(&self) -> AnyResult<()> {
+    fn subscribe_stop(&self) -> AnyResult<()> {
         let prop = self.get_prop();
         prop.subscribe_running.store(false, Relaxed);
         Ok(())
     }
 
-    async fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {
+    fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {
         let client = get_client_single(&self.get_prop().conf)?;
         let mut conn = client.get_connection()?;
-        set_client_name(&mut conn).await?;
+        //set_client_name(&mut conn).await?;
 
         let prop = self.get_prop();
         prop.monitor_running.store(true, Relaxed);
 
-        let _ = tokio::spawn(async move || {
+        thread::spawn( move || {
             conn.send_packed_command(&redis::cmd("MONITOR").get_packed_command())?;
             info!("monitor start");
             while prop.monitor_running.load(Relaxed) {
@@ -605,7 +605,7 @@ pub trait RedisMeClient: Send + Sync {
         Ok(())
     }
 
-    async fn monitor_stop(&self) -> AnyResult<()> {
+    fn monitor_stop(&self) -> AnyResult<()> {
         let prop = self.get_prop();
         prop.monitor_running.store(false, Relaxed);
         Ok(())
@@ -616,7 +616,7 @@ pub trait RedisMeClient: Send + Sync {
             if param.pattern.is_empty() {
                 bail!("键列表和匹配参数不能同时为空")
             }
-            let scan_result = self.scan(ScanParam::all(param.pattern))?;
+            let scan_result = self.scan(ScanParam::all(param.pattern)).await?;
             info!("扫描出键个数: {}", scan_result.key_list.len());
             scan_result.key_list
         } else {
@@ -632,7 +632,7 @@ pub trait RedisMeClient: Send + Sync {
         for key in key_list.into_iter() {
             pipe.del(&key).ignore();
         }
-        let mut conn = self.get_conn()?;
+        let mut conn = self.get_conn().await?;
         let _: () = pipe.query_async(&mut conn).await?;
         info!("批量删除键完成: {}", size);
         Ok(())
@@ -673,7 +673,7 @@ pub trait RedisMeClient: Send + Sync {
             }
         }
 
-        let mut conn = self.get_conn()?;
+        let mut conn = self.get_conn().await?;
         let _: () = pipe.query_async(&mut conn).await?;
         Ok(())
     }

@@ -1,6 +1,8 @@
+use std::collections::HashMap;
 use crate::client::impl_cluster::RedisMeCluster;
 use crate::client::impl_single::RedisMeSingle;
-use crate::utils::model::RedisConn;
+use crate::utils::model::*;
+use crate::utils::util::*;
 use redis::aio::{ConnectionLike, MultiplexedConnection};
 use redis::cluster_async::ClusterConnection;
 use redis::cluster_routing::RoutingInfo;
@@ -39,191 +41,33 @@ pub enum UnifiedClient {
 
 /// 实现api调用的所有方法: 从 db_list 到 mock_data
 impl UnifiedClient {
-    
-    pub fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
-        match self {
-            UnifiedClient::Single(client) => client.db_list(),
-            UnifiedClient::Cluster(client) => client.db_list(),
-        }
-    }
-
-    pub fn select_db(&self, db: u8) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.select_db(db),
-            UnifiedClient::Cluster(client) => client.select_db(db),
-        }
-    }
-
-    pub fn info(&self, node: Option<String>) -> AnyResult<RedisInfo> {
-        match self {
-            UnifiedClient::Single(client) => client.info(node),
-            UnifiedClient::Cluster(client) => client.info(node),
-        }
-    }
-
-    pub fn info_list(&self) -> AnyResult<Vec<RedisInfo>> {
-        match self {
-            UnifiedClient::Single(client) => client.info_list(),
-            UnifiedClient::Cluster(client) => client.info_list(),
-        }
-    }
-
-    pub fn node_list(&self) -> AnyResult<Vec<RedisNode>> {
-        match self {
-            UnifiedClient::Single(client) => client.node_list(),
-            UnifiedClient::Cluster(client) => client.node_list(),
-        }
-    }
-
-    pub fn scan(&self, param: ScanParam) -> AnyResult<ScanResult> {
-        match self {
-            UnifiedClient::Single(client) => client.scan(param),
-            UnifiedClient::Cluster(client) => client.scan(param),
-        }
-    }
-
-    pub fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {
-        match self {
-            UnifiedClient::Single(client) => client.get(key, hash_key),
-            UnifiedClient::Cluster(client) => client.get(key, hash_key),
-        }
-    }
-
-    pub fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.ttl(key, ttl),
-            UnifiedClient::Cluster(client) => client.ttl(key, ttl),
-        }
-    }
-
-    pub fn set(&self, key: RedisKey, value: String, ttl: i64) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.set(key, value, ttl),
-            UnifiedClient::Cluster(client) => client.set(key, value, ttl),
-        }
-    }
-
-    pub fn del(&self, key: RedisKey) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.del(key),
-            UnifiedClient::Cluster(client) => client.del(key),
-        }
-    }
-
-    pub fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.field_add(param),
-            UnifiedClient::Cluster(client) => client.field_add(param),
-        }
-    }
-
-    pub fn field_set(&self, param: RedisFieldSet) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.field_set(param),
-            UnifiedClient::Cluster(client) => client.field_set(param),
-        }
-    }
-
-    pub fn field_del(&self, param: RedisFieldDel) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.field_del(param),
-            UnifiedClient::Cluster(client) => client.field_del(param),
-        }
-    }
-
-    pub fn execute_command(&self, param: RedisCommand) -> AnyResult<String> {
-        match self {
-            UnifiedClient::Single(client) => client.execute_command(param),
-            UnifiedClient::Cluster(client) => client.execute_command(param),
-        }
-    }
-
-    pub fn config_get(&self, pattern: &str, node: Option<String>) -> AnyResult<HashMap<String, String>> {
-        match self {
-            UnifiedClient::Single(client) => client.config_get(pattern, node),
-            UnifiedClient::Cluster(client) => client.config_get(pattern, node),
-        }
-    }
-
-    pub fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.config_set(key, value, node),
-            UnifiedClient::Cluster(client) => client.config_set(key, value, node),
-        }
-    }
-
-    pub fn slow_log(&self, count: Option<u64>, node: Option<String>) -> AnyResult<Vec<RedisSlowLog>> {
-        match self {
-            UnifiedClient::Single(client) => client.slow_log(count, node),
-            UnifiedClient::Cluster(client) => client.slow_log(count, node),
-        }
-    }
-
-    pub fn memory_usage(&self, param: RedisMemoryParam) -> AnyResult<Vec<RedisKeySize>> {
-        match self {
-            UnifiedClient::Single(client) => client.memory_usage(param),
-            UnifiedClient::Cluster(client) => client.memory_usage(param),
-        }
-    }
-
-    pub fn client_list(&self, node: Option<String>, client_type: Option<String>) -> AnyResult<Vec<RedisClientInfo>> {
-        match self {
-            UnifiedClient::Single(client) => client.client_list(node, client_type),
-            UnifiedClient::Cluster(client) => client.client_list(node, client_type),
-        }
-    }
-
-    pub fn publish(&self, channel: &str, message: &str) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.publish(channel, message),
-            UnifiedClient::Cluster(client) => client.publish(channel, message),
-        }
-    }
-
-    pub fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.subscribe(app_handle, channel),
-            UnifiedClient::Cluster(client) => client.subscribe(app_handle, channel),
-        }
-    }
-
-    pub fn subscribe_stop(&self) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.subscribe_stop(),
-            UnifiedClient::Cluster(client) => client.subscribe_stop(),
-        }
-    }
-
-    pub fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.monitor(app_handle, node),
-            UnifiedClient::Cluster(client) => client.monitor(app_handle, node),
-        }
-    }
-
-    pub fn monitor_stop(&self) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.monitor_stop(),
-            UnifiedClient::Cluster(client) => client.monitor_stop(),
-        }
-    }
-
-    pub fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.batch_del(param),
-            UnifiedClient::Cluster(client) => client.batch_del(param),
-        }
-    }
-
-    pub fn mock_data(&self, count: u64) -> AnyResult<()> {
-        match self {
-            UnifiedClient::Single(client) => client.mock_data(count),
-            UnifiedClient::Cluster(client) => client.mock_data(count),
-        }
-    }
+    unified_commands!(
+        db_list() -> Vec<RedisDB>;               // 数据库列表
+        select_db(db: u8) -> ();                 // 切换数据库
+        info(node: Option<String>) -> RedisInfo; // 信息
+        info_list() -> Vec<RedisInfo>;           // 信息列表
+        node_list() -> Vec<RedisNode>;           // 节点列表
+        scan(param: ScanParam) -> ScanResult;    // 扫描
+        get(key: RedisKey, hash_key: Option<String>) -> RedisValue; // 获取值
+        ttl(key: RedisKey, ttl: i64) -> ();                 // 设置TTL
+        set(key: RedisKey, value: String, ttl: i64) -> ();  // 设置值
+        del(key: RedisKey) -> ();                           // 删除键
+        batch_del(param: RedisBatchDelete) -> ();           // 批量删除
+        field_add(param: RedisFieldAdd) -> ();              // 新增字段
+        field_set(param: RedisFieldSet) -> ();              // 编辑字段
+        field_del(param: RedisFieldDel) -> ();              // 删除字段
+        execute_command(param: RedisCommand) -> String;     // 执行命令
+        config_get(pattern: &str, node: Option<String>) -> HashMap<String, String>; // 获取配置
+        config_set(key: &str, value: &str, node: Option<String>) -> ();             // 设置配置
+        slow_log(count: Option<u64>, node: Option<String>) -> Vec<RedisSlowLog>;    // 慢日志
+        memory_usage(param: RedisMemoryParam) -> Vec<RedisKeySize>;                 // 内存分析
+        client_list(node: Option<String>, client_type: Option<String>) -> Vec<RedisClientInfo>; // 客户端列表
+        publish(channel: &str, message: &str) -> (); // 发布消息
+        subscribe_stop() -> ();                      // 订阅消息停止
+        monitor_stop()   -> ();                      // 监控命令停止
+        mock_data(count: u64) -> ();                 // 模拟数据
+    );
 }
-
-
 
 /// 统一的Redis连接~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 pub enum UnifiedConn {

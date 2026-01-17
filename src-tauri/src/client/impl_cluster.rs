@@ -1,22 +1,16 @@
 use crate::client::client_trait::*;
-use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name};
+use crate::client::unified::{UnifiedClient, UnifiedConn, UnifiedProp};
+use crate::utils::conn::{get_client_cluster, set_client_name};
 use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
 use log::info;
-use redis::cluster::{ClusterPipeline};
+use redis::cluster_async::ClusterConnection;
 use redis::cluster_routing::RoutingInfo;
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
-use redis::{Connection, FromRedisValue, Value};
-use std::collections::HashMap;
-use std::sync::atomic::{Ordering};
-use std::sync::atomic::Ordering::Relaxed;
-use std::thread;
+use redis::{FromRedisValue, Value};
 use std::time::Duration;
-use redis::cluster_async::ClusterConnection;
-use tauri::AppHandle;
-use crate::client::unified::{UnifiedClient, UnifiedConn, UnifiedProp};
 
 pub struct RedisMeCluster {
     prop: UnifiedProp,
@@ -63,8 +57,8 @@ impl RedisMeClient for RedisMeCluster {
         let mut conn = client.get_async_connection().await?;
 
         // 设置客户端名, 获取节点信息并保存起来
-        set_client_name(&mut conn)?;
-        let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query(&mut conn)?;
+        set_client_name(&mut conn).await?;
+        let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query_async(&mut conn).await?;
         let node_list = Self::parse_node_list(cluster_nodes)?;
         info!("Redis集群连接初始化成功: {}", redis_conn.name);
 
@@ -203,7 +197,9 @@ impl RedisMeClient for RedisMeCluster {
 
         let mut conn = self.get_conn().await?;
         let (route, _) = self.get_node_route(param.node)?;
-        let value = conn.route_command(*redis::cmd(cmd.as_str()).arg(args), route).await?;
+        let mut cmd = redis::cmd(cmd.as_str());
+        cmd.arg(args);
+        let value = conn.route_command(cmd, route).await?;
         Ok(redis_value_to_string(value, "\n"))
     }
 
@@ -218,10 +214,9 @@ impl RedisMeClient for RedisMeCluster {
 
             let node = redis_node.node.clone();
             let (route, _) = self.get_node_route(Some(node.clone()))?;
-            let value_total = conn.route_command(
-                *redis::cmd("slowlog").arg("get").arg(count.unwrap_or(128)),
-                route,
-            )?;
+            let mut cmd = redis::cmd("slowlog");
+            cmd.arg("get").arg(count.unwrap_or(128));
+            let value_total = conn.route_command(cmd, route).await?;
             let value_list: Vec<Value> = FromRedisValue::from_redis_value(value_total)?;
             for value in value_list {
                 let log = redis_value_to_log(value, &node)?;
@@ -262,7 +257,7 @@ impl RedisMeClient for RedisMeCluster {
                         pipe.cmd("memory").arg("usage").arg(key);
                     }
                     // 此处用Option接收,避免键被删除或过期
-                    let sizes: Vec<Option<u64>> = pipe.query_async(&mut conn)?;
+                    let sizes: Vec<Option<u64>> = pipe.query_async(&mut conn).await?;
                     for (index, size) in sizes.into_iter().enumerate() {
                         if let Some(size) = size && size >= param.size_limit {
                                 keys.push((new_keys[index].clone(), size, "unknown".into()));

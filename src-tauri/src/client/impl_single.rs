@@ -28,7 +28,7 @@ impl RedisMeClient for RedisMeSingle {
         let client = get_client_single(redis_conn)?;
 
         let mut conn = client.get_multiplexed_async_connection().await?;
-        set_client_name(&mut conn)?;
+        set_client_name(&mut conn).await?;
 
         // 单机初始化db
         let _: () = redis::cmd("SELECT").arg(redis_conn.db).query_async(&mut conn).await?;
