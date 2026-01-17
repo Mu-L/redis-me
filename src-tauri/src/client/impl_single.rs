@@ -12,18 +12,13 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::thread;
 use std::time::Duration;
+use redis::aio::MultiplexedConnection;
 use tauri::AppHandle;
 use crate::client::unified_conn::UnifiedConn;
 
 pub struct RedisMeSingle {
-    id: String,
-    //conf: RedisConn,
-    client: Client,
-    conn: Mutex<Connection>,
-
-    db: Arc<AtomicU8>,
-    subscribe_running: Arc<AtomicBool>,
-    monitor_running: Arc<AtomicBool>,
+    prop: UnifiedConn,
+    conn: MultiplexedConnection,
 }
 
 impl Drop for RedisMeSingle {

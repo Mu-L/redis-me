@@ -1,9 +1,8 @@
-use crate::client::unified_conn::UnifiedConn;
+use Ordering::Relaxed;
+use crate::client::unified_conn::{UnifiedConn, UnifiedProp};
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{
-    assert_is_true, vec8_to_display_string, AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE,
-};
+use crate::utils::util::{assert_is_true, parse_client_info, random_range, random_string, vec8_to_display_string, AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE};
 use anyhow::bail;
 use chrono::Local;
 use log::info;
@@ -14,12 +13,16 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::thread::JoinHandle;
+use redis::aio::MultiplexedConnection;
 use tauri::{AppHandle, Emitter};
 
 /// RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
 
+    fn get_prop(&self) -> UnifiedProp;
+
     async fn get_conn(&self) -> AnyResult<UnifiedConn>;
+    fn new_conn_single(&self) -> AnyResult<Connection>;
 
     async fn set_client_name(&self) -> AnyResult<()> {
         let mut conn = self.get_conn().await?;
@@ -276,28 +279,37 @@ pub trait RedisMeClient: Send + Sync {
 
         match key_type {
             ValueType::String => conn.set(&key, &param.value).await?,
-            ValueType::Hash => fv_list
-                .into_iter()
-                .try_for_each(async |f| conn.hset(&key, f.field_key, f.field_value).await)?,
+            ValueType::Hash => {
+                for f in fv_list {
+                    conn.hset(&key, f.field_key, f.field_value).await?;
+                }
+            },
             ValueType::List => {
                 if "lpush" == param.list_push_method {
                     // 插入头部时保持原有顺序
+                    for f in fv_list.iter().rev() {
+                        conn.lpush(&key, f.field_value).await?;
+                    }
                     fv_list
                         .into_iter()
                         .rev()
                         .try_for_each(|fv| conn.lpush(&key, fv.field_value).await)?;
                 } else {
-                    fv_list
-                        .into_iter()
-                        .try_for_each(|f| conn.rpush(&key, f.field_value).await)?;
+                    for f in fv_list {
+                        conn.rpush(&key, f.field_value).await?;
+                    }
                 }
             }
-            ValueType::Set => fv_list
-                .into_iter()
-                .try_for_each(async |f| conn.sadd(&key, f.field_value).await)?,
-            ValueType::ZSet => fv_list
-                .into_iter()
-                .try_for_each(async |f| conn.zadd(&key, f.field_value, f.field_score).await)?,
+            ValueType::Set => {
+                for f in fv_list {
+                    conn.sadd(&key, f.field_value).await?;
+                }
+            }
+            ValueType::ZSet => {
+                for f in fv_list {
+                    conn.zadd(&key, f.field_value, f.field_score).await?;
+                }
+            },
             ValueType::Stream => bail!("stream类型暂不支持新增字段值"),
             ValueType::Unknown(other) => {
                 if "none" == other {
@@ -315,39 +327,248 @@ pub trait RedisMeClient: Send + Sync {
         Ok(())
     }
 
-    async fn field_set(&self, param: RedisFieldSet) -> AnyResult<()>;
+    async fn field_set(&self, param: RedisFieldSet) -> AnyResult<()> {
+        let mut conn = self.get_conn().await?;
+        let key: RedisKey = param.key;
+        let key_type: ValueType = conn.key_type(&key).await?;
 
-    async fn field_del(&self, param: RedisFieldDel) -> AnyResult<()>;
+        match key_type {
+            ValueType::Hash => {
+                let _: () = conn.hset(&key, param.field_key, param.field_value).await?;
+            }
+            ValueType::List => {
+                let _: () = conn.lset(&key, param.field_index, param.field_value).await?;
+            }
+            ValueType::Set => {
+                let _: () = conn.srem(&key, param.src_field_value).await?;
+                let _: () = conn.sadd(&key, param.field_value).await?;
+            }
+            ValueType::ZSet => {
+                let _: () = conn.zrem(&key, param.src_field_value).await?;
+                let _: () = conn.zadd(&key, param.field_value, param.field_score).await?;
+            }
+            ValueType::String => bail!("string类型暂不支持设置字段值"),
+            ValueType::Stream => bail!("stream类型暂不支持设置字段值"),
+            ValueType::Unknown(other) => {
+                if "none" == other {
+                    bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
+                } else {
+                    bail!("未知类型: {other}")
+                }
+            }
+            _ => todo!(),
+        };
+        Ok(())
+    }
+
+    async fn field_del(&self, param: RedisFieldDel) -> AnyResult<()> {
+        let mut conn = self.get_conn().await?;
+        let key: RedisKey = param.key;
+        let key_type: ValueType = conn.key_type(&key).await?;
+
+        match key_type {
+            ValueType::Hash => {
+                let _: () = conn.hdel(&key, param.field_key).await?;
+            }
+            ValueType::List => {
+                let _: () = conn.lset(&key, param.field_index, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE).await?;
+                let _: () = conn.lrem(&key, 1, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE).await?;
+            }
+            ValueType::Set => {
+                let _: () = conn.srem(&key, param.field_value).await?;
+            }
+            ValueType::ZSet => {
+                let _: () = conn.zrem(&key, param.field_value).await?;
+            }
+            ValueType::String => bail!("string类型暂不支持删除字段值"),
+            ValueType::Stream => bail!("stream类型暂不支持删除字段值"),
+            ValueType::Unknown(other) => {
+                if "none" == other {
+                    bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
+                } else {
+                    bail!("未知类型: {other}")
+                }
+            }
+            _ => todo!(),
+        };
+        Ok(())
+    }
 
     async fn execute_command(&self, param: RedisCommand) -> AnyResult<String>;
 
     async fn config_get(&self, pattern: &str, node: Option<String>)
     -> AnyResult<HashMap<String, String>>;
 
-    fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()>;
+    async fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()>;
 
-    fn slow_log(&self, count: Option<u64>, node: Option<String>) -> AnyResult<Vec<RedisSlowLog>>;
+    async fn slow_log(&self, count: Option<u64>, node: Option<String>) -> AnyResult<Vec<RedisSlowLog>>;
 
-    fn memory_usage(&self, param: RedisMemoryParam) -> AnyResult<Vec<RedisKeySize>>;
+    async fn memory_usage(&self, param: RedisMemoryParam) -> AnyResult<Vec<RedisKeySize>>;
 
-    fn client_list(
+    async fn client_list(
         &self,
         node: Option<String>,
         client_type: Option<String>,
-    ) -> AnyResult<Vec<RedisClientInfo>>;
+    ) -> AnyResult<Vec<RedisClientInfo>> {
+        let mut conn = self.get_conn().await?;
+        let mut cmd = redis::cmd("client");
+        cmd.arg("list");
+        if let Some(ref client_type_val) = client_type
+            && !client_type_val.is_empty()
+        {
+            cmd.arg("type").arg(client_type_val);
+        }
+        let client: String = cmd.query_async(&mut conn).await?;
 
-    fn publish(&self, channel: &str, message: &str) -> AnyResult<()>;
+        let mut clients = vec![];
+        for client_info in client.lines() {
+            let client: RedisClientInfo = parse_client_info(client_info)?;
+            clients.push(client);
+        }
+        Ok(clients)
+    }
 
-    fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()>;
-    fn subscribe_stop(&self) -> AnyResult<()>;
+    async fn publish(&self, channel: &str, message: &str) -> AnyResult<()> {
+        let mut conn = self.get_conn().await?;
+        let _: () = conn.publish(channel, message).await?;
+        Ok(())
+    }
 
-    fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()>;
-    fn monitor_stop(&self) -> AnyResult<()>;
+    async fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
+        let mut conn = self.new_conn_single()?;
+        set_client_name(&mut conn)?;
+        running.store(true, Relaxed);
 
-    fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()>;
-    fn mock_data(&self, count: u64) -> AnyResult<()>;
+        let channel = channel
+            .filter(|c| !c.is_empty())
+            .unwrap_or_else(|| "*".into());
 
+        let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
+            conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&channel).get_packed_command())?;
+            info!("subscribe start: {}", &channel);
+            while running.load(Relaxed) {
+                let response = conn.recv_response()?;
+                if let Some(msg) = Msg::from_value(&response) {
+                    let payload: String = msg.get_payload()?;
+                    let event = SubscribeEvent {
+                        id: id.clone(),
+                        datetime: Local::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string(),
+                        channel: msg.get_channel_name().to_string(),
+                        message: payload,
+                    };
+                    let _ = &app_handle.emit("subscribe", event);
+                }
+            }
+            info!("subscribe end: {}", &channel);
+            Ok(())
+        });
+        Ok(())
+    }
 
+    async fn subscribe_stop(&self) -> AnyResult<()> {
+        let prop = self.get_prop();
+        prop.subscribe_running.store(false, Relaxed);
+        Ok(())
+    }
+
+    fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()> {
+        let prop = self.get_prop();
+        prop.monitor_running.store(true, Relaxed);
+
+        let mut conn = self.new_conn_single()?;
+        let _: JoinHandle<AnyResult<()>> = thread::spawn(async move || {
+            conn.send_packed_command(&redis::cmd("MONITOR").get_packed_command())?;
+            info!("monitor start");
+            while prop.monitor_running.load(Relaxed) {
+                let response = conn.recv_response().await?;
+                let command: String = from_redis_value(response)?;
+                let event = MonitorEvent {
+                    id: prop.id.clone(),
+                    datetime: Local::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string(),
+                    command,
+                };
+                let _ = &app_handle.emit("monitor", event);
+            }
+            info!("monitor end");
+            Ok(())
+        });
+
+        Ok(())
+    }
+
+    async fn monitor_stop(&self) -> AnyResult<()> {
+        let prop = self.get_prop();
+        prop.monitor_running.store(false, Relaxed);
+        Ok(())
+    }
+
+    async fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()> {
+        let key_list = if param.key_list.is_empty() {
+            if param.pattern.is_empty() {
+                bail!("键列表和匹配参数不能同时为空")
+            }
+            let scan_result = self.scan(ScanParam::all(param.pattern))?;
+            info!("扫描出键个数: {}", scan_result.key_list.len());
+            scan_result.key_list
+        } else {
+            param.key_list
+        };
+
+        if key_list.is_empty() {
+            return Ok(());
+        }
+
+        let size = key_list.len();
+        let mut pipe = redis::pipe();
+        for key in key_list.into_iter() {
+            pipe.del(&key).ignore();
+        }
+        let mut conn = self.get_conn()?;
+        let _: () = pipe.query_async(&mut conn).await?;
+        info!("批量删除键完成: {}", size);
+        Ok(())
+    }
+
+    async fn mock_data(&self, count: u64) -> AnyResult<()> {
+        let mut pipe = redis::pipe();
+        for _ in 0..count {
+            // string
+            let key = format!("redis-me-mock:string:{}", random_string(10));
+            pipe.set(&key, random_string(10)).ignore();
+
+            // hash
+            let field_count = random_range(3, 20);
+            let key = format!("redis-me-mock:hash:{}", random_string(10));
+            for x in 0..field_count {
+                pipe.hset(&key, format!("key{x}"), random_string(10))
+                    .ignore();
+            }
+
+            // list
+            let key = format!("redis-me-mock:list:{}", random_string(10));
+            for _ in 0..field_count {
+                pipe.rpush(&key, random_string(10)).ignore();
+            }
+
+            // set
+            let key = format!("redis-me-mock:set:{}", random_string(10));
+            for _ in 0..field_count {
+                pipe.sadd(&key, random_string(10)).ignore();
+            }
+
+            // zset
+            let key = format!("redis-me-mock:zset:{}", random_string(10));
+            for _ in 0..field_count {
+                pipe.zadd(&key, random_string(10), random_range(1, 100))
+                    .ignore();
+            }
+        }
+
+        let mut conn = self.get_conn()?;
+        let _: () = pipe.query_async(&mut conn).await?;
+        Ok(())
+    }
+    }
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -611,7 +832,7 @@ pub fn subscribe0(
     id: String,
 ) -> AnyResult<()> {
     set_client_name(&mut conn)?;
-    running.store(true, Ordering::Relaxed);
+    running.store(true, Relaxed);
 
     let channel = channel
         .filter(|c| !c.is_empty())
@@ -620,7 +841,7 @@ pub fn subscribe0(
     let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
         conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&channel).get_packed_command())?;
         info!("subscribe start: {}", &channel);
-        while running.load(Ordering::Relaxed) {
+        while running.load(Relaxed) {
             let response = conn.recv_response()?;
             if let Some(msg) = Msg::from_value(&response) {
                 let payload: String = msg.get_payload()?;
@@ -640,7 +861,7 @@ pub fn subscribe0(
 }
 
 pub fn subscribe_stop0(running: Arc<AtomicBool>) -> AnyResult<()> {
-    running.store(false, Ordering::Relaxed);
+    running.store(false, Relaxed);
     Ok(())
 }
 
@@ -651,12 +872,12 @@ pub fn monitor0(
     id: String,
 ) -> AnyResult<()> {
     set_client_name(&mut conn)?;
-    running.store(true, Ordering::Relaxed);
+    running.store(true, Relaxed);
 
     let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
         conn.send_packed_command(&redis::cmd("MONITOR").get_packed_command())?;
         info!("monitor start");
-        while running.load(Ordering::Relaxed) {
+        while running.load(Relaxed) {
             let response = conn.recv_response()?;
             let command: String = from_redis_value(response)?;
             let event = MonitorEvent {
@@ -675,79 +896,8 @@ pub fn monitor0(
 
 pub fn monitor_stop0(running: Arc<AtomicBool>) -> AnyResult<()> {
     info!("monitor stop");
-    running.store(false, Ordering::Relaxed);
+    running.store(false, Relaxed);
     Ok(())
 }
 
-// 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)
-#[macro_export]
-macro_rules! implement_pipeline_commands {
-    ($struct_name:ident) => {
-        fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()> {
-            let key_list = if param.key_list.is_empty() {
-                if param.pattern.is_empty() {
-                    bail!("键列表和匹配参数不能同时为空")
-                }
-                let scan_result = self.scan(ScanParam::all(param.pattern))?;
-                info!("扫描出键个数: {}", scan_result.key_list.len());
-                scan_result.key_list
-            } else {
-                param.key_list
-            };
 
-            if key_list.is_empty() {
-                return Ok(());
-            }
-
-            let size = key_list.len();
-            let mut pipe = $struct_name::with_capacity(size);
-            for key in key_list.into_iter() {
-                pipe.del(&key).ignore();
-            }
-            let mut conn = self.get_conn()?;
-            let _: () = pipe.query(&mut conn)?;
-            info!("批量删除键完成: {}", size);
-            Ok(())
-        }
-
-        fn mock_data(&self, count: u64) -> AnyResult<()> {
-            let mut pipe = $struct_name::with_capacity(count as usize);
-            for _ in 0..count {
-                // string
-                let key = format!("redis-me-mock:string:{}", random_string(10));
-                pipe.set(&key, random_string(10)).ignore();
-
-                // hash
-                let field_count = random_range(3, 20);
-                let key = format!("redis-me-mock:hash:{}", random_string(10));
-                for x in 0..field_count {
-                    pipe.hset(&key, format!("key{x}"), random_string(10))
-                        .ignore();
-                }
-
-                // list
-                let key = format!("redis-me-mock:list:{}", random_string(10));
-                for _ in 0..field_count {
-                    pipe.rpush(&key, random_string(10)).ignore();
-                }
-
-                // set
-                let key = format!("redis-me-mock:set:{}", random_string(10));
-                for _ in 0..field_count {
-                    pipe.sadd(&key, random_string(10)).ignore();
-                }
-
-                // zset
-                let key = format!("redis-me-mock:zset:{}", random_string(10));
-                for _ in 0..field_count {
-                    pipe.zadd(&key, random_string(10), random_range(1, 100))
-                        .ignore();
-                }
-            }
-
-            let mut conn = self.get_conn()?;
-            let _: () = pipe.query(&mut conn)?;
-            Ok(())
-        }
-    };
-}
