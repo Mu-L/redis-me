@@ -73,7 +73,7 @@ impl ConnectionLike for UnifiedConn {
 impl UnifiedConn {
     pub async fn route_command(&mut self, cmd: Cmd, routing: RoutingInfo) -> RedisResult<Value> {
         match self {
-            UnifiedConn::Single(_) => Err("single node not support route_command".into()),
+            UnifiedConn::Single(conn) => cmd.query_async(conn).await,
             UnifiedConn::Cluster(conn) => conn.route_command(cmd, routing).await,
         }
     }

@@ -5,22 +5,27 @@ use crate::utils::util::{assert_is_true, parse_client_info, parse_command, rando
 use anyhow::bail;
 use chrono::Local;
 use log::info;
-use parking_lot::MutexGuard;
 use redis::aio::MultiplexedConnection;
-use redis::{from_redis_value, AsyncCommands, Connection, IntegerReplyOrNoOp, Msg, Pipeline, SetExpiry, SetOptions, Value, ValueType};
+use redis::{from_redis_value, AsyncCommands, FromRedisValue, IntegerReplyOrNoOp, Msg, Pipeline, SetExpiry, SetOptions, Value, ValueType};
 use std::collections::{HashMap, HashSet};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::atomic::Ordering;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 use Ordering::Relaxed;
+use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
 
 /// RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
 
     fn get_prop(&self) -> &UnifiedProp;
+
+    // 获取节点路由 ==> 方便统一config_get/set等方法
+    fn get_node_route(&self, node: Option<String>) -> AnyResult<(RoutingInfo, String)> {
+        let route_info = RoutingInfo::SingleNode(SingleNodeRoutingInfo::Random);
+        Ok((route_info, node.unwrap_or("single".to_string())))
+    }
 
     async fn init(redis_conn: &RedisConn) -> AnyResult<UnifiedClient>;
 
@@ -32,6 +37,7 @@ pub trait RedisMeClient: Send + Sync {
         set_client_name(&mut conn).await?;
         Ok(conn)
     }
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     async fn select_db(&self, db: u8) -> AnyResult<()> {
@@ -65,11 +71,13 @@ pub trait RedisMeClient: Send + Sync {
         Ok(db_list)
     }
 
-    async fn info(&self, _node: Option<String>) -> AnyResult<RedisInfo> {
+    async fn info(&self, node: Option<String>) -> AnyResult<RedisInfo> {
         let mut conn = self.get_conn().await?;
-        let info: String = redis::cmd("info").query_async(&mut conn).await?;
+        let (route, exec_node) = self.get_node_route(node)?;
+        let value = conn.route_command(redis::cmd("info"), route).await?;
+        let info: String = FromRedisValue::from_redis_value(value)?;
         Ok(RedisInfo {
-            node: "".to_string(),
+            node: exec_node,
             info,
         })
     }
@@ -410,24 +418,20 @@ pub trait RedisMeClient: Send + Sync {
     async fn config_get(&self, pattern: &str, node: Option<String>)
     -> AnyResult<HashMap<String, String>> {
         let mut conn = self.get_conn().await?;
-        let result: HashMap<String, String> = redis::cmd("config")
-            .arg("get")
-            .arg(pattern)
-            .query_async(&mut conn).await?;
+        let (route, _) = self.get_node_route(node)?;
+        let value = conn.route_command(*redis::cmd("config").arg("get").arg(pattern), route).await?;
+        let result: HashMap<String, String> = FromRedisValue::from_redis_value(value)?;
         Ok(result)
     }
 
     async fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()> {
         let mut conn = self.get_conn().await?;
-        let _: () = redis::cmd("config")
-            .arg("set")
-            .arg(key)
-            .arg(value)
-            .query_async(&mut conn).await?;
+        let (route, _) = self.get_node_route(node)?;
+        let _ = conn.route_command(*redis::cmd("config").arg("set").arg(key).arg(value), route).await?;
         Ok(())
     }
 
-    async fn slow_log(&self, count: Option<u64>, node: Option<String>) -> AnyResult<Vec<RedisSlowLog>> {
+    async fn slow_log(&self, count: Option<u64>, _node: Option<String>) -> AnyResult<Vec<RedisSlowLog>> {
         let mut conn = self.get_conn().await?;
         let mut logs = vec![];
         let value_list: Vec<Value> = redis::cmd("slowlog")
@@ -509,7 +513,7 @@ pub trait RedisMeClient: Send + Sync {
 
     async fn client_list(
         &self,
-        node: Option<String>,
+        _node: Option<String>,
         client_type: Option<String>,
     ) -> AnyResult<Vec<RedisClientInfo>> {
         let mut conn = self.get_conn().await?;
@@ -573,7 +577,7 @@ pub trait RedisMeClient: Send + Sync {
         Ok(())
     }
 
-    fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()> {
+    fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {
         let prop = self.get_prop();
         prop.monitor_running.store(true, Relaxed);
 

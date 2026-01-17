@@ -35,6 +35,28 @@ impl RedisMeClient for RedisMeCluster {
         &self.prop
     }
 
+    fn get_node_route(&self, node: Option<String>) -> AnyResult<(RoutingInfo, String)> {
+        let node: String = if let Some(node) = node {
+            if node.is_empty() {
+                random_item(&self.node_list).node.clone()
+            } else {
+                node.to_string()
+            }
+        } else {
+            random_item(&self.node_list).node.clone()
+        };
+
+        if let Some((host, port)) = node.split_once(":") {
+            let route = SingleNode(ByAddress {
+                host: host.into(),
+                port: port.parse::<u16>()?,
+            });
+            Ok((route, node))
+        } else {
+            bail!("Invalid node format: {}", node)
+        }
+    }
+
     async fn init(redis_conn: &RedisConn) -> AnyResult<UnifiedClient> {
         let client = get_client_cluster(redis_conn)?;
         let mut conn = client.get_async_connection().await?;
@@ -60,17 +82,6 @@ impl RedisMeClient for RedisMeCluster {
 
     async fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         Ok(vec![])
-    }
-
-    async fn info(&self, node: Option<String>) -> AnyResult<RedisInfo> {
-        let mut conn = self.get_conn().await?;
-        let (route, exec_node) = self.get_node_route(node)?;
-        let value = conn.route_command(redis::cmd("info"), route).await?;
-        let info: String = FromRedisValue::from_redis_value(value)?;
-        Ok(RedisInfo {
-            node: exec_node,
-            info,
-        })
     }
 
     async fn info_list(&self) -> AnyResult<Vec<RedisInfo>> {
@@ -189,25 +200,6 @@ impl RedisMeClient for RedisMeCluster {
         let (route, _) = self.get_node_route(param.node)?;
         let value = conn.route_command(*redis::cmd(cmd.as_str()).arg(args), route).await?;
         Ok(redis_value_to_string(value, "\n"))
-    }
-
-    async fn config_get(
-        &self,
-        pattern: &str,
-        node: Option<String>,
-    ) -> AnyResult<HashMap<String, String>> {
-        let mut conn = self.get_conn().await?;
-        let (route, _) = self.get_node_route(node)?;
-        let value = conn.route_command(*redis::cmd("config").arg("get").arg(pattern), route).await?;
-        let result: HashMap<String, String> = FromRedisValue::from_redis_value(value)?;
-        Ok(result)
-    }
-
-    async fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()> {
-        let mut conn = self.get_conn().await?;
-        let (route, _) = self.get_node_route(node)?;
-        let _ = conn.route_command(*redis::cmd("config").arg("set").arg(key).arg(value), route).await?;
-        Ok(())
     }
 
     async fn slow_log(&self, count: Option<u64>, node: Option<String>) -> AnyResult<Vec<RedisSlowLog>> {
@@ -348,27 +340,7 @@ impl RedisMeClient for RedisMeCluster {
 // 个性化方法
 impl RedisMeCluster {
     // 获取节点路由
-    fn get_node_route(&self, node: Option<String>) -> AnyResult<(RoutingInfo, String)> {
-        let node: String = if let Some(node) = node {
-            if node.is_empty() {
-                random_item(&self.node_list).node.clone()
-            } else {
-                node.to_string()
-            }
-        } else {
-            random_item(&self.node_list).node.clone()
-        };
 
-        if let Some((host, port)) = node.split_once(":") {
-            let route = SingleNode(ByAddress {
-                host: host.into(),
-                port: port.parse::<u16>()?,
-            });
-            Ok((route, node))
-        } else {
-            bail!("Invalid node format: {}", node)
-        }
-    }
 
     // 获取主节点列表
     fn get_node_list_master(&self) -> Vec<String> {
