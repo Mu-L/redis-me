@@ -327,7 +327,18 @@ mod tests {
         let client = Client::open(redis_url)?;
         let mut conn = client.get_multiplexed_async_connection().await?;
         let result = conn.get("hepengju").await?;
-        println!("result: {:?}", result);
+        dbg!(result);
         Ok(())
     }
+
+    #[tokio::test]
+    async fn test_get_conn_async_cluster() -> AnyResult<()> {
+        let redis_url = "redis://:hepengju@ali.hepengju.com:7001";
+        let client = ClusterClient::new(vec![redis_url])?;
+        let mut conn = client.get_async_connection().await?;
+        let result = conn.get("hepengju").await?;
+        dbg!(result);
+        Ok(())
+    }
+
 }
