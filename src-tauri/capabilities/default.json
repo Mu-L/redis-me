@@ -17,12 +17,13 @@
     "dialog:default",
     "opener:default",
     "store:default",
+    "fs:default",
     "fs:allow-write-text-file",
     "fs:allow-read-text-file",
     "fs:allow-resource-read-recursive",
     {
       "identifier": "fs:allow-exists",
-      "allow": [{ "path": "$APPLOCALDATA/*" }]
+      "allow": [{ "path": "$APPDATA/*" }]
     },
     "os:default",
     "system-fonts:default"
