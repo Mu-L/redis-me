@@ -43,13 +43,23 @@ export function isZh() {
 }
 
 // invoke命令: 打印日志
+let retryCount = 0
 export async function meInvoke(command, params, alert = true) {
   try {
     const data = await invoke(command, params)
     meLog(`命令: ${command}, 参数: `, params, '结果: ', data)
-
+    retryCount = 0 // 一旦调用成功则重置重试次数
     return data
   } catch (error) {
+    // 客户端断开后的自动重连(后端处理大部分，前端仅处理立刻的场景, 优化用户体验。避免无限递归，最多重试3次)
+    if (error === 'unexpected end of file') {
+      if (retryCount <= 3) {
+        retryCount++
+        meLog(`第${retryCount}次重试: ${command}`)
+        return await meInvoke(command, params, alert)
+      }
+    }
+
     if (alert) {
       meErr(error, t('error') + (isDev ? ': ' + command : ''))
     }
