@@ -9,6 +9,7 @@ use redis::cluster_routing::RoutingInfo;
 use redis::{Cmd, Pipeline, RedisFuture, RedisResult, Value};
 use std::sync::atomic::{AtomicBool, AtomicU8};
 use std::sync::Arc;
+use tauri::AppHandle;
 use crate::client::client_trait::RedisMeClient;
 use crate::unified_commands;
 
@@ -67,6 +68,19 @@ impl UnifiedClient {
         monitor_stop()   -> ();                      // 监控命令停止
         mock_data(count: u64) -> ();                 // 模拟数据
     );
+
+    pub async fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
+        match self {
+            UnifiedClient::Single(client) => client.subscribe(app_handle, channel).await,
+            UnifiedClient::Cluster(client) => client.subscribe(app_handle, channel).await,
+        }
+    }
+    pub async fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()> {
+        match self {
+            UnifiedClient::Single(client) => client.monitor(app_handle, node).await,
+            UnifiedClient::Cluster(client) => client.monitor(app_handle, node).await,
+        }
+    }
 }
 
 /// 统一的Redis连接~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

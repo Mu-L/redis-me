@@ -1,3 +1,4 @@
+use std::sync::atomic::Ordering::Relaxed;
 use crate::client::client_trait::*;
 use crate::client::unified::{UnifiedClient, UnifiedConn, UnifiedProp};
 use crate::utils::conn::{get_client_cluster, set_client_name};
@@ -20,8 +21,8 @@ pub struct RedisMeCluster {
 
 impl Drop for RedisMeCluster {
     fn drop(&mut self) {
-        self.subscribe_stop().unwrap_or(());
-        self.monitor_stop().unwrap_or(());
+        self.prop.subscribe_running.store(false, Relaxed);
+        self.prop.monitor_running.store(false, Relaxed);
     }
 }
 

@@ -1,3 +1,4 @@
+use std::sync::atomic::Ordering::Relaxed;
 use crate::client::client_trait::*;
 use crate::client::unified::{UnifiedClient, UnifiedConn, UnifiedProp};
 use crate::utils::conn::{get_client_single, set_client_name};
@@ -14,8 +15,8 @@ pub struct RedisMeSingle {
 impl Drop for RedisMeSingle {
     fn drop(&mut self) {
         info!("Redis连接释放Drop方法调用: {}", self.prop.id);
-        self.subscribe_stop().unwrap_or(());
-        self.monitor_stop().unwrap_or(());
+        self.prop.subscribe_running.store(false, Relaxed);
+        self.prop.monitor_running.store(false, Relaxed);
     }
 }
 

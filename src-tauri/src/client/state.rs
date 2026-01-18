@@ -30,7 +30,7 @@ pub trait ClientAccess {
 impl ClientAccess for AppHandle {
     async fn conn_list(&self, conn_list: Vec<RedisConn>) -> AnyResult<()> {
         let state: State<AppState> = self.state();
-        let mut map = state.connections.lock()?;
+        let mut map = state.connections.lock().await;
         map.clear();
         for conn in conn_list {
             map.insert(conn.id.clone(), conn);
@@ -43,22 +43,22 @@ impl ClientAccess for AppHandle {
         let state: State<AppState> = self.state();
         {
             // Read lock在此代码块内，自动释放锁; 即如果客户端已存在则直接返回
-            let clients = state.clients.read()?;
+            let clients = state.clients.read().await;
             if let Some(client) = clients.get(id) {
                 return Ok(Arc::clone(client));
             }
         }
 
         // 客户端不存在则连接后返回
-        self.connect(id)
+        self.connect(id).await
     }
 
     async fn connect(&self, id: &str) -> AnyResult<Arc<UnifiedClient>> {
         let state: State<AppState> = self.state();
-        let map = state.connections.lock()?;
+        let map = state.connections.lock().await;
         let conn = map.get(id).ok_or(anyhow!("未找到连接: {}", id))?;
 
-        let mut clients = state.clients.write()?;
+        let mut clients = state.clients.write().await;
         let client = Arc::new(if conn.cluster {
             RedisMeCluster::init(conn).await?
         } else {
@@ -72,7 +72,7 @@ impl ClientAccess for AppHandle {
 
     async fn disconnect(&self, id: &str) -> AnyResult<()> {
         let state: State<AppState> = self.state();
-        let mut clients = state.clients.write().unwrap();
+        let mut clients = state.clients.write().await;
         if clients.get(id).is_some() {
             clients.remove(id);
             info!("断开连接: {}", id);

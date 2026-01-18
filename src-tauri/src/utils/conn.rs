@@ -2,11 +2,10 @@ use crate::utils::model::{RedisConn, SslOption};
 use crate::utils::util::AnyResult;
 use anyhow::Context;
 use log::info;
-use redis::cluster::{ClusterClient, ClusterConfig};
-use redis::{Client, ClientTlsConfig, Commands, TlsCertificates, TlsMode, TypedCommands};
-use std::fs;
-use std::time::Duration;
 use redis::aio::ConnectionLike;
+use redis::cluster::{ClusterClient};
+use redis::{Client, ClientTlsConfig, TlsCertificates, TlsMode};
+use std::fs;
 
 // 获取单机连接
 pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
@@ -34,10 +33,10 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
     } else {
         Client::open(redis_url)?
     };
-    // 测试连接是否可以成功，注意超时时间比较短，用户可以快速感知到。此连接使用后丢弃即可
-    let mut conn = client.get_connection_with_timeout(Duration::from_secs(1))?;
-    let _ = conn.ping()?;
-    info!("Redis单机测试连接成功");
+    // // 测试连接是否可以成功，注意超时时间比较短，用户可以快速感知到。此连接使用后丢弃即可
+    // let mut conn = client.get_connection_with_timeout(Duration::from_secs(1))?;
+    // let _ = conn.ping()?;
+    // info!("Redis单机测试连接成功");
     Ok(client)
 }
 
@@ -64,10 +63,10 @@ pub fn get_client_cluster(conn: &RedisConn) -> AnyResult<ClusterClient> {
         };
     }
     let client = builder.build()?;
-    let cc = ClusterConfig::new().set_connection_timeout(Duration::from_secs(1));
-    let mut conn = client.get_connection_with_config(cc)?;
-    let _ = conn.ping()?;
-    info!("测试集群测试连接成功");
+    // let cc = ClusterConfig::new().set_connection_timeout(Duration::from_secs(1));
+    // let mut conn = client.get_connection_with_config(cc)?;
+    // let _ = conn.ping()?;
+    // info!("测试集群测试连接成功");
     Ok(client)
 }
 

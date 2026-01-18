@@ -33,15 +33,15 @@ macro_rules! api_commands {
     ) => {
         $(
             #[command]
-            pub fn $name(
+            pub async fn $name(
                 app_handle: AppHandle,
                 id: &str,
                 $($param: $param_type),*
             ) -> ApiResult<$return_type> {
                 to_api_result(
                     app_handle
-                        .get_client(id)
-                        .and_then(|client| client.$name($($param),*))
+                        .get_client(id).await
+                        .and_then(async |client| client.$name($($param),*).await)
                 )
             }
         )*
@@ -61,13 +61,13 @@ macro_rules! unified_commands {
         $(;)?
     ) => {
         $(
-            pub fn $name(
+            pub async fn $name(
                 &self,
                 $($param: $param_type),*
             ) -> AnyResult<$return_type> {
                 match self {
-                    UnifiedClient::Single(client) => client.$name($($param),*),
-                    UnifiedClient::Cluster(client) => client.$name($($param),*),
+                    UnifiedClient::Single(client) => client.$name($($param),*).await,
+                    UnifiedClient::Cluster(client) => client.$name($($param),*).await,
                 }
             }
         )*

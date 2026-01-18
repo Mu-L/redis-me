@@ -14,6 +14,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 use Ordering::Relaxed;
 use std::thread;
+use std::thread::JoinHandle;
 
 /// RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
@@ -417,7 +418,9 @@ pub trait RedisMeClient: Send + Sync {
     -> AnyResult<HashMap<String, String>> {
         let mut conn = self.get_conn().await?;
         let (route, _) = self.get_node_route(node)?;
-        let value = conn.route_command(*redis::cmd("config").arg("get").arg(pattern), route).await?;
+        let mut cmd = redis::cmd("config");
+        cmd.arg("get").arg(pattern);
+        let value = conn.route_command(cmd, route).await?;
         let result: HashMap<String, String> = FromRedisValue::from_redis_value(value)?;
         Ok(result)
     }
@@ -425,7 +428,9 @@ pub trait RedisMeClient: Send + Sync {
     async fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()> {
         let mut conn = self.get_conn().await?;
         let (route, _) = self.get_node_route(node)?;
-        let _ = conn.route_command(*redis::cmd("config").arg("set").arg(key).arg(value), route).await?;
+        let mut cmd = redis::cmd("config");
+        cmd.arg("set").arg(key).arg(value);
+        let _ = conn.route_command(cmd, route).await?;
         Ok(())
     }
 
@@ -499,7 +504,7 @@ pub trait RedisMeClient: Send + Sync {
             for key in keys.iter() {
                 pipe.cmd("type").arg(&key.0);
             }
-            let types: Vec<Option<String>> = pipe.query(&mut conn)?;
+            let types: Vec<Option<String>> = pipe.query_async(&mut conn).await?;
             for (index, key_type) in types.into_iter().enumerate() {
                 keys[index].2 = key_type.unwrap_or("deleted".into());
             }
@@ -538,7 +543,7 @@ pub trait RedisMeClient: Send + Sync {
         Ok(())
     }
 
-    fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
+    async fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
         let client = get_client_single(&self.get_prop().conf)?;
         let mut conn = client.get_connection()?;
         //set_client_name(&mut conn).await?;
@@ -550,7 +555,7 @@ pub trait RedisMeClient: Send + Sync {
             .filter(|c| !c.is_empty())
             .unwrap_or_else(|| "*".into());
 
-        thread::spawn(move || {
+        let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
             conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&channel).get_packed_command())?;
             info!("subscribe start: {}", &channel);
             while prop.subscribe_running.load(Relaxed) {
@@ -567,17 +572,18 @@ pub trait RedisMeClient: Send + Sync {
                 }
             }
             info!("subscribe end: {}", &channel);
+            Ok(())
         });
         Ok(())
     }
 
-    fn subscribe_stop(&self) -> AnyResult<()> {
+    async fn subscribe_stop(&self) -> AnyResult<()> {
         let prop = self.get_prop();
         prop.subscribe_running.store(false, Relaxed);
         Ok(())
     }
 
-    fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {
+    async fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {
         let client = get_client_single(&self.get_prop().conf)?;
         let mut conn = client.get_connection()?;
         //set_client_name(&mut conn).await?;
@@ -585,7 +591,7 @@ pub trait RedisMeClient: Send + Sync {
         let prop = self.get_prop();
         prop.monitor_running.store(true, Relaxed);
 
-        thread::spawn( move || {
+        let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
             conn.send_packed_command(&redis::cmd("MONITOR").get_packed_command())?;
             info!("monitor start");
             while prop.monitor_running.load(Relaxed) {
@@ -601,11 +607,10 @@ pub trait RedisMeClient: Send + Sync {
             info!("monitor end");
             Ok(())
         });
-
         Ok(())
     }
 
-    fn monitor_stop(&self) -> AnyResult<()> {
+    async fn monitor_stop(&self) -> AnyResult<()> {
         let prop = self.get_prop();
         prop.monitor_running.store(false, Relaxed);
         Ok(())

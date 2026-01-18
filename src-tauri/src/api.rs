@@ -20,26 +20,37 @@ pub fn test_conn(redis_conn: RedisConn) -> ApiResult<()> {
 
 // 连接信息发送到后端
 #[command]
-pub fn conn_list(app_handle: AppHandle, conn_list: Vec<RedisConn>) -> ApiResult<()> {
-    to_api_result(app_handle.conn_list(conn_list))
+pub async fn conn_list(app_handle: AppHandle, conn_list: Vec<RedisConn>) -> ApiResult<()> {
+    to_api_result(app_handle.conn_list(conn_list).await)
 }
 
 // 连接
 #[command]
-pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
-    to_api_result(app_handle.connect(id)).map(|_| ())
+pub async fn connect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
+    to_api_result(app_handle.connect(id).await).map(|_| ())
 }
 
 // 断开
 #[command]
-pub fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
-    to_api_result(app_handle.disconnect(id))
+pub async fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
+    to_api_result(app_handle.disconnect(id).await)
 }
 
 // 使用宏简化代码
+#[command]
+pub async fn db_list(
+    app_handle: AppHandle,
+    id: &str,
+) -> ApiResult<Vec<RedisDB>> {
+    to_api_result(
+        app_handle
+            .get_client(id).await
+            .and_then(async |client| client.db_list().await)
+    )
+}
 // to_api_result(app_handle.get_client(id).and_then(|client| client.$name($($param),*)))
 api_commands!(
-    db_list() -> Vec<RedisDB>;               // 数据库列表
+    // db_list() -> Vec<RedisDB>;               // 数据库列表
     select_db(db: u8) -> ();                 // 切换数据库
     info(node: Option<String>) -> RedisInfo; // 信息
     info_list() -> Vec<RedisInfo>;           // 信息列表
@@ -68,26 +79,26 @@ api_commands!(
 //~~~~~~~~~这两个命令需要将app_handle传递过去，因此需要单独编写~~~~~~~~~
 // 监控命令
 #[command]
-pub fn monitor(app_handle: AppHandle, id: &str, node: &str) -> ApiResult<()> {
+pub async fn monitor(app_handle: AppHandle, id: &str, node: &str) -> ApiResult<()> {
     to_api_result(
         app_handle
-            .get_client(id)
-            .and_then(|client| client.monitor(app_handle, node)),
+            .get_client(id).await
+            .and_then(async |client| client.monitor(app_handle, node).await),
     )
 }
 
 // 订阅消息
 #[command]
-pub fn subscribe(app_handle: AppHandle, id: &str, channel: Option<String>) -> ApiResult<()> {
+pub async fn subscribe(app_handle: AppHandle, id: &str, channel: Option<String>) -> ApiResult<()> {
     to_api_result(
         app_handle
-            .get_client(id)
-            .and_then(|client| client.subscribe(app_handle, channel)),
+            .get_client(id).await
+            .and_then(async |client| client.subscribe(app_handle, channel).await),
     )
 }
 
 // 导入连接（检查导入的JSON属性是否满足及去除多余属性）
 #[command]
-pub fn check_import_conn_list(conn_list: Vec<RedisConn>) -> Vec<RedisConn> {
+pub async fn check_import_conn_list(conn_list: Vec<RedisConn>) -> Vec<RedisConn> {
     conn_list
 }
