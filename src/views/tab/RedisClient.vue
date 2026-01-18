@@ -6,6 +6,7 @@ import {useI18n} from 'vue-i18n'
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
+const canEdit = computed(() => !share.readonly)
 const {initNode} = defineProps({
   initNode: {type: String, default: ''}
 })
@@ -101,7 +102,7 @@ async function killClient(row) {
         <el-table-column label="db" prop="db" show-overflow-tooltip sortable width="80" align="center"/>
         <el-table-column label="totMem" prop="totMem" show-overflow-tooltip sortable width="120" align="right"/>
         <el-table-column label="rbs" prop="rbs" show-overflow-tooltip sortable width="100" align="right"/>
-        <el-table-column :label="t('action')" width="80" align="center" fixed="right">
+        <el-table-column :label="t('action')" width="80" align="center" fixed="right" v-if="canEdit">
           <template #default="scope">
             <me-icon :info="t('redisClient.killClientHint')" icon="el-icon-CircleCloseFilled" class="icon-btn"
                      @click="killClient(scope.row)" style="justify-content: center"/>
