@@ -230,7 +230,7 @@ api_model!(RedisFieldDel {
 api_model!(RedisCommand {
     command: String,
     node: Option<String>,
-    auto_broadcast: bool,
+    auto_broadcast: Option<bool>,
 });
 
 // 慢日志
