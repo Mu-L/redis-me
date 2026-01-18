@@ -549,7 +549,9 @@ pub trait RedisMeClient: Send + Sync {
         //set_client_name(&mut conn).await?;
 
         let prop = self.get_prop();
-        prop.subscribe_running.store(true, Relaxed);
+        let id = prop.id.clone();
+        let running = prop.subscribe_running.clone();
+        running.store(true, Relaxed);
 
         let channel = channel
             .filter(|c| !c.is_empty())
@@ -558,12 +560,12 @@ pub trait RedisMeClient: Send + Sync {
         let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
             conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&channel).get_packed_command())?;
             info!("subscribe start: {}", &channel);
-            while prop.subscribe_running.load(Relaxed) {
+            while running.load(Relaxed) {
                 let response = conn.recv_response()?;
                 if let Some(msg) = Msg::from_value(&response) {
                     let payload: String = msg.get_payload()?;
                     let event = SubscribeEvent {
-                        id: prop.id.clone(),
+                        id: id.clone(),
                         datetime: Local::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string(),
                         channel: msg.get_channel_name().to_string(),
                         message: payload,
@@ -589,16 +591,18 @@ pub trait RedisMeClient: Send + Sync {
         //set_client_name(&mut conn).await?;
 
         let prop = self.get_prop();
-        prop.monitor_running.store(true, Relaxed);
+        let id = prop.id.clone();
+        let running = prop.monitor_running.clone();
+        running.store(true, Relaxed);
 
         let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
             conn.send_packed_command(&redis::cmd("MONITOR").get_packed_command())?;
             info!("monitor start");
-            while prop.monitor_running.load(Relaxed) {
+            while running.load(Relaxed) {
                 let response = conn.recv_response()?;
                 let command: String = from_redis_value(response)?;
                 let event = MonitorEvent {
-                    id: prop.id.clone(),
+                    id: id.clone(),
                     datetime: Local::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string(),
                     command,
                 };

@@ -3,9 +3,7 @@ use crate::client::state::ClientAccess;
 use crate::utils::model::*;
 use crate::utils::util::*;
 use std::collections::HashMap;
-use std::sync::Arc;
 use tauri::{AppHandle, command};
-use crate::client::unified::UnifiedClient;
 
 // 默认示例
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -70,21 +68,19 @@ api_commands!(
 // 监控命令
 #[command]
 pub async fn monitor(app_handle: AppHandle, id: &str, node: &str) -> ApiResult<()> {
-    to_api_result(
-        app_handle
-            .get_client(id).await
-            .and_then(async |client| client.monitor(app_handle, node).await),
-    )
+    to_api_result(async {
+        let client = app_handle.get_client(id).await?;
+        client.monitor(app_handle, node).await
+    }.await)
 }
 
 // 订阅消息
 #[command]
 pub async fn subscribe(app_handle: AppHandle, id: &str, channel: Option<String>) -> ApiResult<()> {
-    to_api_result(
-        app_handle
-            .get_client(id).await
-            .and_then(async |client| client.subscribe(app_handle, channel).await),
-    )
+    to_api_result(async {
+        let client = app_handle.get_client(id).await?;
+        client.subscribe(app_handle, channel).await
+    }.await)
 }
 
 // 导入连接（检查导入的JSON属性是否满足及去除多余属性）
