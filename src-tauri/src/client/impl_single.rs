@@ -6,7 +6,7 @@ use crate::utils::util::*;
 use anyhow::bail;
 use log::info;
 use parking_lot::{Mutex, MutexGuard};
-use redis::{Client, Connection, Pipeline, Value};
+use redis::{Client, Connection, ConnectionLike, Pipeline, Value};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
@@ -16,7 +16,7 @@ use tauri::AppHandle;
 
 pub struct RedisMeSingle {
     id: String,
-    //conf: RedisConn,
+    conf: RedisConn,
     client: Client,
     conn: Mutex<Connection>,
 
@@ -334,23 +334,39 @@ impl RedisMeClient for RedisMeSingle {
 impl RedisMeSingle {
     pub fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
         let client = get_client_single(redis_conn)?;
-        let mut conn = client.get_connection()?;
-        set_client_name(&mut conn)?;
-
-        // 单机初始化db
-        let _: () = redis::cmd("SELECT").arg(redis_conn.db).query(&mut conn)?;
-        info!("初始化select db: {}", redis_conn.db);
-
+        let conn = Self::new_conn(&client, redis_conn.db)?;
         info!("Redis单机连接初始化成功: {}", redis_conn.name);
         Ok(Box::new(RedisMeSingle {
             id: redis_conn.id.clone(),
-            //conf: redis_conn.clone(),
+            conf: redis_conn.clone(),
             client,
             conn: Mutex::new(conn),
             db: Arc::new(AtomicU8::new(redis_conn.db)),
             subscribe_running: Arc::new(AtomicBool::new(false)),
             monitor_running: Arc::new(AtomicBool::new(false)),
         }))
+    }
+
+    fn new_conn(client: &Client, db: u8) -> AnyResult<Connection> {
+        let mut conn = client.get_connection()?;
+
+        // 设置客户端名称
+        set_client_name(&mut conn)?;
+
+        // 切换到当前的数据库
+        if db != 0 {
+            let _: () = redis::cmd("SELECT").arg(db).query(&mut conn)?;
+        }
+        Ok(conn)
+    }
+
+    // 重新连接
+    fn reconnect(&self) -> AnyResult<()> {
+        let new_conn = Self::new_conn(&self.client, self.db.load(Ordering::Relaxed))?;
+        let mut conn_guard = self.conn.lock(); // 使用阻塞锁来替换连接
+        *conn_guard = new_conn;
+        info!("Redis单机连接重连成功: {}", self.conf.name);
+        Ok(())
     }
 
     // 获取已经建立的连接
@@ -364,7 +380,14 @@ impl RedisMeSingle {
         // 标准库的Mutex不支持重入及超时时间设置，因此引入parking_lot解决此问题
         // 备注: parking_lot的 ReentrantMutexGuard 不支持 deref_mut 所以暂不支持重入
         match self.conn.try_lock_for(Duration::from_secs(10)) {
-            Some(conn) => Ok(conn),
+            Some(mut conn) => Ok({
+                if conn.is_open() && conn.check_connection() {
+                    conn
+                } else {
+                    self.reconnect()?;
+                    self.get_conn()?
+                }
+            }),
             None => {
                 bail!("获取连接加锁超时");
             }

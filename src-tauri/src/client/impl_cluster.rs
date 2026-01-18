@@ -6,14 +6,14 @@ use crate::utils::util::*;
 use anyhow::bail;
 use log::info;
 use parking_lot::{Mutex, MutexGuard};
-use redis::cluster::{ClusterConnection, ClusterPipeline};
+use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo;
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
-use redis::{FromRedisValue, Value};
+use redis::{ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
@@ -21,7 +21,7 @@ use tauri::AppHandle;
 pub struct RedisMeCluster {
     id: String,
     conf: RedisConn,
-    //client: ClusterClient,
+    client: ClusterClient,
     conn: Mutex<ClusterConnection>,
     node_list: Vec<RedisNode>,
 
@@ -401,10 +401,9 @@ impl RedisMeClient for RedisMeCluster {
 impl RedisMeCluster {
     pub fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
         let client = get_client_cluster(redis_conn)?;
-        let mut conn = client.get_connection()?;
+        let mut conn = Self::new_conn(&client)?;
 
-        // 设置客户端名, 获取节点信息并保存起来
-        set_client_name(&mut conn)?;
+        // 获取节点信息并保存起来
         let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query(&mut conn)?;
         let node_list = Self::parse_node_list(cluster_nodes)?;
         info!("Redis集群连接初始化成功: {}", redis_conn.name);
@@ -412,7 +411,7 @@ impl RedisMeCluster {
         Ok(Box::new(RedisMeCluster {
             id: redis_conn.id.clone(),
             conf: redis_conn.clone(),
-            //client,
+            client,
             conn: Mutex::new(conn),
             node_list,
             db: Arc::new(AtomicU8::new(0)),
@@ -421,10 +420,33 @@ impl RedisMeCluster {
         }))
     }
 
+    fn new_conn(client: &ClusterClient) -> AnyResult<ClusterConnection> {
+        let mut conn = client.get_connection()?;
+        // 设置客户端名称
+        set_client_name(&mut conn)?;
+        Ok(conn)
+    }
+
+    // 重新连接
+    fn reconnect(&self) -> AnyResult<()> {
+        let new_conn = Self::new_conn(&self.client)?;
+        let mut conn_guard = self.conn.lock(); // 使用阻塞锁来替换连接
+        *conn_guard = new_conn;
+        info!("Redis集群连接重连成功: {}", self.conf.name);
+        Ok(())
+    }
+
     // 获取已创建的连接
     fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, ClusterConnection>> {
         match self.conn.try_lock_for(Duration::from_secs(10)) {
-            Some(conn) => Ok(conn),
+            Some(mut conn) => Ok({
+                if conn.is_open() && conn.check_connection() {
+                    conn
+                } else {
+                    self.reconnect()?;
+                    self.get_conn()?
+                }
+            }),
             None => {
                 bail!("获取连接加锁超时");
             }
