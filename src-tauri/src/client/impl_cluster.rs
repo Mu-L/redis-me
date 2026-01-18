@@ -42,8 +42,6 @@ impl Drop for RedisMeCluster {
     }
 }
 
-
-
 impl RedisMeClient for RedisMeCluster {
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         Ok(vec![])
@@ -443,15 +441,17 @@ impl RedisMeCluster {
     fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, ClusterConnection>> {
         match self.conn.try_lock_for(Duration::from_secs(10)) {
             Some(mut conn) => Ok({
-                let now = Utc::now().timestamp();
-                if now - self.last_check_time.load(Relaxed) < CONNECTION_CHECK_SECONDS {
+                let curr = Utc::now().timestamp();
+                let last = self.last_check_time.load(Relaxed);
+                if conn.is_open() && curr - last < CONNECTION_CHECK_SECONDS {
                     conn
                 } else {
-                    self.last_check_time.store(now, Relaxed);
-                    if conn.is_open() && conn.check_connection() {
+                    self.last_check_time.store(curr, Relaxed);
+                    if conn.check_connection() {
                         info!("检查Redis集群连接正常: {}", self.conf.name);
                         conn
                     } else {
+                        drop(conn);  // 此处一定要释放锁
                         self.reconnect()?;
                         self.get_conn()?
                     }

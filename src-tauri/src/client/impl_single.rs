@@ -36,8 +36,6 @@ impl Drop for RedisMeSingle {
     }
 }
 
-
-
 impl RedisMeClient for RedisMeSingle {
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         let map = self.config_get("databases", None)?;
@@ -383,15 +381,17 @@ impl RedisMeSingle {
         // 备注: parking_lot的 ReentrantMutexGuard 不支持 deref_mut 所以暂不支持重入
         match self.conn.try_lock_for(Duration::from_secs(10)) {
             Some(mut conn) => Ok({
-                let now = Utc::now().timestamp();
-                if now - self.last_check_time.load(Relaxed) < CONNECTION_CHECK_SECONDS {
+                let curr = Utc::now().timestamp();
+                let last = self.last_check_time.load(Relaxed);
+                if conn.is_open() && curr - last < CONNECTION_CHECK_SECONDS {
                     conn
                 } else {
-                    self.last_check_time.store(now, Relaxed);
-                    if conn.is_open() && conn.check_connection() {
+                    self.last_check_time.store(curr, Relaxed);
+                    if conn.check_connection() {
                         info!("检查Redis单机连接正常: {}", self.conf.name);
                         conn
                     } else {
+                        drop(conn);  // 此处一定要释放锁
                         self.reconnect()?;
                         self.get_conn()?
                     }
