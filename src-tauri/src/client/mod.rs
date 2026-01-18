@@ -11,14 +11,13 @@ mod tests {
     use crate::client::impl_cluster::RedisMeCluster;
     use crate::client::unified::UnifiedClient;
     use crate::utils::model::*;
-    use redis::cluster::{ClusterClient, ClusterPipeline};
-    use redis::TlsMode;
+    use redis::cluster::ClusterClient;
 
-    fn client() -> UnifiedClient {
+    async fn client() -> UnifiedClient {
         let conn = RedisConn {
             id: "test".into(),
             name: "test".into(),
-            host: "192.168.1.11".into(),
+            host: "192.168.1.111".into(),
             port: 7001,
             username: "".into(),
             password: "hepengju".into(),
@@ -27,35 +26,35 @@ mod tests {
             ssl: false,
             ssl_option: None,
         };
-        RedisMeCluster::init(&conn).unwrap()
+        RedisMeCluster::init(&conn).await.unwrap()
     }
 
-    #[test]
-    fn test_info() {
-        let result = client().info(None).unwrap();
-        println!("{result:#?}");
+    #[tokio::test]
+    async fn test_info() {
+        let result = client().await.info(None).await.unwrap();
+        dbg!(result);
     }
 
-    #[test]
-    fn test_info_node() {
-        let result = client().info(Some("192.168.1.11:7006".into())).unwrap();
-        println!("{result:#?}");
+    #[tokio::test]
+    async fn test_info_node() {
+        let result = client().await.info(Some("47.100.130.153:7006".into())).await.unwrap();
+        dbg!(result);
     }
 
-    #[test]
-    fn test_info_list() {
-        let vec = client().info_list().unwrap();
-        println!("vec: {vec:#?}")
+    #[tokio::test]
+    async fn test_info_list() {
+        let vec = client().await.info_list().await.unwrap();
+        dbg!(vec);
     }
 
-    #[test]
-    fn test_node_list() {
-        let vec = client().node_list().unwrap();
-        println!("vec: {vec:#?}")
+    #[tokio::test]
+    async fn test_node_list() {
+        let vec = client().await.node_list().await.unwrap();
+        dbg!(vec);
     }
 
-    #[test]
-    fn test_scan() {
+    #[tokio::test]
+    async fn test_scan() {
         let param = ScanParam {
             pattern: "*".into(),
             count: 10,
@@ -69,8 +68,8 @@ mod tests {
             }),
             load_all: false,
         };
-        let result1 = client().scan(param).unwrap();
-        println!("{result1:#?}");
+        let result1 = client().await.scan(param).await.unwrap();
+        dbg!(result1.clone());
 
         let param2 = ScanParam {
             pattern: "*".into(),
@@ -79,25 +78,25 @@ mod tests {
             cursor: Some(result1.cursor),
             load_all: false,
         };
-        let result2 = client().scan(param2).unwrap();
-        println!("{result2:#?}");
+        let result2 = client().await.scan(param2).await.unwrap();
+        dbg!(result2);
     }
 
-    #[test]
-    fn test_get() {
-        let value = client().get("hepengju:list".into(), None).unwrap();
+    #[tokio::test]
+    async fn test_get() {
+        let value = client().await.get("hepengju:list".into(), None).await.unwrap();
         println!("{value:#?}");
         println!("{}", serde_json::to_string(&value).unwrap());
 
-        let value = client().get("hepengju:string".into(), None).unwrap();
+        let value = client().await.get("hepengju:string".into(), None).await.unwrap();
         println!("{}", serde_json::to_string(&value).unwrap());
     }
 
-    #[test]
-    fn test_field_add() {
-        client().del("redis_me:string".into()).unwrap();
+    #[tokio::test]
+    async fn test_field_add() {
+        client().await.del("redis_me:string".into()).await.unwrap();
 
-        client()
+        client().await
             .field_add(RedisFieldAdd {
                 key: "redis_me:string".into(),
                 mode: "key".into(),
@@ -106,10 +105,10 @@ mod tests {
                 value: "字符串值".into(),
                 list_push_method: "".into(),
                 field_value_list: vec![],
-            })
+            }).await
             .unwrap();
 
-        client()
+        client().await
             .field_add(RedisFieldAdd {
                 key: "redis_me:hash".into(),
                 mode: "field".into(),
@@ -129,67 +128,68 @@ mod tests {
                         field_score: 0.0,
                     },
                 ],
-            })
+            }).await
             .unwrap();
     }
 
-    #[test]
-    fn test_mock_data() {
-        client().mock_data(10).unwrap();
+    #[tokio::test]
+    async fn test_mock_data() {
+        client().await.mock_data(10).await.unwrap();
     }
 
-    #[test]
-    fn test_execute_command() {
-        mock_command("ping");
-        mock_command("cluster info");
-        mock_command("cluster slots");
-        mock_command("config get save");
-        mock_command("config get *");
-        mock_command(r#"config set save "3600 1 300 100 60 10000" "#);
+    #[tokio::test]
+    async fn test_execute_command() {
+        mock_command("ping").await;
+        mock_command("cluster info").await;
+        mock_command("cluster slots").await;
+        mock_command("config get save").await;
+        mock_command("config get *").await;
+        mock_command(r#"config set save "3600 1 300 100 60 10000" "#).await;
     }
 
-    fn mock_command(command: &str) {
-        let result = client().execute_command(RedisCommand {
+    async fn mock_command(command: &str) {
+        let result = client().await
+            .execute_command(RedisCommand {
             command: command.into(),
             node: None,
             auto_broadcast: true,
-        });
+        }).await;
         println!("{result:#?}");
     }
 
-    #[test]
-    fn test_config_get() {
-        let result = client().config_get("*", None).unwrap();
+    #[tokio::test]
+    async fn test_config_get() {
+        let result = client().await.config_get("*", None).await.unwrap();
         println!("{result:#?}");
     }
 
-    #[test]
-    fn test_config_set() {
-        let result = client()
-            .config_set("save", "3600 2 300 100 60 10000", None)
+    #[tokio::test] // TODO 验证
+    async fn test_config_set() {
+        let result = client().await
+            .config_set("save", "3600 2 300 100 60 10000", None).await
             .unwrap();
         println!("{result:#?}");
-        let result = client()
+        let result = client().await
             .config_set(
                 "save",
                 "3600 2 300 100 60 10000",
-                Some("10.106.0.167:7005".into()),
-            )
+                Some("192.168.1.111:7005".into()),
+            ).await
             .unwrap();
         println!("{result:#?}");
     }
 
-    #[test]
-    fn test_slow_log() {
-        let result = client()
-            .slow_log(Some(3), Some("10.106.0.167:7005".into()))
+    #[tokio::test]
+    async fn test_slow_log() {
+        let result = client().await
+            .slow_log(Some(3), Some("192.168.1.111:7005".into())).await
             .unwrap();
         println!("{result:#?}");
     }
 
-    #[test]
-    fn test_memory_usage() {
-        let result = client()
+    #[tokio::test]
+    async fn test_memory_usage() {
+        let result = client().await
             .memory_usage(RedisMemoryParam {
                 pattern: None,
                 size_limit: 1,
@@ -198,64 +198,54 @@ mod tests {
                 scan_total: 10000,
                 sleep_millis: 0,
                 need_key_type: Some(true),
-            })
+            }).await
             .unwrap();
         println!("{result:#?}");
     }
 
     // https://github.com/redis-rs/redis-rs/issues/1814
-    #[test]
-    fn test_cluster_pipeline_reproduce() -> anyhow::Result<()> {
-        // redis cluster: 7001 ~ 7006, with ssl and password
-        let nodes = vec!["rediss://192.168.1.11:7001"];
+    // 修改为异步后抛出异常 Error: Received crossed slots in pipeline - Server(CrossSlot)
+    // https://github.com/redis-rs/redis-rs/issues/1348
+    // 按照作者的说明时异步没有必要使用pipeline
+    #[tokio::test] // 异步集群验证失败
+    async fn test_cluster_pipeline_reproduce() -> anyhow::Result<()> {
+        let nodes = vec!["redis://192.168.1.111:7001"];
         let client = ClusterClient::builder(nodes)
-            .tls(TlsMode::Insecure)
             .password("hepengju")
             .build()?;
-        let mut conn = client.get_connection()?;
+        let mut conn = client.get_async_connection().await?;
 
         // get
-        let mut pipe = ClusterPipeline::new();
+        let mut pipe = redis::pipe();
         pipe.cmd("get").arg("hepengju:string1");
         pipe.cmd("get").arg("hepengju:string2");
         pipe.cmd("get").arg("hepengju:string3");
-        let results: Vec<Option<String>> = pipe.query(&mut conn)?;
+        let results: Vec<Option<String>> = pipe.query_async(&mut conn).await?;
         println!("{results:?}");
         // ["string1value", "string2value", "string3value"]
 
         // memory usage
-        pipe = ClusterPipeline::new();
+        pipe = redis::pipe();
         pipe.cmd("memory").arg("usage").arg("hepengju:string1");
         pipe.cmd("memory").arg("usage").arg("hepengju:string2");
         pipe.cmd("memory").arg("usage").arg("hepengju:string3");
-        let sizes: Vec<Option<u64>> = pipe.query(&mut conn)?;
+        let sizes: Vec<Option<u64>> = pipe.query_async(&mut conn).await?;
         // Error: An error was signalled by the server - Moved: 14021 192.168.1.11:7005
         println!("{sizes:?}");
 
         Ok(())
     }
 
-    #[test]
-    fn test_client_list() {
-        let result = client().client_list(None, None).unwrap();
+    #[tokio::test]
+    async fn test_client_list() {
+        let result = client().await.client_list(None, None).await.unwrap();
         println!("{result:?}");
     }
 
-    // #[test]
-    // fn test_monitor() {
-    //     let result = client().monitor("192.168.1.11:7001").unwrap();
-    //     println!("{result:?}");
-    // }
-
-    #[test]
-    fn test_publish() {
-        let result = client().publish("channel", "message").unwrap();
+    #[tokio::test]
+    async fn test_publish() {
+        let result = client().await.publish("channel", "message").await.unwrap();
         println!("{result:?}");
     }
 
-    // #[test]
-    // fn test_subscribe() {
-    //     let result = client().subscribe(None).unwrap();
-    //     println!("{result:?}");
-    // }
 }

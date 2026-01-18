@@ -253,16 +253,11 @@ impl RedisMeClient for RedisMeCluster {
 
                 // 计算键大小
                 if !new_keys.is_empty() {
-                    let mut pipe = redis::pipe();
-                    for key in new_keys.iter() {
-                        pipe.cmd("memory").arg("usage").arg(key);
-                    }
-                    // 此处用Option接收,避免键被删除或过期
-                    let sizes: Vec<Option<u64>> = pipe.query_async(&mut conn).await?;
-                    for (index, size) in sizes.into_iter().enumerate() {
+                    for (index, key) in new_keys.iter().enumerate() {
+                        let size: Option<u64> = redis::cmd("memory").arg("usage").arg(key).query_async(&mut conn).await?;
                         if let Some(size) = size && size >= param.size_limit {
-                                keys.push((new_keys[index].clone(), size, "unknown".into()));
-                            }
+                            keys.push((new_keys[index].clone(), size, "unknown".into()));
+                        }
                     }
                 }
 
@@ -288,13 +283,9 @@ impl RedisMeClient for RedisMeCluster {
 
         // 计算键类型
         if param.need_key_type.unwrap_or(false) && !keys.is_empty() {
-            let mut pipe = redis::pipe();
-            for key in keys.iter() {
-                pipe.cmd("type").arg(&key.0);
-            }
-            let types: Vec<Option<String>> = pipe.query_async(&mut conn).await?;
-            for (index, key_type) in types.into_iter().enumerate() {
-                keys[index].2 = key_type.unwrap_or("deleted".into());
+            for key in keys.iter_mut() {
+                let key_type: Option<String> = redis::cmd("type").arg(&key.0).query_async(&mut conn).await?;
+                key.2 = key_type.unwrap_or("deleted".into());
             }
         }
 

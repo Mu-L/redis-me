@@ -1,20 +1,19 @@
 use crate::client::unified::{UnifiedClient, UnifiedConn, UnifiedProp};
-use crate::utils::conn::{get_client_single, set_client_name};
+use crate::utils::conn::{get_client_single};
 use crate::utils::model::*;
 use crate::utils::util::{assert_is_true, parse_client_info, parse_command, random_range, random_string, redis_value_to_log, redis_value_to_string, tuple_to_key_size, vec8_to_display_string, AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE};
 use anyhow::bail;
 use chrono::Local;
 use log::info;
-use redis::aio::MultiplexedConnection;
 use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
-use redis::{from_redis_value, AsyncCommands, FromRedisValue, IntegerReplyOrNoOp, Msg, Pipeline, SetExpiry, SetOptions, Value, ValueType};
+use redis::{from_redis_value, AsyncCommands, FromRedisValue, IntegerReplyOrNoOp, Msg, SetExpiry, SetOptions, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::Ordering;
+use std::thread;
+use std::thread::JoinHandle;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 use Ordering::Relaxed;
-use std::thread;
-use std::thread::JoinHandle;
 
 /// RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
@@ -30,13 +29,6 @@ pub trait RedisMeClient: Send + Sync {
     async fn init(redis_conn: &RedisConn) -> AnyResult<UnifiedClient>;
 
     async fn get_conn(&self) -> AnyResult<UnifiedConn>;
-
-    async fn new_conn_single(&mut self) -> AnyResult<MultiplexedConnection> {
-        let client = get_client_single(&self.get_prop().conf)?;
-        let mut conn = client.get_multiplexed_async_connection().await?;
-        set_client_name(&mut conn).await?;
-        Ok(conn)
-    }
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     async fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
@@ -153,7 +145,9 @@ pub trait RedisMeClient: Send + Sync {
                 bail!("NotExists: {}", vec8_to_display_string(key.to_bytes()))
             }
             IntegerReplyOrNoOp::ExistsButNotRelevant => {
-                bail!("ExistsButNotRelevant: {}", vec8_to_display_string(key.to_bytes()))
+                // The command returns -1 if the key exists but has no associated expire.
+                // 如果键存在但没有关联的过期时间，该命令返回 -1。
+                -1
             }
             _ => {
                 bail!("TTL error: {}", vec8_to_display_string(key.to_bytes()))
@@ -294,29 +288,29 @@ pub trait RedisMeClient: Send + Sync {
             ValueType::String => conn.set(&key, &param.value).await?,
             ValueType::Hash => {
                 for f in fv_list {
-                    conn.hset(&key, f.field_key, f.field_value).await?;
+                    let _: usize = conn.hset(&key, f.field_key, f.field_value).await?;
                 }
             },
             ValueType::List => {
                 if "lpush" == param.list_push_method {
                     // 插入头部时保持原有顺序
                     for f in fv_list.iter().rev() {
-                        conn.lpush(&key, f.field_value).await?;
+                        let _: usize = conn.lpush(&key, &f.field_value).await?;
                     }
                 } else {
                     for f in fv_list {
-                        conn.rpush(&key, f.field_value).await?;
+                        let _: usize = conn.rpush(&key, f.field_value).await?;
                     }
                 }
             }
             ValueType::Set => {
                 for f in fv_list {
-                    conn.sadd(&key, f.field_value).await?;
+                    let _: usize = conn.sadd(&key, f.field_value).await?;
                 }
             }
             ValueType::ZSet => {
                 for f in fv_list {
-                    conn.zadd(&key, f.field_value, f.field_score).await?;
+                    let _: usize = conn.zadd(&key, f.field_value, f.field_score).await?;
                 }
             },
             ValueType::Stream => bail!("stream类型暂不支持新增字段值"),
@@ -464,15 +458,10 @@ pub trait RedisMeClient: Send + Sync {
             let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = cmd.query_async(&mut conn).await?;
             cursor = next_cursor;
 
-            // 计算键大小
+            // 计算键大小, 异步客户端直接获取即可(无需Pipeline: 使用会报错 Error: Received crossed slots in pipeline - Server(CrossSlot))
             if !new_keys.is_empty() {
-                let mut pipe = redis::pipe();
-                for key in new_keys.iter() {
-                    pipe.cmd("memory").arg("usage").arg(key);
-                }
-
-                let sizes: Vec<Option<u64>> = pipe.query_async(&mut conn).await?;
-                for (index, size) in sizes.into_iter().enumerate() {
+                for (index, key) in new_keys.iter().enumerate() {
+                    let size: Option<u64> = redis::cmd("memory").arg("usage").arg(key).query_async(&mut conn).await?;
                     if let Some(size) = size && size >= param.size_limit {
                         keys.push((new_keys[index].clone(), size, "unknown".into()));
                     }
@@ -500,13 +489,9 @@ pub trait RedisMeClient: Send + Sync {
 
         // 计算键类型
         if param.need_key_type.unwrap_or(false) && !keys.is_empty() {
-            let mut pipe = Pipeline::with_capacity(keys.len());
-            for key in keys.iter() {
-                pipe.cmd("type").arg(&key.0);
-            }
-            let types: Vec<Option<String>> = pipe.query_async(&mut conn).await?;
-            for (index, key_type) in types.into_iter().enumerate() {
-                keys[index].2 = key_type.unwrap_or("deleted".into());
+            for key in keys.iter_mut() {
+                let key_type: Option<String> = redis::cmd("type").arg(&key.0).query_async(&mut conn).await?;
+                key.2 = key_type.unwrap_or("deleted".into());
             }
         }
 
@@ -637,53 +622,49 @@ pub trait RedisMeClient: Send + Sync {
         }
 
         let size = key_list.len();
-        let mut pipe = redis::pipe();
-        for key in key_list.into_iter() {
-            pipe.del(&key).ignore();
-        }
         let mut conn = self.get_conn().await?;
-        let _: () = pipe.query_async(&mut conn).await?;
+
+        for key in key_list {
+            let _: usize = conn.del(&key).await?;
+        }
         info!("批量删除键完成: {}", size);
         Ok(())
     }
 
     async fn mock_data(&self, count: u64) -> AnyResult<()> {
-        let mut pipe = redis::pipe();
+        let mut conn = self.get_conn().await?;
         for _ in 0..count {
             // string
             let key = format!("redis-me-mock:string:{}", random_string(10));
-            pipe.set(&key, random_string(10)).ignore();
+            let _: () = conn.set(&key, random_string(10)).await?;
 
             // hash
             let field_count = random_range(3, 20);
             let key = format!("redis-me-mock:hash:{}", random_string(10));
             for x in 0..field_count {
-                pipe.hset(&key, format!("key{x}"), random_string(10))
-                    .ignore();
+                let _: usize = conn.hset(&key, format!("key{x}"), random_string(10))
+                    .await?;
             }
 
             // list
             let key = format!("redis-me-mock:list:{}", random_string(10));
             for _ in 0..field_count {
-                pipe.rpush(&key, random_string(10)).ignore();
+                let _: usize = conn.rpush(&key, random_string(10)).await?;
             }
 
             // set
             let key = format!("redis-me-mock:set:{}", random_string(10));
             for _ in 0..field_count {
-                pipe.sadd(&key, random_string(10)).ignore();
+                let _: usize = conn.sadd(&key, random_string(10)).await?;
             }
 
             // zset
             let key = format!("redis-me-mock:zset:{}", random_string(10));
             for _ in 0..field_count {
-                pipe.zadd(&key, random_string(10), random_range(1, 100))
-                    .ignore();
+                let _: usize = conn.zadd(&key, random_string(10), random_range(1, 100))
+                    .await?;
             }
         }
-
-        let mut conn = self.get_conn().await?;
-        let _: () = pipe.query_async(&mut conn).await?;
         Ok(())
     }
 }
