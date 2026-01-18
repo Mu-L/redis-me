@@ -4,12 +4,13 @@ use crate::utils::conn::{get_client_single, set_client_name};
 use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
+use chrono::Utc;
 use log::info;
 use parking_lot::{Mutex, MutexGuard};
 use redis::{Client, Connection, ConnectionLike, Pipeline, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
-use std::sync::atomic::{Ordering};
+use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
@@ -382,11 +383,18 @@ impl RedisMeSingle {
         // 备注: parking_lot的 ReentrantMutexGuard 不支持 deref_mut 所以暂不支持重入
         match self.conn.try_lock_for(Duration::from_secs(10)) {
             Some(mut conn) => Ok({
-                if conn.is_open() && conn.check_connection() {
+                let now = Utc::now().timestamp();
+                if now - self.last_check_time.load(Ordering::Relaxed) < CONNECTION_CHECK_SECONDS {
                     conn
                 } else {
-                    self.reconnect()?;
-                    self.get_conn()?
+                    if conn.is_open() && conn.check_connection() {
+                        info!("检查Redis单机连接正常: {}", self.conf.name);
+                        conn
+                    } else {
+                        self.last_check_time.store(now, Ordering::Relaxed);
+                        self.reconnect()?;
+                        self.get_conn()?
+                    }
                 }
             }),
             None => {

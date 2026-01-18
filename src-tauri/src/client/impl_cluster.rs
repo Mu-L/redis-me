@@ -4,6 +4,7 @@ use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name}
 use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
+use chrono::Utc;
 use log::info;
 use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
@@ -13,10 +14,11 @@ use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
 use redis::{ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
-use std::sync::atomic::{Ordering};
+use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
+use Ordering::Relaxed;
 
 pub struct RedisMeCluster {
     base: RedisMeBase,
@@ -48,11 +50,11 @@ impl RedisMeClient for RedisMeCluster {
     }
 
     fn select_db(&self, db: u8) -> AnyResult<()> {
-        if self.db.load(Ordering::Relaxed) == db {
+        if self.db.load(Relaxed) == db {
             return Ok(());
         }
 
-        self.db.store(db, Ordering::Relaxed);
+        self.db.store(db, Relaxed);
         info!("集群模式下不支持切换DB");
         Ok(())
     }
@@ -441,11 +443,18 @@ impl RedisMeCluster {
     fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, ClusterConnection>> {
         match self.conn.try_lock_for(Duration::from_secs(10)) {
             Some(mut conn) => Ok({
-                if conn.is_open() && conn.check_connection() {
+                let now = Utc::now().timestamp();
+                if now - self.last_check_time.load(Relaxed) < CONNECTION_CHECK_SECONDS {
                     conn
                 } else {
-                    self.reconnect()?;
-                    self.get_conn()?
+                    if conn.is_open() && conn.check_connection() {
+                        info!("检查Redis集群连接正常: {}", self.conf.name);
+                        conn
+                    } else {
+                        self.last_check_time.store(now, Relaxed);
+                        self.reconnect()?;
+                        self.get_conn()?
+                    }
                 }
             }),
             None => {
