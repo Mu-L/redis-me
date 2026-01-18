@@ -8,21 +8,24 @@ use log::info;
 use parking_lot::{Mutex, MutexGuard};
 use redis::{Client, Connection, ConnectionLike, Pipeline, Value};
 use std::collections::HashMap;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
+use std::ops::Deref;
+use std::sync::atomic::{Ordering};
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
 
 pub struct RedisMeSingle {
-    id: String,
-    conf: RedisConn,
+    base:  RedisMeBase,
     client: Client,
     conn: Mutex<Connection>,
+}
 
-    db: Arc<AtomicU8>,
-    subscribe_running: Arc<AtomicBool>,
-    monitor_running: Arc<AtomicBool>,
+impl Deref for RedisMeSingle {
+    type Target = RedisMeBase;
+
+    fn deref(&self) -> &Self::Target {
+        &self.base
+    }
 }
 
 impl Drop for RedisMeSingle {
@@ -31,6 +34,8 @@ impl Drop for RedisMeSingle {
         self.monitor_stop().unwrap_or(());
     }
 }
+
+
 
 impl RedisMeClient for RedisMeSingle {
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
@@ -337,13 +342,9 @@ impl RedisMeSingle {
         let conn = Self::new_conn(&client, redis_conn.db)?;
         info!("Redis单机连接初始化成功: {}", redis_conn.name);
         Ok(Box::new(RedisMeSingle {
-            id: redis_conn.id.clone(),
-            conf: redis_conn.clone(),
+            base: RedisMeBase::from(redis_conn),
             client,
             conn: Mutex::new(conn),
-            db: Arc::new(AtomicU8::new(redis_conn.db)),
-            subscribe_running: Arc::new(AtomicBool::new(false)),
-            monitor_running: Arc::new(AtomicBool::new(false)),
         }))
     }
 

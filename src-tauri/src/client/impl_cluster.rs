@@ -12,22 +12,25 @@ use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
 use redis::{ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use std::sync::Arc;
+use std::ops::Deref;
+use std::sync::atomic::{Ordering};
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
 
 pub struct RedisMeCluster {
-    id: String,
-    conf: RedisConn,
+    base: RedisMeBase,
     client: ClusterClient,
     conn: Mutex<ClusterConnection>,
     node_list: Vec<RedisNode>,
+}
 
-    db: Arc<AtomicU8>,
-    subscribe_running: Arc<AtomicBool>,
-    monitor_running: Arc<AtomicBool>,
+impl Deref for RedisMeCluster {
+    type Target = RedisMeBase;
+
+    fn deref(&self) -> &Self::Target {
+        &self.base
+    }
 }
 
 impl Drop for RedisMeCluster {
@@ -36,6 +39,8 @@ impl Drop for RedisMeCluster {
         self.monitor_stop().unwrap_or(());
     }
 }
+
+
 
 impl RedisMeClient for RedisMeCluster {
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
@@ -409,14 +414,10 @@ impl RedisMeCluster {
         info!("Redis集群连接初始化成功: {}", redis_conn.name);
 
         Ok(Box::new(RedisMeCluster {
-            id: redis_conn.id.clone(),
-            conf: redis_conn.clone(),
+            base: RedisMeBase::from(redis_conn),
             client,
             conn: Mutex::new(conn),
             node_list,
-            db: Arc::new(AtomicU8::new(0)),
-            subscribe_running: Arc::new(AtomicBool::new(false)),
-            monitor_running: Arc::new(AtomicBool::new(false)),
         }))
     }
 
