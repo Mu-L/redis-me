@@ -10,7 +10,7 @@ use parking_lot::{Mutex, MutexGuard};
 use redis::{Client, Connection, ConnectionLike, Pipeline, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
-use std::sync::atomic::Ordering;
+use std::sync::atomic::Ordering::Relaxed;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
@@ -58,11 +58,11 @@ impl RedisMeClient for RedisMeSingle {
     }
 
     fn select_db(&self, db: u8) -> AnyResult<()> {
-        if self.db.load(Ordering::Relaxed) == db {
+        if self.db.load(Relaxed) == db {
             return Ok(());
         }
 
-        self.db.store(db, Ordering::Relaxed);
+        self.db.store(db, Relaxed);
         let mut conn = self.get_conn()?;
         let _: () = redis::cmd("SELECT").arg(db).query(&mut conn)?;
         info!("select db: {}", db);
@@ -364,7 +364,7 @@ impl RedisMeSingle {
 
     // 重新连接
     fn reconnect(&self) -> AnyResult<()> {
-        let new_conn = Self::new_conn(&self.client, self.db.load(Ordering::Relaxed))?;
+        let new_conn = Self::new_conn(&self.client, self.db.load(Relaxed))?;
         let mut conn_guard = self.conn.lock(); // 使用阻塞锁来替换连接
         *conn_guard = new_conn;
         info!("Redis单机连接重连成功: {}", self.conf.name);
@@ -384,14 +384,14 @@ impl RedisMeSingle {
         match self.conn.try_lock_for(Duration::from_secs(10)) {
             Some(mut conn) => Ok({
                 let now = Utc::now().timestamp();
-                if now - self.last_check_time.load(Ordering::Relaxed) < CONNECTION_CHECK_SECONDS {
+                if now - self.last_check_time.load(Relaxed) < CONNECTION_CHECK_SECONDS {
                     conn
                 } else {
+                    self.last_check_time.store(now, Relaxed);
                     if conn.is_open() && conn.check_connection() {
                         info!("检查Redis单机连接正常: {}", self.conf.name);
                         conn
                     } else {
-                        self.last_check_time.store(now, Ordering::Relaxed);
                         self.reconnect()?;
                         self.get_conn()?
                     }

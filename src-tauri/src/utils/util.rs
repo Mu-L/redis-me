@@ -14,7 +14,7 @@ pub type ApiResult<T> = Result<T, String>;
 
 // 常量定义
 pub const REDIS_ME_FIELD_TO_DELETE_TMP_VALUE: &str = "REDIS_ME_FIELD_TO_DELETE_TMP_VALUE";
-pub const CONNECTION_CHECK_SECONDS: i64 = 60; // 60s检查1次连接
+pub const CONNECTION_CHECK_SECONDS: i64 = 30; // 30s检查1次连接
 
 // tauri的错误处理中需要返回的错误实现序列化, anyhow的错误并没有实现，因此简单返回字符串错误
 pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {

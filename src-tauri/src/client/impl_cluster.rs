@@ -447,11 +447,11 @@ impl RedisMeCluster {
                 if now - self.last_check_time.load(Relaxed) < CONNECTION_CHECK_SECONDS {
                     conn
                 } else {
+                    self.last_check_time.store(now, Relaxed);
                     if conn.is_open() && conn.check_connection() {
                         info!("检查Redis集群连接正常: {}", self.conf.name);
                         conn
                     } else {
-                        self.last_check_time.store(now, Relaxed);
                         self.reconnect()?;
                         self.get_conn()?
                     }
