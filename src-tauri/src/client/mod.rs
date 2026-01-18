@@ -163,7 +163,7 @@ mod tests {
         println!("{result:#?}");
     }
 
-    #[tokio::test] // TODO 验证
+    #[tokio::test]
     async fn test_config_set() {
         let result = client().await
             .config_set("save", "3600 2 300 100 60 10000", None).await
