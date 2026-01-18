@@ -56,7 +56,7 @@ refresh()
 
 async function killClient(row) {
   meConfirm(t('redisClient.killClientConfirm', {client: row.addr}), async () => {
-    const param = {command: `client kill ${row.addr}`}
+    const param = {command: `client kill ${row.addr}`, node: node.value}
     await meInvoke('execute_command', {id: share.conn.id, param})
     meOk(t('redisClient.killClientOk'))
     await refresh()
