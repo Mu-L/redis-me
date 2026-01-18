@@ -30,7 +30,7 @@ impl From<&RedisConn> for RedisMeBase {
         RedisMeBase {
             id: conf.id.clone(),
             conf: conf.clone(),
-            db: Arc::new(AtomicU8::new(0)),
+            db: Arc::new(AtomicU8::new(conf.db)),
             subscribe_running: Arc::new(AtomicBool::new(false)),
             monitor_running: Arc::new(AtomicBool::new(false)),
             last_check_time: Arc::new(AtomicI64::new(Utc::now().timestamp())),

@@ -356,6 +356,7 @@ impl RedisMeSingle {
         // 切换到当前的数据库
         if db != 0 {
             let _: () = redis::cmd("SELECT").arg(db).query(&mut conn)?;
+            info!("SELECT {db}");
         }
         Ok(conn)
     }
@@ -365,6 +366,7 @@ impl RedisMeSingle {
         let new_conn = Self::new_conn(&self.client, self.db.load(Relaxed))?;
         let mut conn_guard = self.conn.lock(); // 使用阻塞锁来替换连接
         *conn_guard = new_conn;
+        self.last_check_time.store(Utc::now().timestamp(), Relaxed);
         info!("Redis单机连接重连成功: {}", self.conf.name);
         Ok(())
     }
