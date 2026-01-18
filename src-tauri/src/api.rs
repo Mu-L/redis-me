@@ -3,7 +3,9 @@ use crate::client::state::ClientAccess;
 use crate::utils::model::*;
 use crate::utils::util::*;
 use std::collections::HashMap;
+use std::sync::Arc;
 use tauri::{AppHandle, command};
+use crate::client::unified::UnifiedClient;
 
 // 默认示例
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -37,20 +39,8 @@ pub async fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
 }
 
 // 使用宏简化代码
-#[command]
-pub async fn db_list(
-    app_handle: AppHandle,
-    id: &str,
-) -> ApiResult<Vec<RedisDB>> {
-    to_api_result(
-        app_handle
-            .get_client(id).await
-            .and_then(async |client| client.db_list().await)
-    )
-}
-// to_api_result(app_handle.get_client(id).and_then(|client| client.$name($($param),*)))
 api_commands!(
-    // db_list() -> Vec<RedisDB>;               // 数据库列表
+    db_list() -> Vec<RedisDB>;               // 数据库列表
     select_db(db: u8) -> ();                 // 切换数据库
     info(node: Option<String>) -> RedisInfo; // 信息
     info_list() -> Vec<RedisInfo>;           // 信息列表

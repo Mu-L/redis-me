@@ -38,11 +38,10 @@ macro_rules! api_commands {
                 id: &str,
                 $($param: $param_type),*
             ) -> ApiResult<$return_type> {
-                to_api_result(
-                    app_handle
-                        .get_client(id).await
-                        .and_then(async |client| client.$name($($param),*).await)
-                )
+                to_api_result(async {
+                    let client = app_handle.get_client(id).await?;
+                    client.$name($($param),*).await
+                }.await)
             }
         )*
     };
