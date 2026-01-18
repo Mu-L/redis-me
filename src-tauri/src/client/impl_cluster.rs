@@ -4,6 +4,7 @@ use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name}
 use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
+use chrono::Utc;
 use log::info;
 use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
@@ -12,22 +13,26 @@ use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
 use redis::{ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use std::sync::Arc;
+use std::ops::Deref;
+use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
+use Ordering::Relaxed;
 
 pub struct RedisMeCluster {
-    id: String,
-    conf: RedisConn,
+    base: RedisMeBase,
     client: ClusterClient,
     conn: Mutex<ClusterConnection>,
     node_list: Vec<RedisNode>,
+}
 
-    db: Arc<AtomicU8>,
-    subscribe_running: Arc<AtomicBool>,
-    monitor_running: Arc<AtomicBool>,
+impl Deref for RedisMeCluster {
+    type Target = RedisMeBase;
+
+    fn deref(&self) -> &Self::Target {
+        &self.base
+    }
 }
 
 impl Drop for RedisMeCluster {
@@ -43,11 +48,11 @@ impl RedisMeClient for RedisMeCluster {
     }
 
     fn select_db(&self, db: u8) -> AnyResult<()> {
-        if self.db.load(Ordering::Relaxed) == db {
+        if self.db.load(Relaxed) == db {
             return Ok(());
         }
 
-        self.db.store(db, Ordering::Relaxed);
+        self.db.store(db, Relaxed);
         info!("集群模式下不支持切换DB");
         Ok(())
     }
@@ -409,14 +414,10 @@ impl RedisMeCluster {
         info!("Redis集群连接初始化成功: {}", redis_conn.name);
 
         Ok(Box::new(RedisMeCluster {
-            id: redis_conn.id.clone(),
-            conf: redis_conn.clone(),
+            base: RedisMeBase::from(redis_conn),
             client,
             conn: Mutex::new(conn),
             node_list,
-            db: Arc::new(AtomicU8::new(0)),
-            subscribe_running: Arc::new(AtomicBool::new(false)),
-            monitor_running: Arc::new(AtomicBool::new(false)),
         }))
     }
 
@@ -432,6 +433,7 @@ impl RedisMeCluster {
         let new_conn = Self::new_conn(&self.client)?;
         let mut conn_guard = self.conn.lock(); // 使用阻塞锁来替换连接
         *conn_guard = new_conn;
+        self.last_check_time.store(Utc::now().timestamp(), Relaxed);
         info!("Redis集群连接重连成功: {}", self.conf.name);
         Ok(())
     }
@@ -440,11 +442,20 @@ impl RedisMeCluster {
     fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, ClusterConnection>> {
         match self.conn.try_lock_for(Duration::from_secs(10)) {
             Some(mut conn) => Ok({
-                if conn.is_open() && conn.check_connection() {
+                let curr = Utc::now().timestamp();
+                let last = self.last_check_time.load(Relaxed);
+                if conn.is_open() && curr - last < CONNECTION_CHECK_SECONDS {
                     conn
                 } else {
-                    self.reconnect()?;
-                    self.get_conn()?
+                    self.last_check_time.store(curr, Relaxed);
+                    if conn.check_connection() {
+                        info!("检查Redis集群连接正常: {}", self.conf.name);
+                        conn
+                    } else {
+                        drop(conn);  // 此处一定要释放锁
+                        self.reconnect()?;
+                        self.get_conn()?
+                    }
                 }
             }),
             None => {

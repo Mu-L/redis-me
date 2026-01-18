@@ -150,7 +150,7 @@ mod tests {
         let result = client().execute_command(RedisCommand {
             command: command.into(),
             node: None,
-            auto_broadcast: true,
+            auto_broadcast: Some(true),
         });
         println!("{result:#?}");
     }

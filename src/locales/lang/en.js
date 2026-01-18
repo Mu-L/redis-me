@@ -222,7 +222,10 @@ export default {
     name: 'Name',
     age: 'Age',
     idle: 'Idle',
-    cmd: 'Last Cmd'
+    cmd: 'Last Cmd',
+    killClientHint: 'Kill Client',
+    killClientConfirm: 'Confirm Kill Client【{client}】?',
+    killClientOk: 'Killed'
   },
 
   redisConfig: {

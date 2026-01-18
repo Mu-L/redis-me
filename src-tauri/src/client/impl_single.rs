@@ -4,25 +4,29 @@ use crate::utils::conn::{get_client_single, set_client_name};
 use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
+use chrono::Utc;
 use log::info;
 use parking_lot::{Mutex, MutexGuard};
 use redis::{Client, Connection, ConnectionLike, Pipeline, Value};
 use std::collections::HashMap;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
+use std::ops::Deref;
+use std::sync::atomic::Ordering::Relaxed;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
 
 pub struct RedisMeSingle {
-    id: String,
-    conf: RedisConn,
+    base:  RedisMeBase,
     client: Client,
     conn: Mutex<Connection>,
+}
 
-    db: Arc<AtomicU8>,
-    subscribe_running: Arc<AtomicBool>,
-    monitor_running: Arc<AtomicBool>,
+impl Deref for RedisMeSingle {
+    type Target = RedisMeBase;
+
+    fn deref(&self) -> &Self::Target {
+        &self.base
+    }
 }
 
 impl Drop for RedisMeSingle {
@@ -52,11 +56,11 @@ impl RedisMeClient for RedisMeSingle {
     }
 
     fn select_db(&self, db: u8) -> AnyResult<()> {
-        if self.db.load(Ordering::Relaxed) == db {
+        if self.db.load(Relaxed) == db {
             return Ok(());
         }
 
-        self.db.store(db, Ordering::Relaxed);
+        self.db.store(db, Relaxed);
         let mut conn = self.get_conn()?;
         let _: () = redis::cmd("SELECT").arg(db).query(&mut conn)?;
         info!("select db: {}", db);
@@ -337,13 +341,9 @@ impl RedisMeSingle {
         let conn = Self::new_conn(&client, redis_conn.db)?;
         info!("Redis单机连接初始化成功: {}", redis_conn.name);
         Ok(Box::new(RedisMeSingle {
-            id: redis_conn.id.clone(),
-            conf: redis_conn.clone(),
+            base: RedisMeBase::from(redis_conn),
             client,
             conn: Mutex::new(conn),
-            db: Arc::new(AtomicU8::new(redis_conn.db)),
-            subscribe_running: Arc::new(AtomicBool::new(false)),
-            monitor_running: Arc::new(AtomicBool::new(false)),
         }))
     }
 
@@ -356,15 +356,17 @@ impl RedisMeSingle {
         // 切换到当前的数据库
         if db != 0 {
             let _: () = redis::cmd("SELECT").arg(db).query(&mut conn)?;
+            info!("SELECT {db}");
         }
         Ok(conn)
     }
 
     // 重新连接
     fn reconnect(&self) -> AnyResult<()> {
-        let new_conn = Self::new_conn(&self.client, self.db.load(Ordering::Relaxed))?;
+        let new_conn = Self::new_conn(&self.client, self.db.load(Relaxed))?;
         let mut conn_guard = self.conn.lock(); // 使用阻塞锁来替换连接
         *conn_guard = new_conn;
+        self.last_check_time.store(Utc::now().timestamp(), Relaxed);
         info!("Redis单机连接重连成功: {}", self.conf.name);
         Ok(())
     }
@@ -381,11 +383,20 @@ impl RedisMeSingle {
         // 备注: parking_lot的 ReentrantMutexGuard 不支持 deref_mut 所以暂不支持重入
         match self.conn.try_lock_for(Duration::from_secs(10)) {
             Some(mut conn) => Ok({
-                if conn.is_open() && conn.check_connection() {
+                let curr = Utc::now().timestamp();
+                let last = self.last_check_time.load(Relaxed);
+                if conn.is_open() && curr - last < CONNECTION_CHECK_SECONDS {
                     conn
                 } else {
-                    self.reconnect()?;
-                    self.get_conn()?
+                    self.last_check_time.store(curr, Relaxed);
+                    if conn.check_connection() {
+                        info!("检查Redis单机连接正常: {}", self.conf.name);
+                        conn
+                    } else {
+                        drop(conn);  // 此处一定要释放锁
+                        self.reconnect()?;
+                        self.get_conn()?
+                    }
                 }
             }),
             None => {

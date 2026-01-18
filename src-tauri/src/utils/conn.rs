@@ -102,7 +102,7 @@ pub fn set_client_name(conn: &mut dyn ConnectionLike) -> AnyResult<()> {
         .arg("SETNAME")
         .arg("RedisME")
         .query(conn)?;
-    info!("设置客户端名称RedisME成功");
+    info!("Client SETNAME RedisME");
     Ok(())
 }
 

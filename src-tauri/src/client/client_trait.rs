@@ -4,18 +4,41 @@ use crate::utils::util::{
     AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string,
 };
 use anyhow::bail;
-use chrono::Local;
+use chrono::{Local, Utc};
 use log::info;
 use parking_lot::MutexGuard;
 use redis::{Commands, Connection, Msg, SetExpiry, SetOptions, ValueType, from_redis_value};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
 use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
 
-/// RedisME服务接口
+// 抽取公共属性
+pub struct RedisMeBase {
+    pub id: String,
+    pub conf: RedisConn,
+    pub db: Arc<AtomicU8>,
+    pub subscribe_running: Arc<AtomicBool>,
+    pub monitor_running: Arc<AtomicBool>,
+    pub last_check_time: Arc<AtomicI64>,
+}
+
+impl From<&RedisConn> for RedisMeBase {
+    fn from(conf: &RedisConn) -> Self {
+        RedisMeBase {
+            id: conf.id.clone(),
+            conf: conf.clone(),
+            db: Arc::new(AtomicU8::new(conf.db)),
+            subscribe_running: Arc::new(AtomicBool::new(false)),
+            monitor_running: Arc::new(AtomicBool::new(false)),
+            last_check_time: Arc::new(AtomicI64::new(Utc::now().timestamp())),
+        }
+    }
+}
+
+// RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
     fn db_list(&self) -> AnyResult<Vec<RedisDB>>;
 
