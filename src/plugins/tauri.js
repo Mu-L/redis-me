@@ -29,7 +29,7 @@ meLog('本地数据目录:', localDataDir)
 // 微软应用商店示例: C:\Program Files\WindowsApps\hepengju.RedisME_1.2.0.0_x64__v2a7j12f6a642\VFS\Local AppData\RedisME
 // const isAppStore = configDir.includes('WindowsApps')
 // 实测VFS文件系统中读取不到原始目录，修改判断方式为: resources目录下是否存在appStore.me文件
-// 改为AppData下读取
+// 改为AppData下读取 ==> 目前测试下来还是不行
 const isAppStore = await exists('appStore.txt', {baseDir: BaseDirectory.AppData})
 meLog('应用商店应用(AppData目录下appStore.txt):', isAppStore)
 
