@@ -40,6 +40,8 @@ impl From<&RedisConn> for RedisMeBase {
 
 // RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
+    fn name(&self) -> String;
+    
     fn db_list(&self) -> AnyResult<Vec<RedisDB>>;
 
     fn select_db(&self, db: u8) -> AnyResult<()>;

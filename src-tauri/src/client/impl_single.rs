@@ -37,6 +37,11 @@ impl Drop for RedisMeSingle {
 }
 
 impl RedisMeClient for RedisMeSingle {
+
+    fn name(&self) -> String {
+        self.conf.name.clone()
+    }
+
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         let map = self.config_get("databases", None)?;
         let db_count = map

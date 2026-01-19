@@ -4,7 +4,7 @@ use crate::client::impl_single::RedisMeSingle;
 use crate::utils::model::RedisConn;
 use crate::utils::util::AnyResult;
 use anyhow::anyhow;
-use log::info;
+use log::{debug, info};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 use tauri::{AppHandle, Manager, State};
@@ -43,6 +43,7 @@ impl ClientAccess for AppHandle {
             // Read lock在此代码块内，自动释放锁
             let clients = state.clients.read().unwrap();
             if let Some(client) = clients.get(id) {
+                debug!("获取连接: {}", client.name());
                 return Ok(Arc::clone(client));
             }
         }
@@ -62,19 +63,21 @@ impl ClientAccess for AppHandle {
         });
 
         clients.insert(id.to_string(), Arc::clone(&client));
-        info!("连接成功: {}", id);
+        info!("连接成功: {}", client.name());
         Ok(client)
     }
 
     fn disconnect(&self, id: &str) -> AnyResult<()> {
         let state: State<AppState> = self.state();
         let mut clients = state.clients.write().unwrap();
-        if clients.get(id).is_some() {
-            clients.remove(id);
-            info!("断开连接: {}", id);
-        } else {
-            info!("未找到连接, 断开忽略: {}", id)
-        }
+        let client = clients.get(id);
+        match client {
+            Some(client) => {
+                info!("断开连接: {}", client.name());
+                clients.remove(id);
+            }
+            None => info!("未找到连接, 断开忽略: {}", id)
+        };
         Ok(())
     }
 }
