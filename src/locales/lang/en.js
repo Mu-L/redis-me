@@ -353,7 +353,8 @@ export default {
     `,
     welcome: 'Welcome to {RedisME} Terminal',
     autoBroadcast: 'Auto Broadcast',
-    readonlyHint: 'Executing commands is temporarily not supported in read-only mode'
+    readonlyHint: 'Executing commands is temporarily not supported in read-only mode',
+    autoCopyHint: 'Auto Copy Command Result'
   },
 
   redisValue: {

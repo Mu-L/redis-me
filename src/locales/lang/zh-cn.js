@@ -355,7 +355,8 @@ export default {
     `,
     welcome: '欢迎使用 {RedisME} Terminal',
     autoBroadcast: '自动广播',
-    readonlyHint: '只读模式下暂不支持执行命令'
+    readonlyHint: '只读模式下暂不支持执行命令',
+    autoCopyHint: '自动复制命令结果'
   },
 
   redisValue: {
