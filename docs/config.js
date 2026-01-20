@@ -30,7 +30,7 @@ function nav() {
     {
       text: `v${version}`,
       items: [
-        {text: 'Changelog', link: '/changelog/1.x', activeMatch: '/changelog/'},
+        {text: 'Changelog', link: '/changelog/latest', activeMatch: '/changelog/'},
         {text: 'Redis Install', link: '/server/single', activeMatch: '/server/'}
       ]
     }
@@ -78,7 +78,7 @@ function sidebarChangelog() {
     {
       text: 'Changelog',
       items: [
-        {text: '1.x', link: '1.x'},
+        {text: 'latest', link: 'latest'},
         {text: '0.x', link: '0.x'},
       ]
     }

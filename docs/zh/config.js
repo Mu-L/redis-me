@@ -57,7 +57,7 @@ function nav() {
     {
       text: `v${version}`,
       items: [
-        {text: '更新日志', link: '/zh/changelog/1.x', activeMatch: '/zh/changelog/'},
+        {text: '更新日志', link: '/zh/changelog/latest', activeMatch: '/zh/changelog/'},
         {text: 'Redis安装', link: '/zh/server/single', activeMatch: '/zh/server/'}
       ]
     }
@@ -105,7 +105,7 @@ function sidebarChangelog(){
     {
       text: '更新日志',
       items: [
-        {text: '1.x', link: '1.x'},
+        {text: 'latest', link: 'latest'},
         {text: '0.x', link: '0.x'},
       ]
     }
