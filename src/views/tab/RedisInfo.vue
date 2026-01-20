@@ -242,7 +242,8 @@ function goMemory() {
     <me-code :value="raw" mode="properties" read-only/>
   </me-dialog>
 
-  <me-dialog v-model="dialog.client" icon="el-icon-mic" :title="t('redisInfo.client')" width="80vw" >
+  <me-dialog v-model="dialog.client" icon="el-icon-mic" :title="t('redisInfo.client')"
+             width="80vw" :close-on-press-escape="false" :close-on-click-modal="false">
     <RedisClient :init-node="node || infoNode"/>
   </me-dialog>
 
