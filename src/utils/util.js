@@ -1,7 +1,7 @@
 import mitt from 'mitt'
 import {sampleSize} from 'lodash'
 import {useClipboard} from '@vueuse/core'
-import {ElMessage, ElMessageBox} from 'element-plus'
+import {ElLink, ElMessage, ElMessageBox} from 'element-plus'
 import {invoke} from '@tauri-apps/api/core'
 import {check} from '@tauri-apps/plugin-updater'
 import {relaunch} from '@tauri-apps/plugin-process'
@@ -84,7 +84,7 @@ export function meErr(message, title = t('error')) {
 }
 
 export function meConfirm(message, thenFun, boxOptions = {}) {
-  ElMessageBox.confirm(message, t('warn'), {type: 'warning', ...boxOptions})
+  ElMessageBox.confirm(message, boxOptions?.type === 'info' ? t('info') : t('warn'), {type: 'warning', ...boxOptions})
     .then(thenFun)
     .catch(DoNothing)
 }
@@ -200,11 +200,21 @@ export async function meCheckUpdate(quiet = true, checkOptions = {}, app) {
   }
 }
 
-const manualCloseOptions = {closeOnClickModal: false, closeOnPressEscape: false}
+const manualCloseOptions = {closeOnClickModal: false, closeOnPressEscape: false, type: 'info'}
 export async function meDownloadUpdate(quiet = true, update, app) {
   console.log('检查结果:', update)
+  const hint = t('util.updateHint', {version: update.version})
+  const changelog = t('util.changelog')
+  const changelogUrl = t('util.changelogUrl')
+  const message = () => {
+    return h('div', null, [
+      h('span', hint),
+      h(ElLink, {type: 'primary', href: changelogUrl, target: '_blank'}, changelog)
+    ])
+  }
+
   // 更新过程中的提示: 避免Esc及点击遮罩层关闭提示框
-  meConfirm(t('util.updateHint', {version: update.version}),
+  meConfirm('xx',
     async () => {
       try {
         app.downloading = true
@@ -245,5 +255,5 @@ export async function meDownloadUpdate(quiet = true, update, app) {
         app.downloading = false
       }
     }
-    , manualCloseOptions)
+    , {...manualCloseOptions, message: message})
 }

@@ -13,6 +13,7 @@ export default {
 
   ok: 'OK',
   warn: 'Warning',
+  info: 'Info',
   error: 'Error',
 
   copyOk: 'Copied to Clipboard',
@@ -103,6 +104,8 @@ export default {
     deleteKey: 'Delete [{key}]?',
     checking: 'Checking for update, wait a moment...',
     updateHint: 'New version v{version}, update?',
+    changelog: 'changelog',
+    changelogUrl: 'www.hepengju.com',
     downloadDown: 'Download done, install now?',
     updateDone: 'Update done, restart now?',
     updateErr: 'Download Package Fail',
