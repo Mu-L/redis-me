@@ -45,11 +45,12 @@ term.on('keypress', e => {
   // 新增下面的键: Ctrl + L/C/E 清屏/停止当前命令/光标到行尾
   if (e.ctrlKey && key === 'l') { // Ctrl + L 清屏
     term.clear()
+    term.clearInput()
     prompt(true)
   } else if (e.ctrlKey && key === 'c') {  // Ctrl + C 取消命令
-    // TODO 暂无法删除用户的输入
-    //term.write('^C')
-    //prompt()
+    term.write('^C')
+    term.clearInput()
+    prompt(false)
   }
 })
 
@@ -95,14 +96,15 @@ const terminalClass = computed(() => isDark.value ? 'dark' : '')
 <style lang="scss">
 // 光标样式修改, 默认样式为块状（我喜欢闪烁的竖线）
 @keyframes blink {
-  0%  {opacity: 1;}
-  50% {opacity: 0;}
+  0%  {border-left: 1.5px solid var(--xt-fg);}
+  50% {border-left: 1.5px solid transparent;}
 }
 
 .terminal {
   .xt>.xt-stdout>.xt-cursor {
     border: none;
     border-left: 1.5px solid var(--xt-fg);
+    color: var(--xt-fg);
     background-color: transparent;
     animation: blink 1s step-end infinite;
   }

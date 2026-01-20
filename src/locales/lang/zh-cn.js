@@ -13,6 +13,7 @@ export default {
 
   ok: '确定',
   warn: '提示',
+  info: '提示',
   error: '错误',
 
   copyOk: '复制成功',
@@ -103,7 +104,9 @@ export default {
     days: '天',
     deleteKey: '确定删除键【{key}】吗？',
     checking: '检查更新中，请稍后...',
-    updateHint: '有新版本 v{version}，是否更新？',
+    updateHint: '有新版本 v{version}，是否升级？',
+    changelog: '更新日志',
+    changelogUrl: 'https://www.hepengju.com/zh/changelog/latest.html',
     downloadDown: '下载完成，是否立刻安装？',
     updateDone: '更新完成，是否立刻重启？',
     updateErr: '下载安装包失败',

@@ -43,6 +43,11 @@ impl Drop for RedisMeCluster {
 }
 
 impl RedisMeClient for RedisMeCluster {
+    
+    fn name(&self) -> String {
+        self.conf.name.clone()
+    }
+
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
         Ok(vec![])
     }

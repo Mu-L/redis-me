@@ -2,8 +2,9 @@
 
 ## v1.5.0 (2026-01-24) TODO
 
-- Terminal: Added command prompts, added command list for easy manual selection
+- Added a changelog link redirection during upgrade reminders
 - Terminal: Added Ctrl+L/C shortcut keys
+- Terminal: Added command prompts, added command list for easy manual selection
 
 ## v1.4.1 (2026-01-18)
 

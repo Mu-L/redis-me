@@ -1,12 +1,13 @@
 import mitt from 'mitt'
 import {sampleSize} from 'lodash'
 import {useClipboard} from '@vueuse/core'
-import {ElMessage, ElMessageBox} from 'element-plus'
+import {ElLink, ElMessage, ElMessageBox} from 'element-plus'
 import {invoke} from '@tauri-apps/api/core'
 import {check} from '@tauri-apps/plugin-updater'
 import {relaunch} from '@tauri-apps/plugin-process'
 import i18n from '@/locales'
 import {type} from '@tauri-apps/plugin-os'
+import {openUrl} from '@tauri-apps/plugin-opener'
 
 // 全局事件总线: setup直接导入，app全局属性也添加
 export const bus = mitt()
@@ -84,7 +85,7 @@ export function meErr(message, title = t('error')) {
 }
 
 export function meConfirm(message, thenFun, boxOptions = {}) {
-  ElMessageBox.confirm(message, t('warn'), {type: 'warning', ...boxOptions})
+  ElMessageBox.confirm(message, boxOptions?.type === 'info' ? t('info') : t('warn'), {type: 'warning', ...boxOptions})
     .then(thenFun)
     .catch(DoNothing)
 }
@@ -200,11 +201,30 @@ export async function meCheckUpdate(quiet = true, checkOptions = {}, app) {
   }
 }
 
-const manualCloseOptions = {closeOnClickModal: false, closeOnPressEscape: false}
+const manualCloseOptions = {closeOnClickModal: false, closeOnPressEscape: false, type: 'info'}
 export async function meDownloadUpdate(quiet = true, update, app) {
-  console.log('检查结果:', update)
+  meLog('检查结果:', update)
+  const hint = t('util.updateHint', {version: update.version})
+  const changelog = t('util.changelog')
+  const changelogUrl = t('util.changelogUrl')
+  const message = () =>
+    h('p', null, [
+      h('span', hint),
+      h('a',
+        {
+          type: 'primary',
+          href: changelogUrl,
+          target: '_blank',
+          style: 'text-decoration: none; margin-left: 5px',
+          onClick: (e) => {
+            e.preventDefault()
+            openUrl(changelogUrl) // a 和 el-link都无法打开外部链接，使用openUrl可以
+          }
+        }, changelog)
+    ])
+
   // 更新过程中的提示: 避免Esc及点击遮罩层关闭提示框
-  meConfirm(t('util.updateHint', {version: update.version}),
+  meConfirm('MessageInvalid',
     async () => {
       try {
         app.downloading = true
@@ -245,5 +265,5 @@ export async function meDownloadUpdate(quiet = true, update, app) {
         app.downloading = false
       }
     }
-    , manualCloseOptions)
+    , {...manualCloseOptions, message})
 }
