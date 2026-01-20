@@ -35,9 +35,9 @@
     "nanoid": "^5.1.6",
     "sortablejs": "^1.15.6",
     "tauri-plugin-system-fonts-api": "^2.0.2",
-    "vue": "^3.5.26",
+    "vue": "^3.5.27",
     "vue-i18n": "^11.2.8",
-    "xterminal": "^2.1.16"
+    "xterminal": "^2.2.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.9.6",
