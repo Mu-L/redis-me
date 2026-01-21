@@ -123,6 +123,7 @@ export default {
     monitor: '监控',
     pubsub: '发布订阅',
     chart: '图表',
+    tauri: 'Tauri'
   },
 
   keyHeader: {

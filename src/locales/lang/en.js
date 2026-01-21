@@ -122,6 +122,7 @@ export default {
     monitor: 'Monitor',
     pubsub: 'Pub/Sub',
     chart: 'Chart',
+    tauri: 'Tauri'
   },
 
   keyHeader: {
