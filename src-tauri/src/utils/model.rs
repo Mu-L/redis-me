@@ -46,6 +46,17 @@ api_model!(SslOption {
     ca: String,
 });
 
+// 信息 图形
+api_model!(RedisChart {
+    node: String,
+    keys: u64,            // 键数量 db0:keys=1558,expires=0,avg_ttl=0,subexpiry=0; db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
+    clients: u64,         // 客户端数量    connected_clients
+    commands: u64,        // 命令执行数/秒 instantaneous_ops_per_sec
+    memory: u64,          // 内存使用量    used_memory
+    network_input: u64,   // 网络输入      instantaneous_input_kbps
+    network_output: u64   // 网络输出      instantaneous_output_kbps
+});
+
 // 信息 info命令
 api_model!(RedisInfo {
     node: String,

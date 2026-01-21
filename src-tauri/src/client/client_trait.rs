@@ -41,12 +41,16 @@ impl From<&RedisConn> for RedisMeBase {
 // RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
     fn name(&self) -> String;
-    
+
     fn db_list(&self) -> AnyResult<Vec<RedisDB>>;
 
     fn select_db(&self, db: u8) -> AnyResult<()>;
 
     fn info(&self, node: Option<String>) -> AnyResult<RedisInfo>;
+
+    fn chart(&self, node: Option<String>) -> AnyResult<RedisChart> {
+        info_to_chart(self.info(node)?)
+    }
 
     fn info_list(&self) -> AnyResult<Vec<RedisInfo>>;
 
@@ -271,8 +275,8 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
     };
 
     if "key" == mode && param.ttl > 0 {
-            let _: () = conn.expire(&key, param.ttl)?;
-        }
+        let _: () = conn.expire(&key, param.ttl)?;
+    }
     Ok(())
 }
 
@@ -424,6 +428,59 @@ pub fn monitor_stop0(running: Arc<AtomicBool>) -> AnyResult<()> {
     info!("monitor stop");
     running.store(false, Ordering::Relaxed);
     Ok(())
+}
+
+// info信息转换成图表数据
+pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
+    let mut chart = RedisChart {
+        node: redis_info.node,
+        keys: 0,
+        clients: 0,
+        commands: 0,
+        memory: 0,
+        network_input: 0,
+        network_output: 0,
+    };
+
+    let mut keys = 0;
+    for line in redis_info.info.lines() {
+        if line.is_empty() || line.starts_with("#") {
+            continue;
+        }
+
+        if let Some((key, value)) = line.split_once(":")
+            .map(|(k, v)| (k.trim(), v.trim())) {
+            match key {
+                "connected_clients" => chart.clients = value.parse::<u64>()?,
+                "instantaneous_ops_per_sec" => chart.commands = value.parse::<u64>()?,
+                "used_memory" => chart.memory = value.parse::<u64>()?,
+                "instantaneous_input_kbps" => chart.network_input = value.parse::<u64>()?,
+                "instantaneous_output_kbps" => chart.network_output = value.parse::<u64>()?,
+                _ => {
+                    // db0:keys=14410,expires=3997,avg_ttl=736124073
+                    // db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
+                    // 匹配以 db 开头，后跟 1-2 位数字的 key
+                    if key.starts_with("db") && key.len() >= 3 {
+                        let num_part = &key[2..]; // 截取 db 后的数字部分
+                        if num_part.chars().all(|c| c.is_ascii_digit()) && num_part.len() <= 2 {
+                            // 解析 value 中的 keys 数值，包含完整的错误处理
+                            let size = value.split(',')
+                                .next() // 取第一个逗号前的部分 (keys=14410)
+                                .and_then(|part| part.split_once('=')) // 分割 key=value
+                                .and_then(|(_, val)| val.parse::<u64>().ok()); // 解析数值
+
+                            // 3. 更新数据结构（无 unwrap，安全处理解析失败）
+                            if let Some(size) = size {
+                                keys += size;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    chart.keys = keys;
+    Ok(chart)
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

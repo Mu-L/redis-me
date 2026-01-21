@@ -35,6 +35,7 @@ pub fn run() {
             db_list,
             select_db,
             info,
+            chart,
             info_list,
             node_list,
             scan,
