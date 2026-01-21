@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
@@ -36,6 +37,7 @@
     "sortablejs": "^1.15.6",
     "tauri-plugin-system-fonts-api": "^2.0.2",
     "vue": "^3.5.27",
+    "vue-data-ui": "^3.12.0",
     "vue-i18n": "^11.2.8",
     "xterminal": "^2.2.0"
   },

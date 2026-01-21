@@ -7,7 +7,7 @@ import RedisMonitor from './tab/RedisMonitor.vue'
 import RedisPubsub from './tab/RedisPubsub.vue'
 import {useI18n} from 'vue-i18n'
 import RedisMemory from '@/views/tab/RedisMemory.vue'
-// import RedisDemo from '@/views/tab/RedisDemo.vue'
+import RedisChart from '@/views/tab/RedisChart.vue'
 // import RedisTauri from './tab/RedisTauri.vue'
 const { t } = useI18n()
 
@@ -67,6 +67,13 @@ const share = inject('share')
         <me-icon :name="t('tabMain.pubsub')" icon="me-icon-pubsub"/>
       </template>
       <RedisPubsub/>
+    </el-tab-pane>
+
+    <el-tab-pane name="chart" lazy>
+      <template #label>
+        <me-icon :name="t('tabMain.chart')" icon="el-icon-data-line"/>
+      </template>
+      <RedisChart/>
     </el-tab-pane>
 
     <!--
