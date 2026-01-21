@@ -436,10 +436,10 @@ pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
         node: redis_info.node,
         keys: 0,
         clients: 0,
-        commands: 0,
-        memory: 0,
-        network_input: 0,
-        network_output: 0,
+        commands: 0.0,
+        memory: 0.0,
+        network_input: 0.0,
+        network_output: 0.0,
     };
 
     let mut keys = 0;
@@ -451,11 +451,11 @@ pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
         if let Some((key, value)) = line.split_once(":")
             .map(|(k, v)| (k.trim(), v.trim())) {
             match key {
-                "connected_clients" => chart.clients = value.parse::<u64>()?,
-                "instantaneous_ops_per_sec" => chart.commands = value.parse::<u64>()?,
-                "used_memory" => chart.memory = value.parse::<u64>()?,
-                "instantaneous_input_kbps" => chart.network_input = value.parse::<u64>()?,
-                "instantaneous_output_kbps" => chart.network_output = value.parse::<u64>()?,
+                "connected_clients" => chart.clients = value.parse::<>()?,
+                "instantaneous_ops_per_sec" => chart.commands = value.parse::<>()?,
+                "used_memory" => chart.memory = value.parse::<>()?,
+                "instantaneous_input_kbps" => chart.network_input = value.parse::<>()?,
+                "instantaneous_output_kbps" => chart.network_output = value.parse::<>()?,
                 _ => {
                     // db0:keys=14410,expires=3997,avg_ttl=736124073
                     // db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
