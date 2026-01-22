@@ -29,27 +29,32 @@ async function getData() {
   try {
     const res = await meInvoke('chart', {id: share.conn.id, node: node.value})
     const label = new Date()
-    setChartData(label, res, 'keyTotal', 'keyTotal')
-    setChartData(label, res, 'client', 'connectedClients')
+    // setChartData(label, res, 'keyTotal', 'keyTotal')
+    // setChartData(label, res, 'client', 'connectedClients')
     setChartData(label, res, 'command', 'instantaneousOpsPerSec')
     setChartData(label, res, 'memory', 'usedMemory')
-    setChartData(label, res, 'network', 'instantaneousInputKbps')
-    setChartData(label, res, 'network', 'instantaneousOutputKbps', 1)
+    setChartData(label, res, 'network', 'instantaneousInputKbps', 'instantaneousOutputKbps')
   } catch (e) {
     meLog('get chart data error', e)
   }
 }
 
 // 简化多个属性设置
-function setChartData(label, res, prop1, prop2, index = 0) {
-  let propData = chartData.value[prop1]
+function setChartData(label, res, prop0, prop1, prop2) {
+  let propData = chartData.value[prop0]
   propData.labels.push(label)
-  propData.datasets[index].data.push(res[prop2])
+  propData.datasets[0].data.push(res[prop1])
+  if (prop2) {
+    propData.datasets[1].data.push(res[prop2])
+  }
   // 数组仅保留前N个，避免数据过多程序卡顿
   const length = maxDataCount.value
   if (propData.labels > length) {
     propData.labels = propData.labels.slice(-length)
-    propData.datasets[index].data = propData.datasets[index].data.slice(-length)
+    propData.datasets[0].data = propData.datasets[0].data.slice(-length)
+    if (prop2) {
+      propData.datasets[1].data = propData.datasets[1].data.slice(-length)
+    }
   }
 }
 
@@ -113,16 +118,36 @@ merge(memoryOptions, {
 })
 
 const initData = {
-  command: {labels: [], datasets: [{label: '命令执行数/秒', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}]},
-  memory:  {labels: [], datasets: [{label: '内存使用', borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]},
+  command: {
+    labels: [],
+    datasets: [
+      {label: '命令执行数/秒', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
+    ]
+  },
+  memory: {
+    labels: [],
+    datasets: [
+      {label: '内存使用', borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
+  },
   network: {
-    labels: [], datasets: [
+    labels: [],
+    datasets: [
       {label: '网络输入（Kb/s）', borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
       {label: '网络输出（Kb/s）', borderColor: PREDEFINE_COLORS[3], ...cloneDeep(dataset)}
     ]
   },
-  keyTotal: {labels: [], datasets: [{label: '键总数', borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}]},
-  client: {labels: [], datasets: [{label: '客户端数量', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}]},
+  // keyTotal: {
+  //   labels: [],
+  //   datasets: [
+  //     {label: '键总数', borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
+  //   ]
+  // },
+  // client: {
+  //   labels: [],
+  //   datasets: [
+  //     {label: '客户端数量', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
+  //   ]
+  // },
 }
 let chartData = ref(cloneDeep(initData))
 
