@@ -1,22 +1,24 @@
 <script setup>
 import {meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
 import {Line} from 'vue-chartjs'
-import {Chart as ChartJS, Legend, LinearScale, LineController, LineElement, PointElement, TimeScale} from 'chart.js'
+import {Chart as ChartJS, Legend, LinearScale, LineController, LineElement, PointElement, TimeScale, CategoryScale} from 'chart.js'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
-import {cloneDeep} from 'lodash'
+import {cloneDeep, merge} from 'lodash'
 import NodeList from '@/views/ext/NodeList.vue'
 import {useI18n} from 'vue-i18n'
 
 // 只注册必要的组件即可
 // https://chartjs.cn/docs/latest/getting-started/integration.html
-ChartJS.register(LineController, LineElement, PointElement, TimeScale, LinearScale, Legend)
+ChartJS.register(LineController, LineElement, PointElement, TimeScale, LinearScale, Legend, CategoryScale)
+// ChartJS.overrides.line.maintainAspectRatio = false
 
 const { t } = useI18n()
 
 const share = inject('share')
 const node = ref('')         // 指定节点
 const autoRefresh     = ref(true)
-const refreshInterval = ref(50)
+const refreshInterval = ref(5)
+const maxDataCount   = ref(100)
 
 // 从后台获取原始数据
 async function getData() {
@@ -39,11 +41,12 @@ function setChartData(label, res, prop1, prop2, index = 0) {
   let propData = chartData.value[prop1]
   propData.labels.push(label)
   propData.datasets[index].data.push(res[prop2])
-  // 数组仅保留前1000个，避免数据过多卡死、
-  // if (propData.labels > 1000) {
-  //   propData.labels = propData.labels.slice(-1000)
-  //   propData.datasets[index].data = propData.datasets[index].data.slice(-1000)
-  // }
+  // 数组仅保留前N个，避免数据过多程序卡顿
+  const length = maxDataCount.value
+  if (propData.labels > length) {
+    propData.labels = propData.labels.slice(-length)
+    propData.datasets[index].data = propData.datasets[index].data.slice(-length)
+  }
 }
 
 // chart.js配置项
@@ -62,7 +65,7 @@ const options = {
       // 控制刻度显示数量
       ticks: {
         align: 'center',  // 刻度居中
-        maxTicksLimit: 5, // 最多显示5个主刻度
+        maxTicksLimit: 10, // 最多显示N个主刻度
         autoSkip: true,   // 自动跳过部分刻度
       },
       bounds: 'ticks', // 确保坐标轴从第一个刻度开始，到最后一个刻度结束
@@ -76,6 +79,22 @@ const dataset = {
   data: [],
   tension: 0.4  // 线条张力、平滑度
 }
+
+const memoryOptions = cloneDeep(options)
+merge(memoryOptions, {
+  scales: {
+    y: {
+      beginAtZero: true, // 从零开始
+      ticks: {
+        // 关键：修改 Y 轴刻度的显示单位
+        callback: function (value) {
+          const valueInMB = value / (1024 * 1024) // 字节转 MB
+          return valueInMB.toFixed(1) + ' M' // 保留 1 位小数
+        }
+      },
+    }
+  }
+})
 
 const initData = {
   command: {labels: [], datasets: [{label: '命令执行数/秒', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}]},
@@ -101,7 +120,7 @@ function resetData() {
   <div class="redis-chart">
     <div class="me-flex">
       <div class="left">
-        <me-button @click="resetData" icon="el-icon-delete"  info="清空数据"/>
+        <me-button @click="resetData" icon="el-icon-delete"  info="清空数据" placement="top"/>
         <el-dropdown placement="bottom-start" :hide-on-click="false" :teleported="false">
           <me-icon class="refresh icon-btn" icon="el-icon-refresh" @click="getData" style="margin-left: 20px"/>
           <template #dropdown>
@@ -117,6 +136,13 @@ function resetData() {
                   <template #suffix>秒</template>
                 </el-input-number>
               </el-dropdown-item>
+              <el-dropdown-item>
+                <span>保留数据</span>
+                <el-input-number v-model.number="maxDataCount" :min="10" :max="1000" :controls="false"
+                                 style="width: 80px; margin-left: 10px">
+                  <template #suffix>个</template>
+                </el-input-number>
+              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -128,7 +154,7 @@ function resetData() {
 
     <div class="charts">
       <div class="chart"><Line :data="cloneDeep(chartData.command)" :options/></div>
-      <div class="chart"><Line :data="cloneDeep(chartData.memory)" :options/></div>
+      <div class="chart"><Line :data="cloneDeep(chartData.memory)" :options="memoryOptions"/></div>
       <div class="chart"><Line :data="cloneDeep(chartData.network)" :options/></div>
       <!--
       <div class="chart"><Line :data="cloneDeep(chartData.keyTotal)" :options/></div>
