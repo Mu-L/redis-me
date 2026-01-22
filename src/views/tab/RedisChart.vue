@@ -5,13 +5,18 @@ import {Chart as ChartJS, Legend, LinearScale, LineController, LineElement, Poin
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import {cloneDeep} from 'lodash'
 import NodeList from '@/views/ext/NodeList.vue'
+import {useI18n} from 'vue-i18n'
 
 // 只注册必要的组件即可
 // https://chartjs.cn/docs/latest/getting-started/integration.html
 ChartJS.register(LineController, LineElement, PointElement, TimeScale, LinearScale, Legend)
 
+const { t } = useI18n()
+
 const share = inject('share')
 const node = ref('')         // 指定节点
+const autoRefresh     = ref(true)
+const refreshInterval = ref(50)
 
 // 从后台获取原始数据
 async function getData() {
@@ -69,15 +74,20 @@ const options = {
 // chart.js数据配置项
 const dataset = {
   data: [],
-  tension: 0.4
+  tension: 0.4  // 线条张力、平滑度
 }
 
 const initData = {
-  keyTotal: {labels: [], datasets: [{label: '键总数', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}]},
-  client: {labels: [], datasets: [{label: '客户端数量', borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]},
-  command: {labels: [], datasets: [{label: '命令执行数/秒', borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)}]},
-  memory: {labels: [], datasets: [{label: '内存使用', borderColor: PREDEFINE_COLORS[3], ...cloneDeep(dataset)}]},
-  network: {labels: [], datasets: [{label: '网络输入（Kb/s）', borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}, {label: '网络输出（Kb/s）', ...cloneDeep(dataset)}]}
+  command: {labels: [], datasets: [{label: '命令执行数/秒', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}]},
+  memory:  {labels: [], datasets: [{label: '内存使用', borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]},
+  network: {
+    labels: [], datasets: [
+      {label: '网络输入（Kb/s）', borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
+      {label: '网络输出（Kb/s）', borderColor: PREDEFINE_COLORS[3], ...cloneDeep(dataset)}
+    ]
+  },
+  keyTotal: {labels: [], datasets: [{label: '键总数', borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}]},
+  client: {labels: [], datasets: [{label: '客户端数量', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}]},
 }
 let chartData = ref(cloneDeep(initData))
 
@@ -91,8 +101,25 @@ function resetData() {
   <div class="redis-chart">
     <div class="me-flex">
       <div class="left">
-        <me-button @click="getData"   icon="el-icon-refresh" info="刷新数据" type="primary" plain></me-button>
         <me-button @click="resetData" icon="el-icon-delete"  info="清空数据"/>
+        <el-dropdown placement="bottom-start" :hide-on-click="false" :teleported="false">
+          <me-icon class="refresh icon-btn" icon="el-icon-refresh" @click="getData" style="margin-left: 20px"/>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>
+                <span>自动刷新</span>
+                <el-switch v-model="autoRefresh" style="margin-left: 10px"> 自动刷新</el-switch>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <span>刷新间隔</span>
+                <el-input-number v-model.number="refreshInterval" :min="1" :max="60" :controls="false"
+                                 style="width: 80px; margin-left: 10px">
+                  <template #suffix>秒</template>
+                </el-input-number>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
       <div class="right">
         <node-list v-model="node" style="margin-left: 10px" init-node/>
@@ -119,6 +146,23 @@ function resetData() {
 
   display: flex;
   flex-direction: column;
+
+  .left {
+    display: flex;
+  }
+
+  :deep(.el-input-group__prepend) {
+    padding: 0 10px 0 0;
+  }
+
+  :deep(.el-input-group__append) {
+    width: 42px;
+  }
+
+  .refresh {
+    font-size: 20px;
+    color: var(--el-color-success);
+  }
 
   .charts {
     flex-grow: 1;

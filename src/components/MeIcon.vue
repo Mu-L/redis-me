@@ -35,12 +35,19 @@ defineProps({
     </template>
 
     <!-- 图标 + 文字 -->
-    <template v-else>
+    <template v-else-if="name">
       <el-icon v-if="icon.startsWith('el-icon-')">
         <Component :is="icon"/>
       </el-icon>
       <SvgIcon v-else :name="icon"/>
       <span class="name" v-if="name">{{ name }}</span>
+    </template>
+
+    <template v-else>
+      <el-icon v-if="icon.startsWith('el-icon-')">
+        <Component :is="icon"/>
+      </el-icon>
+      <SvgIcon v-else :name="icon"/>
     </template>
   </div>
 </template>
