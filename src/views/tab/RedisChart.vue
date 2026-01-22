@@ -24,20 +24,39 @@ const autoRefresh     = ref(true)
 const refreshInterval = ref(5)
 const maxDataCount   = ref(100)
 
+// 加载时就获取1次数据
+getData()
+
+// 监控开关
+watch(autoRefresh, (val) => {
+  if (val) {
+    getData()
+  } else {
+    clearTimeout(timer)
+  }
+})
+
 // 从后台获取原始数据
+let timer = null
 async function getData() {
   try {
     const res = await meInvoke('chart', {id: share.conn.id, node: node.value})
     const label = new Date()
-    // setChartData(label, res, 'keyTotal', 'keyTotal')
-    // setChartData(label, res, 'client', 'connectedClients')
     setChartData(label, res, 'command', 'instantaneousOpsPerSec')
     setChartData(label, res, 'memory', 'usedMemory')
     setChartData(label, res, 'network', 'instantaneousInputKbps', 'instantaneousOutputKbps')
+    // setChartData(label, res, 'keyTotal', 'keyTotal')
+    // setChartData(label, res, 'client', 'connectedClients')
   } catch (e) {
     meLog('get chart data error', e)
   }
+
+  if (autoRefresh.value) {
+    timer = setTimeout(getData, refreshInterval.value * 1000)
+  }
 }
+
+
 
 // 简化多个属性设置
 function setChartData(label, res, prop0, prop1, prop2) {
@@ -133,7 +152,7 @@ const initData = {
     labels: [],
     datasets: [
       {label: '网络输入（Kb/s）', borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
-      {label: '网络输出（Kb/s）', borderColor: PREDEFINE_COLORS[3], ...cloneDeep(dataset)}
+      {label: '网络输出（Kb/s）', borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
     ]
   },
   // keyTotal: {
@@ -163,7 +182,8 @@ function resetData() {
       <div class="left">
         <me-button @click="resetData" icon="el-icon-delete"  info="清空数据" placement="top"/>
         <el-dropdown placement="bottom-start" :hide-on-click="false" :teleported="false">
-          <me-icon class="refresh icon-btn" icon="el-icon-refresh" @click="getData" style="margin-left: 20px"/>
+          <me-icon class="refresh icon-btn" :class="autoRefresh ? 'rotating' : ''"
+                   icon="el-icon-refresh-right" @click="getData" style="margin-left: 20px"/>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item>
@@ -227,17 +247,27 @@ function resetData() {
   }
 
   .refresh {
-    font-size: 20px;
+    font-size: 24px;
     color: var(--el-color-success);
   }
 
   .charts {
+    margin-top: -20px;
     flex-grow: 1;
 
     .chart {
       height: 33%;
       padding: 10px;
     }
+  }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .rotating {
+    animation: rotate 2s linear infinite;
   }
 }
 </style>
