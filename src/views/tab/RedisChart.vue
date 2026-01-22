@@ -1,15 +1,19 @@
 <script setup>
 import {meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
 import {Line} from 'vue-chartjs'
-import {Chart as ChartJS, Legend, LinearScale, LineController, LineElement, PointElement, TimeScale, CategoryScale} from 'chart.js'
+import {
+  Chart as ChartJS, Legend, LinearScale, LineController, LineElement, PointElement, TimeScale, CategoryScale,
+  Tooltip
+} from 'chart.js'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import {cloneDeep, merge} from 'lodash'
 import NodeList from '@/views/ext/NodeList.vue'
 import {useI18n} from 'vue-i18n'
+import dayjs from 'dayjs'
 
 // 只注册必要的组件即可
 // https://chartjs.cn/docs/latest/getting-started/integration.html
-ChartJS.register(LineController, LineElement, PointElement, TimeScale, LinearScale, Legend, CategoryScale)
+ChartJS.register(LineController, LineElement, PointElement, TimeScale, LinearScale, Legend, CategoryScale, Tooltip)
 // ChartJS.overrides.line.maintainAspectRatio = false
 
 const { t } = useI18n()
@@ -71,7 +75,19 @@ const options = {
       bounds: 'ticks', // 确保坐标轴从第一个刻度开始，到最后一个刻度结束
       offset: false    // 在两端留出空白
     }
-  }
+  },
+  plugins: {
+    tooltip: {
+      callbacks: {
+        // 格式化工具提示的标题（时间）
+        title: function(context) {
+          // context[0]包含第一个数据点
+          const dt = dayjs(context[0].parsed.x);
+          return dt.format('YYYY-MM-DD HH:mm:ss');
+        }
+      }
+    },
+  },
 }
 
 // chart.js数据配置项
