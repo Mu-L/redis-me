@@ -1,9 +1,10 @@
 <script setup>
-import {meInvoke, meLog} from '@/utils/util.js'
+import {meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
 import {Line} from 'vue-chartjs'
 import {Chart as ChartJS, Legend, LinearScale, LineController, LineElement, PointElement, TimeScale} from 'chart.js'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import {cloneDeep} from 'lodash'
+import NodeList from '@/views/ext/NodeList.vue'
 
 // 只注册必要的组件即可
 // https://chartjs.cn/docs/latest/getting-started/integration.html
@@ -15,17 +16,34 @@ const node = ref('')         // 指定节点
 // 从后台获取原始数据
 async function getData() {
   try {
-    const data = await meInvoke('chart', {id: share.conn.id, node: node.value})
+    const res = await meInvoke('chart', {id: share.conn.id, node: node.value})
     const label = new Date()
-    chartData.value.keyTotal.labels.push(label)
-    chartData.value.keyTotal.datasets[0].data.push(data.keyTotal)
+    setChartData(label, res, 'keyTotal', 'keyTotal')
+    setChartData(label, res, 'client', 'connectedClients')
+    setChartData(label, res, 'command', 'instantaneousOpsPerSec')
+    setChartData(label, res, 'memory', 'usedMemory')
+    setChartData(label, res, 'network', 'instantaneousInputKbps')
+    setChartData(label, res, 'network', 'instantaneousOutputKbps', 1)
   } catch (e) {
     meLog('get chart data error', e)
   }
 }
 
+// 简化多个属性设置
+function setChartData(label, res, prop1, prop2, index = 0) {
+  let propData = chartData.value[prop1]
+  propData.labels.push(label)
+  propData.datasets[index].data.push(res[prop2])
+  // 数组仅保留前1000个，避免数据过多卡死、
+  // if (propData.labels > 1000) {
+  //   propData.labels = propData.labels.slice(-1000)
+  //   propData.datasets[index].data = propData.datasets[index].data.slice(-1000)
+  // }
+}
+
 // chart.js配置项
 const options = {
+  maintainAspectRatio: false,
   // x轴为日期格式，显示为秒
   scales: {
     x: {
@@ -55,13 +73,12 @@ const dataset = {
 }
 
 const initData = {
-  keyTotal: {labels: [], datasets: [{label: '键总数', ...dataset}]},
-  client: {labels: [], datasets: [{label: '客户端数量', ...dataset}]},
-  command: {labels: [], datasets: [{label: '命令执行数/秒', ...dataset}]},
-  memory: {labels: [], datasets: [{label: '内存使用', ...dataset}]},
-  network: {labels: [], datasets: [{label: '网络输入', ...dataset}, {label: '网络输出', ...dataset}]}
+  keyTotal: {labels: [], datasets: [{label: '键总数', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}]},
+  client: {labels: [], datasets: [{label: '客户端数量', borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]},
+  command: {labels: [], datasets: [{label: '命令执行数/秒', borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)}]},
+  memory: {labels: [], datasets: [{label: '内存使用', borderColor: PREDEFINE_COLORS[3], ...cloneDeep(dataset)}]},
+  network: {labels: [], datasets: [{label: '网络输入（Kb/s）', borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}, {label: '网络输出（Kb/s）', ...cloneDeep(dataset)}]}
 }
-
 let chartData = ref(cloneDeep(initData))
 
 // 重置数据
@@ -72,10 +89,24 @@ function resetData() {
 
 <template>
   <div class="redis-chart">
-    <el-button @click="getData">获取数据</el-button>
-    <el-button @click="resetData">重置数据</el-button>
-    <div class="chart">
-      <Line :data="cloneDeep(chartData.keyTotal)" :options/>
+    <div class="me-flex">
+      <div class="left">
+        <me-button @click="getData"   icon="el-icon-refresh" info="刷新数据" type="primary" plain></me-button>
+        <me-button @click="resetData" icon="el-icon-delete"  info="清空数据"/>
+      </div>
+      <div class="right">
+        <node-list v-model="node" style="margin-left: 10px" init-node/>
+      </div>
+    </div>
+
+    <div class="charts">
+      <div class="chart"><Line :data="cloneDeep(chartData.command)" :options/></div>
+      <div class="chart"><Line :data="cloneDeep(chartData.memory)" :options/></div>
+      <div class="chart"><Line :data="cloneDeep(chartData.network)" :options/></div>
+      <!--
+      <div class="chart"><Line :data="cloneDeep(chartData.keyTotal)" :options/></div>
+      <div class="chart"><Line :data="cloneDeep(chartData.client)" :options/></div>
+      -->
     </div>
   </div>
 </template>
@@ -84,10 +115,18 @@ function resetData() {
 .redis-chart {
   height: 100%;
   overflow-y: auto;
-  border: 2px solid red;
+  //border: 2px solid red;
 
-  .chart {
-    height: 25vh;
+  display: flex;
+  flex-direction: column;
+
+  .charts {
+    flex-grow: 1;
+
+    .chart {
+      height: 33%;
+      padding: 10px;
+    }
   }
 }
 </style>
