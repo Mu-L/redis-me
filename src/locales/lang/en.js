@@ -377,6 +377,15 @@ export default {
     noKeySelected: 'No Key Selected'
   },
 
+  redisChart: {
+    command: 'Commands / Sec',
+    memory: 'Used Memory',
+    networkIn: 'Network Input（Kb/s）',
+    networkOut: 'Network Output（Kb/s）',
+    keyTotal: 'Key Count',
+    client: 'Clients'
+  },
+
   keyMain: {
     keyword: 'Enter to Search',
     exactSearch: 'Exact Search',
@@ -387,5 +396,4 @@ export default {
     loadMore: 'Load More',
     loadAll: 'Load All',
   }
-
 }

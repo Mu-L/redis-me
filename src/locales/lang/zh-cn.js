@@ -379,6 +379,15 @@ export default {
     noKeySelected: '未选择任何键'
   },
 
+  redisChart: {
+    command: '命令执行数/秒',
+    memory: '内存使用',
+    networkIn: '网络输入（Kb/s）',
+    networkOut: '网络输出（Kb/s）',
+    keyTotal: '键数量',
+    client: '客户端数量'
+  },
+
   keyMain: {
     keyword: 'Enter 键进行搜索',
     exactSearch: '精确匹配',
@@ -389,5 +398,4 @@ export default {
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
   }
-
 }

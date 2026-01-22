@@ -16,13 +16,13 @@ import dayjs from 'dayjs'
 ChartJS.register(LineController, LineElement, PointElement, TimeScale, LinearScale, Legend, CategoryScale, Tooltip)
 // ChartJS.overrides.line.maintainAspectRatio = false
 
-const { t } = useI18n()
+const {t} = useI18n()
 
 const share = inject('share')
 const node = ref('')         // 指定节点
-const autoRefresh     = ref(true)
+const autoRefresh = ref(true)
 const refreshInterval = ref(5)
-const maxDataCount   = ref(100)
+const maxDataCount = ref(100)
 
 // 监控开关
 let timer = null
@@ -43,8 +43,6 @@ async function getData() {
     setChartData(label, res, 'command', 'instantaneousOpsPerSec')
     setChartData(label, res, 'memory', 'usedMemory')
     setChartData(label, res, 'network', 'instantaneousInputKbps', 'instantaneousOutputKbps')
-    // setChartData(label, res, 'keyTotal', 'keyTotal')
-    // setChartData(label, res, 'client', 'connectedClients')
   } catch (e) {
     meLog('get chart data error', e)
   }
@@ -96,10 +94,10 @@ const options = {
     tooltip: {
       callbacks: {
         // 格式化工具提示的标题（时间）
-        title: function(context) {
+        title: function (context) {
           // context[0]包含第一个数据点
-          const dt = dayjs(context[0].parsed.x);
-          return dt.format('YYYY-MM-DD HH:mm:ss');
+          const dt = dayjs(context[0].parsed.x)
+          return dt.format('YYYY-MM-DD HH:mm:ss')
         }
       }
     },
@@ -128,43 +126,32 @@ merge(memoryOptions, {
   }
 })
 
-const initData = {
+const initData = computed(() => ({
   command: {
     labels: [],
     datasets: [
-      {label: '命令执行数/秒', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
+      {label: t('redisChart.command'), borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
     ]
   },
   memory: {
     labels: [],
     datasets: [
-      {label: '内存使用', borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
+      {label: t('redisChart.memory'), borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
   },
   network: {
     labels: [],
     datasets: [
-      {label: '网络输入（Kb/s）', borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
-      {label: '网络输出（Kb/s）', borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
+      {label: t('redisChart.networkIn'), borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
+      {label: t('redisChart.networkOut'), borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
     ]
   },
-  // keyTotal: {
-  //   labels: [],
-  //   datasets: [
-  //     {label: '键总数', borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
-  //   ]
-  // },
-  // client: {
-  //   labels: [],
-  //   datasets: [
-  //     {label: '客户端数量', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
-  //   ]
-  // },
-}
-let chartData = ref(cloneDeep(initData))
+}))
+
+let chartData = ref(cloneDeep(initData.value))
 
 // 重置数据
 function resetData() {
-  chartData.value = cloneDeep(initData)
+  chartData.value = cloneDeep(initData.value)
 }
 </script>
 
@@ -172,7 +159,7 @@ function resetData() {
   <div class="redis-chart">
     <div class="me-flex">
       <div class="left">
-        <me-button @click="resetData" icon="el-icon-delete"  info="清空数据" placement="top"/>
+        <me-button @click="resetData" icon="el-icon-delete" info="清空数据" placement="top"/>
         <el-dropdown placement="bottom-start" :hide-on-click="false" :teleported="false">
           <me-icon class="refresh icon-btn" :class="autoRefresh ? 'rotating' : ''"
                    icon="el-icon-refresh-right" @click="getData" style="margin-left: 20px"/>
@@ -206,9 +193,15 @@ function resetData() {
     </div>
 
     <div class="charts">
-      <div class="chart"><Line :data="cloneDeep(chartData.command)" :options/></div>
-      <div class="chart"><Line :data="cloneDeep(chartData.memory)" :options="memoryOptions"/></div>
-      <div class="chart"><Line :data="cloneDeep(chartData.network)" :options/></div>
+      <div class="chart">
+        <Line :data="cloneDeep(chartData.command)" :options/>
+      </div>
+      <div class="chart">
+        <Line :data="cloneDeep(chartData.memory)" :options="memoryOptions"/>
+      </div>
+      <div class="chart">
+        <Line :data="cloneDeep(chartData.network)" :options/>
+      </div>
       <!--
       <div class="chart"><Line :data="cloneDeep(chartData.keyTotal)" :options/></div>
       <div class="chart"><Line :data="cloneDeep(chartData.client)" :options/></div>
@@ -254,8 +247,12 @@ function resetData() {
   }
 
   @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .rotating {
