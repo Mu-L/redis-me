@@ -28,6 +28,7 @@
     "@tauri-apps/plugin-window-state": "~2.4.1",
     "@vueuse/core": "^12.8.2",
     "chart.js": "^4.5.1",
+    "chartjs-adapter-dayjs-4": "^1.0.4",
     "codemirror": "^5.65.20",
     "codemirror-editor-vue3": "^2.8.0",
     "dayjs": "^1.11.19",
