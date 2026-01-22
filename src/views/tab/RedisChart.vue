@@ -26,7 +26,8 @@ const maxDataCount = ref(100)
 
 // 监控开关
 let timer = null
-watch(autoRefresh, (val) => {
+getData()
+watch([autoRefresh, refreshInterval], (val) => {
   clearTimeout(timer)
   if (val) {
     timer = setInterval(getData, refreshInterval.value * 1000)
@@ -35,7 +36,6 @@ watch(autoRefresh, (val) => {
 onUnmounted(() => clearTimeout(timer))
 
 // 从后台获取原始数据
-
 async function getData() {
   try {
     const res = await meInvoke('chart', {id: share.conn.id, node: node.value})
@@ -160,7 +160,12 @@ watch(() => meTauri.settings.language, () => {
 // 重置数据
 function resetData() {
   chartData.value = cloneDeep(initData.value)
+  getData()
 }
+
+watch(node, () => {
+  resetData()
+})
 </script>
 
 <template>
