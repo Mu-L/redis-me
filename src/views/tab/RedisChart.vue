@@ -24,20 +24,18 @@ const autoRefresh     = ref(true)
 const refreshInterval = ref(5)
 const maxDataCount   = ref(100)
 
-// 加载时就获取1次数据
-getData()
-
 // 监控开关
+let timer = null
 watch(autoRefresh, (val) => {
+  clearTimeout(timer)
   if (val) {
-    getData()
-  } else {
-    clearTimeout(timer)
+    timer = setInterval(getData, refreshInterval.value * 1000)
   }
-})
+}, {immediate: true})
+onUnmounted(() => clearTimeout(timer))
 
 // 从后台获取原始数据
-let timer = null
+
 async function getData() {
   try {
     const res = await meInvoke('chart', {id: share.conn.id, node: node.value})
@@ -50,13 +48,7 @@ async function getData() {
   } catch (e) {
     meLog('get chart data error', e)
   }
-
-  if (autoRefresh.value) {
-    timer = setTimeout(getData, refreshInterval.value * 1000)
-  }
 }
-
-
 
 // 简化多个属性设置
 function setChartData(label, res, prop0, prop1, prop2) {
