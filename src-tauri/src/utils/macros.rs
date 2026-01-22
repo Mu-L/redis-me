@@ -8,7 +8,7 @@ macro_rules! api_model {
         ),+
         $(,)?
     }) => {
-        #[derive(Serialize, Deserialize, Debug, Clone)]
+        #[derive(Serialize, Deserialize, Debug, Clone, Default)]
         #[serde(rename_all = "camelCase")]
         pub struct $struct {
             $(
