@@ -130,24 +130,32 @@ const initData = computed(() => ({
   command: {
     labels: [],
     datasets: [
-      {label: t('redisChart.command'), borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
+      {label: '命令执行数/秒', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
     ]
   },
   memory: {
     labels: [],
     datasets: [
-      {label: t('redisChart.memory'), borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
+      {label: '内存使用', borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
   },
   network: {
     labels: [],
     datasets: [
-      {label: t('redisChart.networkIn'), borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
-      {label: t('redisChart.networkOut'), borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
+      {label:  '网络输入（Kb/s）', borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
+      {label: '网络输出（Kb/s）', borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
     ]
   },
 }))
 
 let chartData = ref(cloneDeep(initData.value))
+
+// 国际化在此设置，保证可以实时响应语言切换
+watch(() => meTauri.settings.language, () => {
+  chartData.value.command.datasets[0].label = t('redisChart.command')
+  chartData.value.memory.datasets[0].label = t('redisChart.memory')
+  chartData.value.network.datasets[0].label = t('redisChart.networkIn')
+  chartData.value.network.datasets[1].label = t('redisChart.networkOut')
+}, {immediate: true})
 
 // 重置数据
 function resetData() {
