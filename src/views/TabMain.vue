@@ -37,5 +37,10 @@ const share = inject('share')
   :deep(.el-tab-pane) {
     height: 100%;
   }
+
+  // 调整标签页的宽度以便可以显示更多标签（默认20px）
+  :deep(.el-tabs__item) {
+    padding: 0 15px;
+  }
 }
 </style>
