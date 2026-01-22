@@ -49,12 +49,18 @@ api_model!(SslOption {
 // 信息 图形
 api_model!(RedisChart {
     node: String,
-    keys: u64,            // 键数量 db0:keys=1558,expires=0,avg_ttl=0,subexpiry=0; db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
-    clients: u64,         // 客户端数量    connected_clients
-    commands: f64,        // 命令执行数/秒 instantaneous_ops_per_sec
-    memory: f64,          // 内存使用量    used_memory
-    network_input: f64,   // 网络输入      instantaneous_input_kbps
-    network_output: f64   // 网络输出      instantaneous_output_kbps
+
+    // db0:keys=1558,expires=0,avg_ttl=0,subexpiry=0; db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
+    key_total: u64,                  // 键总数
+    connected_clients: u64,          // 客户端数量
+    instantaneous_ops_per_sec: f64,  // 命令执行数/秒
+    used_memory: f64,                // 内存使用量
+    instantaneous_input_kbps: f64,   // 网络输入
+    instantaneous_output_kbps: f64,  // 网络输出
+
+    // 计算缓存命中率: Cache Hit Ratio = keyspace_hits / (keyspace_hits + keyspace_misses)
+    keyspace_hits: u64,              // 在主字典中成功查找键的数量
+    keyspace_misses: u64,            // 在主字典中查找键失败的数量
 });
 
 // 信息 info命令
@@ -104,16 +110,16 @@ api_model!(ScanCursor {
     finished: bool,
 });
 
-impl Default for ScanCursor {
-    fn default() -> Self {
-        ScanCursor {
-            ready_nodes: vec![],
-            now_node: "".to_string(),
-            now_cursor: 0,
-            finished: false,
-        }
-    }
-}
+// impl Default for ScanCursor {
+//     fn default() -> Self {
+//         ScanCursor {
+//             ready_nodes: vec![],
+//             now_node: "".to_string(),
+//             now_cursor: 0,
+//             finished: false,
+//         }
+//     }
+// }
 
 // 扫描结果
 api_model!(ScanResult {

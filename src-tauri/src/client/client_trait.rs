@@ -1,8 +1,6 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{
-    AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string,
-};
+use crate::utils::util::{AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string, info_to_chart};
 use anyhow::bail;
 use chrono::{Local, Utc};
 use log::info;
@@ -48,11 +46,16 @@ pub trait RedisMeClient: Send + Sync {
 
     fn info(&self, node: Option<String>) -> AnyResult<RedisInfo>;
 
+    fn info_list(&self) -> AnyResult<Vec<RedisInfo>>;
+
     fn chart(&self, node: Option<String>) -> AnyResult<RedisChart> {
         info_to_chart(self.info(node)?)
     }
 
-    fn info_list(&self) -> AnyResult<Vec<RedisInfo>>;
+    fn chart_list(&self) -> AnyResult<Vec<RedisChart>> {
+        let info_list = self.info_list()?;
+        info_list.into_iter().map(|info| info_to_chart(info)).collect()
+    }
 
     fn node_list(&self) -> AnyResult<Vec<RedisNode>>;
 
@@ -428,59 +431,6 @@ pub fn monitor_stop0(running: Arc<AtomicBool>) -> AnyResult<()> {
     info!("monitor stop");
     running.store(false, Ordering::Relaxed);
     Ok(())
-}
-
-// info信息转换成图表数据
-pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
-    let mut chart = RedisChart {
-        node: redis_info.node,
-        keys: 0,
-        clients: 0,
-        commands: 0.0,
-        memory: 0.0,
-        network_input: 0.0,
-        network_output: 0.0,
-    };
-
-    let mut keys = 0;
-    for line in redis_info.info.lines() {
-        if line.is_empty() || line.starts_with("#") {
-            continue;
-        }
-
-        if let Some((key, value)) = line.split_once(":")
-            .map(|(k, v)| (k.trim(), v.trim())) {
-            match key {
-                "connected_clients" => chart.clients = value.parse::<>()?,
-                "instantaneous_ops_per_sec" => chart.commands = value.parse::<>()?,
-                "used_memory" => chart.memory = value.parse::<>()?,
-                "instantaneous_input_kbps" => chart.network_input = value.parse::<>()?,
-                "instantaneous_output_kbps" => chart.network_output = value.parse::<>()?,
-                _ => {
-                    // db0:keys=14410,expires=3997,avg_ttl=736124073
-                    // db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
-                    // 匹配以 db 开头，后跟 1-2 位数字的 key
-                    if key.starts_with("db") && key.len() >= 3 {
-                        let num_part = &key[2..]; // 截取 db 后的数字部分
-                        if num_part.chars().all(|c| c.is_ascii_digit()) && num_part.len() <= 2 {
-                            // 解析 value 中的 keys 数值，包含完整的错误处理
-                            let size = value.split(',')
-                                .next() // 取第一个逗号前的部分 (keys=14410)
-                                .and_then(|part| part.split_once('=')) // 分割 key=value
-                                .and_then(|(_, val)| val.parse::<u64>().ok()); // 解析数值
-
-                            // 3. 更新数据结构（无 unwrap，安全处理解析失败）
-                            if let Some(size) = size {
-                                keys += size;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    chart.keys = keys;
-    Ok(chart)
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)
