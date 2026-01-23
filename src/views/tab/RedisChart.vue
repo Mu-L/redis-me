@@ -22,11 +22,10 @@ const share = inject('share')
 const node = ref('')         // 指定节点
 const autoRefresh = ref(true)
 const refreshInterval = ref(5)
-const maxDataCount = ref(100)
+const maxDataCount = ref(720)  // 默认每5秒获取一次数据，保留720个数据。即3600秒（1个小时）
 
-// 监控开关
+// 自动刷新及刷新间隔配置
 let timer = null
-getData()
 watch([autoRefresh, refreshInterval], (val) => {
   clearTimeout(timer)
   if (val) {
@@ -35,7 +34,18 @@ watch([autoRefresh, refreshInterval], (val) => {
 }, {immediate: true})
 onUnmounted(() => clearTimeout(timer))
 
+// 图表实例，手动刷新
+const commandRef = useTemplateRef('command')
+const memoryRef = useTemplateRef('memory')
+const networkRef = useTemplateRef('network')
+function refreshInstance(){
+  commandRef.value.chart.update()
+  memoryRef.value.chart.update()
+  networkRef.value.chart.update()
+}
+
 // 从后台获取原始数据
+getData()
 async function getData() {
   try {
     const res = await meInvoke('chart', {id: share.conn.id, node: node.value})
@@ -43,6 +53,7 @@ async function getData() {
     setChartData(label, res, 'command', 'instantaneousOpsPerSec')
     setChartData(label, res, 'memory', 'usedMemory')
     setChartData(label, res, 'network', 'instantaneousInputKbps', 'instantaneousOutputKbps')
+    refreshInstance()
   } catch (e) {
     meLog('get chart data error', e)
   }
@@ -147,7 +158,8 @@ const initData = computed(() => ({
   },
 }))
 
-let chartData = ref(cloneDeep(initData.value))
+// 避免vue的响应式更新和chartjs的响应式更新冲突（无限循环），使用shallowRef
+let chartData = shallowRef(cloneDeep(initData.value))
 
 // 国际化在此设置，保证可以实时响应语言切换
 watch(() => meTauri.settings.language, () => {
@@ -207,18 +219,14 @@ watch(node, () => {
 
     <div class="charts">
       <div class="chart">
-        <Line :data="cloneDeep(chartData.command)" :options/>
+        <Line ref="command" :data="chartData.command" :options/>
       </div>
       <div class="chart">
-        <Line :data="cloneDeep(chartData.memory)" :options="memoryOptions"/>
+        <Line ref="memory" :data="chartData.memory" :options="memoryOptions"/>
       </div>
       <div class="chart">
-        <Line :data="cloneDeep(chartData.network)" :options/>
+        <Line ref="network" :data="chartData.network" :options/>
       </div>
-      <!--
-      <div class="chart"><Line :data="cloneDeep(chartData.keyTotal)" :options/></div>
-      <div class="chart"><Line :data="cloneDeep(chartData.client)" :options/></div>
-      -->
     </div>
   </div>
 </template>
