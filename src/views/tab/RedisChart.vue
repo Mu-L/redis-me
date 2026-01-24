@@ -10,6 +10,7 @@ import {cloneDeep, merge} from 'lodash'
 import NodeList from '@/views/ext/NodeList.vue'
 import {useI18n} from 'vue-i18n'
 import dayjs from 'dayjs'
+import {useDark} from '@vueuse/core'
 
 // 只注册必要的组件即可
 // https://chartjs.cn/docs/latest/getting-started/integration.html
@@ -22,7 +23,7 @@ const share = inject('share')
 const node = ref('')           // 指定节点
 const autoRefresh = ref(true)  // 自动刷新
 const refreshInterval = ref(5) // 刷新间隔（秒）
-const keepMinutes = ref(30)    // 保留N分钟的数据, 超过则砍一半(1个个截取，图表总跳动)
+const keepMinutes = ref(60)    // 保留N分钟的数据, 超过则砍一半(1个个截取，图表总跳动)
 const maxDataCount = computed(() => keepMinutes.value * 60 / refreshInterval.value) // 最多保存N个数据
 
 // 自动刷新及刷新间隔配置
@@ -81,8 +82,8 @@ function setChartData(label, res, prop0, prop1, prop2) {
   }
 }
 
-// chart.js配置项
-const options = {
+// chart.js配置项（基本配置项）
+const baseOptions = {
   maintainAspectRatio: false,
   // x轴为日期格式，显示为秒
   scales: {
@@ -118,27 +119,90 @@ const options = {
   },
 }
 
+// 浅色深色主题
+const lightOptions = {
+  color: '#333',
+  scales: {
+    x: {
+      ticks: {
+        color: '#666'   // 默认的X轴标签颜色
+      },
+      grid: {
+        color: 'rgba(0, 0, 0, 0.1)'   // 默认的X轴网格线颜色
+      }
+    },
+    y: {
+      ticks: {
+        color: '#666'   // 默认的Y轴标签颜色
+      },
+      grid: {
+        color: 'rgba(0, 0, 0, 0.1)'   // 默认的Y轴网格线颜色
+      }
+    }
+  }
+}
+
+const darkOptions = {
+  color: '#EEE',
+  scales: {
+    x: {
+      ticks: {
+        color: '#EEE'   // 默认的X轴标签颜色
+      },
+      grid: {
+        color: 'rgba(255, 255, 255, 0.2)'   // 默认的X轴网格线颜色
+      }
+    },
+    y: {
+      ticks: {
+        color: '#EEE'   // 默认的Y轴标签颜色
+      },
+      grid: {
+        color: 'rgba(255, 255, 255, 0.2)'   // 默认的Y轴网格线颜色
+      }
+    }
+  }
+  // backgroundColor: '#333',
+  // legend: {
+  //   labels: {
+  //     fontColor: '#ccc',
+  //   }
+  // },
+  // tooltips: {
+  //   backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  //   titleFontColor: '#000',
+  //   bodyFontColor: '#000'
+  // },
+}
+
+const isDark = useDark()
+const options = computed(() => {
+  const option = cloneDeep(baseOptions)
+  return isDark.value ? merge(option, darkOptions) : merge(option, lightOptions)
+})
+
+const memoryOptions = computed(() => {
+  return merge(cloneDeep(options.value), {
+    scales: {
+      y: {
+        beginAtZero: true, // 从零开始
+        ticks: {
+          // 关键：修改 Y 轴刻度的显示单位
+          callback: function (value) {
+            const valueInMB = value / (1024 * 1024) // 字节转 MB
+            return valueInMB.toFixed(1) + ' M' // 保留 1 位小数
+          }
+        },
+      }
+    }
+  })
+})
+
 // chart.js数据配置项
 const dataset = {
   data: [],
   tension: 0.4  // 线条张力、平滑度
 }
-
-const memoryOptions = cloneDeep(options)
-merge(memoryOptions, {
-  scales: {
-    y: {
-      beginAtZero: true, // 从零开始
-      ticks: {
-        // 关键：修改 Y 轴刻度的显示单位
-        callback: function (value) {
-          const valueInMB = value / (1024 * 1024) // 字节转 MB
-          return valueInMB.toFixed(1) + ' M' // 保留 1 位小数
-        }
-      },
-    }
-  }
-})
 
 const initData = computed(() => ({
   command: {
@@ -171,7 +235,7 @@ function resetData() {
 }
 watch(node, resetData)
 
-// 国际化在此设置，保证可以实时响应语言切换
+// 语言切换
 watch(() => meTauri.settings.language, () => {
   chartData.value.command.datasets[0].label = t('redisChart.command')
   chartData.value.memory.datasets[0].label = t('redisChart.memory')
@@ -179,6 +243,11 @@ watch(() => meTauri.settings.language, () => {
   chartData.value.network.datasets[1].label = t('redisChart.networkOut')
   chartData.value = cloneDeep(chartData.value) // 直接更新时label并没有更新，因此克隆1份，让vue进行重新渲染
 }, {immediate: true})
+
+// 主题切换
+watch(() => meTauri.settings.theme, () => {
+  refreshInstance()
+})
 </script>
 
 <template>
