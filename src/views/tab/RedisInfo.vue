@@ -78,7 +78,10 @@ const dataList = computed(() => {
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   return dataList.value.filter(d =>
-    (!key || d.key.toLowerCase().indexOf(key) > -1 || d.value.toLowerCase().indexOf(key) > -1)
+    (!key || d.key?.toLowerCase().indexOf(key) > -1
+          || d.value?.toLowerCase().indexOf(key) > -1
+          || tips.value[d.key]?.toLowerCase().indexOf(key) > -1
+    )
   )
 })
 
@@ -242,7 +245,8 @@ function goMemory() {
     <me-code :value="raw" mode="properties" read-only/>
   </me-dialog>
 
-  <me-dialog v-model="dialog.client" icon="el-icon-mic" :title="t('redisInfo.client')" width="80vw" >
+  <me-dialog v-model="dialog.client" icon="el-icon-mic" :title="t('redisInfo.client')"
+             width="80vw" :close-on-press-escape="false" :close-on-click-modal="false">
     <RedisClient :init-node="node || infoNode"/>
   </me-dialog>
 

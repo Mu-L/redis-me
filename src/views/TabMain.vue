@@ -1,83 +1,29 @@
 <script setup>
-import RedisInfo from './tab/RedisInfo.vue'
-import RedisValue from './tab/RedisValue.vue'
-import RedisSlow from './tab/RedisSlow.vue'
-import RedisTerminal from './tab/RedisTerminal.vue'
-import RedisMonitor from './tab/RedisMonitor.vue'
-import RedisPubsub from './tab/RedisPubsub.vue'
-import {useI18n} from 'vue-i18n'
+import RedisInfo from '@/views/tab/RedisInfo.vue'
+import RedisValue from '@/views/tab/RedisValue.vue'
+import RedisSlow from '@/views/tab/RedisSlow.vue'
+import RedisConsole from '@/views/tab/RedisConsole.vue'
+import RedisMonitor from '@/views/tab/RedisMonitor.vue'
+import RedisPubsub from '@/views/tab/RedisPubsub.vue'
 import RedisMemory from '@/views/tab/RedisMemory.vue'
-// import RedisDemo from '@/views/tab/RedisDemo.vue'
-// import RedisTauri from './tab/RedisTauri.vue'
-const { t } = useI18n()
-
-// const isDev = import.meta.env.DEV
+import RedisChart from '@/views/tab/RedisChart.vue'
+// import RedisTauri from '@/views/tab/RedisTauri.vue'
 
 // 共享数据
 const share = inject('share')
-// const canEdit = computed(() => !share.readonly)
 </script>
 
 <template>
   <el-tabs class="redis-tag" v-model="share.tabName">
-    <el-tab-pane name="info">
-      <template #label>
-        <me-icon :name="t('tabMain.info')" icon="el-icon-calendar"/>
-      </template>
-      <RedisInfo/>
-    </el-tab-pane>
-
-    <el-tab-pane name="value">
-      <template #label>
-        <me-icon :name="t('tabMain.value')" icon="el-icon-memo"/>
-      </template>
-      <RedisValue/>
-    </el-tab-pane>
-
-    <el-tab-pane name="console" lazy>
-      <template #label>
-        <me-icon :name="t('tabMain.console')" icon="me-icon-console"/>
-      </template>
-      <RedisTerminal/>
-    </el-tab-pane>
-
-    <el-tab-pane name="memory" lazy>
-      <template #label>
-        <me-icon :name="t('tabMain.memory')" icon="me-icon-memory"/>
-      </template>
-      <RedisMemory/>
-    </el-tab-pane>
-
-    <el-tab-pane name="slow" lazy>
-      <template #label>
-        <me-icon :name="t('tabMain.slow')" icon="me-icon-slow"/>
-      </template>
-      <RedisSlow/>
-    </el-tab-pane>
-
-    <el-tab-pane name="monitor" lazy>
-      <template #label>
-        <me-icon :name="t('tabMain.monitor')" icon="el-icon-monitor"/>
-      </template>
-      <RedisMonitor/>
-    </el-tab-pane>
-
-    <el-tab-pane name="pubsub" lazy>
-      <template #label>
-        <me-icon :name="t('tabMain.pubsub')" icon="me-icon-pubsub"/>
-      </template>
-      <RedisPubsub/>
-    </el-tab-pane>
-
-    <!--
-    <el-tab-pane name="tauri" lazy v-if="isDev">
-      <template #label>
-        <me-icon name="Tauri" icon="el-icon-data-line"/>
-      </template>
-      <RedisTauri/>
-    </el-tab-pane>
-    -->
-
+    <me-tab-pane name="info"    icon="el-icon-calendar">          <RedisInfo/>       </me-tab-pane>
+    <me-tab-pane name="value"   icon="el-icon-memo">              <RedisValue/>      </me-tab-pane>
+    <me-tab-pane name="console" icon="me-icon-console"   lazy>    <RedisConsole/>    </me-tab-pane>
+    <me-tab-pane name="memory"  icon="me-icon-memory"    lazy>    <RedisMemory/>     </me-tab-pane>
+    <me-tab-pane name="slow"    icon="me-icon-slow"      lazy>    <RedisSlow/>       </me-tab-pane>
+    <me-tab-pane name="monitor" icon="el-icon-monitor"   lazy>    <RedisMonitor/>    </me-tab-pane>
+    <me-tab-pane name="pubsub"  icon="me-icon-pubsub"    lazy>    <RedisPubsub/>     </me-tab-pane>
+    <me-tab-pane name="chart"   icon="el-icon-data-line" lazy>    <RedisChart/>      </me-tab-pane>
+<!--    <me-tab-pane name="tauri"   icon="el-icon-data-line" lazy>    <RedisTauri/>      </me-tab-pane>-->
   </el-tabs>
 </template>
 
@@ -90,6 +36,11 @@ const share = inject('share')
 
   :deep(.el-tab-pane) {
     height: 100%;
+  }
+
+  // 调整标签页的宽度以便可以显示更多标签（默认20px）
+  :deep(.el-tabs__item) {
+    padding: 0 15px;
   }
 }
 </style>

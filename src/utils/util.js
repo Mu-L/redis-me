@@ -98,9 +98,11 @@ export function mePrompt(message, options, thenFun) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // 复制文本
-export function meCopy(text) {
+export function meCopy(text, hintContent, hint = true) {
   useClipboard({legacy: true}).copy(text)
-  ElMessage({message: t('copyOk'), type: 'success'})
+  if (hint) {
+    meOk(hintContent || t('copyOk'))
+  }
 }
 
 // 随机N个字符

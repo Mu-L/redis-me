@@ -1,8 +1,6 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{
-    AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string,
-};
+use crate::utils::util::{AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string, info_to_chart};
 use anyhow::bail;
 use chrono::{Local, Utc};
 use log::info;
@@ -41,7 +39,7 @@ impl From<&RedisConn> for RedisMeBase {
 // RedisME服务接口
 pub trait RedisMeClient: Send + Sync {
     fn name(&self) -> String;
-    
+
     fn db_list(&self) -> AnyResult<Vec<RedisDB>>;
 
     fn select_db(&self, db: u8) -> AnyResult<()>;
@@ -49,6 +47,15 @@ pub trait RedisMeClient: Send + Sync {
     fn info(&self, node: Option<String>) -> AnyResult<RedisInfo>;
 
     fn info_list(&self) -> AnyResult<Vec<RedisInfo>>;
+
+    fn chart(&self, node: Option<String>) -> AnyResult<RedisChart> {
+        info_to_chart(self.info(node)?)
+    }
+
+    fn chart_list(&self) -> AnyResult<Vec<RedisChart>> {
+        let info_list = self.info_list()?;
+        info_list.into_iter().map(|info| info_to_chart(info)).collect()
+    }
 
     fn node_list(&self) -> AnyResult<Vec<RedisNode>>;
 
@@ -271,8 +278,8 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
     };
 
     if "key" == mode && param.ttl > 0 {
-            let _: () = conn.expire(&key, param.ttl)?;
-        }
+        let _: () = conn.expire(&key, param.ttl)?;
+    }
     Ok(())
 }
 

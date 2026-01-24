@@ -1,6 +1,6 @@
 <script setup>
 import NodeList from '../ext/NodeList.vue'
-import {meInvoke} from '@/utils/util.js'
+import {meCopy, meInvoke} from '@/utils/util.js'
 import MeIcon from '@/components/MeIcon.vue'
 import {useI18n} from 'vue-i18n'
 
@@ -29,9 +29,19 @@ async function execCommand(command) {
   try {
     const param = {command, node: node.value, autoBroadcast: autoBroadcast.value}
     const data = await meInvoke('execute_command', {id: share.conn.id, param}, false)
+    autoCopyIfNeed(data)
     return colorText('var(--el-color-success)', data)
   } catch (e) {
+    autoCopyIfNeed(e)
     return colorText('var(--el-color-error)', `(error) ${e}`)
+  }
+}
+
+// 自动复制命令结果
+const autoCopy = ref(true)
+function autoCopyIfNeed(text) {
+  if (autoCopy.value) {
+    meCopy(text, null, false)
   }
 }
 </script>
@@ -43,6 +53,11 @@ async function execCommand(command) {
       <me-icon icon="el-icon-question-filled" :info="hint" raw-content placement="top" :show-after="0"/>
       <el-checkbox v-model="autoBroadcast" :label="t('redisTerminal.autoBroadcast')" border style="margin-left: 10px"/>
       <node-list v-model="node" clearable style="margin-left: 10px"/>
+    </div>
+    <div class="auto-copy">
+      <el-tooltip :content="t('redisTerminal.autoCopyHint')" placement="top-end">
+        <el-checkbox v-model="autoCopy"/>
+      </el-tooltip>
     </div>
   </div>
 </template>
@@ -65,6 +80,12 @@ async function execCommand(command) {
     position: absolute;
     right: 0;
     top: 0;
+  }
+
+  .auto-copy {
+    position: absolute;
+    right: 20px;
+    bottom: 0;
   }
 }
 </style>

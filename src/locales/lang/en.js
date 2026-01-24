@@ -122,6 +122,7 @@ export default {
     monitor: 'Monitor',
     pubsub: 'Pub/Sub',
     chart: 'Chart',
+    tauri: 'Tauri'
   },
 
   keyHeader: {
@@ -235,7 +236,7 @@ export default {
     total: 'Total',
     noConfig: 'No Config File',
     reference: 'Reference',
-    keyword: 'Filter (Param / Value)',
+    keyword: 'Filter (Param / Value / Tip)',
     param: 'Param',
     value: 'Value',
     tip: 'Tip',
@@ -265,7 +266,7 @@ export default {
     redisWebsite: 'https://redis.io/docs/latest/commands/info/',
     rawInfo: 'Raw Info',
     tag: 'Tag',
-    keyword: 'Filter (Key/Value)',
+    keyword: 'Filter (Key / Value / Tip)',
     key: 'Key',
     value: 'Value',
     tip: 'Tip',
@@ -348,12 +349,13 @@ export default {
 
   redisTerminal: {
     hint: `
-① When automatic broadcasting is enabled, commands such as CONFIG SET and SLOWLOG RESET will be executed on all nodes<br>
-② Under normal circumstances, there is no need to specify a node. Manual node specification is only required in special scenarios such as viewing the configuration of a specific node
+① When automatic broadcasting is enabled and no node is selected, commands such as CONFIG SET will be executed on all nodes<br>
+② Usually there is no need to specify a node. Manual node specification is only required in special scenarios such as viewing the configuration of a specific node
     `,
     welcome: 'Welcome to {RedisME} Terminal',
     autoBroadcast: 'Auto Broadcast',
-    readonlyHint: 'Executing commands is temporarily not supported in read-only mode'
+    readonlyHint: 'Executing commands is temporarily not supported in read-only mode',
+    autoCopyHint: 'Auto Copy Command Result'
   },
 
   redisValue: {
@@ -375,6 +377,22 @@ export default {
     noKeySelected: 'No Key Selected'
   },
 
+  redisChart: {
+    command: 'Commands / Sec',
+    memory: 'Used Memory',
+    networkIn: 'Network Input（Kb/s）',
+    networkOut: 'Network Output（Kb/s）',
+    keyTotal: 'Key Count',
+    client: 'Clients',
+
+    labelWidth: '120',
+    autoRefresh: 'Auto Refresh',
+    refreshInterval: 'Refresh Interval',
+    refreshUnit: 's',
+    keepMinutes: 'Keep Minutes',
+    keepUnit: 'm'
+  },
+
   keyMain: {
     keyword: 'Enter to Search',
     exactSearch: 'Exact Search',
@@ -385,5 +403,4 @@ export default {
     loadMore: 'Load More',
     loadAll: 'Load All',
   }
-
 }

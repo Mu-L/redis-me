@@ -80,7 +80,7 @@ onUnmounted(() => tauriUnlisten())
 
 <template>
   <div class="redis-pubsub">
-    <div class="me-flex header">
+    <div class="me-flex">
       <div>
         <el-input v-model="channel" style="width: 160px; margin-right: 10px"
                   :placeholder="t('redisPubSub.subscribeChannel')" :disabled="subscribing" clearable/>
@@ -125,9 +125,6 @@ onUnmounted(() => tauriUnlisten())
 
   display: flex;
   flex-direction: column;
-
-  .header {
-  }
 
   .table {
     flex-grow: 1;

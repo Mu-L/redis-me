@@ -123,6 +123,7 @@ export default {
     monitor: '监控',
     pubsub: '发布订阅',
     chart: '图表',
+    tauri: 'Tauri'
   },
 
   keyHeader: {
@@ -236,7 +237,7 @@ export default {
     total: '配置数',
     noConfig: '暂无配置文件',
     reference: '参考',
-    keyword: '模糊筛选（配置项、配置值）',
+    keyword: '模糊筛选（配置项/值、说明）',
     param: '配置项',
     value: '配置值',
     tip: '说明',
@@ -266,7 +267,7 @@ export default {
     redisWebsite: 'https://redis.ac.cn/docs/latest/commands/info/',
     rawInfo: '原始信息',
     tag: '分类',
-    keyword: '键值过滤',
+    keyword: '模糊筛选（键值、说明）',
     key: '键',
     value: '值',
     tip: '说明',
@@ -350,12 +351,13 @@ export default {
 
   redisTerminal: {
     hint: `
-① 自动广播开启时 CONFIG SET 和 SLOWLOG RESET 等命令会在所有节点执行<br>
+① 自动广播开启且没有选择节点时 CONFIG SET 和 SLOWLOG RESET 等命令会在所有节点执行<br>
 ② 正常情况下无需指定节点，仅在查看特定节点配置等特殊场景可手动指定节点
     `,
     welcome: '欢迎使用 {RedisME} Terminal',
     autoBroadcast: '自动广播',
-    readonlyHint: '只读模式下暂不支持执行命令'
+    readonlyHint: '只读模式下暂不支持执行命令',
+    autoCopyHint: '自动复制命令结果'
   },
 
   redisValue: {
@@ -377,6 +379,22 @@ export default {
     noKeySelected: '未选择任何键'
   },
 
+  redisChart: {
+    command: '命令执行数/秒',
+    memory: '内存使用',
+    networkIn: '网络输入（Kb/s）',
+    networkOut: '网络输出（Kb/s）',
+    keyTotal: '键数量',
+    client: '客户端数量',
+
+    labelWidth: '70',
+    autoRefresh: '自动刷新',
+    refreshInterval: '刷新间隔',
+    refreshUnit: '秒',
+    keepMinutes: '保留时长',
+    keepUnit: '分'
+  },
+
   keyMain: {
     keyword: 'Enter 键进行搜索',
     exactSearch: '精确匹配',
@@ -387,5 +405,4 @@ export default {
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
   }
-
 }

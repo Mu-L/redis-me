@@ -54,7 +54,10 @@ const showType = ref('All')
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   return dataList.value.filter(row =>
-       (!key || row.param?.toLowerCase().indexOf(key) > -1 || row.value?.toLowerCase().indexOf(key) > -1)
+       (!key || row.param?.toLowerCase().indexOf(key) > -1
+             || row.value?.toLowerCase().indexOf(key) > -1
+             || tips.value[row.param]?.toLowerCase().indexOf(key) > -1
+       )
     && (showType.value === 'All' || showType.value === 'Diff' && row.value !== dictRaw.value[row.param])
   )
 })
