@@ -43,7 +43,7 @@ impl Drop for RedisMeCluster {
 }
 
 impl RedisMeClient for RedisMeCluster {
-    
+
     fn name(&self) -> String {
         self.conf.name.clone()
     }
@@ -214,8 +214,17 @@ impl RedisMeClient for RedisMeCluster {
         };
 
         let mut conn = self.get_conn()?;
-        let (route, _) = self.get_node_route(param.node)?;
-        let value = conn.route_command(redis::cmd(cmd.as_str()).arg(args), route)?;
+
+        let mut cmd = redis::cmd(cmd.as_str());
+        cmd.arg(args);
+
+        let value = if param.node.as_deref().unwrap_or("").is_empty()
+            && param.auto_broadcast.unwrap_or(false) {
+            conn.req_command(&cmd)?
+        } else {
+            let (route, _) = self.get_node_route(param.node)?;
+            conn.route_command(&cmd, route)?
+        };
         Ok(redis_value_to_string(value, "\n"))
     }
 
