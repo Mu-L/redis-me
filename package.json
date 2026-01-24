@@ -33,7 +33,7 @@
     "codemirror-editor-vue3": "^2.8.0",
     "dayjs": "^1.11.19",
     "element-plus": "^2.13.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "mitt": "^3.0.1",
     "nanoid": "^5.1.6",
     "sortablejs": "^1.15.6",
@@ -46,7 +46,7 @@
   "devDependencies": {
     "@tauri-apps/cli": "^2.9.6",
     "@vitejs/plugin-vue": "^6.0.3",
-    "sass-embedded": "^1.97.2",
+    "sass-embedded": "^1.97.3",
     "unplugin-auto-import": "^19.3.0",
     "unplugin-svg-component": "^0.12.4",
     "unplugin-vue-components": "^28.8.0",
