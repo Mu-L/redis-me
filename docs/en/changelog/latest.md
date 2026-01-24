@@ -1,10 +1,15 @@
 # 1.x Changelog
 
-## v1.5.0 (2026-01-24) TODO
+## Future
 
-- Added a changelog link redirection during upgrade reminders
-- Terminal: Added Ctrl+L/C shortcut keys
-- Terminal: Added command prompts, added command list for easy manual selection
+- Terminal: Add command prompts, add command list, convenient for manual selection
+
+## v1.5.0 (2026-01-24)
+
+- Added a update log link redirection during upgrade reminders
+- Terminal: Added Ctrl+L/C shortcut
+- Terminal: Supports automatic copying of command results
+- Charts: Added command execution count, memory, network inbound/outbound charts
 
 ## v1.4.1 (2026-01-18)
 
