@@ -19,10 +19,11 @@ ChartJS.register(LineController, LineElement, PointElement, TimeScale, LinearSca
 const {t} = useI18n()
 
 const share = inject('share')
-const node = ref('')         // 指定节点
-const autoRefresh = ref(true)
-const refreshInterval = ref(5)
-const maxDataCount = ref(720)  // 默认每5秒获取一次数据，保留720个数据。即3600秒（1个小时）
+const node = ref('')           // 指定节点
+const autoRefresh = ref(true)  // 自动刷新
+const refreshInterval = ref(5) // 刷新间隔（秒）
+const keepMinutes = ref(30)    // 保留N分钟的数据, 超过则砍一半(1个个截取，图表总跳动)
+const maxDataCount = computed(() => keepMinutes.value * 60 / refreshInterval.value) // 最多保存N个数据
 
 // 自动刷新及刷新间隔配置
 let timer = null
@@ -69,11 +70,13 @@ function setChartData(label, res, prop0, prop1, prop2) {
   }
   // 数组仅保留前N个，避免数据过多程序卡顿
   const length = maxDataCount.value
-  if (propData.labels > length) {
-    propData.labels = propData.labels.slice(-length)
-    propData.datasets[0].data = propData.datasets[0].data.slice(-length)
+  if (propData.labels.length > length) {
+    const deleteCount = Math.floor(maxDataCount.value / 2)
+    meLog('chart data too long, truncate', length)
+    propData.labels.splice(0, deleteCount)
+    propData.datasets[0].data.splice(0, deleteCount)
     if (prop2) {
-      propData.datasets[1].data = propData.datasets[1].data.slice(-length)
+      propData.datasets[1].data.splice(0, deleteCount)
     }
   }
 }
@@ -196,16 +199,16 @@ watch(node, () => {
               </el-dropdown-item>
               <el-dropdown-item>
                 <span>刷新间隔</span>
-                <el-input-number v-model.number="refreshInterval" :min="1" :max="60" :controls="false"
-                                 style="width: 80px; margin-left: 10px">
+                <el-input-number v-model.number="refreshInterval" :min="1" :max="60"
+                                 :controls="false" style="width: 80px; margin-left: 10px">
                   <template #suffix>秒</template>
                 </el-input-number>
               </el-dropdown-item>
               <el-dropdown-item>
-                <span>保留数据</span>
-                <el-input-number v-model.number="maxDataCount" :min="10" :max="1000" :controls="false"
-                                 style="width: 80px; margin-left: 10px">
-                  <template #suffix>个</template>
+                <span>保留时长</span>
+                <el-input-number v-model.number="keepMinutes" :min="1" :max="600"
+                                 :controls="false" style="width: 80px; margin-left: 10px">
+                  <template #suffix>分</template>
                 </el-input-number>
               </el-dropdown-item>
             </el-dropdown-menu>
