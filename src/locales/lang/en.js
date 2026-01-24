@@ -383,7 +383,14 @@ export default {
     networkIn: 'Network Input（Kb/s）',
     networkOut: 'Network Output（Kb/s）',
     keyTotal: 'Key Count',
-    client: 'Clients'
+    client: 'Clients',
+
+    labelWidth: '120',
+    autoRefresh: 'Auto Refresh',
+    refreshInterval: 'Refresh Interval',
+    refreshUnit: 's',
+    keepMinutes: 'Keep Minutes',
+    keepUnit: 'm'
   },
 
   keyMain: {

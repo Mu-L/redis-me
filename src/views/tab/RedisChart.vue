@@ -40,9 +40,9 @@ const commandRef = useTemplateRef('command')
 const memoryRef = useTemplateRef('memory')
 const networkRef = useTemplateRef('network')
 function refreshInstance(){
-  commandRef.value.chart.update()
-  memoryRef.value.chart.update()
-  networkRef.value.chart.update()
+  commandRef.value?.chart.update()
+  memoryRef.value?.chart.update()
+  networkRef.value?.chart.update()
 }
 
 // 从后台获取原始数据
@@ -144,19 +144,19 @@ const initData = computed(() => ({
   command: {
     labels: [],
     datasets: [
-      {label: '命令执行数/秒', borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
+      {label: t('redisChart.command'), borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
     ]
   },
   memory: {
     labels: [],
     datasets: [
-      {label: '内存使用', borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
+      {label: t('redisChart.memory'), borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
   },
   network: {
     labels: [],
     datasets: [
-      {label:  '网络输入（Kb/s）', borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
-      {label: '网络输出（Kb/s）', borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
+      {label: t('redisChart.networkIn'), borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
+      {label: t('redisChart.networkOut'), borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
     ]
   },
 }))
@@ -164,23 +164,21 @@ const initData = computed(() => ({
 // 避免vue的响应式更新和chartjs的响应式更新冲突（无限循环），使用shallowRef
 let chartData = shallowRef(cloneDeep(initData.value))
 
+// 重置数据
+function resetData() {
+  chartData.value = cloneDeep(initData.value)
+  getData()
+}
+watch(node, resetData)
+
 // 国际化在此设置，保证可以实时响应语言切换
 watch(() => meTauri.settings.language, () => {
   chartData.value.command.datasets[0].label = t('redisChart.command')
   chartData.value.memory.datasets[0].label = t('redisChart.memory')
   chartData.value.network.datasets[0].label = t('redisChart.networkIn')
   chartData.value.network.datasets[1].label = t('redisChart.networkOut')
+  chartData.value = cloneDeep(chartData.value) // 直接更新时label并没有更新，因此克隆1份，让vue进行重新渲染
 }, {immediate: true})
-
-// 重置数据
-function resetData() {
-  chartData.value = cloneDeep(initData.value)
-  getData()
-}
-
-watch(node, () => {
-  resetData()
-})
 </script>
 
 <template>
@@ -193,24 +191,29 @@ watch(node, () => {
                    icon="el-icon-refresh-right" @click="getData" style="margin-left: 20px"/>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item>
-                <span>自动刷新</span>
-                <el-switch v-model="autoRefresh" style="margin-left: 10px"> 自动刷新</el-switch>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <span>刷新间隔</span>
-                <el-input-number v-model.number="refreshInterval" :min="1" :max="60"
-                                 :controls="false" style="width: 80px; margin-left: 10px">
-                  <template #suffix>秒</template>
-                </el-input-number>
-              </el-dropdown-item>
-              <el-dropdown-item>
-                <span>保留时长</span>
-                <el-input-number v-model.number="keepMinutes" :min="1" :max="600"
-                                 :controls="false" style="width: 80px; margin-left: 10px">
-                  <template #suffix>分</template>
-                </el-input-number>
-              </el-dropdown-item>
+              <el-form :label-width="t('redisChart.labelWidth')" label-position="right">
+                <el-dropdown-item>
+                  <el-form-item :label="t('redisChart.autoRefresh')">
+                    <el-switch v-model="autoRefresh" style="margin-left: 10px"> 自动刷新</el-switch>
+                  </el-form-item>
+                </el-dropdown-item>
+                <el-dropdown-item>
+                  <el-form-item :label="t('redisChart.refreshInterval')">
+                    <el-input-number v-model.number="refreshInterval" :min="1" :max="60"
+                                     :controls="false" style="width: 80px; margin-left: 10px">
+                      <template #suffix>{{ t('redisChart.refreshUnit') }}</template>
+                    </el-input-number>
+                  </el-form-item>
+                </el-dropdown-item>
+                <el-dropdown-item>
+                  <el-form-item :label="t('redisChart.keepMinutes')">
+                    <el-input-number v-model.number="keepMinutes" :min="1" :max="600"
+                                     :controls="false" style="width: 80px; margin-left: 10px">
+                      <template #suffix>{{ t('redisChart.keepUnit') }}</template>
+                    </el-input-number>
+                  </el-form-item>
+                </el-dropdown-item>
+              </el-form>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -253,6 +256,10 @@ watch(node, () => {
 
   :deep(.el-input-group__append) {
     width: 42px;
+  }
+
+  :deep(.el-form-item) {
+    margin-bottom: 0;
   }
 
   .refresh {

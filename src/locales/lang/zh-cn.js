@@ -385,7 +385,14 @@ export default {
     networkIn: '网络输入（Kb/s）',
     networkOut: '网络输出（Kb/s）',
     keyTotal: '键数量',
-    client: '客户端数量'
+    client: '客户端数量',
+
+    labelWidth: '70',
+    autoRefresh: '自动刷新',
+    refreshInterval: '刷新间隔',
+    refreshUnit: '秒',
+    keepMinutes: '保留时长',
+    keepUnit: '分'
   },
 
   keyMain: {
