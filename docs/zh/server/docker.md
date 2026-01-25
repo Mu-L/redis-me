@@ -7,6 +7,7 @@ curl -fsSL https://get.docker.com -o install-docker.sh
 sudo sh install-docker.sh
 # 指定版本和镜像源
 # sudo sh install-docker.sh --version 23.0 --mirror Aliyun|AzureChinaCloud
+
 # 启动服务, 开机启动
 systemctl start docker
 systemctl enable docker
