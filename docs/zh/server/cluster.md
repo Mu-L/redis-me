@@ -1,4 +1,4 @@
-# Redis集群搭建
+# Redis集群
 使用docker-compose快速搭建Redis集群，供验证或测试环境使用。
 
 ```shell

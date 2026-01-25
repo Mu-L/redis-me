@@ -119,7 +119,9 @@ function sidebarServer() {
       items: [
         {text: '单机', link: '/single'},
         {text: '集群', link: '/cluster'},
-        {text: 'SSL证书', link: '/ssl'},
+        {text: '哨兵', link: '/sentinel'},
+        {text: 'docker', link: '/docker'},
+        {text: 'ssl', link: '/ssl'},
       ]
     }
   ]

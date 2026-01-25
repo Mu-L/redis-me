@@ -1,4 +1,4 @@
-# Redis单机搭建
+# Redis单机
 使用docker-compose快速搭建Redis单机，供验证或测试环境使用。
 
 ```shell
