@@ -121,7 +121,7 @@ function sidebarServer() {
         {text: '集群', link: '/cluster'},
         {text: '哨兵', link: '/sentinel'},
         {text: 'docker', link: '/docker'},
-        {text: 'ssl', link: '/ssl'},
+        {text: 'SSL', link: '/ssl'},
       ]
     }
   ]

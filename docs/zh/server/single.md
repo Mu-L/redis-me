@@ -2,6 +2,10 @@
 使用docker-compose快速搭建Redis单机，供验证或测试环境使用。
 
 ```shell
+# 目录
+mkdir /data/redis-single
+cd /data/redis-single
+
 # 编辑yaml内容
 vim docker-compose.yaml
 

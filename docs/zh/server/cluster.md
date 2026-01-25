@@ -2,6 +2,10 @@
 使用docker-compose快速搭建Redis集群，供验证或测试环境使用。
 
 ```shell
+# 目录
+mkdir /data/redis-cluster
+cd /data/redis-cluster
+
 # 编辑yaml内容
 vim docker-compose.yaml
 
