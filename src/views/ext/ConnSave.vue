@@ -29,6 +29,12 @@ const form = reactive({
   },
 
   color: '#409eff',
+
+  // 哨兵模式补充
+  sentinel: false,
+  masterName: '',
+  masterUsername: '',
+  masterPassword: '',
 })
 
 const rules = {
@@ -150,9 +156,29 @@ function testConn() {
         <el-col :span="19">
           <el-checkbox v-model="form.readonly">{{t('conn.readonly')}}</el-checkbox>
           <el-checkbox v-model="form.cluster">{{t('conn.cluster')}}</el-checkbox>
+          <el-checkbox v-model="form.sentinel">哨兵</el-checkbox>
           <el-checkbox v-model="form.ssl">SSL</el-checkbox>
         </el-col>
       </el-row>
+
+      <div v-show="form.sentinel">
+        <el-divider content-position="left">哨兵设置</el-divider>
+        <el-form-item label="配置">
+          <el-row>
+            <el-col :span="7">
+              <el-input v-model="form.masterName" placeholder="masterName"/>
+            </el-col>
+            <el-col :span="1"/>
+            <el-col :span="7">
+              <el-input v-model="form.masterUsername" placeholder="masterUsername"/>
+            </el-col>
+            <el-col :span="1"/>
+            <el-col :span="7">
+              <el-input v-model="form.masterPassword" placeholder="masterPassword"/>
+            </el-col>
+          </el-row>
+        </el-form-item>
+      </div>
 
       <div v-show="form.ssl">
         <el-divider content-position="left">{{t('conn.ssl')}}</el-divider>

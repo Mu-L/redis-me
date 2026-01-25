@@ -3,36 +3,87 @@ use crate::utils::util::AnyResult;
 use anyhow::Context;
 use log::info;
 use redis::cluster::{ClusterClient, ClusterConfig};
-use redis::{Client, ClientTlsConfig, ConnectionLike, TlsCertificates, TlsMode, TypedCommands};
+use redis::{Client, ClientTlsConfig, ConnectionAddr, ConnectionLike, TlsCertificates, TlsMode, TypedCommands};
 use std::fs;
 use std::time::Duration;
+use redis::sentinel::{SentinelClientBuilder, SentinelServerType};
 
 // 获取单机连接
 pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
-    let prefix = if conn.ssl { "rediss" } else { "redis" };
-    let suffix = if conn.ssl { "/#insecure" } else { "" };
+    let certs = get_tls_certs(conn.ssl_option.clone())?;
 
-    let redis_url = format!(
-        "{}://{}:{}@{}:{}{}",
-        prefix, conn.username, conn.password, conn.host, conn.port, suffix
-    );
-    let redis_url_log = format!(
-        "{}://{}:{}@{}:{}{}",
-        prefix, conn.username, "******", conn.host, conn.port, suffix
-    );
-    // 日志打印中去除密码显示
-    info!("redis_url: {redis_url_log}");
+    let client = if conn.sentinel {
+        // 哨兵模式
+        let conn = conn.clone();
+        let sentinel_client = if conn.ssl && let Some(tls) = certs {
+            let addr = ConnectionAddr::TcpTls {
+                host: conn.host,
+                port: conn.port,
+                insecure: true,
+                tls_params: None,
+            };
+            let mut builder = SentinelClientBuilder::new(vec![addr], conn.master_name, SentinelServerType::Master)?
+                .set_client_to_redis_db(conn.db as i64)
+                .set_client_to_redis_tls_mode(TlsMode::Insecure)
+                .set_client_to_redis_certificates(tls.clone())
+                .set_client_to_sentinel_tls_mode(TlsMode::Insecure)
+                .set_client_to_sentinel_certificates(tls);
 
-    let client = if conn.ssl {
-        let certs = get_tls_certs(conn.ssl_option.clone())?;
-        if let Some(tls) = certs {
+            if !conn.username.is_empty() {
+                builder = builder.set_client_to_sentinel_username(conn.username);
+            };
+            if !conn.password.is_empty() {
+                builder = builder.set_client_to_sentinel_password(conn.password);
+            };
+            if !conn.master_username.is_empty() {
+                builder = builder.set_client_to_redis_password(conn.master_username);
+            }
+            if !conn.master_password.is_empty() {
+                builder = builder.set_client_to_redis_password(conn.master_password);
+            }
+            builder.build()?.get_client()?
+        } else {
+            let addr = ConnectionAddr::Tcp(conn.host, conn.port);
+            let mut builder = SentinelClientBuilder::new(vec![addr], conn.master_name, SentinelServerType::Master)?
+                .set_client_to_redis_db(conn.db as i64);
+            if !conn.username.is_empty() {
+                builder = builder.set_client_to_sentinel_username(conn.username);
+            };
+            if !conn.password.is_empty() {
+                builder = builder.set_client_to_sentinel_password(conn.password);
+            };
+            if !conn.master_username.is_empty() {
+                builder = builder.set_client_to_redis_password(conn.master_username);
+            }
+            if !conn.master_password.is_empty() {
+                builder = builder.set_client_to_redis_password(conn.master_password);
+            }
+            builder.build()?.get_client()?
+        };
+        sentinel_client
+    } else {
+        let prefix = if conn.ssl { "rediss" } else { "redis" };
+        let suffix = if conn.ssl { "/#insecure" } else { "" };
+
+        let redis_url = format!(
+            "{}://{}:{}@{}:{}{}",
+            prefix, conn.username, conn.password, conn.host, conn.port, suffix
+        );
+        let redis_url_log = format!(
+            "{}://{}:{}@{}:{}{}",
+            prefix, conn.username, "******", conn.host, conn.port, suffix
+        );
+        // 日志打印中去除密码显示
+        info!("redis_url: {redis_url_log}");
+
+        let single_client = if conn.ssl && let Some(tls) = certs {
             Client::build_with_tls(redis_url, tls)?
         } else {
             Client::open(redis_url)?
-        }
-    } else {
-        Client::open(redis_url)?
+        };
+        single_client
     };
+
     // 测试连接是否可以成功，注意超时时间比较短，用户可以快速感知到。此连接使用后丢弃即可
     let mut conn = client.get_connection_with_timeout(Duration::from_secs(1))?;
     let _ = conn.ping()?;
