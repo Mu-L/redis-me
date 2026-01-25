@@ -13,7 +13,8 @@ vim docker-compose.yaml
 docker compose up -d
 ```
 
-## 哨兵配置文件
+## 哨兵
+### 配置文件
 在运行 Sentinel 时必须使用配置文件，因为系统将使用此文件保存当前状态，以便在重启时重新加载。如果没有提供配置文件或配置文件路径不可写，Sentinel 将拒绝启动。
 
 ```shell
@@ -58,7 +59,8 @@ sentinel announce-ip 192.168.1.111
 # 所有用户添加写权限
 chmod -R 777 config-27701/ config-27702/ config-27703/
 ```
-## 哨兵
+
+### docker-compose.yaml
 ```yaml
 services:
   redis8-7701:
@@ -117,5 +119,48 @@ services:
       - ./config-27703/:/etc/redis/
 ```
 
-
 ## 哨兵 + SSL
+### 配置文件
+```shell
+mkdir config-2880{1,2,3}
+
+# 编辑sentinel.conf
+vim config-28801/sentinel.conf
+
+port 28801
+requirepass "hepengjuSentinel"
+sentinel monitor mymaster 192.168.1.111 8801 1
+sentinel down-after-milliseconds mymaster 30000
+sentinel failover-timeout mymaster 180000
+sentinel parallel-syncs mymaster 1
+sentinel auth-pass mymaster "hepengju"
+sentinel announce-ip 192.168.1.111
+
+# 编辑sentinel.conf
+vim config-28802/sentinel.conf
+
+port 28802
+requirepass "hepengjuSentinel"
+sentinel monitor mymaster 192.168.1.111 8802 1
+sentinel down-after-milliseconds mymaster 30000
+sentinel failover-timeout mymaster 180000
+sentinel parallel-syncs mymaster 1
+sentinel auth-pass mymaster "hepengju"
+sentinel announce-ip 192.168.1.111
+
+# 编辑sentinel.conf
+vim config-28803/sentinel.conf
+
+port 28803
+requirepass "hepengjuSentinel"
+sentinel monitor mymaster 192.168.1.111 8803 1
+sentinel down-after-milliseconds mymaster 30000
+sentinel failover-timeout mymaster 180000
+sentinel parallel-syncs mymaster 1
+sentinel auth-pass mymaster "hepengju"
+sentinel announce-ip 192.168.1.111
+
+# 所有用户添加写权限
+chmod -R 777 config-28801/ config-28802/ config-28803/
+```
+### docker-compose.yaml
