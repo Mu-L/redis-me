@@ -50,7 +50,6 @@ sentinel announce-ip 192.168.1.111
 # 所有用户添加写权限
 chmod -R 777 config-27701/ config-27702/ config-27703/
 ```
-
 ### docker-compose.yaml
 ```yaml
 services:
@@ -159,7 +158,6 @@ requirepass "hepengjuSentinel"
 sentinel monitor mymaster 192.168.1.111 8801 1
 sentinel auth-pass mymaster "hepengju"
 sentinel announce-ip 192.168.1.111
-
 
 # 复制证书(redis.key、redis.crt)
 cp ../redis.* config-28801
