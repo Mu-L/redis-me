@@ -1,25 +1,21 @@
-# Redis哨兵
-使用docker-compose快速搭建Redis哨兵模式，供验证或测试环境使用。
+# Redis Sentinel
+Quickly set up a Redis Sentinel using docker-compose for verification or testing environments.
 
 ```shell
-# 目录
 mkdir /data/redis-sentinel
 cd /data/redis-sentinel
 
-# 编辑yaml内容
 vim docker-compose.yaml
 
-# 后台启动容器
 docker compose up -d
 ```
 
-## 哨兵配置文件
-在运行 Sentinel 时必须使用配置文件，因为系统将使用此文件保存当前状态，以便在重启时重新加载。如果没有提供配置文件或配置文件路径不可写，Sentinel 将拒绝启动。
+## Sentinel ConfigFile
+Sentinel must use a configuration file when running, because the system will use this file to save the current state for reloading upon restart. If no configuration file is provided or the configuration file path is not writable, Sentinel will refuse to start.
 
 ```shell
 mkdir config-2770{1,2,3}
 
-# 编辑sentinel.conf
 vim config-27701/sentinel.conf
 
 port 27701
@@ -31,7 +27,6 @@ sentinel parallel-syncs mymaster 1
 sentinel auth-pass mymaster "hepengju"
 sentinel announce-ip 192.168.1.111
 
-# 编辑sentinel.conf
 vim config-27702/sentinel.conf
 
 port 27702
@@ -43,7 +38,6 @@ sentinel parallel-syncs mymaster 1
 sentinel auth-pass mymaster "hepengju"
 sentinel announce-ip 192.168.1.111
 
-# 编辑sentinel.conf
 vim config-27703/sentinel.conf
 
 port 27703
@@ -55,10 +49,10 @@ sentinel parallel-syncs mymaster 1
 sentinel auth-pass mymaster "hepengju"
 sentinel announce-ip 192.168.1.111
 
-# 所有用户添加写权限
+# permission
 chmod -R 777 config-27701/ config-27702/ config-27703/
 ```
-## 哨兵
+## Sentinel
 ```yaml
 services:
   redis8-7701:
@@ -118,4 +112,4 @@ services:
 ```
 
 
-## 哨兵 + SSL
+## Sentinel + SSL
