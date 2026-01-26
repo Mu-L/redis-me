@@ -20,15 +20,16 @@ ChartJS.register(LineController, LineElement, PointElement, TimeScale, LinearSca
 const {t} = useI18n()
 
 const share = inject('share')
-const node = ref('')           // 指定节点
-const autoRefresh = ref(true)  // 自动刷新
-const refreshInterval = ref(5) // 刷新间隔（秒）
-const keepMinutes = ref(60)    // 保留N分钟的数据, 超过则砍一半(1个个截取，图表总跳动)
-const maxDataCount = computed(() => keepMinutes.value * 60 / refreshInterval.value) // 最多保存N个数据
+const node = ref('')            // 指定节点
+const autoRefresh = ref(true)   // 自动刷新
+const refreshInterval = ref(5)  // 刷新间隔（秒）
+const keepMinutes = ref(60)     // 保留N分钟的数据
+const maxPointCount = ref(100)  // 最多保存N个数据
+const nowPointCount = ref(0)    // 当前数据条数
 
 // 自动刷新及刷新间隔配置
 let timer = null
-watch([autoRefresh, refreshInterval], (val) => {
+watch([autoRefresh, refreshInterval], ([val, _]) => {
   clearTimeout(timer)
   if (val) {
     timer = setInterval(getData, refreshInterval.value * 1000)
@@ -51,35 +52,92 @@ getData()
 async function getData() {
   try {
     const res = await meInvoke('chart', {id: share.conn.id, node: node.value})
-    const label = new Date()
-    setChartData(label, res, 'command', 'instantaneousOpsPerSec')
-    setChartData(label, res, 'memory', 'usedMemory')
-    setChartData(label, res, 'network', 'instantaneousInputKbps', 'instantaneousOutputKbps')
+    const label = Date.now()
+    addChartData(label, res, 'command', 'instantaneousOpsPerSec')
+    addChartData(label, res, 'memory', 'usedMemory')
+    addChartData(label, res, 'network', 'instantaneousInputKbps', 'instantaneousOutputKbps')
+
+    // 保存当前数据条数, 超过最大条数，则均分取样
+    nowPointCount.value = chartData.value.command.labels.length
+    if (nowPointCount.value > maxPointCount.value) {
+      const indexes = calcLabelIndexes(chartData.value.command.labels)
+      cutChartData(indexes, 'command')
+      cutChartData(indexes, 'memory')
+      cutChartData(indexes, 'network')
+      chartData.value = cloneDeep(chartData.value) // 直接更新时图表没有重新渲染，因此克隆1份，让vue进行重新渲染
+      nowPointCount.value = chartData.value.command.labels.length
+    }
     refreshInstance()
   } catch (e) {
     meLog('get chart data error', e)
   }
 }
 
-// 简化多个属性设置
-function setChartData(label, res, prop0, prop1, prop2) {
+// 添加图表数据
+function addChartData(label, res, prop0, prop1, prop2) {
   let propData = chartData.value[prop0]
   propData.labels.push(label)
   propData.datasets[0].data.push(res[prop1])
   if (prop2) {
     propData.datasets[1].data.push(res[prop2])
   }
-  // 数组仅保留前N个，避免数据过多程序卡顿
-  const length = maxDataCount.value
-  if (propData.labels.length > length) {
-    const deleteCount = Math.floor(maxDataCount.value / 2)
-    meLog('chart data too long, truncate', length)
-    propData.labels.splice(0, deleteCount)
-    propData.datasets[0].data.splice(0, deleteCount)
-    if (prop2) {
-      propData.datasets[1].data.splice(0, deleteCount)
+}
+
+// 裁剪图表数据
+function cutChartData(indexes, prop0) {
+  let propData = chartData.value[prop0]
+  propData.labels = cutArray(propData.labels, indexes)
+  propData.datasets[0].data = cutArray(propData.datasets[0].data, indexes)
+  if (propData.datasets[1]) {
+    propData.datasets[1].data = cutArray(propData.datasets[1].data, indexes)
+  }
+}
+
+// 裁剪数组
+function cutArray(arr, indexes) {
+  const newArr = []
+  for (let i = 0; i < arr.length; i++) {
+    if (indexes.includes(i)) {
+      newArr.push(arr[i])
     }
   }
+  return newArr
+}
+
+// 计算需要保留的索引位置，用于裁剪判断
+function calcLabelIndexes() {
+  const labels = chartData.value.command.labels
+  const minLabel = Date.now() - keepMinutes.value * 60 * 1000
+  meLog('minLabel', new Date(minLabel))
+
+  // 最大值减去最小值，除以 maxPointCount 获得刻度间隔
+  const interval = Math.floor((labels[labels.length - 1] - Math.max(labels[0], minLabel)) / maxPointCount.value) * 1.5
+  meLog('interval', interval, 'max', labels[labels.length - 1], 'min', Math.max(labels[0], minLabel))
+
+  const indexes = []
+  let intervalLabel = undefined
+  for (let i = 0; i < labels.length; i++) {
+    const label = labels[i]
+
+    // 超过保留时间的数据跳过
+    if (label < minLabel) {
+      meLog('小于保留时间数据跳过')
+      continue
+    }
+
+    // 第1个保留的标签
+    if (intervalLabel === undefined) {
+      intervalLabel = label
+      continue
+    }
+
+    if (label - intervalLabel >= interval) {
+      indexes.push(i)
+      intervalLabel = label
+    }
+  }
+  meLog('indexes', indexes)
+  return indexes
 }
 
 // chart.js配置项（基本配置项）
@@ -282,12 +340,21 @@ watch(() => meTauri.settings.theme, () => {
                     </el-input-number>
                   </el-form-item>
                 </el-dropdown-item>
+                <el-dropdown-item>
+                  <el-form-item :label="t('redisChart.maxPointCount')">
+                    <el-input-number v-model.number="maxPointCount" :min="10" :max="200"
+                                     :controls="false" style="width: 80px; margin-left: 10px">
+                      <template #suffix>{{ t('redisChart.pointUnit') }}</template>
+                    </el-input-number>
+                  </el-form-item>
+                </el-dropdown-item>
               </el-form>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </div>
       <div class="right">
+        <el-text type="info">[{{nowPointCount}}]</el-text>
         <node-list v-model="node" style="margin-left: 10px" init-node/>
       </div>
     </div>

@@ -396,7 +396,9 @@ export default {
     refreshInterval: 'Refresh Interval',
     refreshUnit: 's',
     keepMinutes: 'Keep Minutes',
-    keepUnit: 'm'
+    keepUnit: 'm',
+    maxPointCount: 'Max Point Count',
+    pointUnit: '',
   },
 
   keyMain: {
