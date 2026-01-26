@@ -71,6 +71,7 @@ function sidebarGuide() {
       items: [
         {text: '关于', link: '/intro/about'},
         {text: '安装', link: '/intro/install'},
+        {text: '应用截图', link: '/intro/screenshots'},
       ]
     },
     {
@@ -88,6 +89,7 @@ function sidebarGuide() {
         {text: '慢日志', link: '/usage/slowlog'},
         {text: '命令监控', link: '/usage/monitor'},
         {text: '发布订阅', link: '/usage/pubsub'},
+        {text: '图表展示', link: '/usage/chart'},
       ]
     },
     {

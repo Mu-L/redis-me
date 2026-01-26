@@ -44,12 +44,13 @@ function sidebarGuide() {
       items: [
         {text: 'About', link: '/intro/about'},
         {text: 'Installation', link: '/intro/install'},
+        {text: 'Screenshots', link: '/intro/screenshots'},
       ]
     },
     {
       text: 'Usage and Configuration',
       items: [
-        {text: 'Special Features', link: '/usage/special'},
+        {text: 'Features', link: '/usage/special'},
         {text: 'Setting', link: '/usage/setting'},
         {text: 'Connection', link: '/usage/connection'},
         {text: 'Info', link: '/usage/info'},
@@ -61,6 +62,7 @@ function sidebarGuide() {
         {text: 'SlowLog', link: '/usage/slowlog'},
         {text: 'Monitor', link: '/usage/monitor'},
         {text: 'Pub/Sub', link: '/usage/pubsub'},
+        {text: 'Chart', link: '/usage/chart'},
       ]
     },
     {
