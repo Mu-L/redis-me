@@ -1,0 +1,14 @@
+# Screenshots
+
+![add-conn.png](../../../public/images/detail/add-conn.png)
+![conn.png](../../../public/images/detail/conn.png)
+![info.png](../../../public/images/detail/info.png)
+![value.png](../../../public/images/detail/value.png)
+![console.png](../../../public/images/detail/console.png)
+![memory.png](../../../public/images/detail/memory.png)
+![slowlog.png](../../../public/images/detail/slowlog.png)
+![monitor.png](../../../public/images/detail/monitor.png)
+![pubsub.png](../../../public/images/detail/pubsub.png)
+![chart.png](../../../public/images/detail/chart.png)
+![client.png](../../../public/images/detail/client.png)
+![config.png](../../../public/images/detail/config.png)

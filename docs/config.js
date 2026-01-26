@@ -44,6 +44,7 @@ function sidebarGuide() {
       items: [
         {text: 'About', link: '/intro/about'},
         {text: 'Installation', link: '/intro/install'},
+        {text: 'Screenshots', link: '/intro/screenshots'},
       ]
     },
     {

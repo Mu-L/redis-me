@@ -71,6 +71,7 @@ function sidebarGuide() {
       items: [
         {text: '关于', link: '/intro/about'},
         {text: '安装', link: '/intro/install'},
+        {text: '应用截图', link: '/intro/screenshots'},
       ]
     },
     {
