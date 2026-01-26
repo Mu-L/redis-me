@@ -398,7 +398,9 @@ export default {
     refreshInterval: '刷新间隔',
     refreshUnit: '秒',
     keepMinutes: '保留时长',
-    keepUnit: '分'
+    keepUnit: '分',
+    maxPointCount: '最大点数',
+    pointUnit: '个',
   },
 
   keyMain: {
