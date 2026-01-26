@@ -30,7 +30,7 @@ export default {
   },
 
   setting: {
-    labelWidth: '60px',
+    labelWidth: '60',
     title: '设置',
     appearance: '外观',
     theme: '主题',
@@ -85,6 +85,12 @@ export default {
     cert: '公钥',
     key: '私钥',
     ca: '授权',
+    sentinel: '哨兵',
+    sentinelConfig: '哨兵配置',
+    sentinelLabelWidth: '100',
+    masterName: '主节点名称',
+    masterUsername: '主节点用户',
+    masterPassword: '主节点密码',
 
     nameHint: '【可选】默认自动根据主机和端口生成',
     certHint: 'PEM格式公钥文件 (Cert)',
