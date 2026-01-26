@@ -1,9 +1,13 @@
+<script setup>
+import {version} from '../../../../package.json'
+</script>
+
 # Installation
 
 ## Windows
 
-- x64: Download `RedisME_${version}_x64-setup.exe`, double-click to install
-- arm64: Download `RedisME_${version}_arm64-setup.exe`, double-click to install
+- x64: Download `RedisME_{{version}}_x64-setup.exe`, double-click to install
+- arm64: Download `RedisME_{{version}}_arm64-setup.exe`, double-click to install
 - Microsoft Store: [RedisME](https://apps.microsoft.com/detail/9NG9X1RCMW4P)
 
 ::: danger Troubleshooting
@@ -13,8 +17,8 @@ download and install the [Webview2](https://developer.microsoft.com/en-us/micros
 
 ## MacOS
 
-- Apple Silicon: Download `RedisME_${version}_aarch64.dmg`
-- Intel CPU: Download `RedisME_${version}_x64.dmg`
+- Apple Silicon: Download `RedisME_{{version}}_aarch64.dmg`
+- Intel CPU: Download `RedisME_{{version}}_x64.dmg`
 
 After downloading, open the `.dmg` file and drag `RedisME.app` into the `Applications` folder.
 
@@ -26,25 +30,25 @@ click the `Open` button in the pop-up window
 
 ## Linux
 
-- Debian: `RedisME_${version}_amd64.deb`
-- Redhat: `RedisME-${version}-1.x86_64.rpm`
-- AppImage: `RedisME_${version}_amd64.AppImage`
+- Debian: `RedisME_{{version}}_amd64.deb`
+- Redhat: `RedisME-{{version}}-1.x86_64.rpm`
+- AppImage: `RedisME_{{version}}_amd64.AppImage`
 
 Install `deb` package using `apt`:
 
 ```bash
-sudo apt install ./RedisME_${version}_amd64.deb
+sudo apt install ./RedisME_{{version}}_amd64.deb
 ```
 
 Install `rpm` package using `dnf`:
 
 ```bash
-sudo dnf install ./RedisME-${version}-1.x86_64.rpm
+sudo dnf install ./RedisME-{{version}}-1.x86_64.rpm
 ```
 
 Use `AppImage`
 
 ```bash
-chmod u+x RedisME_${version}_amd64.AppImage
-./RedisME_${version}_amd64.AppImage
+chmod u+x RedisME_{{version}}_amd64.AppImage
+./RedisME_{{version}}_amd64.AppImage
 ```

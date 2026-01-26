@@ -1,9 +1,12 @@
+<script setup>
+import {version} from '../../../../package.json'
+</script>
 # 安装
 
 ## Windows
 
-- 64位: 下载 `RedisME_${version}_x64-setup.exe` 完成后双击安装即可
-- ARM64: 下载 `RedisME_${version}_arm64-setup.exe` 完成后双击安装即可
+- 64位: 下载 `RedisME_{{version}}_x64-setup.exe` 完成后双击安装即可
+- ARM64: 下载 `RedisME_{{version}}_arm64-setup.exe` 完成后双击安装即可
 - 微软应用商店: [RedisME](https://apps.microsoft.com/detail/9NG9X1RCMW4P)
 
 ::: danger 故障排除
@@ -12,8 +15,8 @@
 
 ## MacOS
 
-- Apple芯片: 下载 `RedisME_${version}_aarch64.dmg`
-- Intel芯片: 下载 `RedisME_${version}_x64.dmg`
+- Apple芯片: 下载 `RedisME_{{version}}_aarch64.dmg`
+- Intel芯片: 下载 `RedisME_{{version}}_x64.dmg`
 
 打开 `.dmg` 文件，将 `RedisME.app` 拖到 `Applications` 目录内即可。
 
@@ -24,25 +27,25 @@
 
 ## Linux
 
-- DEB包(Debian系): `RedisME_${version}_amd64.deb`
-- RPM包(Redhat系): `RedisME-${version}-1.x86_64.rpm`
-- 通用包: `RedisME_${version}_amd64.AppImage`
+- DEB包(Debian系): `RedisME_{{version}}_amd64.deb`
+- RPM包(Redhat系): `RedisME-{{version}}-1.x86_64.rpm`
+- 通用包: `RedisME_{{version}}_amd64.AppImage`
 
 `deb` 安装使用 `apt`
 
 ```bash
-sudo apt install ./RedisME_${version}_amd64.deb
+sudo apt install ./RedisME_{{version}}_amd64.deb
 ```
 
 `rpm` 安装使用 `dnf`
 
 ```bash
-sudo dnf install ./RedisME-${version}-1.x86_64.rpm
+sudo dnf install ./RedisME-{{version}}-1.x86_64.rpm
 ```
 
 `AppImage`的使用
 
 ```bash
-chmod u+x RedisME_${version}_amd64.AppImage
-./RedisME_${version}_amd64.AppImage
+chmod u+x RedisME_{{version}}_amd64.AppImage
+./RedisME_{{version}}_amd64.AppImage
 ```
