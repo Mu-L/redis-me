@@ -2,8 +2,10 @@
 <a href="https://github.com/hepengju/redis-me/"><img src="docs/public/images/logo.svg" width="100"/></a>
 </div>
 <h1 align="center">RedisME</h1>
-<h4 align="center"><strong>English</strong> | <a href="/README_zh.md">
-简体中文</a> 
+<h4 align="center">
+  English 
+| <a href="/README_zh.md">简体中文</a> 
+| <a href="/docs/en/guide/intro/screenshots.md">Screenshots</a>
 </h4>
 <div align="center">
 
