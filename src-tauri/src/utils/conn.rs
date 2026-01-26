@@ -3,10 +3,10 @@ use crate::utils::util::AnyResult;
 use anyhow::Context;
 use log::info;
 use redis::cluster::{ClusterClient, ClusterConfig};
+use redis::sentinel::{SentinelClientBuilder, SentinelNodeConnectionInfo, SentinelServerType};
 use redis::{Client, ClientTlsConfig, ConnectionAddr, ConnectionLike, TlsCertificates, TlsMode, TypedCommands};
 use std::fs;
 use std::time::Duration;
-use redis::sentinel::{SentinelClientBuilder, SentinelServerType};
 
 // 获取单机连接
 pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
@@ -24,10 +24,11 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
             };
             let mut builder = SentinelClientBuilder::new(vec![addr], conn.master_name, SentinelServerType::Master)?
                 .set_client_to_redis_db(conn.db as i64)
-                .set_client_to_redis_tls_mode(TlsMode::Insecure)
+                .set_client_to_redis_tls_mode(TlsMode::Secure)
                 .set_client_to_redis_certificates(tls.clone())
-                .set_client_to_sentinel_tls_mode(TlsMode::Insecure)
+                .set_client_to_sentinel_tls_mode(TlsMode::Secure)
                 .set_client_to_sentinel_certificates(tls);
+            // TODO ==> danger_accept_invalid_hostnames 改为 true（目前没有这个属性）
 
             if !conn.username.is_empty() {
                 builder = builder.set_client_to_sentinel_username(conn.username);
@@ -105,9 +106,7 @@ pub fn get_client_cluster(conn: &RedisConn) -> AnyResult<ClusterClient> {
         builder = builder.password(conn.password.clone());
     }
     if conn.ssl {
-        builder = builder
-            .danger_accept_invalid_hostnames(true)
-            .tls(TlsMode::Insecure);
+        builder = builder.danger_accept_invalid_hostnames(true);
         let certs = get_tls_certs(conn.ssl_option.clone())?;
         if let Some(certs) = certs {
             builder = builder.certs(certs);
