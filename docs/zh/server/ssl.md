@@ -1,4 +1,4 @@
-# Redis SSL证书生成
+# SSL证书生成
 
 ```shell
 # 生成自签名证书

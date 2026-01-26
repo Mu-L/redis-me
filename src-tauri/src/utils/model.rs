@@ -27,6 +27,12 @@ api_model!(RedisConn {
     cluster: bool,
     ssl: bool,
     ssl_option: Option<SslOption>,
+
+    // 哨兵模式
+    sentinel: bool,
+    master_name: String,
+    master_username: String,
+    master_password: String,
 });
 
 impl RedisConn {

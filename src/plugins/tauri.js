@@ -59,4 +59,17 @@ watch(meTauri, async (newValue) => {
   await store.set('connList', newValue.connList)
   await store.set('settings', newValue.settings)
 })
+
+// 初始化的时候就检查1次
+checkConnList()
+export function checkConnList() {
+  connList.forEach(conn => {
+    // 兼容旧版本，补充哨兵模式的属性
+    if (!('sentinel'       in conn) || (typeof conn.sentinel != 'boolean')) conn.sentinel = false
+    if (!('masterName'     in conn)) conn.masterName = ''
+    if (!('masterUsername' in conn)) conn.masterUsername = ''
+    if (!('masterPassword' in conn)) conn.masterPassword = ''
+  })
+}
+
 export default function (app) {}

@@ -120,7 +120,7 @@ function sidebarServer() {
         {text: '单机', link: '/single'},
         {text: '集群', link: '/cluster'},
         {text: '哨兵', link: '/sentinel'},
-        {text: 'docker', link: '/docker'},
+        {text: 'Docker', link: '/docker'},
         {text: 'SSL', link: '/ssl'},
       ]
     }

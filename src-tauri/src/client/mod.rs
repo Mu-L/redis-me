@@ -24,6 +24,10 @@ mod tests {
             cluster: true,
             ssl: false,
             ssl_option: None,
+            sentinel: false,
+            master_name: "".to_string(),
+            master_username: "".to_string(),
+            master_password: "".to_string(),
         };
         RedisMeCluster::init(&conn).unwrap()
     }

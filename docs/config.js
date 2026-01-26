@@ -92,7 +92,9 @@ function sidebarServer() {
       items: [
         {text: 'Single', link: '/single'},
         {text: 'Cluster', link: '/cluster'},
-        {text: 'SSL Cert', link: '/ssl'},
+        {text: 'Sentinel', link: '/sentinel'},
+        {text: 'Docker', link: '/docker'},
+        {text: 'SSL', link: '/ssl'},
       ]
     },
   ]

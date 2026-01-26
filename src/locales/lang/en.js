@@ -84,6 +84,12 @@ export default {
     cert: 'Cert',
     key: 'Key',
     ca: 'CA',
+    sentinel: 'Sentinel',
+    sentinelLabelWidth: '140',
+    sentinelConfig: 'Sentinel Options',
+    masterName: 'Master Name',
+    masterUsername: 'Master Username',
+    masterPassword: 'Master Password',
 
     nameHint: '[Optional] Automatically generated based on Host and Port',
     certHint: 'Public Key File format',

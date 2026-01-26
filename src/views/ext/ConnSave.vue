@@ -29,6 +29,12 @@ const form = reactive({
   },
 
   color: '#409eff',
+
+  // 哨兵模式补充
+  sentinel: false,
+  masterName: '',
+  masterUsername: '',
+  masterPassword: '',
 })
 
 const rules = {
@@ -107,16 +113,16 @@ function testConn() {
 
 <template>
   <el-dialog :title="mode === 'add' ? t('conn.addConn') : t('conn.editConn')" @closed="emit('closed')"
-             v-model="visible" width="600" append-to-body destroy-on-close>
+             v-model="visible" width="600" append-to-body destroy-on-close align-center>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="right" label-width="60">
       <el-form-item :label="t('conn.name')" prop="name">
-        <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')"/>
+        <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable/>
       </el-form-item>
 
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item :label="t('conn.host')" prop="host">
-            <el-input v-model.trim="form.host" placeholder="127.0.0.1"/>
+            <el-input v-model.trim="form.host" placeholder="127.0.0.1" clearable/>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -131,12 +137,12 @@ function testConn() {
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item :label="t('conn.username')">
-            <el-input v-model.trim="form.username" placeholder="ACL in Redis >= 6.0"/>
+            <el-input v-model.trim="form.username" placeholder="ACL in Redis >= 6.0" clearable/>
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item :label="t('conn.password')">
-            <el-input type="password" v-model.trim="form.password" placeholder="password"/>
+            <el-input type="password" v-model.trim="form.password" placeholder="password" clearable/>
           </el-form-item>
         </el-col>
       </el-row>
@@ -150,9 +156,29 @@ function testConn() {
         <el-col :span="19">
           <el-checkbox v-model="form.readonly">{{t('conn.readonly')}}</el-checkbox>
           <el-checkbox v-model="form.cluster">{{t('conn.cluster')}}</el-checkbox>
+          <el-checkbox v-model="form.sentinel">{{ t('conn.sentinel') }}</el-checkbox>
           <el-checkbox v-model="form.ssl">SSL</el-checkbox>
         </el-col>
       </el-row>
+
+      <div v-show="form.sentinel">
+        <el-divider content-position="left">{{ t('conn.sentinelConfig') }}</el-divider>
+        <el-form-item :label="t('conn.masterName')" :label-width="t('conn.sentinelLabelWidth')">
+          <el-input v-model.trim="form.masterName" placeholder="mymaster" clearable style="width: 100%"/>
+        </el-form-item>
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item :label="t('conn.masterUsername')" :label-width="t('conn.sentinelLabelWidth')">
+              <el-input v-model.trim="form.masterUsername" placeholder="username" clearable/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item :label="t('conn.masterPassword')" :label-width="t('conn.sentinelLabelWidth')">
+              <el-input v-model.trim="form.masterPassword" placeholder="password" type="password" clearable/>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </div>
 
       <div v-show="form.ssl">
         <el-divider content-position="left">{{t('conn.ssl')}}</el-divider>
