@@ -25,10 +25,11 @@ const autoRefresh = ref(true)  // 自动刷新
 const refreshInterval = ref(5) // 刷新间隔（秒）
 const keepMinutes = ref(60)    // 保留N分钟的数据, 超过则砍一半(1个个截取，图表总跳动)
 const maxDataCount = computed(() => keepMinutes.value * 60 / refreshInterval.value) // 最多保存N个数据
+const nowDataCount = ref(0)    // 当前数据条数
 
 // 自动刷新及刷新间隔配置
 let timer = null
-watch([autoRefresh, refreshInterval], (val) => {
+watch([autoRefresh, refreshInterval], ([val, _]) => {
   clearTimeout(timer)
   if (val) {
     timer = setInterval(getData, refreshInterval.value * 1000)
@@ -55,6 +56,7 @@ async function getData() {
     setChartData(label, res, 'command', 'instantaneousOpsPerSec')
     setChartData(label, res, 'memory', 'usedMemory')
     setChartData(label, res, 'network', 'instantaneousInputKbps', 'instantaneousOutputKbps')
+    nowDataCount.value = chartData.value.command.labels.length
     refreshInstance()
   } catch (e) {
     meLog('get chart data error', e)
@@ -288,6 +290,7 @@ watch(() => meTauri.settings.theme, () => {
         </el-dropdown>
       </div>
       <div class="right">
+        <el-text type="info">[{{nowDataCount}}]</el-text>
         <node-list v-model="node" style="margin-left: 10px" init-node/>
       </div>
     </div>
