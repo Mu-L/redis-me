@@ -3,8 +3,11 @@
 ## Future
 
 - Terminal: Add command prompts, add command list for manual selection
-- Support for Redis Sentinel mode
 - Scan scanning for hash, list, set, zset
+
+## v1.6.0 (2026-01-31)
+
+- Support for Redis Sentinel mode (SSL does not currently support disabling hostname verification)
 
 ## v1.5.0 (2026-01-24)
 
@@ -12,7 +15,7 @@
 - Charts: Added command execution count, memory, network inbound/outbound charts
 - Terminal: Added Ctrl+L/C shortcut
 - Terminal: Supports automatic copying of command results
-- Terminal: Support commands automatic broadcasting for cluster mode 
+- Terminal: Support commands automatic broadcasting for cluster mode
 
 ## v1.4.1 (2026-01-18)
 
