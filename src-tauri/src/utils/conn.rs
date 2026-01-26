@@ -3,7 +3,7 @@ use crate::utils::util::AnyResult;
 use anyhow::Context;
 use log::info;
 use redis::cluster::{ClusterClient, ClusterConfig};
-use redis::sentinel::{SentinelClientBuilder, SentinelNodeConnectionInfo, SentinelServerType};
+use redis::sentinel::{SentinelClientBuilder, SentinelServerType};
 use redis::{Client, ClientTlsConfig, ConnectionAddr, ConnectionLike, TlsCertificates, TlsMode, TypedCommands};
 use std::fs;
 use std::time::Duration;
@@ -29,6 +29,7 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
                 .set_client_to_sentinel_tls_mode(TlsMode::Secure)
                 .set_client_to_sentinel_certificates(tls);
             // TODO ==> danger_accept_invalid_hostnames 改为 true（目前没有这个属性）
+            // https://github.com/redis-rs/redis-rs/issues/1931
 
             if !conn.username.is_empty() {
                 builder = builder.set_client_to_sentinel_username(conn.username);
@@ -204,6 +205,10 @@ mod tests {
             cluster: false,
             ssl: false,
             ssl_option: None,
+            sentinel: false,
+            master_name: "".to_string(),
+            master_username: "".to_string(),
+            master_password: "".to_string(),
         };
         let client = get_client_single(&redis_conn)?;
         let mut conn = client.get_connection()?;
@@ -231,6 +236,10 @@ mod tests {
             cluster: true,
             ssl: false,
             ssl_option: None,
+            sentinel: false,
+            master_name: "".to_string(),
+            master_username: "".to_string(),
+            master_password: "".to_string(),
         };
         let client = get_client_cluster(&redis_conn)?;
         let mut conn = client.get_connection()?;
@@ -272,6 +281,10 @@ mod tests {
             cluster: false,
             ssl: false,
             ssl_option: None,
+            sentinel: false,
+            master_name: "".to_string(),
+            master_username: "".to_string(),
+            master_password: "".to_string(),
         }
     }
 
