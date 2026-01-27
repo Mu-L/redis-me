@@ -33,19 +33,19 @@ import {version} from '../../../../package.json'
 
 `deb` 安装使用 `apt`
 
-```bash
+```bash-vue
 sudo apt install ./RedisME_{{version}}_amd64.deb
 ```
 
 `rpm` 安装使用 `dnf`
 
-```bash
+```bash-vue
 sudo dnf install ./RedisME-{{version}}-1.x86_64.rpm
 ```
 
 `AppImage`的使用
 
-```bash
+```bash-vue
 chmod u+x RedisME_{{version}}_amd64.AppImage
 ./RedisME_{{version}}_amd64.AppImage
 ```

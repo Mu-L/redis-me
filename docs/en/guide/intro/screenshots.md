@@ -1,5 +1,3 @@
-# Screenshots
-
 ![add-conn.png](../../../public/images/detail/add-conn.png)
 ![conn.png](../../../public/images/detail/conn.png)
 ![info.png](../../../public/images/detail/info.png)

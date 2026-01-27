@@ -70,8 +70,8 @@ function sidebarGuide() {
       text: '简介',
       items: [
         {text: '关于', link: '/intro/about'},
-        {text: '安装', link: '/intro/install'},
-        {text: '应用截图', link: '/intro/screenshots'},
+        {text: '安装帮助', link: '/intro/install'},
+        {text: '软件截图', link: '/intro/screenshots'},
       ]
     },
     {
