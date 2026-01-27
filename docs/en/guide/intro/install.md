@@ -36,19 +36,19 @@ click the `Open` button in the pop-up window
 
 Install `deb` package using `apt`:
 
-```bash
+```bash-vue
 sudo apt install ./RedisME_{{version}}_amd64.deb
 ```
 
 Install `rpm` package using `dnf`:
 
-```bash
+```bash-vue
 sudo dnf install ./RedisME-{{version}}-1.x86_64.rpm
 ```
 
 Use `AppImage`
 
-```bash
+```bash-vue
 chmod u+x RedisME_{{version}}_amd64.AppImage
 ./RedisME_{{version}}_amd64.AppImage
 ```
