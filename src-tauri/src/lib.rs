@@ -40,6 +40,7 @@ pub fn run() {
             chart_list,
             node_list,
             scan,
+            field_scan,
             get,
             ttl,
             set,

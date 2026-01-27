@@ -179,6 +179,10 @@ impl RedisMeClient for RedisMeCluster {
         })
     }
 
+    fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
+        todo!()
+    }
+    
     fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {
         get0(self.get_conn()?, key, hash_key)
     }

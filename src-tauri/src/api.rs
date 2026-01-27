@@ -24,18 +24,6 @@ pub fn conn_list(app_handle: AppHandle, conn_list: Vec<RedisConn>) -> ApiResult<
     to_api_result(app_handle.conn_list(conn_list))
 }
 
-// 连接
-#[command]
-pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
-    to_api_result(app_handle.connect(id)).map(|_| ())
-}
-
-// 断开
-#[command]
-pub fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
-    to_api_result(app_handle.disconnect(id))
-}
-
 // 使用宏简化代码
 // to_api_result(app_handle.get_client(id).and_then(|client| client.$name($($param),*)))
 api_commands!(
@@ -47,7 +35,8 @@ api_commands!(
     chart_list() -> Vec<RedisChart>;           // 图表列表
     node_list() -> Vec<RedisNode>;             // 节点列表
     scan(param: ScanParam) -> ScanResult;      // 扫描
-    get(key: RedisKey, hash_key: Option<String>) -> RedisValue; // 获取值
+    field_scan(param: FieldScanParam)  -> FieldScanResult;      // 字段扫描
+    get(key: RedisKey, hash_key: Option<String>) -> RedisValue; // 获取值(不扫描，直接获取所有)
     ttl(key: RedisKey, ttl: i64) -> ();                 // 设置TTL
     set(key: RedisKey, value: String, ttl: i64) -> ();  // 设置值
     del(key: RedisKey) -> ();                           // 删除键
@@ -66,6 +55,18 @@ api_commands!(
     monitor_stop()   -> ();                      // 监控命令停止
     mock_data(count: u64) -> ();                 // 模拟数据
 );
+
+// 连接
+#[command]
+pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
+    to_api_result(app_handle.connect(id)).map(|_| ())
+}
+
+// 断开
+#[command]
+pub fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
+    to_api_result(app_handle.disconnect(id))
+}
 
 //~~~~~~~~~这两个命令需要将app_handle传递过去，因此需要单独编写~~~~~~~~~
 // 监控命令

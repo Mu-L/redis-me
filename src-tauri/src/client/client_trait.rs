@@ -61,6 +61,8 @@ pub trait RedisMeClient: Send + Sync {
 
     fn scan(&self, param: ScanParam) -> AnyResult<ScanResult>;
 
+    fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult>;
+
     fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue>;
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()>;

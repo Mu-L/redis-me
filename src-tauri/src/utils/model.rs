@@ -96,6 +96,14 @@ api_model!(ScanParam {
     load_all: bool,
 });
 
+api_model!(FieldScanParam {
+    key: RedisKey,
+    hash_key: Option<String>,
+    count: u64,
+    cursor: Option<ScanCursor>,
+    load_all: bool,
+});
+
 impl ScanParam {
     pub fn all(pattern: String) -> Self {
         ScanParam {
@@ -116,6 +124,7 @@ api_model!(ScanCursor {
     finished: bool,
 });
 
+// 直接将默认值添加在api_model宏上了，即所有Model都实现Default接口
 // impl Default for ScanCursor {
 //     fn default() -> Self {
 //         ScanCursor {
@@ -130,6 +139,14 @@ api_model!(ScanCursor {
 // 扫描结果
 api_model!(ScanResult {
     key_list: Vec<RedisKey>,
+    cursor: ScanCursor,
+});
+
+api_model!(FieldScanResult {
+    #[serde(rename = "type")]
+    key_type: String,
+    ttl: i64,
+    value: serde_json::Value,
     cursor: ScanCursor,
 });
 

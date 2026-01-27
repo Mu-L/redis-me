@@ -7,8 +7,8 @@ use anyhow::bail;
 use chrono::Utc;
 use log::info;
 use parking_lot::{Mutex, MutexGuard};
-use redis::{Client, Connection, ConnectionLike, Pipeline, Value};
-use std::collections::HashMap;
+use redis::{Client, Commands, Connection, ConnectionLike, Pipeline, Value, ValueType};
+use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
 use std::sync::atomic::Ordering::Relaxed;
 use std::thread;
@@ -142,6 +142,104 @@ impl RedisMeClient for RedisMeSingle {
         Ok(ScanResult {
             cursor: cc,
             key_list,
+        })
+    }
+
+    fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
+        let mut conn = self.get_conn()?;
+
+        let key = param.key;
+        let ttl: i64 = conn.ttl(&key)?;
+        let key_type: ValueType = conn.key_type(&key)?;
+        let hash_key = param.hash_key;
+
+        let mut cc = param.cursor.unwrap_or_default();
+
+        // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
+        let mut value: Option<serde_json::Value> = match key_type {
+            ValueType::Unknown(other) => {
+                if "none" == other {
+                    bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
+                } else {
+                    bail!("未知类型: {other}")
+                }
+            }
+            ValueType::Stream => bail!("stream类型暂不支持获取值"),
+            ValueType::String => {
+                let value: Vec<u8> = conn.get(&key)?;
+                let value: String = vec8_to_display_string(&value);
+                Some(serde_json::to_value(value)?)
+            }
+            ValueType::Hash => {
+                if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+                    let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
+                    if let Some(str) = value {
+                        let value: String = vec8_to_display_string(&str);
+                        Some(serde_json::to_value(value)?)
+                    } else {
+                        bail!("哈希键不存在: {}", hash_key)
+                    }
+                } else {
+                    None
+                }
+            },
+            ValueType::List => {
+                // 如果你有一个从 0 到 100 的数字列表，LRANGE list 0 10 将返回 11 个元素，也就是说，最右边的项是包含在内的
+                // 超出范围的索引不会产生错误。如果 start 大于列表的末尾，将返回一个空列表。如果 stop 大于列表的实际末尾，Redis 会将其视为列表的最后一个元素。
+                let value: Vec<Vec<u8>> = conn.lrange(&key, cc.now_cursor as isize, (cc.now_cursor + param.count) as isize)?;
+
+                let value: Vec<String> = if value.len() > param.count as usize {
+                    cc.finished = false;
+                    cc.now_cursor += value.len() as u64;
+                    value[0..param.count as usize].iter().map(|v| vec8_to_display_string(v)).collect()
+                } else {
+                    cc.finished = true;
+                    value.iter().map(|v| vec8_to_display_string(v)).collect()
+                };
+                Some(serde_json::to_value(value)?)
+            },
+            _ => None
+        };
+
+
+        if value.is_some() {
+            cc.finished = true
+        } else {
+            let scan_command = match key_type {
+                ValueType::Hash => "hscan",
+                ValueType::Set => "sscan",
+                ValueType::ZSet => "zscan",
+                _ => bail!("field scan not support now"),
+            };
+
+            loop {
+                let mut cmd = redis::cmd(scan_command);
+                cmd.arg(cc.now_cursor)
+                    .arg("count")
+                    .arg(param.count);
+
+                let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = cmd.query(&mut conn)?;
+                // todo 各种类型的处理
+
+                if !param.load_all && param.count > 0 && new_keys.len() >= param.count as usize {
+                    break;
+                }
+
+                if next_cursor == 0 {
+                    cc.finished = true;
+                    break;
+                }
+            }
+
+
+            value = Some(serde_json::to_value("")?)
+        }
+
+        Ok(FieldScanResult {
+            key_type: key_type.into(),
+            ttl,
+            value: value.unwrap_or_default(),
+            cursor: cc,
         })
     }
 
