@@ -1,6 +1,6 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string, info_to_chart};
+use crate::utils::util::{AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string, info_to_chart, ui_list_value, ui_set_value, ui_zset_value, ui_hash_value};
 use anyhow::bail;
 use chrono::{Local, Utc};
 use log::info;
@@ -126,35 +126,23 @@ pub fn get0(
         }
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
-            let value: String = vec8_to_display_string(&value);
-            serde_json::to_value(value)
+            serde_json::to_value(vec8_to_display_string(&value))
         }
         // 注意: 原始返回的信息用Vec<u8>接收，再手动转换为String，避免无效UTF8字符串时直接报错
         ValueType::List => {
             let value: Vec<Vec<u8>> = conn.lrange(&key, 0, -1)?;
-            let value: Vec<String> = value.iter().map(|v| vec8_to_display_string(v)).collect();
-            serde_json::to_value(value)
+            serde_json::to_value(ui_list_value(&value))
         }
         ValueType::Set => {
             let value: HashSet<Vec<u8>> = conn.smembers(&key)?;
-            let value: Vec<String> = value.iter().map(|v| vec8_to_display_string(v)).collect();
-            serde_json::to_value(value)
+            serde_json::to_value(ui_set_value(value))
         }
         ValueType::ZSet => {
             let value: Vec<(Vec<u8>, f64)> = conn.zrange_withscores(&key, 0, -1)?;
-            let list: Vec<RedisZetItem> = value
-                .into_iter()
-                .map(|(value, score)| RedisZetItem {
-                    value: vec8_to_display_string(&value),
-                    score,
-                })
-                .collect();
-            serde_json::to_value(list)
+            serde_json::to_value(ui_zset_value(value))
         }
         ValueType::Hash => {
-            if let Some(hash_key) = hash_key
-                && !hash_key.is_empty()
-            {
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 if let Some(str) = value {
                     let value: String = vec8_to_display_string(&str);
@@ -164,15 +152,7 @@ pub fn get0(
                 }
             } else {
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
-                let value = value
-                    .into_iter()
-                    .map(|(key, value)| {
-                        let key: String = vec8_to_display_string(&key);
-                        let value: String = vec8_to_display_string(&value);
-                        (key, value)
-                    })
-                    .collect::<HashMap<String, String>>();
-                serde_json::to_value(value)
+                serde_json::to_value(ui_hash_value(value))
             }
         }
         ValueType::Stream => bail!("stream类型暂不支持获取值"),

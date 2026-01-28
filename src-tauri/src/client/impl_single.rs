@@ -7,7 +7,7 @@ use anyhow::bail;
 use chrono::Utc;
 use log::info;
 use parking_lot::{Mutex, MutexGuard};
-use redis::{Client, Commands, Connection, ConnectionLike, Pipeline, Value, ValueType};
+use redis::{Client, Commands, Connection, ConnectionLike, FromRedisValue, Pipeline, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
 use std::sync::atomic::Ordering::Relaxed;
@@ -103,6 +103,7 @@ impl RedisMeClient for RedisMeSingle {
         let mut keys: Vec<Vec<u8>> = vec![];
 
         loop {
+            // SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
             let mut cmd = redis::cmd("scan");
             cmd.arg(cc.now_cursor)
                 .arg("match")
@@ -188,23 +189,22 @@ impl RedisMeClient for RedisMeSingle {
                 // 超出范围的索引不会产生错误。如果 start 大于列表的末尾，将返回一个空列表。如果 stop 大于列表的实际末尾，Redis 会将其视为列表的最后一个元素。
                 let value: Vec<Vec<u8>> = conn.lrange(&key, cc.now_cursor as isize, (cc.now_cursor + param.count) as isize)?;
 
+                // 0 ~ 10 获取到11元素, 表示还没有获取到全部数据。序号为10的元素本次不取
                 let value: Vec<String> = if value.len() > param.count as usize {
                     cc.finished = false;
-                    cc.now_cursor += value.len() as u64;
-                    value[0..param.count as usize].iter().map(|v| vec8_to_display_string(v)).collect()
+                    cc.now_cursor += param.count;
+                    ui_list_value(&value[0..param.count as usize])
                 } else {
                     cc.finished = true;
-                    value.iter().map(|v| vec8_to_display_string(v)).collect()
+                    ui_list_value(&value)
                 };
                 Some(serde_json::to_value(value)?)
             },
             _ => None
         };
 
-
-        if value.is_some() {
-            cc.finished = true
-        } else {
+        // 其他类型支持scan的
+        if value.is_none() {
             let scan_command = match key_type {
                 ValueType::Hash => "hscan",
                 ValueType::Set => "sscan",
@@ -212,16 +212,50 @@ impl RedisMeClient for RedisMeSingle {
                 _ => bail!("field scan not support now"),
             };
 
-            loop {
-                let mut cmd = redis::cmd(scan_command);
-                cmd.arg(cc.now_cursor)
-                    .arg("count")
-                    .arg(param.count);
+            let mut scan_value = FieldScanValue {
+                hash: HashMap::new(),
+                set: Vec::new(),
+                zset: Vec::new(),
+            };
 
-                let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = cmd.query(&mut conn)?;
+            let mut ready_count = 0;
+            loop {
+                // SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
+                // HSCAN key cursor [MATCH pattern] [COUNT count] [NOVALUES]
+                // SSCAN key cursor [MATCH pattern] [COUNT count]
+                // ZSCAN key cursor [MATCH pattern] [COUNT count]
+                let mut cmd = redis::cmd(scan_command);
+                cmd.arg(cc.now_cursor).arg("count").arg(param.count);
+
+                let (next_cursor, new_value): (u64, Value) = cmd.query(&mut conn)?;
                 // todo 各种类型的处理
 
-                if !param.load_all && param.count > 0 && new_keys.len() >= param.count as usize {
+                let new_count = match key_type {
+                    ValueType::Hash => {
+                        let value: HashMap<Vec<u8>, Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
+                        let new_count = value.len();
+                        scan_value.hash.extend(ui_hash_value(value));
+                        new_count
+                    },
+                    ValueType::Set => {
+                        let value: HashSet<Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
+                        let new_count = value.len();
+                        scan_value.set.extend(ui_set_value(value));
+                        new_count
+                    },
+
+                    ValueType::ZSet => {
+                        let value: Vec<(Vec<u8>, f64)> = FromRedisValue::from_redis_value(new_value)?;
+                        let new_count = value.len();
+                        scan_value.zset.extend(ui_zset_value(value));
+                        new_count
+                    },
+                    _ => bail!("field scan not support now"),
+                };
+
+                ready_count += new_count;
+
+                if !param.load_all && ready_count >= param.count as usize {
                     break;
                 }
 
@@ -231,8 +265,12 @@ impl RedisMeClient for RedisMeSingle {
                 }
             }
 
-
-            value = Some(serde_json::to_value("")?)
+            value = match key_type {
+                ValueType::Hash => Some(serde_json::to_value(scan_value.hash)?),
+                ValueType::Set => Some(serde_json::to_value(scan_value.set)?),
+                ValueType::ZSet => Some(serde_json::to_value(scan_value.zset)?),
+                _ => bail!("field scan not support now")
+            }
         }
 
         Ok(FieldScanResult {

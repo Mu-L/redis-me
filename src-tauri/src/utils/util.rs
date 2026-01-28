@@ -1,4 +1,4 @@
-use crate::utils::model::{RedisChart, RedisClientInfo, RedisInfo, RedisKeySize, RedisSlowLog};
+use crate::utils::model::{RedisChart, RedisClientInfo, RedisInfo, RedisKeySize, RedisSlowLog, RedisZetItem};
 use anyhow::bail;
 use chrono::DateTime;
 use log::error;
@@ -6,7 +6,7 @@ use rand::Rng;
 use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
 use redis::{FromRedisValue, Value};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 // 统一应用返回值
 pub type AnyResult<T> = anyhow::Result<T>;
@@ -39,6 +39,33 @@ pub fn tuple_to_key_size(keys: Vec<(Vec<u8>, u64, String)>) -> Vec<RedisKeySize>
     key_list.sort_by_key(|x| x.size);
     key_list.reverse();
     key_list
+}
+
+pub fn ui_list_value(value: &[Vec<u8>]) -> Vec<String> {
+    value.into_iter().map(|v| vec8_to_display_string(&v)).collect()
+}
+
+pub fn ui_hash_value(value: HashMap<Vec<u8>, Vec<u8>>) -> HashMap<String, String> {
+    value.into_iter()
+        .map(|(key, value)| {
+            let key: String = vec8_to_display_string(&key);
+            let value: String = vec8_to_display_string(&value);
+            (key, value)
+        })
+        .collect::<HashMap<String, String>>()
+}
+
+pub fn ui_set_value(value: HashSet<Vec<u8>>) -> Vec<String> {
+    value.iter().map(|v| vec8_to_display_string(v)).collect()
+}
+
+pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>) -> Vec<RedisZetItem> {
+    value.into_iter()
+        .map(|(value, score)| RedisZetItem {
+            value: vec8_to_display_string(&value),
+            score,
+        })
+        .collect()
 }
 
 // 字节数组转Base64字符串: RedisKey 的 bytes

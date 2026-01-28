@@ -1,5 +1,6 @@
 #![cfg_attr(test, allow(warnings))] // 整个文件在测试时禁用该警告
 
+use std::collections::HashMap;
 use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
 use crate::utils::util::{AnyResult, vec8_to_display_string};
@@ -112,14 +113,6 @@ api_model!(ScanParam {
     load_all: bool,
 });
 
-api_model!(FieldScanParam {
-    key: RedisKey,
-    hash_key: Option<String>,
-    count: u64,
-    cursor: Option<ScanCursor>,
-    load_all: bool,
-});
-
 impl ScanParam {
     pub fn all(pattern: String) -> Self {
         ScanParam {
@@ -131,6 +124,20 @@ impl ScanParam {
         }
     }
 }
+
+api_model!(FieldScanParam {
+    key: RedisKey,
+    hash_key: Option<String>,
+    count: u64,
+    cursor: Option<ScanCursor>,
+    load_all: bool,
+});
+
+api_model!(FieldScanValue {
+    hash: HashMap<String, String>,
+    set: Vec<String>,
+    zset: Vec<RedisZetItem>,
+});
 
 // 扫描游标
 api_model!(ScanCursor {
