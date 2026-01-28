@@ -190,7 +190,7 @@ pub fn get0(
     })
 }
 
-pub fn field_scan_0(conn: &mut MutexGuard<impl Commands>, param: FieldScanParam) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor)> {
+pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanParam) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor)> {
     let key = param.key;
     let hash_key = param.hash_key;
 
@@ -263,7 +263,7 @@ pub fn field_scan_1_cmd(key_type: &ValueType, key: &RedisKey, cursor: u64, count
     Ok(cmd)
 }
 
-pub fn field_scan_2(key_type: &ValueType, scan_value: &mut FieldScanValue, new_value: redis::Value) -> AnyResult<usize>{
+pub fn field_scan_2_value(key_type: &ValueType, scan_value: &mut FieldScanValue, new_value: redis::Value) -> AnyResult<usize>{
     let new_count = match key_type {
         ValueType::Hash => {
             let value: HashMap<Vec<u8>, Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
@@ -289,7 +289,7 @@ pub fn field_scan_2(key_type: &ValueType, scan_value: &mut FieldScanValue, new_v
     Ok(new_count)
 }
 
-pub fn field_scan_3(key_type: &ValueType, scan_value: &FieldScanValue) -> AnyResult<serde_json::value::Value>{
+pub fn field_scan_3_json(key_type: &ValueType, scan_value: &FieldScanValue) -> AnyResult<serde_json::value::Value>{
     let value = match key_type {
         ValueType::Hash => serde_json::to_value(&scan_value.hash)?,
         ValueType::Set => serde_json::to_value(&scan_value.set)?,

@@ -153,7 +153,7 @@ impl RedisMeClient for RedisMeCluster {
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
         let mut conn = self.get_conn()?;
-        let (mut value, key_type, mut cc) = field_scan_0(&mut conn, param.clone())?;
+        let (mut value, key_type, mut cc) = field_scan_0_get(&mut conn, param.clone())?;
 
         let key = param.key;
         if value.is_none() {
@@ -183,7 +183,7 @@ impl RedisMeClient for RedisMeCluster {
 
                     let value = conn.route_command(&cmd, route.clone())?;
                     let (next_cursor, new_value): (u64, Value) = FromRedisValue::from_redis_value(value)?;
-                    let new_count = field_scan_2(&key_type, &mut scan_value, new_value)?;
+                    let new_count = field_scan_2_value(&key_type, &mut scan_value, new_value)?;
 
                     ready_count += new_count;
                     cc.now_cursor = next_cursor;
@@ -204,7 +204,7 @@ impl RedisMeClient for RedisMeCluster {
                 cc.now_node = "".to_string();
                 cc.now_cursor = 0;
             }
-            value = Some(field_scan_3(&key_type, &scan_value)?)
+            value = Some(field_scan_3_json(&key_type, &scan_value)?)
         }
 
         let ttl: i64 = conn.ttl(&key)?;
