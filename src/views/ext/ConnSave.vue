@@ -142,7 +142,7 @@ function testConn() {
         </el-col>
         <el-col :span="12">
           <el-form-item :label="t('conn.password')">
-            <el-input type="password" v-model.trim="form.password" placeholder="password" clearable/>
+            <el-input type="password" v-model.trim="form.password" placeholder="password" clearable show-password/>
           </el-form-item>
         </el-col>
       </el-row>
@@ -174,7 +174,7 @@ function testConn() {
           </el-col>
           <el-col :span="12">
             <el-form-item :label="t('conn.masterPassword')" :label-width="t('conn.sentinelLabelWidth')">
-              <el-input v-model.trim="form.masterPassword" placeholder="password" type="password" clearable/>
+              <el-input v-model.trim="form.masterPassword" placeholder="password" type="password" clearable show-password/>
             </el-form-item>
           </el-col>
         </el-row>
