@@ -97,13 +97,7 @@ impl RedisMeClient for RedisMeCluster {
         // let keys: Vec<String> = conn.scan_options(opts)?.collect();
         let mut conn = self.get_conn()?;
         let mut cc = param.cursor.unwrap_or_default();
-
-        // 空白或单字母查询，扫描1000槽位数即可；否则扫描10000个槽位数
-        let batch_count = if param.pattern.replace("*", "").chars().count() <= 1 {
-            1000
-        } else {
-            10000
-        };
+        let batch_count = scan_0_batch_count(&param.pattern);
 
         let mut keys: Vec<Vec<u8>> = vec![];
 
@@ -127,24 +121,11 @@ impl RedisMeClient for RedisMeCluster {
                     0
                 };
 
-                let mut cmd = redis::cmd("scan");
-                cmd.arg(cursor)
-                    .arg("match")
-                    .arg(param.pattern.clone())
-                    .arg("count")
-                    .arg(batch_count);
-
-                if let Some(ref scan_type) = param.scan_type
-                    && !scan_type.is_empty()
-                {
-                    cmd.arg("type").arg(scan_type);
-                }
-
+                let cmd = scan_1_cmd(cursor, &param.pattern, batch_count, param.scan_type.clone());
                 let value = conn.route_command(&cmd, route.clone())?;
-                let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) =
-                    FromRedisValue::from_redis_value(value)?;
-
+                let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = FromRedisValue::from_redis_value(value)?;
                 keys.extend(new_keys);
+
                 cc.now_cursor = next_cursor;
                 if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
                     break 'outer;
@@ -157,15 +138,6 @@ impl RedisMeClient for RedisMeCluster {
             cc.ready_nodes.push(node.clone());
         }
 
-        // 映射为返回值
-        let key_list = keys
-            .into_iter()
-            .map(|key| RedisKey {
-                key: vec8_to_display_string(&key),
-                bytes: key,
-            })
-            .collect();
-
         // 判断是否扫描完毕
         if cc.ready_nodes.len() == node_size {
             cc.finished = true;
@@ -175,7 +147,7 @@ impl RedisMeClient for RedisMeCluster {
 
         Ok(ScanResult {
             cursor: cc,
-            key_list,
+            key_list: ui_key_list(keys),
         })
     }
 
@@ -207,7 +179,7 @@ impl RedisMeClient for RedisMeCluster {
                     } else {
                         0
                     };
-                    let cmd = field_scan_1(&key_type, &key, cursor, param.count)?;
+                    let cmd = field_scan_1_cmd(&key_type, &key, cursor, param.count)?;
 
                     let value = conn.route_command(&cmd, route.clone())?;
                     let (next_cursor, new_value): (u64, Value) = FromRedisValue::from_redis_value(value)?;

@@ -108,6 +108,30 @@ pub trait RedisMeClient: Send + Sync {
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
 
+pub fn scan_0_batch_count(pattern: &str) -> u64 {
+    // 空白或单字母查询，扫描1000槽位数即可；否则扫描10000个槽位数
+    if pattern.replace("*", "").chars().count() <= 1 {
+        1000
+    } else {
+        10000
+    }
+}
+
+pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Option<String>) -> Cmd {
+    // SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
+    let mut cmd = redis::cmd("scan");
+    cmd.arg(cursor)
+        .arg("match")
+        .arg(pattern)
+        .arg("count")
+        .arg(batch_count);
+
+    if let Some(scan_type) = scan_type && !scan_type.is_empty() {
+        cmd.arg("type").arg(scan_type);
+    }
+    cmd
+}
+
 pub fn get0(
     mut conn: MutexGuard<impl Commands>,
     key: RedisKey,
@@ -222,7 +246,7 @@ pub fn field_scan_0(conn: &mut MutexGuard<impl Commands>, param: FieldScanParam)
     Ok((value, key_type, cc))
 }
 
-pub fn field_scan_1(key_type: &ValueType, key: &RedisKey, cursor: u64, count: u64) -> AnyResult<Cmd> {
+pub fn field_scan_1_cmd(key_type: &ValueType, key: &RedisKey, cursor: u64, count: u64) -> AnyResult<Cmd> {
     let scan_command = match key_type {
         ValueType::Hash => "hscan",
         ValueType::Set => "sscan",

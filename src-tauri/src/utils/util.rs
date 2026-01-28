@@ -1,4 +1,4 @@
-use crate::utils::model::{RedisChart, RedisClientInfo, RedisInfo, RedisKeySize, RedisSlowLog, RedisZetItem};
+use crate::utils::model::{RedisChart, RedisClientInfo, RedisInfo, RedisKey, RedisKeySize, RedisSlowLog, RedisZetItem};
 use anyhow::bail;
 use chrono::DateTime;
 use log::error;
@@ -39,6 +39,16 @@ pub fn tuple_to_key_size(keys: Vec<(Vec<u8>, u64, String)>) -> Vec<RedisKeySize>
     key_list.sort_by_key(|x| x.size);
     key_list.reverse();
     key_list
+}
+
+pub fn ui_key_list(keys: Vec<Vec<u8>>) -> Vec<RedisKey> {
+    keys
+        .into_iter()
+        .map(|key| RedisKey {
+            key: vec8_to_display_string(&key),
+            bytes: key,
+        })
+        .collect()
 }
 
 pub fn ui_list_value(value: &[Vec<u8>]) -> Vec<String> {
