@@ -103,12 +103,12 @@ impl RedisMeClient for RedisMeSingle {
             keys.extend(new_keys);
 
             cc.now_cursor = next_cursor;
-            if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
+            if next_cursor == 0 {
+                cc.finished = true;
                 break;
             }
 
-            if next_cursor == 0 {
-                cc.finished = true;
+            if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
                 break;
             }
         }
@@ -135,12 +135,12 @@ impl RedisMeClient for RedisMeSingle {
                 ready_count += new_count;
                 cc.now_cursor = next_cursor;
 
-                if !param.load_all && ready_count >= param.count as usize {
+                if next_cursor == 0 {
+                    cc.finished = true;
                     break;
                 }
 
-                if next_cursor == 0 {
-                    cc.finished = true;
+                if !param.load_all && ready_count >= param.count as usize {
                     break;
                 }
             }

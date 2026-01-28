@@ -127,12 +127,12 @@ impl RedisMeClient for RedisMeCluster {
                 keys.extend(new_keys);
 
                 cc.now_cursor = next_cursor;
-                if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
-                    break 'outer;
-                }
-
                 if next_cursor == 0 {
                     break 'inner;
+                }
+
+                if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
+                    break 'outer;
                 }
             }
             cc.ready_nodes.push(node.clone());
@@ -188,12 +188,12 @@ impl RedisMeClient for RedisMeCluster {
                     ready_count += new_count;
                     cc.now_cursor = next_cursor;
 
-                    if !param.load_all && ready_count >= param.count as usize {
-                        break 'outer;
-                    }
-
                     if next_cursor == 0 {
                         break 'inner;
+                    }
+
+                    if !param.load_all && ready_count >= param.count as usize {
+                        break 'outer;
                     }
                 }
             }

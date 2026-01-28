@@ -259,6 +259,11 @@ pub fn field_scan_1_cmd(key_type: &ValueType, key: &RedisKey, cursor: u64, count
     // SSCAN key cursor [MATCH pattern] [COUNT count]
     // ZSCAN key cursor [MATCH pattern] [COUNT count]
     let mut cmd = redis::cmd(scan_command);
+    let count = if count == 0 {
+        10
+    } else {
+        count
+    };
     cmd.arg(key).arg(cursor).arg("count").arg(count);
     Ok(cmd)
 }
@@ -587,7 +592,7 @@ macro_rules! implement_pipeline_commands {
                 pipe.set(&key, random_string(10)).ignore();
 
                 // hash
-                let field_count = random_range(3, 20);
+                let field_count = random_range(3, 200);
                 let key = format!("redis-me-mock:hash:{}", random_string(10));
                 for x in 0..field_count {
                     pipe.hset(&key, format!("key{x}"), random_string(10))

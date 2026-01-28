@@ -11,24 +11,29 @@ mod tests {
     use crate::utils::model::*;
     use redis::TlsMode;
     use redis::cluster::{ClusterClient, ClusterPipeline};
+    use rustls::crypto::ring::default_provider;
 
     fn client() -> Box<dyn RedisMeClient> {
+        default_provider().install_default()
+            .expect("Failed to install rustls crypto provider");
+
         let conn = RedisConn {
             id: "test".into(),
             name: "test".into(),
-            host: "192.168.1.11".into(),
+            host: "10.106.0.167".into(),
             port: 7001,
             username: "".into(),
-            password: "hepengju".into(),
+            password: "Jiyu1212".into(),
             db: 0,
             cluster: true,
-            ssl: false,
+            ssl: true,
             ssl_option: None,
             sentinel: false,
             master_name: "".to_string(),
             master_username: "".to_string(),
             master_password: "".to_string(),
         };
+        // RedisMeSingle::init(&conn).unwrap()
         RedisMeCluster::init(&conn).unwrap()
     }
 
@@ -83,6 +88,23 @@ mod tests {
         };
         let result2 = client().scan(param2).unwrap();
         println!("{result2:#?}");
+    }
+
+    #[test]
+    fn test_field_scan(){
+        let param = FieldScanParam {
+            key: RedisKey {
+                key: "redis-me-mock:hash:06mEG6HfSP".to_string(),
+                bytes: vec![],
+            },
+            hash_key: None,
+            count: 5,
+            cursor: None,
+            load_all: false,
+        };
+
+        let result = client().field_scan(param).unwrap();
+        println!("{}", serde_json::to_string_pretty(&result).unwrap());
     }
 
     #[test]
