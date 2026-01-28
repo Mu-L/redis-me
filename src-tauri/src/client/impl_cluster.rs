@@ -11,7 +11,7 @@ use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo;
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
-use redis::{ConnectionLike, FromRedisValue, Value};
+use redis::{Commands, ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;
@@ -180,7 +180,68 @@ impl RedisMeClient for RedisMeCluster {
     }
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
-        todo!()
+        let mut conn = self.get_conn()?;
+        let (mut value, key_type, mut cc) = field_scan_0(&mut conn, param.clone())?;
+
+        let key = param.key;
+        if value.is_none() {
+            let mut scan_value = FieldScanValue::default();
+            let mut ready_count = 0;
+
+            // 遍历集群节点: 仅扫描主节点
+            let nodes: Vec<String> = self.get_node_list_master();
+            let node_size = nodes.len();
+
+            'outer: for node in nodes {
+                if cc.ready_nodes.contains(&node) {
+                    continue; // 扫描过的予以跳过
+                }
+                cc.now_node = node.clone();
+
+                let (route, _) = self.get_node_route(Some(node.clone()))?;
+
+                'inner: loop {
+                    // 正在扫描的节点则重置上次游标
+                    let cursor = if cc.now_node == node {
+                        cc.now_cursor
+                    } else {
+                        0
+                    };
+                    let cmd = field_scan_1(&key_type, &key, cursor, param.count)?;
+
+                    let value = conn.route_command(&cmd, route.clone())?;
+                    let (next_cursor, new_value): (u64, Value) = FromRedisValue::from_redis_value(value)?;
+                    let new_count = field_scan_2(&key_type, &mut scan_value, new_value)?;
+
+                    ready_count += new_count;
+                    cc.now_cursor = next_cursor;
+
+                    if !param.load_all && ready_count >= param.count as usize {
+                        break 'outer;
+                    }
+
+                    if next_cursor == 0 {
+                        break 'inner;
+                    }
+                }
+            }
+
+            // 判断是否扫描完毕
+            if cc.ready_nodes.len() == node_size {
+                cc.finished = true;
+                cc.now_node = "".to_string();
+                cc.now_cursor = 0;
+            }
+            value = Some(field_scan_3(&key_type, &scan_value)?)
+        }
+
+        let ttl: i64 = conn.ttl(&key)?;
+        Ok(FieldScanResult {
+            key_type: key_type.into(),
+            ttl,
+            value: value.unwrap_or_default(),
+            cursor: cc,
+        })
     }
     
     fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {

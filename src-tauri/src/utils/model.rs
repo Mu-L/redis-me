@@ -139,6 +139,16 @@ api_model!(FieldScanValue {
     zset: Vec<RedisZetItem>,
 });
 
+impl Default for FieldScanValue {
+    fn default() -> Self {
+        Self {
+            hash: Default::default(),
+            set: Default::default(),
+            zset: Default::default(),
+        }
+    }
+}
+
 // 扫描游标
 api_model!(ScanCursor {
     ready_nodes: Vec<String>,
