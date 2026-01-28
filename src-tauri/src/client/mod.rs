@@ -18,8 +18,8 @@ mod tests {
     fn client() -> Box<dyn RedisMeClient> {
         // default_provider().install_default()
         //     .expect("Failed to install rustls crypto provider");
-        client_single()
-        // client_cluster()
+        // client_single()
+        client_cluster()
     }
 
     #[allow(unused)]
@@ -172,21 +172,35 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn test_field_scan(){
-        let param = FieldScanParam {
+    fn test_field_scan_param(key: &str) -> FieldScanParam {
+        FieldScanParam {
             key: RedisKey {
-                key: "redis-me-mock:hash:06mEG6HfSP".to_string(),
+                key: key.to_string(),
                 bytes: vec![],
             },
             hash_key: None,
-            count: 5,
+            count: 150,
             cursor: None,
             load_all: false,
-        };
+        }
+    }
 
-        let result = client().field_scan(param).unwrap();
+    #[test]
+    fn test_field_scan(){
+        // let mut param = test_field_scan_param("field-scan:string");
+        // let mut param = test_field_scan_param("field-scan:hash");
+        // param.hash_key = Some("k0".into());
+        // let mut param = test_field_scan_param("field-scan:list");
+        // let mut param = test_field_scan_param("field-scan:set");
+        let mut param = test_field_scan_param("field-scan:zset");
+        let result = client().field_scan(param.clone()).unwrap();
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
+
+        if !result.cursor.finished {
+            param.cursor = Some(result.cursor.clone());
+            let result = client().field_scan(param).unwrap();
+            println!("{}", serde_json::to_string_pretty(&result).unwrap());
+        }
     }
 
     #[test]

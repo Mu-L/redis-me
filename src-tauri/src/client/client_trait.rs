@@ -210,6 +210,7 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             let value: String = vec8_to_display_string(&value);
+            cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
         ValueType::Hash => {
@@ -217,6 +218,7 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 if let Some(str) = value {
                     let value: String = vec8_to_display_string(&str);
+                    cc.finished = true;
                     Some(serde_json::to_value(value)?)
                 } else {
                     bail!("哈希键不存在: {}", hash_key)

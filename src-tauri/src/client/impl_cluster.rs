@@ -196,6 +196,7 @@ impl RedisMeClient for RedisMeCluster {
                         break 'outer;
                     }
                 }
+                cc.ready_nodes.push(node.clone());
             }
 
             // 判断是否扫描完毕
