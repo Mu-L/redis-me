@@ -7,12 +7,18 @@
 
 ## v1.6.0 (2026-01-31)
 
-- Support for Redis Sentinel mode (SSL does not currently support disabling hostname verification)
+- Value: Supports cursor scanning for hash, list, set, and zset
+- Value: Value size display changed from frontend calculation to server returning actual memory usage
+- Connection: Support for Redis Sentinel mode (SSL does not support disabling hostname verification for now)
+- Connection: Password input library supports display, dialog supports dragging
+- Chart: Fixed defect where disabling auto-refresh did not take effect
+- Chart: Configurable to display up to N data points, exceeding which approximately N/2 data points are sampled evenly
+- Info: Added cache hit rate metric
 
 ## v1.5.0 (2026-01-24)
 
-- Added a update log link redirection during upgrade reminders
-- Charts: Added command execution count, memory, network inbound/outbound charts
+- Update: Added a update log link redirection during upgrade reminders
+- Chart: Added command execution count, memory, network inbound/outbound charts
 - Terminal: Added Ctrl+L/C shortcut
 - Terminal: Supports automatic copying of command results
 - Terminal: Support commands automatic broadcasting for cluster mode
