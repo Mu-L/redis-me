@@ -179,6 +179,7 @@ api_model!(FieldScanResult {
     #[serde(rename = "type")]
     key_type: String,
     ttl: i64,
+    size: u64,
     value: serde_json::Value,
     cursor: ScanCursor,
 });
@@ -244,6 +245,7 @@ api_model!(RedisValue {
     #[serde(rename = "type")]
     key_type: String,
     ttl: i64,
+    size: u64,
     value: serde_json::Value,
 });
 

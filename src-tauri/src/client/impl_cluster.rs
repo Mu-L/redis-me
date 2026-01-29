@@ -208,13 +208,7 @@ impl RedisMeClient for RedisMeCluster {
             value = Some(field_scan_3_json(&key_type, &scan_value)?)
         }
 
-        let ttl: i64 = conn.ttl(&key)?;
-        Ok(FieldScanResult {
-            key_type: key_type.into(),
-            ttl,
-            value: value.unwrap_or_default(),
-            cursor: cc,
-        })
+        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc)
     }
     
     fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {

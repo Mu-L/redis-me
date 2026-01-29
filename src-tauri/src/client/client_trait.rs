@@ -137,7 +137,6 @@ pub fn get0(
     key: RedisKey,
     hash_key: Option<String>,
 ) -> AnyResult<RedisValue> {
-    let ttl: i64 = conn.ttl(&key)?;
     let key_type: ValueType = conn.key_type(&key)?;
 
     let value: serde_json::Value = match key_type {
@@ -183,9 +182,12 @@ pub fn get0(
         _ => todo!(),
     }?;
 
+    let ttl: i64 = conn.ttl(&key)?;
+    let size: u64 = redis::cmd("memory").arg("usage").arg(&key).query(&mut conn)?;
     Ok(RedisValue {
         key_type: key_type.into(),
         ttl,
+        size,
         value,
     })
 }
@@ -304,6 +306,20 @@ pub fn field_scan_3_json(key_type: &ValueType, scan_value: &FieldScanValue) -> A
         _ => bail!("field scan not support now")
     };
     Ok(value)
+}
+
+pub fn field_scan_4_return(mut conn: MutexGuard<impl Commands>,
+                           key: RedisKey, key_type: ValueType,
+                           value: serde_json::Value, cursor: ScanCursor) -> AnyResult<FieldScanResult> {
+    let ttl: i64 = conn.ttl(&key)?;
+    let size: u64 = redis::cmd("memory").arg("usage").arg(&key).query(&mut conn)?;
+    Ok(FieldScanResult {
+        key_type: key_type.into(),
+        ttl,
+        size,
+        value: value.unwrap_or_default(),
+        cursor,
+    })
 }
 
 pub fn ttl0(mut conn: MutexGuard<impl Commands>, key: RedisKey, ttl: i64) -> AnyResult<()> {
