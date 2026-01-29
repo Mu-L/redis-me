@@ -61,6 +61,4 @@ git clone https://github.com/hepengju/redis-me.git --depth=1
 # 安装前端依赖，然后本地启动开发模式
 pnpm install
 pnpm tauri dev
-
-# 如果SSL编译失败, 可参考: https://aws.github.io/aws-lc-rs/index.html 添加必要组件
 ```
