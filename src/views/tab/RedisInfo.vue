@@ -28,7 +28,7 @@ const dialog = reactive({
 })
 const loading = ref(false)
 const config = ref('')
-const rdbChecked = computed(() => config.value.save ? true : false)
+const rdbChecked = computed(() => !!config.value.save)
 const aofChecked = computed(() => dic.value['aof_enabled'] === '1')
 const rdbTooltip = computed(() => config.value.save || t('redisInfo.rdbDisabled'))
 const cacheRatio = computed(() => {
@@ -326,6 +326,5 @@ function goMemory() {
       }
     }
   }
-
 }
 </style>
