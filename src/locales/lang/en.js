@@ -380,7 +380,9 @@ export default {
     deleteConfirm: 'Confirm Delete ?',
     jsonView: 'JSON View',
     tableView: 'Table View',
-    noKeySelected: 'No Key Selected'
+    noKeySelected: 'No Key Selected',
+    loadMore: 'Load More',
+    loadAll: 'Load All',
   },
 
   redisChart: {

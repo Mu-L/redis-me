@@ -382,7 +382,9 @@ export default {
     deleteConfirm: '确定删除吗？',
     jsonView: 'JSON展示',
     tableView: '表格展示',
-    noKeySelected: '未选择任何键'
+    noKeySelected: '未选择任何键',
+    loadMore: '加载更多',
+    loadAll: '加载剩余所有键',
   },
 
   redisChart: {

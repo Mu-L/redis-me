@@ -303,10 +303,10 @@ async function fieldDel(row) {
 
           <div class="btn-lb" v-if="!(cursor?.finished)">
             <el-button-group>
-              <me-button :info="t('keyMain.loadMore')" icon="me-icon-load-more"
+              <me-button :info="t('redisValue.loadMore')" icon="me-icon-load-more"
                          @click="refreshKey(false, true, false)"
                          placement="top"/>
-              <me-button :info="t('keyMain.loadAll')" icon="me-icon-load-all"
+              <me-button :info="t('redisValue.loadAll')" icon="me-icon-load-all"
                          @click="refreshKey(false, true, true)"
                          placement="top"/>
             </el-button-group>
@@ -321,10 +321,10 @@ async function fieldDel(row) {
 
             <div>
               <el-button-group v-if="!(cursor?.finished)">
-                <me-button :info="t('keyMain.loadMore')" icon="me-icon-load-more"
+                <me-button :info="t('redisValue.loadMore')" icon="me-icon-load-more"
                            @click="refreshKey(false, true, false)"
                            placement="top"/>
-                <me-button :info="t('keyMain.loadAll')" icon="me-icon-load-all"
+                <me-button :info="t('redisValue.loadAll')" icon="me-icon-load-all"
                            @click="refreshKey(false, true, true)"
                            placement="top"/>
               </el-button-group>
