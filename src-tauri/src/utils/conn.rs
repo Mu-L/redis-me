@@ -96,7 +96,8 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
 // 获取集群连接
 pub fn get_client_cluster(conn: &RedisConn) -> AnyResult<ClusterClient> {
     let prefix = if conn.ssl { "rediss" } else { "redis" };
-    let redis_url = format!("{}://{}:{}", prefix, conn.host, conn.port);
+    let suffix = if conn.ssl { "/#insecure" } else { "" };
+    let redis_url = format!("{}://{}:{}{}", prefix, conn.host, conn.port, suffix);
     info!("redis_url: {redis_url}");
 
     let mut builder = ClusterClient::builder(vec![redis_url]);

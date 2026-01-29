@@ -22,6 +22,7 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
         Ok(value) => Ok(value),
         Err(err) => {
             error!("错误: {}", err);
+            //error!("{}", err.backtrace());
             Err(err.to_string())
         }
     }
