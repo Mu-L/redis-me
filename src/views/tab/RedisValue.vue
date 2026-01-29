@@ -94,7 +94,7 @@ watchEffect(() => {
 // TTL设置
 async function setTTL(){
   const seconds = redisValue.value.ttl
-  if (seconds <=0 & seconds != -1) {
+  if (seconds <=0 && seconds !== -1) {
     meOk(t('redisValue.ttlValidator'))
     return
   }
@@ -119,11 +119,7 @@ async function refreshKey(reset = true) {
   try {
     const data = await meInvoke('get', {id: share.conn.id, key: share.redisKey, hashKey: hashKey.value})
     redisValue.value = data
-    if (hashKey.value) {
-      withHashKey.value = true
-    } else {
-      withHashKey.value = false
-    }
+    withHashKey.value = !!hashKey.value;
   } finally {
     loading.value = false
   }
@@ -238,7 +234,7 @@ async function fieldDel(row) {
 
         <el-input type="text" :placeholder="t('redisValue.optional')"
                   clearable style="width: 200px; margin-left: 10px"
-                  v-model="hashKey" v-if="redisValue.type == 'hash'"
+                  v-model="hashKey" v-if="redisValue.type === 'hash'"
                   @keyup.enter="refreshKey(false)">
           <template #prepend>{{ t('redisValue.hashKey') }}</template>
         </el-input>
@@ -297,7 +293,7 @@ async function fieldDel(row) {
                       :row-class-name="rowClassName" @row-click="rowClick">
               <el-table-column label="#" type="index" width="50" align="center" show-overflow-tooltip>
                 <template #default="scope">
-                  <div v-if="fieldSetIndex != scope.$index">{{scope.$index + 1}}</div>
+                  <div v-if="fieldSetIndex !== scope.$index">{{scope.$index + 1}}</div>
                   <me-icon v-else icon="el-icon-edit" :style="{color: share.color, display: 'block'}" ></me-icon>
                 </template>
               </el-table-column>
