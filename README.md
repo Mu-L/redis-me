@@ -63,6 +63,4 @@ git clone https://github.com/hepengju/redis-me.git --depth=1
 # install package.json and start dev
 pnpm install
 pnpm tauri dev
-
-# If SSL compilation fails, you can refer to, refer: https://aws.github.io/aws-lc-rs/index.html 
 ```
