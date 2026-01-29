@@ -112,7 +112,8 @@ function testConn() {
 </script>
 
 <template>
-  <el-dialog :title="mode === 'add' ? t('conn.addConn') : t('conn.editConn')" @closed="emit('closed')"
+  <el-dialog :title="mode === 'add' ? t('conn.addConn') : t('conn.editConn')"
+             @closed="emit('closed')" draggable
              v-model="visible" width="600" append-to-body destroy-on-close align-center>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="right" label-width="60">
       <el-form-item :label="t('conn.name')" prop="name">
