@@ -291,24 +291,24 @@ async function fieldDel(row) {
             <me-button class="save" :info="t('save')" type="danger" icon="me-icon-save" @click="setValue" placement="top"/>
           </div>
 
-          <el-button-group class="btn-rt">
-            <el-button>Size: {{ showSize }}</el-button>
-            <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(showValue)"/>
-            <me-button :info="t('redisValue.prettyHint')"
-                       placement="bottom-end"
-                       icon="el-icon-magic-stick"
-                       :type="isPretty ? 'info' : ''"
-                       @click="isPretty = !isPretty"/>
-          </el-button-group>
-
-          <div class="btn-lb" v-if="!(cursor?.finished)">
-            <el-button-group>
+          <div class="btn-rt">
+            <el-button-group v-if="!(cursor?.finished)">
               <me-button :info="t('redisValue.loadMore')" icon="me-icon-load-more"
                          @click="refreshKey(false, true, false)"
                          placement="top"/>
               <me-button :info="t('redisValue.loadAll')" icon="me-icon-load-all"
                          @click="refreshKey(false, true, true)"
                          placement="top"/>
+            </el-button-group>
+
+            <el-button-group>
+              <el-button style="margin-left: 10px">Size: {{ showSize }}</el-button>
+              <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(showValue)"/>
+              <me-button :info="t('redisValue.prettyHint')"
+                         placement="bottom-end"
+                         icon="el-icon-magic-stick"
+                         :type="isPretty ? 'info' : ''"
+                         @click="isPretty = !isPretty"/>
             </el-button-group>
           </div>
         </template>

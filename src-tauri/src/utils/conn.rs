@@ -22,7 +22,8 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
                 insecure: true,
                 tls_params: None,
             };
-            let mut builder = SentinelClientBuilder::new(vec![addr], conn.master_name, SentinelServerType::Master)?
+            let mut builder = SentinelClientBuilder::new(
+                vec![addr], conn.master_name, SentinelServerType::Master)?
                 .set_client_to_redis_db(conn.db as i64)
                 .set_client_to_redis_tls_mode(TlsMode::Secure)
                 .set_client_to_redis_certificates(tls.clone())
