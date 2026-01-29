@@ -277,7 +277,8 @@ export default {
     value: 'Value',
     tip: 'Tip',
     client: 'Client',
-    runConfig: 'Run Config'
+    runConfig: 'Run Config',
+    cacheRatio: 'CacheRatio'
   },
 
   redisMemory: {

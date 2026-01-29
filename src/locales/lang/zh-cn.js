@@ -278,7 +278,8 @@ export default {
     value: '值',
     tip: '说明',
     client: '客户端',
-    runConfig: '运行配置'
+    runConfig: '运行配置',
+    cacheRatio: '缓存命中率'
   },
 
   redisMemory: {
