@@ -1,11 +1,11 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string, info_to_chart};
+use crate::utils::util::{AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string, info_to_chart, ui_list_value, ui_set_value, ui_zset_value, ui_hash_value};
 use anyhow::bail;
 use chrono::{Local, Utc};
 use log::info;
 use parking_lot::MutexGuard;
-use redis::{Commands, Connection, Msg, SetExpiry, SetOptions, ValueType, from_redis_value};
+use redis::{Commands, Connection, Msg, SetExpiry, SetOptions, ValueType, from_redis_value, Cmd, FromRedisValue};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
@@ -61,6 +61,8 @@ pub trait RedisMeClient: Send + Sync {
 
     fn scan(&self, param: ScanParam) -> AnyResult<ScanResult>;
 
+    fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult>;
+
     fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue>;
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()>;
@@ -106,12 +108,35 @@ pub trait RedisMeClient: Send + Sync {
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
 
+pub fn scan_0_batch_count(pattern: &str) -> u64 {
+    // 空白或单字母查询，扫描1000槽位数即可；否则扫描10000个槽位数
+    if pattern.replace("*", "").chars().count() <= 1 {
+        1000
+    } else {
+        10000
+    }
+}
+
+pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Option<String>) -> Cmd {
+    // SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
+    let mut cmd = redis::cmd("scan");
+    cmd.arg(cursor)
+        .arg("match")
+        .arg(pattern)
+        .arg("count")
+        .arg(batch_count);
+
+    if let Some(scan_type) = scan_type && !scan_type.is_empty() {
+        cmd.arg("type").arg(scan_type);
+    }
+    cmd
+}
+
 pub fn get0(
     mut conn: MutexGuard<impl Commands>,
     key: RedisKey,
     hash_key: Option<String>,
 ) -> AnyResult<RedisValue> {
-    let ttl: i64 = conn.ttl(&key)?;
     let key_type: ValueType = conn.key_type(&key)?;
 
     let value: serde_json::Value = match key_type {
@@ -124,35 +149,23 @@ pub fn get0(
         }
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
-            let value: String = vec8_to_display_string(&value);
-            serde_json::to_value(value)
+            serde_json::to_value(vec8_to_display_string(&value))
         }
         // 注意: 原始返回的信息用Vec<u8>接收，再手动转换为String，避免无效UTF8字符串时直接报错
         ValueType::List => {
             let value: Vec<Vec<u8>> = conn.lrange(&key, 0, -1)?;
-            let value: Vec<String> = value.iter().map(|v| vec8_to_display_string(v)).collect();
-            serde_json::to_value(value)
+            serde_json::to_value(ui_list_value(&value))
         }
         ValueType::Set => {
             let value: HashSet<Vec<u8>> = conn.smembers(&key)?;
-            let value: Vec<String> = value.iter().map(|v| vec8_to_display_string(v)).collect();
-            serde_json::to_value(value)
+            serde_json::to_value(ui_set_value(value))
         }
         ValueType::ZSet => {
             let value: Vec<(Vec<u8>, f64)> = conn.zrange_withscores(&key, 0, -1)?;
-            let list: Vec<RedisZetItem> = value
-                .into_iter()
-                .map(|(value, score)| RedisZetItem {
-                    value: vec8_to_display_string(&value),
-                    score,
-                })
-                .collect();
-            serde_json::to_value(list)
+            serde_json::to_value(ui_zset_value(value))
         }
         ValueType::Hash => {
-            if let Some(hash_key) = hash_key
-                && !hash_key.is_empty()
-            {
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 if let Some(str) = value {
                     let value: String = vec8_to_display_string(&str);
@@ -162,25 +175,151 @@ pub fn get0(
                 }
             } else {
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
-                let value = value
-                    .into_iter()
-                    .map(|(key, value)| {
-                        let key: String = vec8_to_display_string(&key);
-                        let value: String = vec8_to_display_string(&value);
-                        (key, value)
-                    })
-                    .collect::<HashMap<String, String>>();
-                serde_json::to_value(value)
+                serde_json::to_value(ui_hash_value(value))
             }
         }
         ValueType::Stream => bail!("stream类型暂不支持获取值"),
         _ => todo!(),
     }?;
 
+    let ttl: i64 = conn.ttl(&key)?;
+    let size: u64 = redis::cmd("memory").arg("usage").arg(&key).query(&mut conn)?;
     Ok(RedisValue {
         key_type: key_type.into(),
         ttl,
+        size,
         value,
+    })
+}
+
+pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanParam) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor)> {
+    let key = param.key;
+    let hash_key = param.hash_key;
+
+    let key_type: ValueType = conn.key_type(&key)?;
+    let mut cc = param.cursor.unwrap_or_default();
+
+    // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
+    let value: Option<serde_json::Value> = match key_type {
+        ValueType::Unknown(other) => {
+            if "none" == other {
+                bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
+            } else {
+                bail!("未知类型: {other}")
+            }
+        }
+        ValueType::Stream => bail!("stream类型暂不支持获取值"),
+        ValueType::String => {
+            let value: Vec<u8> = conn.get(&key)?;
+            let value: String = vec8_to_display_string(&value);
+            cc.finished = true;
+            Some(serde_json::to_value(value)?)
+        }
+        ValueType::Hash => {
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+                let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
+                if let Some(str) = value {
+                    let value: String = vec8_to_display_string(&str);
+                    cc.finished = true;
+                    Some(serde_json::to_value(value)?)
+                } else {
+                    bail!("哈希键不存在: {}", hash_key)
+                }
+            } else {
+                None
+            }
+        },
+        ValueType::List => {
+            // 如果你有一个从 0 到 100 的数字列表，LRANGE list 0 10 将返回 11 个元素，也就是说，最右边的项是包含在内的
+            // 超出范围的索引不会产生错误。如果 start 大于列表的末尾，将返回一个空列表。如果 stop 大于列表的实际末尾，Redis 会将其视为列表的最后一个元素。
+            let end_index: isize = if param.load_all { -1 } else { (cc.now_cursor + param.count) as isize };
+            let value: Vec<Vec<u8>> = conn.lrange(&key, cc.now_cursor as isize, end_index)?;
+
+            // 0 ~ 10 获取到11元素, 表示还没有获取到全部数据。序号为10的元素本次不取
+            let value: Vec<String> = if !param.load_all && value.len() > param.count as usize {
+                cc.finished = false;
+                cc.now_cursor += param.count;
+                ui_list_value(&value[0..param.count as usize])
+            } else {
+                cc.finished = true;
+                ui_list_value(&value)
+            };
+            Some(serde_json::to_value(value)?)
+        },
+        _ => None
+    };
+    Ok((value, key_type, cc))
+}
+
+pub fn field_scan_1_cmd(key_type: &ValueType, key: &RedisKey, cursor: u64, count: u64) -> AnyResult<Cmd> {
+    let scan_command = match key_type {
+        ValueType::Hash => "hscan",
+        ValueType::Set => "sscan",
+        ValueType::ZSet => "zscan",
+        _ => bail!("field scan not support now"),
+    };
+
+    // SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
+    // HSCAN key cursor [MATCH pattern] [COUNT count] [NOVALUES]
+    // SSCAN key cursor [MATCH pattern] [COUNT count]
+    // ZSCAN key cursor [MATCH pattern] [COUNT count]
+    let mut cmd = redis::cmd(scan_command);
+    let count = if count == 0 {
+        10
+    } else {
+        count
+    };
+    cmd.arg(key).arg(cursor).arg("count").arg(count);
+    Ok(cmd)
+}
+
+pub fn field_scan_2_value(key_type: &ValueType, scan_value: &mut FieldScanValue, new_value: redis::Value) -> AnyResult<usize>{
+    let new_count = match key_type {
+        ValueType::Hash => {
+            let value: HashMap<Vec<u8>, Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
+            let new_count = value.len();
+            scan_value.hash.extend(ui_hash_value(value));
+            new_count
+        },
+        ValueType::Set => {
+            let value: HashSet<Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
+            let new_count = value.len();
+            scan_value.set.extend(ui_set_value(value));
+            new_count
+        },
+
+        ValueType::ZSet => {
+            let value: Vec<(Vec<u8>, f64)> = FromRedisValue::from_redis_value(new_value)?;
+            let new_count = value.len();
+            scan_value.zset.extend(ui_zset_value(value));
+            new_count
+        },
+        _ => bail!("field scan not support now"),
+    };
+    Ok(new_count)
+}
+
+pub fn field_scan_3_json(key_type: &ValueType, scan_value: &FieldScanValue) -> AnyResult<serde_json::value::Value>{
+    let value = match key_type {
+        ValueType::Hash => serde_json::to_value(&scan_value.hash)?,
+        ValueType::Set => serde_json::to_value(&scan_value.set)?,
+        ValueType::ZSet => serde_json::to_value(&scan_value.zset)?,
+        _ => bail!("field scan not support now")
+    };
+    Ok(value)
+}
+
+pub fn field_scan_4_return(mut conn: MutexGuard<impl Commands>,
+                           key: RedisKey, key_type: ValueType,
+                           value: serde_json::Value, cursor: ScanCursor) -> AnyResult<FieldScanResult> {
+    let ttl: i64 = conn.ttl(&key)?;
+    let size: u64 = redis::cmd("memory").arg("usage").arg(&key).query(&mut conn)?;
+    Ok(FieldScanResult {
+        key_type: key_type.into(),
+        ttl,
+        size,
+        value,
+        cursor,
     })
 }
 
@@ -472,7 +611,7 @@ macro_rules! implement_pipeline_commands {
                 pipe.set(&key, random_string(10)).ignore();
 
                 // hash
-                let field_count = random_range(3, 20);
+                let field_count = random_range(3, 200);
                 let key = format!("redis-me-mock:hash:{}", random_string(10));
                 for x in 0..field_count {
                     pipe.hset(&key, format!("key{x}"), random_string(10))

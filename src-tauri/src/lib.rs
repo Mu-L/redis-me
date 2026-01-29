@@ -2,14 +2,14 @@ mod api;
 mod client;
 mod utils;
 
+use rustls::crypto::ring::default_provider;
 use crate::utils::setup::{app_setup, init_logger};
 use api::*;
 use client::state::AppState;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    rustls::crypto::aws_lc_rs::default_provider()
-        .install_default()
+    default_provider().install_default()
         .expect("Failed to install rustls crypto provider");
 
     tauri::Builder::default()
@@ -40,6 +40,7 @@ pub fn run() {
             chart_list,
             node_list,
             scan,
+            field_scan,
             get,
             ttl,
             set,

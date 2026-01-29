@@ -120,7 +120,7 @@ export default {
   },
 
   tabMain: {
-    info: 'INFO',
+    info: 'Info',
     value: 'Value',
     console: 'Console',
     memory: 'Memory',
@@ -277,7 +277,8 @@ export default {
     value: 'Value',
     tip: 'Tip',
     client: 'Client',
-    runConfig: 'Run Config'
+    runConfig: 'Run Config',
+    cacheRatio: 'Cache Hit Ratio'
   },
 
   redisMemory: {
@@ -326,7 +327,7 @@ export default {
     publishOk: 'Publish Success',
     subscribeChannel: 'Subscribe Channel',
     clearMessage: 'Clear Message',
-    keyword: 'Filter (Channel/Message) ',
+    keyword: 'Filter (Channel / Message) ',
     subscribeStart: 'Subscribe Start',
     subscribeStop: 'Subscribe Stop',
     datetime: 'DateTime',
@@ -344,7 +345,7 @@ export default {
     slowerMaxLen: 'Count',
     slowerGetCount: 'Limit',
     unit: '-',
-    keyword: 'Filter (Command、Client、ClientName）',
+    keyword: 'Filter (Command / Client / ClientName）',
     command: 'Command',
     cost: 'Cost',
     clientName: 'ClientName',
@@ -380,7 +381,9 @@ export default {
     deleteConfirm: 'Confirm Delete ?',
     jsonView: 'JSON View',
     tableView: 'Table View',
-    noKeySelected: 'No Key Selected'
+    noKeySelected: 'No Key Selected',
+    loadMore: 'Load More',
+    loadAll: 'Load All',
   },
 
   redisChart: {

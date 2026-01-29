@@ -1,5 +1,6 @@
 #![cfg_attr(test, allow(warnings))] // 整个文件在测试时禁用该警告
 
+use std::collections::HashMap;
 use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
 use crate::utils::util::{AnyResult, vec8_to_display_string};
@@ -69,6 +70,22 @@ api_model!(RedisChart {
     keyspace_misses: u64,            // 在主字典中查找键失败的数量
 });
 
+impl Default for RedisChart {
+    fn default() -> Self {
+        RedisChart {
+            node: "".to_string(),
+            key_total: 0,
+            connected_clients: 0,
+            instantaneous_ops_per_sec: 0.0,
+            used_memory: 0.0,
+            instantaneous_input_kbps: 0.0,
+            instantaneous_output_kbps: 0.0,
+            keyspace_hits: 0,
+            keyspace_misses: 0,
+        }
+    }
+}
+
 // 信息 info命令
 api_model!(RedisInfo {
     node: String,
@@ -108,6 +125,30 @@ impl ScanParam {
     }
 }
 
+api_model!(FieldScanParam {
+    key: RedisKey,
+    hash_key: Option<String>,
+    count: u64,
+    cursor: Option<ScanCursor>,
+    load_all: bool,
+});
+
+api_model!(FieldScanValue {
+    hash: HashMap<String, String>,
+    set: Vec<String>,
+    zset: Vec<RedisZetItem>,
+});
+
+impl Default for FieldScanValue {
+    fn default() -> Self {
+        Self {
+            hash: Default::default(),
+            set: Default::default(),
+            zset: Default::default(),
+        }
+    }
+}
+
 // 扫描游标
 api_model!(ScanCursor {
     ready_nodes: Vec<String>,
@@ -116,20 +157,30 @@ api_model!(ScanCursor {
     finished: bool,
 });
 
-// impl Default for ScanCursor {
-//     fn default() -> Self {
-//         ScanCursor {
-//             ready_nodes: vec![],
-//             now_node: "".to_string(),
-//             now_cursor: 0,
-//             finished: false,
-//         }
-//     }
-// }
+// 直接将默认值添加在api_model宏上了，即所有Model都实现Default接口
+impl Default for ScanCursor {
+    fn default() -> Self {
+        ScanCursor {
+            ready_nodes: vec![],
+            now_node: "".to_string(),
+            now_cursor: 0,
+            finished: false,
+        }
+    }
+}
 
 // 扫描结果
 api_model!(ScanResult {
     key_list: Vec<RedisKey>,
+    cursor: ScanCursor,
+});
+
+api_model!(FieldScanResult {
+    #[serde(rename = "type")]
+    key_type: String,
+    ttl: i64,
+    size: u64,
+    value: serde_json::Value,
     cursor: ScanCursor,
 });
 
@@ -194,6 +245,7 @@ api_model!(RedisValue {
     #[serde(rename = "type")]
     key_type: String,
     ttl: i64,
+    size: u64,
     value: serde_json::Value,
 });
 

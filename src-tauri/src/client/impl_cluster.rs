@@ -97,13 +97,7 @@ impl RedisMeClient for RedisMeCluster {
         // let keys: Vec<String> = conn.scan_options(opts)?.collect();
         let mut conn = self.get_conn()?;
         let mut cc = param.cursor.unwrap_or_default();
-
-        // 空白或单字母查询，扫描1000槽位数即可；否则扫描10000个槽位数
-        let batch_count = if param.pattern.replace("*", "").chars().count() <= 1 {
-            1000
-        } else {
-            10000
-        };
+        let batch_count = scan_0_batch_count(&param.pattern);
 
         let mut keys: Vec<Vec<u8>> = vec![];
 
@@ -127,44 +121,22 @@ impl RedisMeClient for RedisMeCluster {
                     0
                 };
 
-                let mut cmd = redis::cmd("scan");
-                cmd.arg(cursor)
-                    .arg("match")
-                    .arg(param.pattern.clone())
-                    .arg("count")
-                    .arg(batch_count);
-
-                if let Some(ref scan_type) = param.scan_type
-                    && !scan_type.is_empty()
-                {
-                    cmd.arg("type").arg(scan_type);
-                }
-
+                let cmd = scan_1_cmd(cursor, &param.pattern, batch_count, param.scan_type.clone());
                 let value = conn.route_command(&cmd, route.clone())?;
-                let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) =
-                    FromRedisValue::from_redis_value(value)?;
-
+                let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = FromRedisValue::from_redis_value(value)?;
                 keys.extend(new_keys);
-                cc.now_cursor = next_cursor;
-                if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
-                    break 'outer;
-                }
 
+                cc.now_cursor = next_cursor;
                 if next_cursor == 0 {
                     break 'inner;
+                }
+
+                if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
+                    break 'outer;
                 }
             }
             cc.ready_nodes.push(node.clone());
         }
-
-        // 映射为返回值
-        let key_list = keys
-            .into_iter()
-            .map(|key| RedisKey {
-                key: vec8_to_display_string(&key),
-                bytes: key,
-            })
-            .collect();
 
         // 判断是否扫描完毕
         if cc.ready_nodes.len() == node_size {
@@ -175,10 +147,70 @@ impl RedisMeClient for RedisMeCluster {
 
         Ok(ScanResult {
             cursor: cc,
-            key_list,
+            key_list: ui_key_list(keys),
         })
     }
 
+    fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
+        let mut conn = self.get_conn()?;
+        let (mut value, key_type, mut cc) = field_scan_0_get(&mut conn, param.clone())?;
+
+        let key = param.key;
+        if value.is_none() {
+            let mut scan_value = FieldScanValue::default();
+            let mut ready_count = 0;
+
+            // 遍历集群节点: 仅扫描主节点
+            let nodes: Vec<String> = self.get_node_list_master();
+            let node_size = nodes.len();
+
+            'outer: for node in nodes {
+                if cc.ready_nodes.contains(&node) {
+                    continue; // 扫描过的予以跳过
+                }
+                cc.now_node = node.clone();
+
+                let (route, _) = self.get_node_route(Some(node.clone()))?;
+
+                'inner: loop {
+                    // 正在扫描的节点则重置上次游标
+                    let cursor = if cc.now_node == node {
+                        cc.now_cursor
+                    } else {
+                        0
+                    };
+                    let cmd = field_scan_1_cmd(&key_type, &key, cursor, param.count)?;
+
+                    let value = conn.route_command(&cmd, route.clone())?;
+                    let (next_cursor, new_value): (u64, Value) = FromRedisValue::from_redis_value(value)?;
+                    let new_count = field_scan_2_value(&key_type, &mut scan_value, new_value)?;
+
+                    ready_count += new_count;
+                    cc.now_cursor = next_cursor;
+
+                    if next_cursor == 0 {
+                        break 'inner;
+                    }
+
+                    if !param.load_all && ready_count >= param.count as usize {
+                        break 'outer;
+                    }
+                }
+                cc.ready_nodes.push(node.clone());
+            }
+
+            // 判断是否扫描完毕
+            if cc.ready_nodes.len() == node_size {
+                cc.finished = true;
+                cc.now_node = "".to_string();
+                cc.now_cursor = 0;
+            }
+            value = Some(field_scan_3_json(&key_type, &scan_value)?)
+        }
+
+        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc)
+    }
+    
     fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {
         get0(self.get_conn()?, key, hash_key)
     }

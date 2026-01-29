@@ -112,7 +112,8 @@ function testConn() {
 </script>
 
 <template>
-  <el-dialog :title="mode === 'add' ? t('conn.addConn') : t('conn.editConn')" @closed="emit('closed')"
+  <el-dialog :title="mode === 'add' ? t('conn.addConn') : t('conn.editConn')"
+             @closed="emit('closed')" draggable
              v-model="visible" width="600" append-to-body destroy-on-close align-center>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="right" label-width="60">
       <el-form-item :label="t('conn.name')" prop="name">
@@ -142,7 +143,7 @@ function testConn() {
         </el-col>
         <el-col :span="12">
           <el-form-item :label="t('conn.password')">
-            <el-input type="password" v-model.trim="form.password" placeholder="password" clearable/>
+            <el-input type="password" v-model.trim="form.password" placeholder="password" clearable show-password/>
           </el-form-item>
         </el-col>
       </el-row>
@@ -174,7 +175,7 @@ function testConn() {
           </el-col>
           <el-col :span="12">
             <el-form-item :label="t('conn.masterPassword')" :label-width="t('conn.sentinelLabelWidth')">
-              <el-input v-model.trim="form.masterPassword" placeholder="password" type="password" clearable/>
+              <el-input v-model.trim="form.masterPassword" placeholder="password" type="password" clearable show-password/>
             </el-form-item>
           </el-col>
         </el-row>

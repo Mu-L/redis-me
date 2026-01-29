@@ -21,7 +21,7 @@ async function refresh() {
 onMounted(() => refresh())
 
 // 刷新时条件初始化
-function initReset(){
+function initReset() {
   keyType.value = {value: 'ALL', type: 'info'}
   exact.value = false
   keyword.value = ''
@@ -267,8 +267,8 @@ function keyMemory(folder) {
 
       <div class="me-flex">
         <div class="btn-rb" v-if="!(cursor?.finished)">
-          <me-icon :name="t('keyMain.loadMore')"icon="me-icon-load-more" hint placement="top" class="icon-btn" @click="scanKey(true, false)"/>
-          <me-icon :name="t('keyMain.loadAll')" icon="me-icon-load-all"  hint placement="top" class="icon-btn" @click="scanKey(true, true)"/>
+          <me-icon :name="t('keyMain.loadMore')" icon="me-icon-load-more" hint placement="top" class="icon-btn" @click="scanKey(true, false)"/>
+          <me-icon :name="t('keyMain.loadAll')"  icon="me-icon-load-all"  hint placement="top" class="icon-btn" @click="scanKey(true, true)"/>
         </div>
 
         <!-- 集群不显示数据库列表 -->

@@ -28,9 +28,17 @@ const dialog = reactive({
 })
 const loading = ref(false)
 const config = ref('')
-const rdbChecked = computed(() => config.value.save ? true : false)
+const rdbChecked = computed(() => !!config.value.save)
 const aofChecked = computed(() => dic.value['aof_enabled'] === '1')
 const rdbTooltip = computed(() => config.value.save || t('redisInfo.rdbDisabled'))
+const cacheRatio = computed(() => {
+  try {
+    const ratio = parseInt(dic.value['keyspace_hits']) / (parseInt(dic.value['keyspace_hits']) + parseInt(dic.value['keyspace_misses']))
+    return isNaN(ratio) ? 'error' : (ratio * 100).toFixed(2) + '%'
+  } catch (e) {
+    return 'error'
+  }
+})
 
 // raw原始值发生变化后，其他的值重新计算
 watchEffect(() => {
@@ -199,8 +207,12 @@ function goMemory() {
         <div class="me-flex">
           {{dic['os']}}
           <el-text type="info" style="margin-left: 10px">
-            [ PID: {{dic['process_id']}} ]
+            [
+            <span>PID: {{dic['process_id']}}</span>
+            <span style="margin-left: 20px" v-if="cacheRatio !== 'error'">{{ t('redisInfo.cacheRatio') }}: {{cacheRatio}}</span>
+            ]
           </el-text>
+
         </div>
       </el-descriptions-item>
     </el-descriptions>
@@ -314,6 +326,5 @@ function goMemory() {
       }
     }
   }
-
 }
 </style>

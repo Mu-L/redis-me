@@ -22,7 +22,8 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
                 insecure: true,
                 tls_params: None,
             };
-            let mut builder = SentinelClientBuilder::new(vec![addr], conn.master_name, SentinelServerType::Master)?
+            let mut builder = SentinelClientBuilder::new(
+                vec![addr], conn.master_name, SentinelServerType::Master)?
                 .set_client_to_redis_db(conn.db as i64)
                 .set_client_to_redis_tls_mode(TlsMode::Secure)
                 .set_client_to_redis_certificates(tls.clone())
@@ -87,7 +88,7 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
     };
 
     // 测试连接是否可以成功，注意超时时间比较短，用户可以快速感知到。此连接使用后丢弃即可
-    let mut conn = client.get_connection_with_timeout(Duration::from_secs(1))?;
+    let mut conn = client.get_connection_with_timeout(Duration::from_secs(2))?;
     let _ = conn.ping()?;
     info!("Redis单机测试连接成功");
     Ok(client)
@@ -96,7 +97,8 @@ pub fn get_client_single(conn: &RedisConn) -> AnyResult<Client> {
 // 获取集群连接
 pub fn get_client_cluster(conn: &RedisConn) -> AnyResult<ClusterClient> {
     let prefix = if conn.ssl { "rediss" } else { "redis" };
-    let redis_url = format!("{}://{}:{}", prefix, conn.host, conn.port);
+    let suffix = if conn.ssl { "/#insecure" } else { "" };
+    let redis_url = format!("{}://{}:{}{}", prefix, conn.host, conn.port, suffix);
     info!("redis_url: {redis_url}");
 
     let mut builder = ClusterClient::builder(vec![redis_url]);
@@ -114,7 +116,7 @@ pub fn get_client_cluster(conn: &RedisConn) -> AnyResult<ClusterClient> {
         };
     }
     let client = builder.build()?;
-    let cc = ClusterConfig::new().set_connection_timeout(Duration::from_secs(1));
+    let cc = ClusterConfig::new().set_connection_timeout(Duration::from_secs(2));
     let mut conn = client.get_connection_with_config(cc)?;
     let _ = conn.ping()?;
     info!("测试集群测试连接成功");

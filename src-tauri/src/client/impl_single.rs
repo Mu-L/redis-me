@@ -8,7 +8,7 @@ use chrono::Utc;
 use log::info;
 use parking_lot::{Mutex, MutexGuard};
 use redis::{Client, Connection, ConnectionLike, Pipeline, Value};
-use std::collections::HashMap;
+use std::collections::{HashMap};
 use std::ops::Deref;
 use std::sync::atomic::Ordering::Relaxed;
 use std::thread;
@@ -92,57 +92,62 @@ impl RedisMeClient for RedisMeSingle {
 
     fn scan(&self, param: ScanParam) -> AnyResult<ScanResult> {
         let mut conn = self.get_conn()?;
-
         let mut cc = param.cursor.unwrap_or_default();
-        let batch_count = if param.pattern.replace("*", "").chars().count() <= 1 {
-            1000
-        } else {
-            10000
-        };
+        let batch_count = scan_0_batch_count(&param.pattern);
 
         let mut keys: Vec<Vec<u8>> = vec![];
 
         loop {
-            let mut cmd = redis::cmd("scan");
-            cmd.arg(cc.now_cursor)
-                .arg("match")
-                .arg(param.pattern.clone())
-                .arg("count")
-                .arg(batch_count);
-
-            if let Some(ref scan_type) = param.scan_type
-                && !scan_type.is_empty()
-            {
-                cmd.arg("type").arg(scan_type);
-            }
-
+            let cmd = scan_1_cmd(cc.now_cursor, &param.pattern, batch_count, param.scan_type.clone());
             let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = cmd.query(&mut conn)?;
             keys.extend(new_keys);
 
             cc.now_cursor = next_cursor;
-            if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
-                break;
-            }
-
             if next_cursor == 0 {
                 cc.finished = true;
                 break;
             }
-        }
 
-        // 映射为返回值
-        let key_list = keys
-            .into_iter()
-            .map(|key| RedisKey {
-                key: vec8_to_display_string(&key),
-                bytes: key,
-            })
-            .collect();
+            if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
+                break;
+            }
+        }
 
         Ok(ScanResult {
             cursor: cc,
-            key_list,
+            key_list: ui_key_list(keys),
         })
+    }
+
+    fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
+        let mut conn = self.get_conn()?;
+        let (mut value, key_type, mut cc) = field_scan_0_get(&mut conn, param.clone())?;
+
+        let key = param.key;
+        if value.is_none() {
+            let mut scan_value = FieldScanValue::default();
+            let mut ready_count = 0;
+            loop {
+                let cmd = field_scan_1_cmd(&key_type, &key, cc.now_cursor, param.count)?;
+                let (next_cursor, new_value): (u64, Value) = cmd.query(&mut conn)?;
+                let new_count = field_scan_2_value(&key_type, &mut scan_value, new_value)?;
+
+                ready_count += new_count;
+                cc.now_cursor = next_cursor;
+
+                if next_cursor == 0 {
+                    cc.finished = true;
+                    break;
+                }
+
+                if !param.load_all && ready_count >= param.count as usize {
+                    break;
+                }
+            }
+            value = Some(field_scan_3_json(&key_type, &scan_value)?)
+        }
+
+        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc)
     }
 
     fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {

@@ -1,6 +1,6 @@
 <script setup>
 import {capitalize} from 'lodash'
-import {bus, meDeleteKey, KEY_DELETE, KEY_REFRESH, meCopy, meHumanSize, meInvoke, meOk} from '@/utils/util.js'
+import {bus, KEY_DELETE, KEY_REFRESH, meCopy, meDeleteKey, meHumanSize, meInvoke, meOk} from '@/utils/util.js'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 import {useI18n} from 'vue-i18n'
@@ -23,6 +23,7 @@ const isPretty = ref(true)
 const withHashKey = ref(false)
 const tableKeyword = ref('')
 const redisValue = ref(null)
+const cursor = ref(null)     // 新增游标，支持list/hash/set/zset的扫描，避免一次性获取所有数据
 const loading = ref(false)
 
 // 计算属性
@@ -50,11 +51,13 @@ const showValue = computed(() => {
   }
 })
 
-const showSize = computed(() => {
-  const textEncoder = new TextEncoder();
-  const length = textEncoder.encode(showValue.value).length
-  return meHumanSize(length)
-})
+// const showSize = computed(() => {
+//   const textEncoder = new TextEncoder();
+//   const length = textEncoder.encode(showValue.value).length
+//   return meHumanSize(length)
+// })
+const showSize = computed(() => meHumanSize(redisValue.value?.size))
+
 
 // 表格数据
 const dataList = computed(() => {
@@ -93,7 +96,7 @@ watchEffect(() => {
 // TTL设置
 async function setTTL(){
   const seconds = redisValue.value.ttl
-  if (seconds <=0 & seconds != -1) {
+  if (seconds <=0 && seconds !== -1) {
     meOk(t('redisValue.ttlValidator'))
     return
   }
@@ -107,21 +110,35 @@ function resetParam(){
   hashKey.value = ''
   withHashKey.value = false
 }
-async function refreshKey(reset = true) {
+async function refreshKey(reset = true, useCursor = false, loadAll = false) {
   fieldSetInit() // 关闭字段编辑
 
   if (reset) {
     resetParam()
   }
 
+  if (!useCursor) {
+    cursor.value = null
+  }
+
   loading.value = true
   try {
-    const data = await meInvoke('get', {id: share.conn.id, key: share.redisKey, hashKey: hashKey.value})
-    redisValue.value = data
-    if (hashKey.value) {
-      withHashKey.value = true
+    //redisValue.value = await meInvoke('get', {id: share.conn.id, key: share.redisKey, hashKey: hashKey.value})
+    const param = {key: share.redisKey, hashKey: hashKey.value, count: 10, cursor: cursor.value, loadAll}
+    const data = await meInvoke('field_scan', {id: share.conn.id, param})
+    cursor.value = data.cursor
+    withHashKey.value = !!hashKey.value;
+
+    if (useCursor) {
+      if (data.type === 'list' || data.type === 'set' || data.type === 'zset') {
+        redisValue.value.value = redisValue.value.value.concat(data.value)
+      } else if (data.type === 'hash') {
+        redisValue.value.value = {...redisValue.value.value, ...data.value}
+      } else {
+        redisValue.value = data
+      }
     } else {
-      withHashKey.value = false
+      redisValue.value = data
     }
   } finally {
     loading.value = false
@@ -237,7 +254,7 @@ async function fieldDel(row) {
 
         <el-input type="text" :placeholder="t('redisValue.optional')"
                   clearable style="width: 200px; margin-left: 10px"
-                  v-model="hashKey" v-if="redisValue.type == 'hash'"
+                  v-model="hashKey" v-if="redisValue.type === 'hash'"
                   @keyup.enter="refreshKey(false)">
           <template #prepend>{{ t('redisValue.hashKey') }}</template>
         </el-input>
@@ -274,43 +291,71 @@ async function fieldDel(row) {
             <me-button class="save" :info="t('save')" type="danger" icon="me-icon-save" @click="setValue" placement="top"/>
           </div>
 
-          <el-button-group class="btn-rt" >
-            <el-button>Size: {{ showSize }}</el-button>
-            <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(showValue)"/>
-            <me-button :info="t('redisValue.prettyHint')"
-                       placement="bottom-end"
-                       icon="el-icon-magic-stick"
-                       :type="isPretty ? 'info' : ''"
-                       @click="isPretty = !isPretty"/>
-          </el-button-group>
+          <div class="btn-rt">
+            <el-button-group v-if="!(cursor?.finished)">
+              <me-button :info="t('redisValue.loadMore')" icon="me-icon-load-more"
+                         @click="refreshKey(false, true, false)"
+                         placement="top"/>
+              <me-button :info="t('redisValue.loadAll')" icon="me-icon-load-all"
+                         @click="refreshKey(false, true, true)"
+                         placement="top"/>
+            </el-button-group>
+
+            <el-button-group>
+              <el-button style="margin-left: 10px">Size: {{ showSize }}</el-button>
+              <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(showValue)"/>
+              <me-button :info="t('redisValue.prettyHint')"
+                         placement="bottom-end"
+                         icon="el-icon-magic-stick"
+                         :type="isPretty ? 'info' : ''"
+                         @click="isPretty = !isPretty"/>
+            </el-button-group>
+          </div>
         </template>
 
         <!-- 表格显示 -->
         <div class="me-flex" style="flex-direction: column; height: 100%" v-else>
           <div class="me-flex" style="width: 100%">
-            <el-input v-model="tableKeyword" :placeholder="t('redisValue.tableKeyword')" clearable style="width: 300px"/>
-            <el-button icon="el-icon-plus" @click="fieldAdd">{{ t('redisValue.insertRow') }}</el-button>
+            <el-input v-model="tableKeyword" :placeholder="t('redisValue.tableKeyword')" clearable
+                      style="width: 300px"/>
+
+            <div>
+              <el-button-group v-if="!(cursor?.finished)">
+                <me-button :info="t('redisValue.loadMore')" icon="me-icon-load-more"
+                           @click="refreshKey(false, true, false)"
+                           placement="top"/>
+                <me-button :info="t('redisValue.loadAll')" icon="me-icon-load-all"
+                           @click="refreshKey(false, true, true)"
+                           placement="top"/>
+              </el-button-group>
+              <el-button icon="el-icon-plus" @click="fieldAdd" style="margin-left: 10px">{{ t('redisValue.insertRow') }}</el-button>
+            </div>
           </div>
           <div class="table-view">
-            <el-table :data="filterDataList" border stripe ref="table" height="100%"
+            <me-table :data="filterDataList" border stripe ref="table" height="100%"
                       :row-class-name="rowClassName" @row-click="rowClick">
               <el-table-column label="#" type="index" width="50" align="center" show-overflow-tooltip>
                 <template #default="scope">
-                  <div v-if="fieldSetIndex != scope.$index">{{scope.$index + 1}}</div>
-                  <me-icon v-else icon="el-icon-edit" :style="{color: share.color, display: 'block'}" ></me-icon>
+                  <div v-if="fieldSetIndex !== scope.$index">{{ scope.$index + 1 }}</div>
+                  <me-icon v-else icon="el-icon-edit" :style="{color: share.color, display: 'block'}"></me-icon>
                 </template>
               </el-table-column>
 
-              <el-table-column :label="t('redisValue.key')"   prop="key"   show-overflow-tooltip v-if="redisValue.type === 'hash'"/>
+              <el-table-column :label="t('redisValue.key')" prop="key" show-overflow-tooltip
+                               v-if="redisValue.type === 'hash'"/>
               <el-table-column :label="t('redisValue.value')" prop="value" show-overflow-tooltip/>
-              <el-table-column :label="t('redisValue.score')" prop="score" show-overflow-tooltip v-if="redisValue.type === 'zset'"/>
+              <el-table-column :label="t('redisValue.score')" prop="score" show-overflow-tooltip
+                               v-if="redisValue.type === 'zset'"/>
 
               <el-table-column :label="t('action')" :width="canEdit ? 100 : 60" fixed="right" align="center">
                 <template #default="scope">
                   <div class="me-flex" :style="{justifyContent: canEdit ? 'space-between' : 'center'}">
-                    <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn"  @click.stop="meCopy(scope.row.value) "/>
-                    <me-icon :info="t('edit')" icon="el-icon-edit" class="icon-btn"  @click.stop="fieldSet(scope.row, scope.$index)" v-if="canEdit"/>
-                    <el-popconfirm :hide-after="0" :title="t('redisValue.deleteConfirm')" @confirm.stop="fieldDel(scope.row)" v-if="canEdit">
+                    <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn"
+                             @click.stop="meCopy(scope.row.value) "/>
+                    <me-icon :info="t('edit')" icon="el-icon-edit" class="icon-btn"
+                             @click.stop="fieldSet(scope.row, scope.$index)" v-if="canEdit"/>
+                    <el-popconfirm :hide-after="0" :title="t('redisValue.deleteConfirm')"
+                                   @confirm.stop="fieldDel(scope.row)" v-if="canEdit">
                       <template #reference>
                         <me-icon :info="t('delete')" icon="el-icon-delete" class="icon-btn"/>
                       </template>
@@ -318,7 +363,7 @@ async function fieldDel(row) {
                   </div>
                 </template>
               </el-table-column>
-            </el-table>
+            </me-table>
             <!-- 字段编辑 -->
             <FieldSet ref="fieldSetRef" @success="refreshKey" @closed="fieldSetInit" class="field-set"/>
           </div>
@@ -328,7 +373,8 @@ async function fieldDel(row) {
         <div class="btn-rb" v-if="!(stringTypeOrWithHashKey || hashType && showValue.startsWith('['))">
           <el-segmented v-model="viewType" :options="viewTypeList">
             <template #default="scope">
-              <me-icon :name="t('redisValue.jsonView')" icon="me-icon-json"  hint placement="top" v-if="scope.item === 'json'"/>
+              <me-icon :name="t('redisValue.jsonView')" icon="me-icon-json" hint placement="top"
+                       v-if="scope.item === 'json'"/>
               <me-icon :name="t('redisValue.tableView')" icon="me-icon-table" hint placement="top" v-else/>
             </template>
           </el-segmented>
@@ -380,6 +426,12 @@ async function fieldDel(row) {
       right: 0;
       bottom: 0;
       z-index: 10;  // 当表格数据较多时，可以显示在上方
+    }
+
+    .btn-lb {
+      position: absolute;
+      left: 40px ;
+      bottom: 0;
     }
 
     .table-view {

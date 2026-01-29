@@ -9,14 +9,45 @@ mod tests {
     use crate::client::client_trait::RedisMeClient;
     use crate::client::impl_cluster::RedisMeCluster;
     use crate::utils::model::*;
-    use redis::TlsMode;
+    use redis::{TlsMode};
     use redis::cluster::{ClusterClient, ClusterPipeline};
+    use crate::client::impl_single::RedisMeSingle;
+    use crate::utils::conn::{get_client_cluster, get_client_single};
+    use crate::utils::util::AnyResult;
 
     fn client() -> Box<dyn RedisMeClient> {
-        let conn = RedisConn {
+        // default_provider().install_default()
+        //     .expect("Failed to install rustls crypto provider");
+        // client_single()
+        client_cluster()
+    }
+
+    #[allow(unused)]
+    fn conn_single() -> RedisConn {
+        RedisConn {
             id: "test".into(),
             name: "test".into(),
-            host: "192.168.1.11".into(),
+            host: "ali.hepengju.com".into(),
+            port: 6379,
+            username: "".into(),
+            password: "hepengju".into(),
+            db: 0,
+            cluster: false,
+            ssl: false,
+            ssl_option: None,
+            sentinel: false,
+            master_name: "".to_string(),
+            master_username: "".to_string(),
+            master_password: "".to_string(),
+        }
+    }
+
+    #[allow(unused)]
+    fn conn_cluster() -> RedisConn {
+        RedisConn {
+            id: "test".into(),
+            name: "test".into(),
+            host: "ali.hepengju.com".into(),
             port: 7001,
             username: "".into(),
             password: "hepengju".into(),
@@ -28,7 +59,18 @@ mod tests {
             master_name: "".to_string(),
             master_username: "".to_string(),
             master_password: "".to_string(),
-        };
+        }
+    }
+
+    #[allow(unused)]
+    fn client_single() -> Box<dyn RedisMeClient> {
+        let conn = conn_single();
+        RedisMeSingle::init(&conn).unwrap()
+    }
+
+    #[allow(unused)]
+    fn client_cluster() -> Box<dyn RedisMeClient> {
+        let conn = conn_cluster();
         RedisMeCluster::init(&conn).unwrap()
     }
 
@@ -40,7 +82,7 @@ mod tests {
 
     #[test]
     fn test_info_node() {
-        let result = client().info(Some("192.168.1.11:7006".into())).unwrap();
+        let result = client().info(Some("ali.hepengju.com:7006".into())).unwrap();
         println!("{result:#?}");
     }
 
@@ -83,6 +125,82 @@ mod tests {
         };
         let result2 = client().scan(param2).unwrap();
         println!("{result2:#?}");
+    }
+
+    #[test]
+    fn test_field_scan_mock() -> AnyResult<()>{
+        let conn_single = conn_single();
+        let client = get_client_single(&conn_single)?;
+        let mut conn = client.get_connection()?;
+
+        let mut pipe = redis::pipe();
+        pipe.del("field-scan:string").ignore();
+        pipe.del("field-scan:hash").ignore();
+        pipe.del("field-scan:list").ignore();
+        pipe.del("field-scan:set").ignore();
+        pipe.del("field-scan:zset").ignore();
+
+        pipe.set("field-scan:string", "字段扫描字符串类型 😄").ignore();
+        for i in 0..600 { // 大于512个
+            pipe.hset("field-scan:hash", format!("k{i}"), format!("v{i}")).ignore();
+            pipe.rpush("field-scan:list", format!("v{i}")).ignore();
+            pipe.sadd("field-scan:set", format!("v{i}")).ignore();
+            pipe.zadd("field-scan:zset", format!("v{i}"), i).ignore();
+        }
+        let _: () = pipe.query(&mut conn)?;
+
+        let conn_cluster = conn_cluster();
+        let client = get_client_cluster(&conn_cluster)?;
+        let mut conn = client.get_connection()?;
+
+        let mut pipe = ClusterPipeline::new();
+        pipe.del("field-scan:string").ignore();
+        pipe.del("field-scan:hash").ignore();
+        pipe.del("field-scan:list").ignore();
+        pipe.del("field-scan:set").ignore();
+        pipe.del("field-scan:zset").ignore();
+
+        pipe.set("field-scan:string", "字段扫描字符串类型 😄").ignore();
+        for i in 0..600 { // 大于512个
+            pipe.hset("field-scan:hash", format!("k{i}"), format!("v{i}")).ignore();
+            pipe.rpush("field-scan:list", format!("v{i}")).ignore();
+            pipe.sadd("field-scan:set", format!("v{i}")).ignore();
+            pipe.zadd("field-scan:zset", format!("v{i}"), i).ignore();
+        }
+        let _: () = pipe.query(&mut conn)?;
+
+        Ok(())
+    }
+
+    fn test_field_scan_param(key: &str) -> FieldScanParam {
+        FieldScanParam {
+            key: RedisKey {
+                key: key.to_string(),
+                bytes: vec![],
+            },
+            hash_key: None,
+            count: 150,
+            cursor: None,
+            load_all: false,
+        }
+    }
+
+    #[test]
+    fn test_field_scan(){
+        // let mut param = test_field_scan_param("field-scan:string");
+        // let mut param = test_field_scan_param("field-scan:hash");
+        // param.hash_key = Some("k0".into());
+        // let mut param = test_field_scan_param("field-scan:list");
+        // let mut param = test_field_scan_param("field-scan:set");
+        let mut param = test_field_scan_param("field-scan:zset");
+        let result = client().field_scan(param.clone()).unwrap();
+        println!("{}", serde_json::to_string_pretty(&result).unwrap());
+
+        if !result.cursor.finished {
+            param.cursor = Some(result.cursor.clone());
+            let result = client().field_scan(param).unwrap();
+            println!("{}", serde_json::to_string_pretty(&result).unwrap());
+        }
     }
 
     #[test]
