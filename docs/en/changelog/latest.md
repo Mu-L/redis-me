@@ -5,7 +5,7 @@
 - Terminal: Add command prompts, add command list for manual selection
 - Scan scanning for hash, list, set, zset
 
-## v1.6.0 (2026-01-31)
+## v1.6.0 (2026-01-29)
 
 - Value: Supports cursor scanning for hash, list, set, and zset
 - Value: Value size display changed from frontend calculation to server returning actual memory usage
