@@ -11,7 +11,7 @@ use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo;
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
-use redis::{Commands, ConnectionLike, FromRedisValue, Value};
+use redis::{ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;

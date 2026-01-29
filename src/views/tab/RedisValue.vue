@@ -50,11 +50,12 @@ const showValue = computed(() => {
   }
 })
 
-const showSize = computed(() => {
-  const textEncoder = new TextEncoder();
-  const length = textEncoder.encode(showValue.value).length
-  return meHumanSize(length)
-})
+// const showSize = computed(() => {
+//   const textEncoder = new TextEncoder();
+//   const length = textEncoder.encode(showValue.value).length
+//   return meHumanSize(length)
+// })
+const showSize = computed(() => meHumanSize(redisValue.value?.size))
 
 // 表格数据
 const dataList = computed(() => {

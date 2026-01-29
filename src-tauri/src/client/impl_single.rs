@@ -7,7 +7,7 @@ use anyhow::bail;
 use chrono::Utc;
 use log::info;
 use parking_lot::{Mutex, MutexGuard};
-use redis::{Client, Commands, Connection, ConnectionLike, Pipeline, Value};
+use redis::{Client, Connection, ConnectionLike, Pipeline, Value};
 use std::collections::{HashMap};
 use std::ops::Deref;
 use std::sync::atomic::Ordering::Relaxed;

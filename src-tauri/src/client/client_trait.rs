@@ -317,7 +317,7 @@ pub fn field_scan_4_return(mut conn: MutexGuard<impl Commands>,
         key_type: key_type.into(),
         ttl,
         size,
-        value: value.unwrap_or_default(),
+        value,
         cursor,
     })
 }
