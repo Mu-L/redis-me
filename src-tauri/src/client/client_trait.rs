@@ -232,10 +232,11 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
         ValueType::List => {
             // 如果你有一个从 0 到 100 的数字列表，LRANGE list 0 10 将返回 11 个元素，也就是说，最右边的项是包含在内的
             // 超出范围的索引不会产生错误。如果 start 大于列表的末尾，将返回一个空列表。如果 stop 大于列表的实际末尾，Redis 会将其视为列表的最后一个元素。
-            let value: Vec<Vec<u8>> = conn.lrange(&key, cc.now_cursor as isize, (cc.now_cursor + param.count) as isize)?;
+            let end_index: isize = if param.load_all { -1 } else { (cc.now_cursor + param.count) as isize };
+            let value: Vec<Vec<u8>> = conn.lrange(&key, cc.now_cursor as isize, end_index)?;
 
             // 0 ~ 10 获取到11元素, 表示还没有获取到全部数据。序号为10的元素本次不取
-            let value: Vec<String> = if value.len() > param.count as usize {
+            let value: Vec<String> = if !param.load_all && value.len() > param.count as usize {
                 cc.finished = false;
                 cc.now_cursor += param.count;
                 ui_list_value(&value[0..param.count as usize])
