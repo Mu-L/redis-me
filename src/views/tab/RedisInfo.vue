@@ -34,7 +34,7 @@ const rdbTooltip = computed(() => config.value.save || t('redisInfo.rdbDisabled'
 const cacheRatio = computed(() => {
   try {
     const ratio = parseInt(dic.value['keyspace_hits']) / (parseInt(dic.value['keyspace_hits']) + parseInt(dic.value['keyspace_misses']))
-    return ratio.toFixed(4) * 100 + '%'
+    return isNaN(ratio) ? 'error' : (ratio * 100).toFixed(2) + '%'
   } catch (e) {
     return 'error'
   }
