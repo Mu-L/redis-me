@@ -26,6 +26,28 @@ export const PREDEFINE_COLORS = [
   '#909399',  // info
 ]
 
+// 键类型
+export const KEY_TYPE_LIST = [
+  { value: 'ALL'   , type: 'info'},
+  { value: 'STRING', type: 'primary'},
+  { value: 'HASH'  , type: 'primary'},
+  { value: 'LIST'  , type: 'danger'},
+  { value: 'SET'   , type: 'danger'},
+  { value: 'ZSET'  , type: 'danger'},
+  { value: 'STREAM', type: 'warning'},
+  { value: 'JSON'  , type: 'warning'},
+]
+
+/**
+ * 键类型
+ * @returns {string} value
+ * @param {string} keyType
+ */
+export function meType(keyType) {
+  return KEY_TYPE_LIST.find(item => item.value === keyType?.toUpperCase())?.type || 'info'
+}
+
+
 // 是否开发模式
 const isDev = import.meta.env.DEV
 const t = i18n.global.t

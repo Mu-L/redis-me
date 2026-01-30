@@ -37,6 +37,8 @@ meLog('应用商店应用(AppData目录下appStore.txt):', isAppStore)
 const store = new LazyStore('store.json')
 const connList = await store.get('connList') || []
 meLog('读取连接:', connList)
+checkConnList() // 初始化的时候就检查1次，以便兼容旧版本数据
+
 const storeSettings = await store.get('settings')
 meLog('读取设置:', storeSettings)
 const initSettings =  { language: 'system', theme: 'system', uiFont: [], codeFont: [], autoUpdate: true }
@@ -60,8 +62,6 @@ watch(meTauri, async (newValue) => {
   await store.set('settings', newValue.settings)
 })
 
-// 初始化的时候就检查1次
-checkConnList()
 export function checkConnList() {
   connList.forEach(conn => {
     // 兼容旧版本，补充哨兵模式的属性
