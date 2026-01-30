@@ -9,7 +9,7 @@ import {
   meFilterHandler,
   meHumanSize,
   meInvoke,
-  meOk
+  meOk, meType
 } from '@/utils/util.js'
 import {capitalize} from 'lodash'
 import {useI18n} from 'vue-i18n'
@@ -59,7 +59,7 @@ const filterDataList = computed(() => {
   return dataList.value.filter(row => !key || row.key?.toLowerCase().indexOf(key) > -1)
 })
 const filterTypes = computed(() => {
-  return [...new Set(dataList.value.map(d => d.type))].map(d => ({text: capitalize(d), value: d}))
+  return [...new Set(dataList.value.map(d => d.type))].map(d => ({text: d?.toUpperCase(), value: d}))
 })
 
 // 避免表格自动调整列宽时闪烁一下
@@ -222,10 +222,12 @@ function batchDelKey() {
               @selection-change="selectionChange"
               border stripe height="100%">
       <el-table-column type="selection" width="50" align="center"/>
-      <el-table-column :label="t('redisMemory.type')" prop="type" width="100" show-overflow-tooltip sortable :filters="filterTypes"
+      <el-table-column :label="t('redisMemory.type')" prop="type" width="100"
+                       show-overflow-tooltip sortable
+                       :filters="filterTypes"
                        :filter-method="meFilterHandler">
         <template #default="scope">
-          {{ capitalize(scope.row.type) }}
+          <el-text :type="meType(scope.row.type)"> {{scope.row.type?.toUpperCase()}}</el-text>
         </template>
       </el-table-column>
       <el-table-column :label="t('redisMemory.key')" prop="key" show-overflow-tooltip>
