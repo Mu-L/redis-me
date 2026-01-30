@@ -27,6 +27,7 @@ const cursor = ref(null)     // 新增游标，支持list/hash/set/zset的扫描
 const loading = ref(false)
 
 // 计算属性
+
 const hashType = computed(() => 'hash' === redisValue.value?.type)
 const stringType = computed(() => 'string' === redisValue.value?.type)
 const stringTypeOrWithHashKey = computed(() => 'string' === redisValue.value?.type || withHashKey.value)
@@ -51,13 +52,10 @@ const showValue = computed(() => {
   }
 })
 
-// const showSize = computed(() => {
-//   const textEncoder = new TextEncoder();
-//   const length = textEncoder.encode(showValue.value).length
-//   return meHumanSize(length)
-// })
+// 键大小
 const showSize = computed(() => meHumanSize(redisValue.value?.size))
-
+// 加载更多（loading时也不显示，可以避免界面按钮闪烁一下）
+const showMore = computed(() => !loading.value && !(cursor.value?.finished))
 
 // 表格数据
 const dataList = computed(() => {
@@ -292,7 +290,7 @@ async function fieldDel(row) {
           </div>
 
           <div class="btn-rt">
-            <el-button-group v-if="!(cursor?.finished)">
+            <el-button-group v-show="showMore">
               <me-button :info="t('redisValue.loadMore')" icon="me-icon-load-more"
                          @click="refreshKey(false, true, false)"
                          placement="top"/>
@@ -320,7 +318,7 @@ async function fieldDel(row) {
                       style="width: 300px"/>
 
             <div>
-              <el-button-group v-if="!(cursor?.finished)">
+              <el-button-group v-show="showMore">
                 <me-button :info="t('redisValue.loadMore')" icon="me-icon-load-more"
                            @click="refreshKey(false, true, false)"
                            placement="top"/>
