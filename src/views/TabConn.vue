@@ -129,9 +129,6 @@ async function importConn() {
       newConnList.push(...share.connList.filter(conn => !impIds.includes(conn.id)))
       newConnList.push(...impConnList)
 
-      // 导入的时候检查1次
-      checkConnList(newConnList)
-
       share.connList = newConnList
       meOk(t('conn.importOk'))
     } catch (e) {
@@ -145,6 +142,9 @@ async function checkImportContent(content) {
   let connList
   try {
     connList = JSON.parse(content)
+
+    // 导入的时候检查1次
+    checkConnList(connList)
   } catch (e) {
     throw new Error(t('conn.importJsonErr'))
   }

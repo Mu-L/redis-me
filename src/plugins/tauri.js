@@ -62,7 +62,6 @@ watch(meTauri, async (newValue) => {
   await store.set('settings', newValue.settings)
 })
 
-
 export function checkConnList() {
   connList.forEach(conn => {
     // 兼容旧版本，补充哨兵模式的属性
