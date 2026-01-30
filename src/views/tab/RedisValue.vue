@@ -225,7 +225,7 @@ function rowClick(row, column, event) {
 
 // 字段删除
 async function fieldDel(row) {
-  const param = {fieldKey: row.key, fieldValue: row.value , key: share.redisKey}
+  const param = {fieldKey: row.key || '', fieldValue: row.value , key: share.redisKey}
   if (redisValue.value.type === 'list') {
     param.fieldIndex = redisValue.value.value.indexOf(row.value)
   } else {
