@@ -7,15 +7,15 @@
 
 ## v1.6.1 (2026-01-30)
 
+- Value: Supports cursor scanning for hash, list, set, and zset
 - Value: UI optimization for the flickering of the loadMore/All button when switching key values
 - Value: Error fix for field_del related to list/set/zset
-- Value: Supports cursor scanning for hash, list, set, and zset
 - Value: Value size display changed from frontend calculation to server returning actual memory usage
-- Connection: Compatibility for importing connections/reading connections with older configuration files
 - Connection: Support for Redis Sentinel mode (SSL does not support disabling hostname verification for now)
+- Connection: Compatibility for importing connections/reading connections with older configuration files
 - Connection: Password input library supports display, dialog supports dragging
-- Chart: Fixed defect where disabling auto-refresh did not take effect
 - Chart: Configurable to display up to N data points, exceeding which approximately N/2 data points are sampled evenly
+- Chart: Fixed defect where disabling auto-refresh did not take effect
 - Info: Added cache hit rate metric
 - UI: Added color coding for Redis key types, ensuring consistent appearance in both the Key/Value/Memory
 
