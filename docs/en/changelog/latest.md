@@ -5,6 +5,12 @@
 - Terminal: Add command prompts, add command list for manual selection
 - Scan scanning for hash, list, set, zset
 
+## v1.6.1 (2026-01-30)
+- Key: UI optimization for the flickering of the loadMore/All button when switching key values
+- Error fix for field_del related to list/set/zset
+- Added color coding for Redis key types, ensuring consistent appearance in both the Key/Value/Memory
+- Compatibility for importing connections/reading connections with older configuration files
+
 ## v1.6.0 (2026-01-29)
 
 - Value: Supports cursor scanning for hash, list, set, and zset
