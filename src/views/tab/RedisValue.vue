@@ -1,6 +1,6 @@
 <script setup>
 import {capitalize} from 'lodash'
-import {bus, KEY_DELETE, KEY_REFRESH, meCopy, meDeleteKey, meHumanSize, meInvoke, meOk} from '@/utils/util.js'
+import {bus, KEY_DELETE, KEY_REFRESH, meCopy, meDeleteKey, meHumanSize, meInvoke, meOk, meType} from '@/utils/util.js'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 import {useI18n} from 'vue-i18n'
@@ -243,7 +243,7 @@ async function fieldDel(row) {
       <div class="key">
         <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
           <template #prepend>
-            {{capitalize(redisValue.type)}}
+            <el-text style="margin-left: 6px;" :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
           </template>
           <template #append>
             <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(share.redisKey.key)" placement="top"/>

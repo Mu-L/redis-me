@@ -2,7 +2,18 @@
 import KeyList from './key/KeyList.vue'
 import KeyTree from './key/KeyTree.vue'
 import {computed, ref} from 'vue'
-import {bus, CONN_REFRESH, KEY_DELETE, KEY_REFRESH, meCopy, meDeleteKey, meInvoke, meOk} from '@/utils/util.js'
+import {
+  bus,
+  CONN_REFRESH,
+  KEY_DELETE,
+  KEY_REFRESH,
+  KEY_TYPE_LIST,
+  meCopy,
+  meDeleteKey,
+  meInvoke,
+  meType,
+  meOk
+} from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatchDel from './key/KeyBatchDel.vue'
 import KeyMemory from './key/KeyMemory.vue'
@@ -22,7 +33,7 @@ onMounted(() => refresh())
 
 // 刷新时条件初始化
 function initReset() {
-  keyType.value = {value: 'ALL', type: 'info'}
+  keyType.value = {value: 'ALL', type: meType('ALL')}
   exact.value = false
   keyword.value = ''
   keyList.value = []
@@ -30,17 +41,7 @@ function initReset() {
 }
 
 // 键类型
-const keyTypeList = [
-  { value: 'ALL'   , type: 'info'},
-  { value: 'STRING', type: 'primary'},
-  { value: 'HASH'  , type: 'success'},
-  { value: 'LIST'  , type: 'info'},
-  { value: 'SET'   , type: 'danger'},
-  { value: 'ZSET'  , type: 'info'},
-  { value: 'STREAM', type: 'warning'},
-  { value: 'JSON'  , type: 'primary'},
-]
-const keyType = ref({value: 'ALL', type: 'info'})    // 键类型
+const keyType = ref({value: 'ALL', type: meType('ALL')})    // 键类型
 function chooseKeyType(keyTypeSelected) {
   keyType.value = keyTypeSelected
   keyword.value = ''
@@ -210,15 +211,16 @@ function keyMemory(folder) {
               clearable>
       <template #prepend>
         <el-dropdown placement="bottom-start" @command="chooseKeyType">
-          <el-tag :type="keyType.type" effect="plain" style="width: 32px; height: 32px">{{keyType.value.slice(0, 1)}}
+          <el-tag :type="keyType.type" effect="plain" style="width: 32px; height: 32px; font-weight: bold">{{keyType.value.slice(0, 1)}}
           </el-tag>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item v-for="item in keyTypeList" :command="item">
-                <el-tag :type="item.type" :effect="item.value === keyType.value ? 'dark' : 'plain'">
+              <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item">
+                <el-tag :type="item.type" :effect="item.value === keyType.value ? 'dark' : 'plain'"
+                        style="font-weight: bold; width: 26px">
                   {{ item.value.slice(0, 1) }}
                 </el-tag>
-                <el-text style="margin-left: 6px">{{ item.value }}</el-text>
+                <el-text style="margin-left: 6px" :type="item.type">{{ item.value }}</el-text>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
