@@ -115,6 +115,10 @@ const masters = ref([])
 async function autoDiscover(alert = false) {
   try {
     masters.value = await meInvoke('masters', {redisConn: form}, false)
+    if (!form.masterName && masters.value.length > 0) {
+      form.masterName = masters.value[0].name
+    }
+
     if (alert) {
       meOk(t('conn.autoDiscoverOk', {count: masters.value.length}))
     }
