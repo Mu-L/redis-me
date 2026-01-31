@@ -1,6 +1,16 @@
 <script setup>
-import {capitalize} from 'lodash'
-import {bus, KEY_DELETE, KEY_REFRESH, meCopy, meDeleteKey, meHumanSize, meInvoke, meOk, meType} from '@/utils/util.js'
+import {
+  bus,
+  KEY_DELETE,
+  KEY_REFRESH,
+  meCopy,
+  meDeleteKey,
+  meHumanSize,
+  meInvoke,
+  meOk,
+  mePrompt,
+  meType
+} from '@/utils/util.js'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 import {useI18n} from 'vue-i18n'
@@ -143,6 +153,23 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
   }
 }
 
+async function renameKey() {
+  mePrompt(t('redisValue.renameKey'), {
+        inputValue: share.redisKey.key,
+        inputType: 'text'
+      },
+      async ({value}) => {
+        const newKey = {key: value, bytes: ""}
+        const params = {id: share.conn.id, key: share.redisKey, newKey}
+        await meInvoke('rename', params)
+
+        // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
+        share.redisKey.key = newKey.key
+        share.redisKey.bytes = newKey.bytes
+        meOk(t('actionOk'))
+      })
+}
+
 // 删除键
 onMounted(() => bus.on(KEY_DELETE, deleteKey))
 onUnmounted(() => bus.off(KEY_DELETE, deleteKey))
@@ -259,6 +286,7 @@ async function fieldDel(row) {
 
         <div class="me-flex">
           <!-- 宽度170可以完全显示1天：86400秒 -->
+          <!--
           <el-input v-model.number="redisValue.ttl" style="width: 170px; margin: 0 10px;">
             <template #prepend>TTL</template>
             <template #append v-if="canEdit">
@@ -267,15 +295,13 @@ async function fieldDel(row) {
                          :disabled="!share.redisKey.key" placement="top-end"/>
             </template>
           </el-input>
+          -->
+          <me-button icon="el-icon-timer" info="TTL" placement="top" style="margin: 0 10px">XXX</me-button>
 
           <el-button-group>
-            <me-button :info="t('refresh')" icon="el-icon-refresh"
-                       @click="refreshKey(false)" :disabled="!share.redisKey.key"
-                       placement="top"/>
-            <me-button :info="t('redisValue.deleteKey')" icon="el-icon-delete"
-                       v-if="canEdit" type="danger"
-                       @click="delKey"
-                       :disabled="!share.redisKey.key" placement="top"/>
+            <me-button :info="t('refresh')"              icon="el-icon-refresh" placement="top" @click="refreshKey(false)"/>
+            <me-button :info="t('edit')"                 icon="el-icon-edit"    placement="top" @click="renameKey"/>
+            <me-button :info="t('redisValue.deleteKey')" icon="el-icon-delete"  placement="top" @click="delKey" v-if="canEdit" type="danger"/>
           </el-button-group>
         </div>
       </div>

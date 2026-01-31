@@ -21,6 +21,7 @@ export default {
   editOk: 'Saved',
   saveOk: 'Saved',
   deleteOk: 'Deleted',
+  actionOk: 'Success',
 
   appMain: {
     readonly: 'Readonly',
@@ -386,6 +387,7 @@ export default {
     noKeySelected: 'No Key Selected',
     loadMore: 'Load More',
     loadAll: 'Load All',
+    renameKey: 'Rename Key',
   },
 
   redisChart: {

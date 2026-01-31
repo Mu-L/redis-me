@@ -21,6 +21,7 @@ export default {
   editOk: '保存成功',
   saveOk: '保存成功',
   deleteOk: '删除成功',
+  actionOk: '操作成功',
 
   appMain: {
     readonly: '只读',
@@ -388,6 +389,7 @@ export default {
     noKeySelected: '未选择任何键',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
+    renameKey: '重命名键',
   },
 
   redisChart: {
