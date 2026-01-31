@@ -1,5 +1,5 @@
 <script setup>
-import {meConfirm, meDownloadUpdate, meErr, meOk, PREDEFINE_COLORS} from '@/utils/util.js'
+import {meConfirm, meDownloadUpdate, meErr, meInvoke, meOk, PREDEFINE_COLORS} from '@/utils/util.js'
 import ConnSave from '@/views/ext/ConnSave.vue'
 import {nextTick, useTemplateRef} from 'vue'
 import {debounce} from 'lodash'
@@ -88,11 +88,11 @@ function rowDrag() {
 }
 
 onMounted(() => rowDrag())
-// rowDrag()
 
-// 扩展功能
+// 导入导出的公共属性
 const filters = [{name: '', extensions: ['json']}]
 
+// 导入导出下拉框命令处理
 function handleCommand(command) {
   if (command === 'export') {
     exportConn()
