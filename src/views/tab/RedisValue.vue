@@ -4,7 +4,7 @@ import {
   KEY_DELETE,
   KEY_REFRESH,
   meCopy,
-  meDeleteKey,
+  meDeleteKey, meHumanSeconds,
   meHumanSize,
   meInvoke,
   meOk,
@@ -296,7 +296,9 @@ async function fieldDel(row) {
             </template>
           </el-input>
           -->
-          <me-button icon="el-icon-timer" info="TTL" placement="top" style="margin: 0 10px">XXX</me-button>
+          <me-button icon="el-icon-timer" info="TTL" placement="top" style="margin: 0 10px">
+            {{ redisValue.ttl === -1 ? t('redisValue.ttlForever') : meHumanSeconds(redisValue.ttl)}}
+          </me-button>
 
           <el-button-group>
             <me-button :info="t('refresh')"              icon="el-icon-refresh" placement="top" @click="refreshKey(false)"/>

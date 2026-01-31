@@ -384,6 +384,7 @@ export default {
     optional: '可选输入',
     hashKey: '哈希键',
     ttlHint: '点击修改键的过期时间（单位为秒，-1代表永久）',
+    ttlForever: '永久',
     deleteKey: '删除键',
     prettyHint: '默认开启美化，开启后针对hash/list/set/json等进行格式化，关闭后显示原始值toString',
     tableKeyword: '模糊筛选',
