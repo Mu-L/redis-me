@@ -166,6 +166,10 @@ impl RedisMeClient for RedisMeSingle {
         del0(self.get_conn()?, key)
     }
 
+    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<()> {
+        rename0(self.get_conn()?, key, new_key)
+    }
+    
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
         field_add0(self.get_conn()?, param)
     }

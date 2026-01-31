@@ -243,7 +243,7 @@ async function fieldDel(row) {
       <div class="key">
         <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
           <template #prepend>
-            <el-text style="margin-left: 6px;" :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
+            <el-text :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
           </template>
           <template #append>
             <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(share.redisKey.key)" placement="top"/>

@@ -71,6 +71,8 @@ pub trait RedisMeClient: Send + Sync {
 
     fn del(&self, key: RedisKey) -> AnyResult<()>;
 
+    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<()>;
+
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()>;
 
     fn field_set(&self, param: RedisFieldSet) -> AnyResult<()>;
@@ -344,6 +346,11 @@ pub fn set0(
 
 pub fn del0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<()> {
     let _: () = conn.del(&key)?;
+    Ok(())
+}
+
+pub fn rename0(mut conn: MutexGuard<impl Commands>, key: RedisKey, new_key: RedisKey) -> AnyResult<()> {
+    let _: () = conn.rename(&key, &new_key)?;
     Ok(())
 }
 
