@@ -23,6 +23,14 @@ export default {
   deleteOk: 'Deleted',
   actionOk: 'Success',
 
+  timeUnit: {
+    width: '120',
+    second: 'Second | Seconds',
+    minute: 'Minute | Minutes',
+    hour: 'Hour | Hours',
+    day: 'Day | Days',
+  },
+
   appMain: {
     readonly: 'Readonly',
     writable: 'Writable',
@@ -157,7 +165,7 @@ export default {
     keyRequired: 'Please input key',
     typeRequired: 'Please select type',
     ttlRequired: 'Please input TTL',
-    ttlValidator: 'TTL timeout duration only allows -1(Permanent) or positive integer (Seconds)',
+    ttlValidator: '-1 (Permanent) or positive integer',
     valueRequired: 'Please input value',
     hashValidator: 'HashKey and hashValue required',
     hashHint: '(HashKey: HashValue)',
@@ -167,7 +175,7 @@ export default {
     key: 'Key',
     field: 'Field',
     type: 'Type',
-    ttl: 'TTL',
+    ttl: 'TTL (-1 means Permanent)',
     negativeOneHint: '-1 means Permanent',
     permanent: 'Permanent',
     second: 'Second | Seconds',

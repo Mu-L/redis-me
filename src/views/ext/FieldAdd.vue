@@ -1,6 +1,6 @@
 <script setup>
 import {capitalize, cloneDeep} from 'lodash'
-import {meInvoke, meOk} from '@/utils/util.js'
+import {meInvoke, meOk, meTtlSeconds} from '@/utils/util.js'
 import {useI18n} from 'vue-i18n'
 
 const { t } = useI18n()
@@ -87,6 +87,7 @@ function newElement(index) {
 }
 
 // 提交数据
+const ttlUnit = ref('second')
 const formRef = useTemplateRef('formRef')
 function submit(){
   formRef.value.validate(async valid => {
@@ -94,7 +95,8 @@ function submit(){
 
     isSaving.value = true
     try {
-      await meInvoke('field_add',{id: share.conn.id, param: form.value})
+      const params = {id: share.conn.id, param: {...form.value, ttl: meTtlSeconds(form.value.ttl, ttlUnit.value)}}
+      await meInvoke('field_add', params)
       visible.value = false
       emit('success', {key: form.value.key, bytes: ''})
       meOk(t('addOk'))
@@ -131,13 +133,15 @@ const hint = computed(() => {
 
         <el-col :span="12">
           <el-form-item :label="t('fieldAdd.ttl')" prop="ttl">
-            <el-input v-model.number="form.ttl">
-              <template #append>
-                <el-tooltip :content="t('fieldAdd.negativeOneHint')" placement="top">
-                  <div>{{form.ttl == -1 ? t('fieldAdd.permanent') : t('fieldAdd.second', form.ttl)}}</div>
-                </el-tooltip>
-              </template>
-            </el-input>
+            <div class="me-flex">
+              <el-input v-model.number="form.ttl" style="flex: 1"/>
+              <el-select v-model="ttlUnit" :style="{width: t('timeUnit.width') + 'px'}">
+                <el-option :label="t('timeUnit.second', form.ttl)" value="second"/>
+                <el-option :label="t('timeUnit.minute', form.ttl)" value="minute"/>
+                <el-option :label="t('timeUnit.hour', form.ttl)"   value="hour"/>
+                <el-option :label="t('timeUnit.day', form.ttl)"    value="day"/>
+              </el-select>
+            </div>
           </el-form-item>
         </el-col>
       </el-row>

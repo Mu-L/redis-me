@@ -179,6 +179,14 @@ export function meHumanSeconds(seconds) {
   return result
 }
 
+// 时间单位转换为秒
+export function meTtlSeconds(intValue, unit) {
+  if (intValue === -1) return -1
+  if (unit === 'second') return intValue
+  if (unit === 'minute') return intValue * 60
+  if (unit === 'hour') return intValue * 60 * 60
+  if (unit === 'day') return intValue * 60 * 60 * 24
+}
 
 // 表格根据属性过滤
 export function meFilterHandler(value, row, column){

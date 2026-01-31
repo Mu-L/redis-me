@@ -23,6 +23,14 @@ export default {
   deleteOk: '删除成功',
   actionOk: '操作成功',
 
+  timeUnit: {
+    width: '80',
+    second: '秒',
+    minute: '分',
+    hour: '小时',
+    day: '天',
+  },
+
   appMain: {
     readonly: '只读',
     writable: '可写',
@@ -158,7 +166,7 @@ export default {
     keyRequired: '请输入键名',
     typeRequired: '请选择类型',
     ttlRequired: '请输入TTL',
-    ttlValidator: 'TTL超时时长只允许-1(永久)或正整数(秒)',
+    ttlValidator: '只允许-1(永久) 或 正整数',
     valueRequired: '值不允许为空',
     hashValidator: '哈希键和值不允许为空',
     hashHint: '(哈希键: 值)',
@@ -168,7 +176,7 @@ export default {
     key: '键',
     field: '字段',
     type: '类型',
-    ttl: 'TTL超时时长',
+    ttl: 'TTL超时时长 (-1代表永久)',
     negativeOneHint: '-1代表永久',
     permanent: '永久',
     second: '秒',
