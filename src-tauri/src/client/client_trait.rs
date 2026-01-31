@@ -171,15 +171,7 @@ pub fn get0(
                 serde_json::to_value(ui_hash_value(value))
             }
         }
-        ValueType::Stream => bail!("Unsupport Type: Stream"),
-        ValueType::Unknown(other) => {
-            if "none" == other {
-                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
-            } else {
-                bail!("Unknown ValueType: {other}")
-            }
-        },
-        _ => todo!(),
+        _ => Ok(handle_other_value_type(&key_type, &key)?),
     }?;
 
     let ttl: i64 = conn.ttl(&key)?;
@@ -201,14 +193,6 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
 
     // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
     let value: Option<serde_json::Value> = match key_type {
-        ValueType::Unknown(other) => {
-            if "none" == other {
-                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
-            } else {
-                bail!("Unknown Type: {other}")
-            }
-        }
-        ValueType::Stream => bail!("Unsupport Type: Stream"),
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             let value: String = vec8_to_display_string(&value);
@@ -246,7 +230,10 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
             };
             Some(serde_json::to_value(value)?)
         },
-        _ => None
+        _ => {
+            handle_other_value_type(&key_type, &key)?;
+            None
+        }
     };
     Ok((value, key_type, cc))
 }
@@ -405,15 +392,9 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         ValueType::ZSet => fv_list
             .into_iter()
             .try_for_each(|f| conn.zadd(&key, f.field_value, f.field_score))?,
-        ValueType::Stream => bail!("Unsupport Type: Stream"),
-        ValueType::Unknown(other) => {
-            if "none" == other {
-                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
-            } else {
-                bail!("Unknown Type: {other}")
-            }
+        _ => {
+            handle_other_value_type(&key_type, &key)?;
         }
-        _ => todo!(),
     };
 
     if "key" == mode && param.ttl > 0 {
@@ -441,16 +422,10 @@ pub fn field_set0(mut conn: MutexGuard<impl Commands>, param: RedisFieldSet) -> 
             let _: () = conn.zrem(&key, param.src_field_value)?;
             let _: () = conn.zadd(&key, param.field_value, param.field_score)?;
         }
-        ValueType::String => bail!("String type does not currently support setting field values"),
-        ValueType::Stream => bail!("Stream type does not currently support setting field values"),
-        ValueType::Unknown(other) => {
-            if "none" == other {
-                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
-            } else {
-                bail!("Unknown Type: {other}")
-            }
-        }
-        _ => todo!(),
+        _ => {
+            handle_other_value_type(&key_type, &key)?;
+        },
+
     };
     Ok(())
 }
@@ -473,16 +448,9 @@ pub fn field_del0(mut conn: MutexGuard<impl Commands>, param: RedisFieldDel) -> 
         ValueType::ZSet => {
             let _: () = conn.zrem(&key, param.field_value)?;
         }
-        ValueType::String => bail!("String type does not currently support deleting field values"),
-        ValueType::Stream => bail!("Stream type does not currently support deleting field values"),
-        ValueType::Unknown(other) => {
-            if "none" == other {
-                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
-            } else {
-                bail!("Unknown Type: {other}")
-            }
-        }
-        _ => todo!(),
+        _ => {
+            handle_other_value_type(&key_type, &key)?;
+        },
     };
     Ok(())
 }
@@ -570,6 +538,20 @@ pub fn monitor_stop0(running: Arc<AtomicBool>) -> AnyResult<()> {
     info!("monitor stop");
     running.store(false, Ordering::Relaxed);
     Ok(())
+}
+
+fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<serde_json::Value> {
+    match value_type {
+        ValueType::Unknown(other) => {
+            if "none" == other {
+                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
+            } else {
+                bail!("Unknown ValueType: {other}")
+            }
+        },
+        ValueType::Stream => bail!("Unsupport Type: Stream"),
+        _ => bail!("Unsupport Type: {value_type:?}"),
+    }
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)
