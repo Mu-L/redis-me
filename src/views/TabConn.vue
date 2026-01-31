@@ -225,7 +225,7 @@ function clickNew() {
           </div>
         </template>
       </el-table-column>
-      <el-table-column :label="t('conn.hostPort')" prop="host" width="180" show-overflow-tooltip>
+      <el-table-column :label="t('conn.hostPort')" prop="host" width="200" show-overflow-tooltip>
         <template #default="scope">
           {{ scope.row.host + ':' + scope.row.port }}
         </template>
