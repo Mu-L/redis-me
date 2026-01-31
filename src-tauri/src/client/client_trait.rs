@@ -232,10 +232,13 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
             };
             Some(serde_json::to_value(value)?)
         },
-        _ => {
+        // 注意此处SET/ZSET等是支持的，只是需要进行扫描，不能直接使用通用的: handle_other_value_type
+        ValueType::Stream => bail!("unsupport type: Stream"),
+        ValueType::Unknown(_) => {
             handle_other_value_type(&key_type, &key)?;
             None
-        }
+        },
+        _ => None
     };
     Ok((value, key_type, cc))
 }
