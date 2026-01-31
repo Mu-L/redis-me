@@ -122,7 +122,7 @@ export default {
   tabMain: {
     info: 'Info',
     value: 'Value',
-    console: 'Console',
+    terminal: 'Terminal',
     memory: 'Memory',
     slow: 'SlowLog',
     monitor: 'Monitor',

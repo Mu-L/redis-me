@@ -123,7 +123,7 @@ export default {
   tabMain: {
     info: '信息',
     value: '键值',
-    console: '终端',
+    terminal: '终端',
     memory: '内存',
     slow: '慢日志',
     monitor: '监控',
