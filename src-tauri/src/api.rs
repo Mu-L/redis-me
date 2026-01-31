@@ -14,19 +14,19 @@ pub fn greet(name: &str) -> String {
 
 // 测试连接
 #[command]
-pub fn test_conn(redis_conn: RedisConn) -> ApiResult<()> {
-    to_api_result(redis_conn.test())
+pub fn test_conn(conf: RedisConf) -> ApiResult<()> {
+    to_api_result(conf.test())
 }
 
 // 哨兵模式获取主节点列表
 #[command]
-pub fn masters(redis_conn: RedisConn) -> ApiResult<Vec<HashMap<String, String>>> {
-    to_api_result(redis_conn.masters())
+pub fn masters(conf: RedisConf) -> ApiResult<Vec<HashMap<String, String>>> {
+    to_api_result(conf.masters())
 }
 
 // 连接信息发送到后端
 #[command]
-pub fn conn_list(app_handle: AppHandle, conn_list: Vec<RedisConn>) -> ApiResult<()> {
+pub fn conn_list(app_handle: AppHandle, conn_list: Vec<RedisConf>) -> ApiResult<()> {
     to_api_result(app_handle.conn_list(conn_list))
 }
 
@@ -97,6 +97,6 @@ pub fn subscribe(app_handle: AppHandle, id: &str, channel: Option<String>) -> Ap
 
 // 导入连接（检查导入的JSON属性是否满足及去除多余属性）
 #[command]
-pub fn check_import_conn_list(conn_list: Vec<RedisConn>) -> Vec<RedisConn> {
+pub fn check_import_conn_list(conn_list: Vec<RedisConf>) -> Vec<RedisConf> {
     conn_list
 }

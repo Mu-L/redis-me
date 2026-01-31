@@ -346,7 +346,7 @@ impl RedisMeClient for RedisMeSingle {
 
 // 个性化方法
 impl RedisMeSingle {
-    pub fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
+    pub fn init(redis_conn: &RedisConf) -> AnyResult<Box<dyn RedisMeClient>> {
         let client = get_client_single(redis_conn)?;
         let conn = Self::new_conn(&client, redis_conn.db)?;
         info!("Redis单机连接初始化成功: {}", redis_conn.name);

@@ -15,7 +15,7 @@ api_model!(RedisDB {
 });
 
 // 连接信息
-api_model!(RedisConn {
+api_model!(RedisConf {
     id: String,
     name: String,
 
@@ -36,7 +36,7 @@ api_model!(RedisConn {
     master_password: String,
 });
 
-impl RedisConn {
+impl RedisConf {
     pub fn test(&self) -> AnyResult<()> {
         if self.cluster {
             get_client_cluster(self)?;

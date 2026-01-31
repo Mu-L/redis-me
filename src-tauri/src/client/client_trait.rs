@@ -16,15 +16,15 @@ use tauri::{AppHandle, Emitter};
 // 抽取公共属性
 pub struct RedisMeBase {
     pub id: String,
-    pub conf: RedisConn,
+    pub conf: RedisConf,
     pub db: Arc<AtomicU8>,
     pub subscribe_running: Arc<AtomicBool>,
     pub monitor_running: Arc<AtomicBool>,
     pub last_check_time: Arc<AtomicI64>,
 }
 
-impl From<&RedisConn> for RedisMeBase {
-    fn from(conf: &RedisConn) -> Self {
+impl From<&RedisConf> for RedisMeBase {
+    fn from(conf: &RedisConf) -> Self {
         RedisMeBase {
             id: conf.id.clone(),
             conf: conf.clone(),

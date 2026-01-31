@@ -23,8 +23,8 @@ mod tests {
     }
 
     #[allow(unused)]
-    fn conn_single() -> RedisConn {
-        RedisConn {
+    fn conn_single() -> RedisConf {
+        RedisConf {
             id: "test".into(),
             name: "test".into(),
             host: "ali.hepengju.com".into(),
@@ -43,8 +43,8 @@ mod tests {
     }
 
     #[allow(unused)]
-    fn conn_cluster() -> RedisConn {
-        RedisConn {
+    fn conn_cluster() -> RedisConf {
+        RedisConf {
             id: "test".into(),
             name: "test".into(),
             host: "ali.hepengju.com".into(),

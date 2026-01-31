@@ -450,7 +450,7 @@ impl RedisMeClient for RedisMeCluster {
 
 // 个性化方法
 impl RedisMeCluster {
-    pub fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
+    pub fn init(redis_conn: &RedisConf) -> AnyResult<Box<dyn RedisMeClient>> {
         let client = get_client_cluster(redis_conn)?;
         let mut conn = Self::new_conn(&client)?;
 

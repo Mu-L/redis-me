@@ -102,7 +102,7 @@ function testConn() {
     if (!valid) return
     loading.value = true
     try {
-      await meInvoke('test_conn', {redisConn: form})
+      await meInvoke('test_conn', {conf: form})
       meOk(t('conn.testOk'))
     } finally {
       loading.value = false
@@ -114,7 +114,7 @@ function testConn() {
 const masters = ref([])
 async function autoDiscover(alert = false) {
   try {
-    masters.value = await meInvoke('masters', {redisConn: form}, false)
+    masters.value = await meInvoke('masters', {conf: form}, false)
     if (!form.masterName && masters.value.length > 0) {
       form.masterName = masters.value[0].name
     }
