@@ -154,8 +154,8 @@ pub fn redis_value_to_string(value: Value, sep: &str) -> String {
 pub fn redis_value_to_log(value: Value, node: &str) -> AnyResult<RedisSlowLog> {
     let items = match value {
         Value::Array(arr) if arr.len() >= 4 => arr,
-        Value::Array(_) => bail!("慢查询条目至少4个元素"),
-        _ => bail!("应为慢查询条目的数组"),
+        Value::Array(_) => bail!("slow query entries have at least 4 elements"),
+        _ => bail!("should be an array of slow query entries"),
     };
 
     let id: u64 = FromRedisValue::from_redis_value_ref(&items[0])?;

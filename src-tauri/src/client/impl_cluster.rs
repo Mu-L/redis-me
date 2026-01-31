@@ -504,9 +504,7 @@ impl RedisMeCluster {
                     }
                 }
             }),
-            None => {
-                bail!("获取连接加锁超时");
-            }
+            None => bail!("Connection acquisition lock timeout")
         }
     }
 

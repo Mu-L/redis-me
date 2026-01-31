@@ -1,14 +1,14 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, assert_is_true, vec8_to_display_string, info_to_chart, ui_list_value, ui_set_value, ui_zset_value, ui_hash_value};
-use anyhow::bail;
+use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE};
+use anyhow::{bail};
 use chrono::{Local, Utc};
 use log::info;
 use parking_lot::MutexGuard;
-use redis::{Commands, Connection, Msg, SetExpiry, SetOptions, ValueType, from_redis_value, Cmd, FromRedisValue};
+use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, Msg, SetExpiry, SetOptions, ValueType};
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
@@ -140,13 +140,6 @@ pub fn get0(
     let key_type: ValueType = conn.key_type(&key)?;
 
     let value: serde_json::Value = match key_type {
-        ValueType::Unknown(other) => {
-            if "none" == other {
-                bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
-            } else {
-                bail!("未知类型: {other}")
-            }
-        }
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             serde_json::to_value(vec8_to_display_string(&value))
@@ -171,14 +164,21 @@ pub fn get0(
                     let value: String = vec8_to_display_string(&str);
                     serde_json::to_value(value)
                 } else {
-                    bail!("哈希键不存在: {}", hash_key)
+                    bail!("HashKey Not Exists: {}", hash_key)
                 }
             } else {
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
                 serde_json::to_value(ui_hash_value(value))
             }
         }
-        ValueType::Stream => bail!("stream类型暂不支持获取值"),
+        ValueType::Stream => bail!("Unsupport Type: Stream"),
+        ValueType::Unknown(other) => {
+            if "none" == other {
+                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
+            } else {
+                bail!("Unknown ValueType: {other}")
+            }
+        },
         _ => todo!(),
     }?;
 
@@ -203,12 +203,12 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
     let value: Option<serde_json::Value> = match key_type {
         ValueType::Unknown(other) => {
             if "none" == other {
-                bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
+                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
             } else {
-                bail!("未知类型: {other}")
+                bail!("Unknown Type: {other}")
             }
         }
-        ValueType::Stream => bail!("stream类型暂不支持获取值"),
+        ValueType::Stream => bail!("Unsupport Type: Stream"),
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             let value: String = vec8_to_display_string(&value);
@@ -223,7 +223,7 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
                     cc.finished = true;
                     Some(serde_json::to_value(value)?)
                 } else {
-                    bail!("哈希键不存在: {}", hash_key)
+                    bail!("HashKey Not Exists: {}", hash_key)
                 }
             } else {
                 None
@@ -370,13 +370,13 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         let exists: bool = conn.exists(&key)?;
         assert_is_true(
             !exists,
-            format!("键已存在: {}", vec8_to_display_string(key.to_bytes())),
+            format!("Key ready exits: {}", vec8_to_display_string(key.to_bytes())),
         )?
     } else if "field" == mode {
         // 新增字段
         key_type = conn.key_type(&key)?
     } else {
-        bail!("模式: {} 暂不支持", mode)
+        bail!("Mode: {} unsupport now", mode)
     }
 
     let fv_list = param.field_value_list;
@@ -405,12 +405,12 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         ValueType::ZSet => fv_list
             .into_iter()
             .try_for_each(|f| conn.zadd(&key, f.field_value, f.field_score))?,
-        ValueType::Stream => bail!("stream类型暂不支持新增字段值"),
+        ValueType::Stream => bail!("Unsupport Type: Stream"),
         ValueType::Unknown(other) => {
             if "none" == other {
-                bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
+                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
             } else {
-                bail!("未知类型: {other}")
+                bail!("Unknown Type: {other}")
             }
         }
         _ => todo!(),
@@ -441,13 +441,13 @@ pub fn field_set0(mut conn: MutexGuard<impl Commands>, param: RedisFieldSet) -> 
             let _: () = conn.zrem(&key, param.src_field_value)?;
             let _: () = conn.zadd(&key, param.field_value, param.field_score)?;
         }
-        ValueType::String => bail!("string类型暂不支持设置字段值"),
-        ValueType::Stream => bail!("stream类型暂不支持设置字段值"),
+        ValueType::String => bail!("String type does not currently support setting field values"),
+        ValueType::Stream => bail!("Stream type does not currently support setting field values"),
         ValueType::Unknown(other) => {
             if "none" == other {
-                bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
+                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
             } else {
-                bail!("未知类型: {other}")
+                bail!("Unknown Type: {other}")
             }
         }
         _ => todo!(),
@@ -473,13 +473,13 @@ pub fn field_del0(mut conn: MutexGuard<impl Commands>, param: RedisFieldDel) -> 
         ValueType::ZSet => {
             let _: () = conn.zrem(&key, param.field_value)?;
         }
-        ValueType::String => bail!("string类型暂不支持删除字段值"),
-        ValueType::Stream => bail!("stream类型暂不支持删除字段值"),
+        ValueType::String => bail!("String type does not currently support deleting field values"),
+        ValueType::Stream => bail!("Stream type does not currently support deleting field values"),
         ValueType::Unknown(other) => {
             if "none" == other {
-                bail!("键不存在: {}", vec8_to_display_string(key.to_bytes()))
+                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
             } else {
-                bail!("未知类型: {other}")
+                bail!("Unknown Type: {other}")
             }
         }
         _ => todo!(),
@@ -579,10 +579,10 @@ macro_rules! implement_pipeline_commands {
         fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()> {
             let key_list = if param.key_list.is_empty() {
                 if param.pattern.is_empty() {
-                    bail!("键列表和匹配参数不能同时为空")
+                    bail!("The key list and pattern parameters cannot both be empty")
                 }
                 let scan_result = self.scan(ScanParam::all(param.pattern))?;
-                info!("扫描出键个数: {}", scan_result.key_list.len());
+                info!("scan key count: {}", scan_result.key_list.len());
                 scan_result.key_list
             } else {
                 param.key_list
@@ -599,7 +599,7 @@ macro_rules! implement_pipeline_commands {
             }
             let mut conn = self.get_conn()?;
             let _: () = pipe.query(&mut conn)?;
-            info!("批量删除键完成: {}", size);
+            info!("batch delete finished: {}", size);
             Ok(())
         }
 
