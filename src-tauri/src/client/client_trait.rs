@@ -363,7 +363,7 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         // 新增字段
         key_type = conn.key_type(&key)?
     } else {
-        bail!("Mode: {} unsupport now", mode)
+        bail!("mode: {} unsupport now", mode)
     }
 
     let fv_list = param.field_value_list;
@@ -544,13 +544,13 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
     match value_type {
         ValueType::Unknown(other) => {
             if "none" == other {
-                bail!("Key Not Exists: {}", vec8_to_display_string(key.to_bytes()))
+                bail!("key not exists: {}", vec8_to_display_string(key.to_bytes()))
             } else {
-                bail!("Unknown ValueType: {other}")
+                bail!("unknown ValueType: {other}")
             }
         },
-        ValueType::Stream => bail!("Unsupport Type: Stream"),
-        _ => bail!("Unsupport Type: {value_type:?}"),
+        ValueType::Stream => bail!("unsupport type: Stream"),
+        _ => bail!("unsupport type: {value_type:?}"),
     }
 }
 
@@ -561,7 +561,7 @@ macro_rules! implement_pipeline_commands {
         fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()> {
             let key_list = if param.key_list.is_empty() {
                 if param.pattern.is_empty() {
-                    bail!("The key list and pattern parameters cannot both be empty")
+                    bail!("key list and pattern parameters cannot both be empty")
                 }
                 let scan_result = self.scan(ScanParam::all(param.pattern))?;
                 info!("scan key count: {}", scan_result.key_list.len());

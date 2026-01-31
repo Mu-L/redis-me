@@ -504,7 +504,7 @@ impl RedisMeCluster {
                     }
                 }
             }),
-            None => bail!("Connection acquisition lock timeout")
+            None => bail!("connection acquisition lock timeout")
         }
     }
 
@@ -527,7 +527,7 @@ impl RedisMeCluster {
             });
             Ok((route, node))
         } else {
-            bail!("Invalid node format: {}", node)
+            bail!("invalid node format: {}", node)
         }
     }
 

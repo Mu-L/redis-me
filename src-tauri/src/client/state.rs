@@ -53,7 +53,7 @@ impl ClientAccess for AppHandle {
     fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>> {
         let state: State<AppState> = self.state();
         let map = state.connections.lock().unwrap();
-        let conn = map.get(id).ok_or(anyhow!("未找到连接: {}", id))?;
+        let conn = map.get(id).ok_or(anyhow!("no connection found: {}", id))?;
 
         let mut clients = state.clients.write().unwrap();
         let client = Arc::new(if conn.cluster {
