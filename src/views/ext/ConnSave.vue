@@ -2,7 +2,7 @@
 import {cloneDeep} from 'lodash'
 import {nanoid} from 'nanoid'
 import {ref, useTemplateRef} from 'vue'
-import {meInvoke, PREDEFINE_COLORS, meRandomString, meOk} from '@/utils/util.js'
+import {meInvoke, PREDEFINE_COLORS, meRandomString, meOk, meErr} from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
@@ -109,6 +109,34 @@ function testConn() {
     }
   });
 }
+
+// 哨兵模式获取master名称
+const masters = ref([])
+async function autoDiscover(alert = false) {
+  try {
+    masters.value = await meInvoke('masters', {redisConn: form}, false)
+    if (alert) {
+      meOk(t('conn.autoDiscoverOk', {count: masters.value.length}))
+    }
+  } catch (e) {
+    masters.value = []
+    if (alert) {
+      meErr(e, t('error'))
+    }
+  }
+}
+
+watch(() => form.sentinel, (newValue, _oldValue) => {
+  if (newValue) {
+    autoDiscover()
+  }
+})
+
+watch(() => form.masterName, (newValue, _oldValue) => {
+  if (newValue === undefined) {
+    form.masterName = ''
+  }
+})
 </script>
 
 <template>
@@ -165,7 +193,15 @@ function testConn() {
       <div v-show="form.sentinel">
         <el-divider content-position="left">{{ t('conn.sentinelConfig') }}</el-divider>
         <el-form-item :label="t('conn.masterName')" :label-width="t('conn.sentinelLabelWidth')">
-          <el-input v-model.trim="form.masterName" placeholder="mymaster" clearable style="width: 100%"/>
+          <div class="me-flex" style="width: 100%">
+            <el-select v-model="form.masterName" clearable filterable allow-create style="flex: 1" placeholder="mymaster">
+              <el-option v-for="item in masters" :key="item.name" :value="item.name">
+                <span style="float: left">{{ item.name }}</span>
+                <span style="float: right; color: var(--el-text-color-secondary)">{{ item.ip + ':' + item.port }}</span>
+              </el-option>
+            </el-select>
+            <el-button @click="autoDiscover(true)">{{ t('conn.autoDiscover')}}</el-button>
+          </div>
         </el-form-item>
         <el-row :gutter="24">
           <el-col :span="12">

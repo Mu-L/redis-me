@@ -18,6 +18,12 @@ pub fn test_conn(redis_conn: RedisConn) -> ApiResult<()> {
     to_api_result(redis_conn.test())
 }
 
+// 哨兵模式获取主节点列表
+#[command]
+pub fn masters(redis_conn: RedisConn) -> ApiResult<Vec<HashMap<String, String>>> {
+    to_api_result(redis_conn.masters())
+}
+
 // 连接信息发送到后端
 #[command]
 pub fn conn_list(app_handle: AppHandle, conn_list: Vec<RedisConn>) -> ApiResult<()> {

@@ -90,6 +90,8 @@ export default {
     masterName: 'Master Name',
     masterUsername: 'Master Username',
     masterPassword: 'Master Password',
+    autoDiscover: 'Auto Discover',
+    autoDiscoverOk: 'Discover {count} Master | Discover {count} Masters',
 
     nameHint: '[Optional] Automatically generated based on Host and Port',
     certHint: 'Public Key File format',

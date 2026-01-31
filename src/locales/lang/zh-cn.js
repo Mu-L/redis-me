@@ -88,9 +88,11 @@ export default {
     sentinel: '哨兵',
     sentinelConfig: '哨兵配置',
     sentinelLabelWidth: '100',
-    masterName: '主节点名称',
+    masterName: '主节点组名',
     masterUsername: '主节点用户',
     masterPassword: '主节点密码',
+    autoDiscover: '自动查询组名',
+    autoDiscoverOk: '查询到{count}个主节点',
 
     nameHint: '【可选】默认自动根据主机和端口生成',
     certHint: 'PEM格式公钥文件 (Cert)',

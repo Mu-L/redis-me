@@ -45,6 +45,15 @@ impl RedisConn {
         };
         Ok(())
     }
+
+    pub fn masters(&self) -> AnyResult<Vec<HashMap<String, String>>> {
+        let mut conf = self.clone();
+        conf.sentinel = false;
+        let client = get_client_single(&conf)?;
+        let mut conn = client.get_connection()?;
+        let masters: Vec<HashMap<String, String>> = redis::cmd("sentinel").arg("masters").query(&mut conn)?;
+        Ok(masters)
+    }
 }
 
 api_model!(SslOption {
