@@ -5,7 +5,7 @@ use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
 use chrono::Utc;
-use log::info;
+use log::{info, warn};
 use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo;
@@ -523,11 +523,11 @@ impl RedisMeCluster {
             info!("检查Redis集群连接正常: {}", self.conf.name);
             Ok(true)
         } else {
-            info!("检查Redis集群连接异常: {}", self.conf.name);
+            warn!("检查Redis集群连接异常: {}", self.conf.name);
             Ok(false)
         }
     }
-    
+
     // 获取节点路由
     fn get_node_route(&self, node: Option<String>) -> AnyResult<(RoutingInfo, String)> {
         let node: String = if let Some(node) = node {
