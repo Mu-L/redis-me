@@ -1,12 +1,11 @@
 use crate::utils::model::{RedisConf, SslOption};
-use crate::utils::util::AnyResult;
+use crate::utils::util::{AnyResult, CONNECTION_CHECK_TIMEOUT};
 use anyhow::Context;
 use log::info;
 use redis::cluster::{ClusterClient, ClusterConfig};
 use redis::sentinel::{SentinelClientBuilder, SentinelServerType};
-use redis::{Client, ClientTlsConfig, ConnectionAddr, ConnectionLike, TlsCertificates, TlsMode, TypedCommands};
+use redis::{Client, ClientTlsConfig, Commands, ConnectionAddr, ConnectionLike, TlsCertificates, TlsMode};
 use std::fs;
-use std::time::Duration;
 
 // 获取单机连接
 pub fn get_client_single(conf: &RedisConf) -> AnyResult<Client> {
@@ -31,8 +30,8 @@ pub fn get_client_single(conf: &RedisConf) -> AnyResult<Client> {
         Client::open(redis_url)?
     };
     // 测试连接是否可以成功，注意超时时间比较短，用户可以快速感知到。此连接使用后丢弃即可
-    let mut conn = client.get_connection_with_timeout(Duration::from_secs(1))?;
-    let _ = conn.ping()?;
+    let mut conn = client.get_connection_with_timeout(CONNECTION_CHECK_TIMEOUT)?;
+    let _: () = conn.ping()?;
     info!("Redis单机测试连接成功");
 
     // 哨兵模式 ==> 沿用上面的逻辑（避免默认超时时间太长，影响用户体验）
@@ -118,9 +117,9 @@ pub fn get_client_cluster(conf: &RedisConf) -> AnyResult<ClusterClient> {
         };
     }
     let client = builder.build()?;
-    let cc = ClusterConfig::new().set_connection_timeout(Duration::from_secs(1));
+    let cc = ClusterConfig::new().set_connection_timeout(CONNECTION_CHECK_TIMEOUT);
     let mut conn = client.get_connection_with_config(cc)?;
-    let _ = conn.ping()?;
+    let _: () = conn.ping()?;
     info!("测试集群测试连接成功");
     Ok(client)
 }

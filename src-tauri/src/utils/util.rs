@@ -1,12 +1,13 @@
 use crate::utils::model::{RedisChart, RedisClientInfo, RedisInfo, RedisKey, RedisKeySize, RedisSlowLog, RedisZetItem};
 use anyhow::bail;
-use chrono::DateTime;
+use chrono::{DateTime};
 use log::error;
 use rand::Rng;
 use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
 use redis::{FromRedisValue, Value};
 use std::collections::{HashMap, HashSet};
+use std::time::Duration;
 
 // 统一应用返回值
 pub type AnyResult<T> = anyhow::Result<T>;
@@ -14,8 +15,9 @@ pub type ApiResult<T> = Result<T, String>;
 
 // 常量定义
 pub const REDIS_ME_FIELD_TO_DELETE_TMP_VALUE: &str = "REDIS_ME_FIELD_TO_DELETE_TMP_VALUE";
-pub const CONNECTION_CHECK_SECONDS: i64 = 30;       // 30s检查1次连接, 避免频繁检查
-pub const CONNECTION_REBUILD_SECONDS: i64 = 60 * 3; // 3分钟没有任何操作则自动重连，避免检查连接时间过长的不友好体验
+pub const CONNECTION_CHECK_SECONDS: i64 = 30; // 30s检查1次连接, 避免频繁检查
+pub const CONNECTION_CHECK_TIMEOUT: Duration = Duration::from_secs(1); // 检查连接超时
+pub const CONNECTION_NORMAL_TIMEOUT: Duration = Duration::from_secs(30); // 连接操作默认操作时长
 
 // tauri的错误处理中需要返回的错误实现序列化, anyhow的错误并没有实现，因此简单返回字符串错误
 pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {

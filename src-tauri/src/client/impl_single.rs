@@ -363,9 +363,9 @@ impl RedisMeSingle {
 
     fn new_conn(client: &Client, db: u8) -> AnyResult<Connection> {
         let mut conn = client.get_connection()?;
-
-        // 设置客户端名称
         set_client_name(&mut conn)?;
+        conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
+        conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
 
         // 切换到当前的数据库
         if db != 0 {
@@ -403,8 +403,7 @@ impl RedisMeSingle {
                     conn
                 } else {
                     self.last_check_time.store(curr, Relaxed);
-                    if curr - last < CONNECTION_REBUILD_SECONDS && conn.check_connection() {
-                        info!("检查Redis单机连接正常: {}", self.conf.name);
+                    if self.check_connection_timeout(&mut conn).is_ok() {
                         conn
                     } else {
                         drop(conn);  // 此处一定要释放锁
@@ -416,4 +415,19 @@ impl RedisMeSingle {
             None => bail!("connection acquisition lock timeout")
         }
     }
+
+    fn check_connection_timeout(&self, conn: &mut Connection) -> AnyResult<bool> {
+        conn.set_read_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
+        conn.set_write_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
+        if conn.check_connection() {
+            conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
+            conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
+            info!("检查Redis单机连接正常: {}", self.conf.name);
+            Ok(true)
+        } else {
+            info!("检查Redis单机连接异常: {}", self.conf.name);
+            Ok(false)
+        }
+    }
 }
+
