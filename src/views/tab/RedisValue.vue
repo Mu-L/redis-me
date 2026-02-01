@@ -102,6 +102,8 @@ watchEffect(() => {
 })
 
 // TTL设置
+let timer = null
+onUnmounted(() => clearInterval(timer))
 async function setTTL(){
   const seconds = redisValue.value.ttl
   if (seconds <=0 && seconds !== -1) {
@@ -147,6 +149,16 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       }
     } else {
       redisValue.value = data
+    }
+
+    // ttl自动降低
+    clearInterval(timer)
+    if (redisValue.value.ttl > 0) {
+      timer = setInterval(() => {
+        if (redisValue.value.ttl > 0) {
+          redisValue.value.ttl--
+        }
+      }, 1000)
     }
   } finally {
     loading.value = false

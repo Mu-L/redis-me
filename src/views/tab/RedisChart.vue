@@ -29,13 +29,13 @@ const nowPointCount = ref(0)    // 当前数据条数
 
 // 自动刷新及刷新间隔配置
 let timer = null
+onUnmounted(() => clearInterval(timer))
 watch([autoRefresh, refreshInterval], ([val, _]) => {
-  clearTimeout(timer)
+  clearInterval(timer)
   if (val) {
     timer = setInterval(getData, refreshInterval.value * 1000)
   }
 }, {immediate: true})
-onUnmounted(() => clearTimeout(timer))
 
 // 图表实例，手动刷新
 const commandRef = useTemplateRef('command')
