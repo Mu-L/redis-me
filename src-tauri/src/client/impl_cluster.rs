@@ -501,7 +501,7 @@ impl RedisMeCluster {
                     conn
                 } else {
                     self.last_check_time.store(curr, Relaxed);
-                    if self.check_connection_timeout(&mut conn).is_ok() {
+                    if self.check_connection_timeout(&mut conn).unwrap_or(false) {
                         conn
                     } else {
                         drop(conn);  // 此处一定要释放锁
