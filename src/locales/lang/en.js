@@ -117,7 +117,7 @@ export default {
   },
 
   util: {
-    days: 'day | days',
+    days: 'd',
     deleteKey: 'Delete [{key}]?',
     checking: 'Checking for update, wait a moment...',
     updateHint: 'New version v{version}, Update?',
