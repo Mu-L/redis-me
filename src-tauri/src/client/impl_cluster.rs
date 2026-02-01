@@ -498,7 +498,7 @@ impl RedisMeCluster {
                     conn
                 } else {
                     self.last_check_time.store(curr, Relaxed);
-                    if conn.check_connection() {
+                    if curr - last < CONNECTION_REBUILD_SECONDS && conn.check_connection() {
                         info!("检查Redis集群连接正常: {}", self.conf.name);
                         conn
                     } else {
