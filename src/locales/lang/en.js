@@ -379,7 +379,8 @@ export default {
   redisValue: {
     optional: 'Optional',
     hashKey: 'HashKey',
-    ttlHint: 'Click to modify the expiration time of the key',
+    ttlHint: 'Click to modify the key expiration time',
+    ttlHintReadonly: 'Key expiration time',
     ttlForever: 'Forever',
     deleteKey: 'Delete Key',
     prettyHint: 'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',

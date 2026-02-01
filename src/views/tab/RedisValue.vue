@@ -301,7 +301,7 @@ async function fieldDel(row) {
         </el-input>
 
         <div class="me-flex">
-          <me-button icon="el-icon-timer" :info="t('redisValue.ttlHint')" placement="top" style="margin: 0 10px" @click="updateTTL">
+          <me-button icon="el-icon-timer" :info="canEdit ? t('redisValue.ttlHint') : t('redisValue.ttlHintReadonly')" placement="top" style="margin: 0 10px" @click="updateTTL">
             {{ redisValue.ttl === -1 ? t('redisValue.ttlForever') : meHumanSeconds(redisValue.ttl)}}
           </me-button>
 
