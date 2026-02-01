@@ -379,11 +379,9 @@ export default {
   },
 
   redisValue: {
-    ttlValidator: 'TTL超时时长只允许-1(永久)或正整数(秒)',
-    ttlOk: '设置TTL成功',
     optional: '可选输入',
     hashKey: '哈希键',
-    ttlHint: '点击修改键的过期时间（单位为秒，-1代表永久）',
+    ttlHint: '点击修改键的过期时间',
     ttlForever: '永久',
     deleteKey: '删除键',
     prettyHint: '默认开启美化，开启后针对hash/list/set/json等进行格式化，关闭后显示原始值toString',
@@ -428,5 +426,20 @@ export default {
     treeView: '键树形展示',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
+  },
+
+  ttlSet: {
+    title: '更新TTL',
+    key: '键',
+    ttl: 'TTL超时时长 (-1代表永久)',
+    quickSet: '快捷设置',
+    quick01: '永久',
+    quick02: '10秒',
+    quick03: '1分',
+    quick04: '1小时',
+    quick05: '1天',
+    ttlOk: '设置TTL成功',
+    ttlRequired: '请输入TTL',
+    ttlValidator: '只允许-1(永久) 或 正整数',
   }
 }

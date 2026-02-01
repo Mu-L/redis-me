@@ -14,6 +14,7 @@ import {
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 import {useI18n} from 'vue-i18n'
+import TTLSet from '@/views/ext/TTLSet.vue'
 
 const { t } = useI18n()
 // 刷新键
@@ -104,15 +105,16 @@ watchEffect(() => {
 // TTL设置
 let timer = null
 onUnmounted(() => clearInterval(timer))
-async function setTTL(){
-  const seconds = redisValue.value.ttl
-  if (seconds <=0 && seconds !== -1) {
-    meOk(t('redisValue.ttlValidator'))
-    return
+async function setTimer(seconds) {
+  redisValue.value.ttl = seconds
+  clearInterval(timer)
+  if (redisValue.value.ttl > 0) {
+    timer = setInterval(() => {
+      if (redisValue.value.ttl > 0) {
+        redisValue.value.ttl--
+      }
+    }, 1000)
   }
-
-  await meInvoke('ttl', {id: share.conn.id, ttl: seconds, key: share.redisKey})
-  meOk(t('redisValue.ttlOk'))
 }
 
 function resetParam(){
@@ -151,15 +153,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       redisValue.value = data
     }
 
-    // ttl自动降低
-    clearInterval(timer)
-    if (redisValue.value.ttl > 0) {
-      timer = setInterval(() => {
-        if (redisValue.value.ttl > 0) {
-          redisValue.value.ttl--
-        }
-      }, 1000)
-    }
+    await setTimer(redisValue.value.ttl)
   } finally {
     loading.value = false
   }
@@ -206,9 +200,17 @@ async function setValue() {
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// 更新TTL
+const ttlSetRef = useTemplateRef('ttlSetRef')
+function updateTTL() {
+  ttlSetRef.value?.open({
+    ttl: redisValue.value.ttl,
+  })
+}
+
 // 字段新增
 const fieldAddRef = useTemplateRef('fieldAddRef')
-function fieldAdd(){
+function fieldAdd() {
   fieldAddRef.value?.open({
     mode: 'field',
     type: redisValue.value.type,
@@ -308,7 +310,7 @@ async function fieldDel(row) {
             </template>
           </el-input>
           -->
-          <me-button icon="el-icon-timer" info="TTL" placement="top" style="margin: 0 10px">
+          <me-button icon="el-icon-timer" :info="t('redisValue.ttlHint')" placement="top" style="margin: 0 10px" @click="updateTTL">
             {{ redisValue.ttl === -1 ? t('redisValue.ttlForever') : meHumanSeconds(redisValue.ttl)}}
           </me-button>
 
@@ -421,7 +423,8 @@ async function fieldDel(row) {
     </template>
     <el-empty v-else :description="t('redisValue.noKeySelected')"></el-empty>
 
-    <!-- 字段新增 -->
+    <!-- 更新TTL, 字段新增 -->
+    <TTLSet ref="ttlSetRef" @success="setTimer"/>
     <FieldAdd ref="fieldAddRef" @success="refreshKey"/>
   </div>
 </template>

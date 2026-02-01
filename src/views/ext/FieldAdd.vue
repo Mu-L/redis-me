@@ -46,7 +46,7 @@ const rules = computed(() => ({
   ttl: [{required: true, message: t('fieldAdd.ttlRequired')},
     {
       validator: (rule, value, callback) => {
-        if (!(form.value.ttl == -1 || form.value.ttl > 0)) {
+        if (!(form.value.ttl === -1 || form.value.ttl > 0)) {
           callback(new Error(t('fieldAdd.ttlValidator')))
         }
         callback()

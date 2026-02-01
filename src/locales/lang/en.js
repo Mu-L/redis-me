@@ -377,11 +377,9 @@ export default {
   },
 
   redisValue: {
-    ttlValidator: 'TTL timeout duration only allows -1(Forever) or positive integer (Seconds)',
-    ttlOk: 'Set TTL Success',
     optional: 'Optional',
     hashKey: 'HashKey',
-    ttlHint: 'Click to modify the expiration time of the key (unit is seconds, -1 means forever)',
+    ttlHint: 'Click to modify the expiration time of the key',
     ttlForever: 'Forever',
     deleteKey: 'Delete Key',
     prettyHint: 'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',
@@ -426,5 +424,20 @@ export default {
     treeView: 'Tree View',
     loadMore: 'Load More',
     loadAll: 'Load All',
+  },
+
+  ttlSet: {
+    title: 'Update TTL',
+    key: 'Key',
+    ttl: 'TTL (-1 means Forever)',
+    quickSet: 'Quick Set',
+    quick01: 'Forever',
+    quick02: '10 Seconds',
+    quick03: '1 Minute',
+    quick04: '1 Hour',
+    quick05: '1 Day',
+    ttlOk: 'Set TTL Success',
+    quired: 'Please input TTL',
+    ttlValidator: '-1 (Forever) or positive integer',
   }
 }
