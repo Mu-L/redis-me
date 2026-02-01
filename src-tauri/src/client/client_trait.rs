@@ -166,7 +166,7 @@ pub fn get0(
                     let value: String = vec8_to_display_string(&str);
                     serde_json::to_value(value)
                 } else {
-                    bail!("HashKey Not Exists: {}", hash_key)
+                    bail!("HashKey Not Exists: 【{}】", hash_key)
                 }
             } else {
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
@@ -233,7 +233,7 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
             Some(serde_json::to_value(value)?)
         },
         // 注意此处SET/ZSET等是支持的，只是需要进行扫描，不能直接使用通用的: handle_other_value_type
-        ValueType::Stream => bail!("unsupport type: Stream"),
+        ValueType::Stream => bail!("Unsupport type: Stream"),
         ValueType::Unknown(_) => {
             handle_other_value_type(&key_type, &key)?;
             None
@@ -554,13 +554,13 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
     match value_type {
         ValueType::Unknown(other) => {
             if "none" == other {
-                bail!("key not exists: {}", vec8_to_display_string(key.to_bytes()))
+                bail!("Key Not Exists: 【{}】", vec8_to_display_string(key.to_bytes()))
             } else {
-                bail!("unknown ValueType: {other}")
+                bail!("Unknown ValueType: {other}")
             }
         },
-        ValueType::Stream => bail!("unsupport type: Stream"),
-        _ => bail!("unsupport type: {value_type:?}"),
+        ValueType::Stream => bail!("Unsupport Type: Stream"),
+        _ => bail!("Unsupport Type: {value_type:?}"),
     }
 }
 
