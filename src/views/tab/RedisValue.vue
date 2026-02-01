@@ -203,6 +203,8 @@ async function setValue() {
 // 更新TTL
 const ttlSetRef = useTemplateRef('ttlSetRef')
 function updateTTL() {
+  if(!canEdit.value) return
+
   ttlSetRef.value?.open({
     ttl: redisValue.value.ttl,
   })
@@ -299,25 +301,14 @@ async function fieldDel(row) {
         </el-input>
 
         <div class="me-flex">
-          <!-- 宽度170可以完全显示1天：86400秒 -->
-          <!--
-          <el-input v-model.number="redisValue.ttl" style="width: 170px; margin: 0 10px;">
-            <template #prepend>TTL</template>
-            <template #append v-if="canEdit">
-              <me-button :info="t('redisValue.ttlHint')"
-                         icon="el-icon-select" @click="setTTL"
-                         :disabled="!share.redisKey.key" placement="top-end"/>
-            </template>
-          </el-input>
-          -->
           <me-button icon="el-icon-timer" :info="t('redisValue.ttlHint')" placement="top" style="margin: 0 10px" @click="updateTTL">
             {{ redisValue.ttl === -1 ? t('redisValue.ttlForever') : meHumanSeconds(redisValue.ttl)}}
           </me-button>
 
           <el-button-group>
             <me-button :info="t('refresh')"              icon="el-icon-refresh" placement="top" @click="refreshKey(false)"/>
-            <me-button :info="t('edit')"                 icon="el-icon-edit"    placement="top" @click="renameKey"/>
-            <me-button :info="t('redisValue.deleteKey')" icon="el-icon-delete"  placement="top" @click="delKey" v-if="canEdit" type="danger"/>
+            <me-button :info="t('edit')"                 icon="el-icon-edit"    placement="top" @click="renameKey" v-if="canEdit"/>
+            <me-button :info="t('redisValue.deleteKey')" icon="el-icon-delete"  placement="top" @click="delKey"    v-if="canEdit" type="danger"/>
           </el-button-group>
         </div>
       </div>
