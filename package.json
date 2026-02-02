@@ -15,6 +15,8 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/theme-one-dark": "^6.1.3",
     "@element-plus/icons-vue": "^2.3.2",
     "@tauri-apps/api": "^2.9.1",
     "@tauri-apps/plugin-dialog": "^2.6.0",
@@ -29,8 +31,7 @@
     "@vueuse/core": "^12.8.2",
     "chart.js": "^4.5.1",
     "chartjs-adapter-dayjs-4": "^1.0.4",
-    "codemirror": "^5.65.20",
-    "codemirror-editor-vue3": "^2.8.0",
+    "codemirror": "^6.0.2",
     "dayjs": "^1.11.19",
     "element-plus": "^2.13.1",
     "lodash": "^4.17.23",
@@ -40,6 +41,7 @@
     "tauri-plugin-system-fonts-api": "^2.0.2",
     "vue": "^3.5.27",
     "vue-chartjs": "^5.3.3",
+    "vue-codemirror6": "^1.4.1",
     "vue-i18n": "^11.2.8",
     "xterminal": "^2.2.1"
   },
