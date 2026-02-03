@@ -30,10 +30,10 @@ const hint = computed(() => {
   return t('redisMemory.hint', params)
 })
 
-const sizeLimitKb = ref(10)
-const countLimit = ref(500)
+const sizeLimitKb = ref(100)
+const countLimit = ref(100)
 const scanCount = ref(1000)
-const scanTotal = ref(2000)
+const scanTotal = ref(0)
 const sleepMillis = ref(0)
 const match = ref('')
 const matchParam = computed(() => {
@@ -43,11 +43,11 @@ const matchParam = computed(() => {
 
 // 要求为正整数, 避免调用Rust时转换为u64报错
 watchEffect(() => {
-  if (sizeLimitKb.value < 0) sizeLimitKb.value = 0
-  if (countLimit.value < 0) countLimit.value = 0
-  if (scanCount.value < 0) scanCount.value = 0
-  if (scanTotal.value < 0) scanTotal.value = 0
-  if (sleepMillis.value < 0) sleepMillis.value = 0
+  if (sizeLimitKb.value < 0 || sizeLimitKb.value === '') sizeLimitKb.value = 0
+  if (countLimit.value < 0  || countLimit.value === '') countLimit.value = 0
+  if (scanCount.value < 0   || scanCount.value === '') scanCount.value = 0
+  if (scanTotal.value < 0   || scanTotal.value === '') scanTotal.value = 0
+  if (sleepMillis.value < 0 || sleepMillis.value === '') sleepMillis.value = 0
 })
 
 const keyword = ref('')
@@ -95,11 +95,11 @@ async function refresh() {
 // refresh()
 
 function memoryUsage() {
-  if (scanTotal.value > 10_0000 || scanTotal.value <= 0 || sleepMillis.value > 100) {
-    meConfirm(t('redisMemory.longTimeHint'), () => refresh())
-  } else {
-    refresh()
-  }
+  // if (scanTotal.value > 10_0000 || scanTotal.value <= 0 || sleepMillis.value > 100) {
+  //   meConfirm(t('redisMemory.longTimeHint'), () => refresh())
+  // } else {
+  refresh()
+  // }
 }
 
 // 选中键
