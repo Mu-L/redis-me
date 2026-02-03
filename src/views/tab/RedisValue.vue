@@ -316,7 +316,7 @@ async function fieldDel(row) {
       <div class="value">
         <!-- json显示 -->
         <template v-if="viewType === 'json'">
-          <me-code :value="showValue" @update:value="(newValue) => redisValue.newValue=newValue" :read-only="!canSave"/>
+          <me-code :modelValue="showValue" @update:modelValue="(newValue) => redisValue.newValue=newValue" :read-only="!canSave"/>
 
           <div class="btn-rb" v-if="canSave">
             <me-button class="save" :info="t('save')" type="danger" icon="me-icon-save" @click="setValue" placement="top"/>

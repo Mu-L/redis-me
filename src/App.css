@@ -29,6 +29,8 @@ html {
      system-ui: 兜底
   */
   --code-font: Menlo, Monaco, Consolas, 黑体, system-ui;
+
+  --json-value-color: #a11;
 }
 
 /* 黑色主题 */
@@ -42,6 +44,8 @@ html.dark {
   --el-bg-color-overlay: var(--me-bg-color); /* el-tabs的背景色: Redis信息      */
   --el-fill-color-blank: var(--me-bg-color); /* el-select的填充颜色 */
   --el-fill-color-lighter: #2F2F2F;          /* el-table表格斑马纹 */
+
+  --json-value-color: #e6db74;
 }
 
 html, body {
@@ -53,18 +57,6 @@ html, body {
   overflow: hidden;
 }
 
-/* CodeMirror */
-.CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like {
-  font-family: var(--code-font);
-}
-
-.codemirror-opacity {
-  opacity: 0.6;
-}
-
-.codemirror-container {
-  font-size: 15px !important;
-}
 
 /*所有元素的盒子模型的宽高统一包含边框*/
 /*原因：很多场景调试样式，需要加个边框测试*/

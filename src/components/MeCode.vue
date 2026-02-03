@@ -2,16 +2,19 @@
 import {useDark} from '@vueuse/core'
 import CodeMirror from 'vue-codemirror6'
 import {json} from '@codemirror/lang-json'
+import {python} from '@codemirror/lang-python'
+import {isZh} from '@/utils/util.js'
 
 const {mode, readOnly} = defineProps({
-  mode: {type: String, default: 'application/json'},
+  mode: {type: String, default: 'json'},
   readOnly: {type: Boolean, default: false, required: false},
 })
 
-
 const dark = useDark()
-const lang = json()
-const phrases = {
+const lang = mode === 'json' ? json() : python()
+
+// 语言切换及功能提示
+const zhPhrases = {
   // @codemirror/view
   'Control character': '控制字符',
   // @codemirror/commands
@@ -48,8 +51,36 @@ const phrases = {
   Diagnostics: '诊断信息',
   'No diagnostics': '无诊断信息',
 }
+const phrases = computed(() => isZh() ? zhPhrases: {})
+
 </script>
 
 <template>
-  <code-mirror v-bind="$attrs" :dark :lang :phrases="phrases"/>
+  <code-mirror v-bind="$attrs" :dark :lang :phrases :disabled="readOnly" basic />
 </template>
+
+<style scoped lang="scss">
+.vue-codemirror {
+  height: 100%;
+  font-size: 15px;
+
+  /* 默认高度 */
+  :deep(.cm-editor) {
+    height: 100%;
+  }
+
+  /* 字体设置 */
+  :deep(.cm-scroller) {
+    font-family: var(--code-font);
+  }
+
+  /* JSON值在黑色模式下红色看着不舒服，因此改下 */
+  :deep(.ͼe) {
+    color: var(--json-value-color);
+  }
+
+  :deep(.ͼd) {
+    color: var(--json-value-color);
+  }
+}
+</style>
