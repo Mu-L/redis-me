@@ -206,6 +206,24 @@ export function meDeleteKey(id, redisKey, thenFn) {
   })
 }
 
+// 重命名键
+export function meRenameKey(id, redisKey) {
+  mePrompt(t('util.renameKey'), {
+      inputValue: redisKey.key,
+      inputType: 'text'
+    },
+    async ({value}) => {
+      const newKey = {key: value, bytes: ""}
+      const params = {id, key: redisKey, newKey}
+      await meInvoke('rename', params)
+
+      // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
+      redisKey.key = newKey.key
+      redisKey.bytes = newKey.bytes
+      meOk(t('actionOk'))
+    })
+}
+
 
 // 检查更新
 export async function meCheckUpdate(quiet = true, checkOptions = {}, app) {

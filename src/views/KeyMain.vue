@@ -12,7 +12,7 @@ import {
   meDeleteKey,
   meInvoke,
   meType,
-  meOk
+  meOk, meRenameKey
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatchDel from './key/KeyBatchDel.vue'
@@ -146,6 +146,8 @@ function contextKey(command, redisKey) {
     meCopy(redisKey.key)
   } else if (command === 'deleteKey') {
     meDeleteKey(share.conn.id, redisKey)
+  } else if (command === 'renameKey') {
+    meRenameKey(share.conn.id, redisKey)
   } else {
     meOk(`TODO: ${command}`)
   }

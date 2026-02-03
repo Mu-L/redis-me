@@ -119,6 +119,7 @@ export default {
   util: {
     days: 'd',
     deleteKey: 'Delete [{key}]?',
+    renameKey: 'Rename Key',
     checking: 'Checking for update, wait a moment...',
     updateHint: 'New version v{version}, Update?',
     changelog: 'changelog',
@@ -222,6 +223,7 @@ export default {
     refreshKey: 'Reload',
     copyKey: 'Copy',
     deleteKey: 'Delete',
+    renameKey: 'Rename',
   },
 
   keyTree: {
@@ -395,7 +397,6 @@ export default {
     noKeySelected: 'No Key Selected',
     loadMore: 'Load More',
     loadAll: 'Load All',
-    renameKey: 'Rename Key',
   },
 
   redisChart: {

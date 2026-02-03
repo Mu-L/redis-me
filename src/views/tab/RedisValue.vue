@@ -8,7 +8,7 @@ import {
   meHumanSize,
   meInvoke,
   meOk,
-  mePrompt,
+  meRenameKey,
   meType
 } from '@/utils/util.js'
 import FieldAdd from '../ext/FieldAdd.vue'
@@ -160,23 +160,6 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
   }
 }
 
-async function renameKey() {
-  mePrompt(t('redisValue.renameKey'), {
-        inputValue: share.redisKey.key,
-        inputType: 'text'
-      },
-      async ({value}) => {
-        const newKey = {key: value, bytes: ""}
-        const params = {id: share.conn.id, key: share.redisKey, newKey}
-        await meInvoke('rename', params)
-
-        // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
-        share.redisKey.key = newKey.key
-        share.redisKey.bytes = newKey.bytes
-        meOk(t('actionOk'))
-      })
-}
-
 // 删除键
 onMounted(() => bus.on(KEY_DELETE, deleteKey))
 onUnmounted(() => bus.off(KEY_DELETE, deleteKey))
@@ -187,6 +170,10 @@ function deleteKey() {
 
 function delKey() {
   meDeleteKey(share.conn.id, share.redisKey)
+}
+
+function renameKey(){
+  meRenameKey(share.conn.id, share.redisKey)
 }
 
 // 保存值

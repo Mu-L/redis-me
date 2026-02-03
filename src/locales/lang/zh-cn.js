@@ -120,6 +120,7 @@ export default {
   util: {
     days: '天',
     deleteKey: '确定删除键【{key}】吗？',
+    renameKey: '重命名键',
     checking: '检查更新中，请稍后...',
     updateHint: '有新版本 v{version}，是否升级？',
     changelog: '更新日志',
@@ -128,7 +129,7 @@ export default {
     updateDone: '更新完成，是否立刻重启？',
     updateErr: '下载安装包失败',
     latestVersion: '当前为最新版本',
-    checkUpdateErr: '检查更新失败'
+    checkUpdateErr: '检查更新失败',
   },
 
   tabMain: {
@@ -223,6 +224,7 @@ export default {
     refreshKey: '重新载入',
     copyKey: '复制键名',
     deleteKey: '删除键',
+    renameKey: '重命名键',
   },
 
   keyTree: {
@@ -397,7 +399,6 @@ export default {
     noKeySelected: '未选择任何键',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
-    renameKey: '重命名键',
   },
 
   redisChart: {
