@@ -438,7 +438,7 @@ export default {
     quick04: '1 Hour',
     quick05: '1 Day',
     ttlOk: 'Set TTL Success',
-    quired: 'Please input TTL',
+    ttlRequired: 'Please input TTL',
     ttlValidator: '-1 (Forever) or positive integer',
   }
 }

@@ -44,7 +44,7 @@ function submit() {
     try {
       const seconds = meTtlSeconds(form.value.ttl, form.value.ttlUnit)
       await meInvoke('ttl', {id: share.conn.id, ttl: seconds, key: share.redisKey})
-      meOk(t('redisValue.ttlOk'))
+      meOk(t('ttlSet.ttlOk'))
       emit('success', seconds)
       visible.value = false
     } finally {
