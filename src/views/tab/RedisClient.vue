@@ -70,7 +70,9 @@ async function killClient(row) {
     <div class="me-flex header">
       <div>
         <node-list v-model="node" style="margin-right: 10px" @change="refresh"/>
-        <el-select v-model="clientType" style="width: 120px;margin-right: 10px;" :placeholder="t('redisClient.clientType')" clearable>
+        <el-select v-model="clientType" style="width: 120px;margin-right: 10px;"
+                   @change="refresh"
+                   :placeholder="t('redisClient.clientType')" clearable>
           <el-option value="NORMAL"/>
           <el-option value="MASTER"/>
           <el-option value="SLAVE"/>
