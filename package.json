@@ -1,7 +1,7 @@
 {
   "name": "redis-me",
   "private": true,
-  "version": "1.6.1",
+  "version": "1.7.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +15,15 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.10.1",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/lang-python": "^6.2.1",
+    "@codemirror/language": "^6.12.1",
+    "@codemirror/search": "^6.6.0",
+    "@codemirror/state": "^6.5.4",
+    "@codemirror/view": "^6.39.12",
     "@element-plus/icons-vue": "^2.3.2",
+    "@fsegurai/codemirror-theme-monokai": "^6.2.3",
     "@tauri-apps/api": "^2.9.1",
     "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-fs": "^2.4.5",
@@ -29,8 +37,7 @@
     "@vueuse/core": "^12.8.2",
     "chart.js": "^4.5.1",
     "chartjs-adapter-dayjs-4": "^1.0.4",
-    "codemirror": "^5.65.20",
-    "codemirror-editor-vue3": "^2.8.0",
+    "codemirror": "^6.0.2",
     "dayjs": "^1.11.19",
     "element-plus": "^2.13.1",
     "lodash": "^4.17.23",
@@ -40,6 +47,7 @@
     "tauri-plugin-system-fonts-api": "^2.0.2",
     "vue": "^3.5.27",
     "vue-chartjs": "^5.3.3",
+    "vue-codemirror6": "^1.4.1",
     "vue-i18n": "^11.2.8",
     "xterminal": "^2.2.1"
   },

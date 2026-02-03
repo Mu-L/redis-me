@@ -81,7 +81,7 @@ function submit() {
         <el-input-number :controls="false" v-model="form.fieldScore" align="left" style="width: 100%"/>
       </el-form-item>
       <el-form-item :label="t('fieldSet.value')" prop="fieldValue" style="display: flex; flex-direction: column; flex: 1">
-        <me-code v-model:value="form.fieldValue" style="flex: 1"/>
+        <me-code v-model="form.fieldValue" style="flex: 1"/>
       </el-form-item>
     </el-form>
     <template #footer>

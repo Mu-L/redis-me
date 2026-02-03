@@ -1,50 +1,62 @@
 <script setup>
-// 说明: CodeMirror封装组件，支持代码显示和编辑
-// https://rennzhang.github.io/codemirror-editor-vue3/zh-CN/guide/getting-started
-import CodeMirror from 'codemirror-editor-vue3'
-
-// 语言
-import 'codemirror/mode/javascript/javascript.js'
-import 'codemirror/mode/properties/properties.js'
-
-// 主题
-import 'codemirror/theme/idea.css'
-// import 'codemirror/theme/darcula.css'
-import 'codemirror/theme/monokai.css'
-import 'codemirror/addon/display/autorefresh'
 import {useDark} from '@vueuse/core'
-
-// 支持Ctrl+F搜索
-import 'codemirror/addon/search/searchcursor.js'
-import 'codemirror/addon/search/search'
-import 'codemirror/addon/dialog/dialog.js'
-import 'codemirror/addon/dialog/dialog.css'
-import 'codemirror/addon/selection/mark-selection.js'
+import CodeMirror from 'vue-codemirror6'
+import {json} from '@codemirror/lang-json'
+import {python} from '@codemirror/lang-python'
+import {isZh} from '@/utils/util.js'
+import {meBasicSetup, zhPhrases} from '@/plugins/codemirror.js'
 
 const {mode, readOnly} = defineProps({
-  mode: {type: String, default: 'application/json'},
+  mode: {type: String, default: 'json'},
   readOnly: {type: Boolean, default: false, required: false},
 })
 
-const initOptions = reactive({
-  lineNumbers: true,     // 显示行号
-  scrollbarStyle: null,  // 不显示滚动条
-  styleActiveLine: false, // 高亮当前行
-  border: false,
-})
-
-const isDark = useDark()
-const cmOptions = computed(() => {
-  return ({
-    ...initOptions,
-    mode,
-    readOnly,
-    theme: isDark.value ? 'monokai' : 'idea'
-  })
-})
+const dark = useDark()
+const lang = mode === 'json' ? json() : python() // 暂未找到ini或properties的语法高亮，暂用python代替（也是#作为注释）
+const phrases = computed(() => isZh() ? zhPhrases: {})
+const extensions = [meBasicSetup] // 不使用默认的basicSetup，自己定义扩展（取消高亮当前行等）
 </script>
 
 <template>
-  <CodeMirror v-bind="$attrs" ref="cm" :options="cmOptions"
-              :class="readOnly ? ['codemirror-opacity' , 'is-disabled'] : []"/>
+  <!-- https://github.com/logue/vue-codemirror6  -->
+  <code-mirror v-bind="$attrs" :dark :lang :phrases :readonly="readOnly" :extensions
+               :class="readOnly ? ['codemirror-opacity' , 'is-disabled'] : []" />
 </template>
+
+<style scoped lang="scss">
+.codemirror-opacity {
+  opacity: 0.6;
+}
+
+.vue-codemirror {
+  height: 100%;
+  font-size: 15px;
+
+  /* 默认高度 */
+  :deep(.cm-editor) {
+    height: 100%;
+  }
+
+  /* 字体设置 */
+  :deep(.cm-scroller) {
+    font-family: var(--code-font);
+  }
+}
+
+html.dark .vue-codemirror {
+  background-color: #272822;
+
+  /* JSON值在黑色模式下红色看着不舒服，因此改下 */
+  :deep(.ͼe) {
+    color: #e6db74;
+  }
+
+  :deep(.ͼd) {
+    color: #e6db74;
+  }
+
+  :deep(.ͼ3 .cm-gutters) {
+    background-color: #272822;
+  }
+}
+</style>

@@ -29,6 +29,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             test_conn,
+            masters,
             conn_list,
             connect,
             disconnect,
@@ -45,6 +46,7 @@ pub fn run() {
             ttl,
             set,
             del,
+            rename,
             batch_del,
             field_add,
             field_set,

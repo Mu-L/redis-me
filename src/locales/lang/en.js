@@ -21,6 +21,15 @@ export default {
   editOk: 'Saved',
   saveOk: 'Saved',
   deleteOk: 'Deleted',
+  actionOk: 'Success',
+
+  timeUnit: {
+    width: '120',
+    second: 'Second | Seconds',
+    minute: 'Minute | Minutes',
+    hour: 'Hour | Hours',
+    day: 'Day | Days',
+  },
 
   appMain: {
     readonly: 'Readonly',
@@ -90,6 +99,8 @@ export default {
     masterName: 'Master Name',
     masterUsername: 'Master Username',
     masterPassword: 'Master Password',
+    autoDiscover: 'Auto Discover',
+    autoDiscoverOk: 'Discover {count} Master | Discover {count} Masters',
 
     nameHint: '[Optional] Automatically generated based on Host and Port',
     certHint: 'Public Key File format',
@@ -106,7 +117,7 @@ export default {
   },
 
   util: {
-    days: 'day | days',
+    days: 'd',
     deleteKey: 'Delete [{key}]?',
     checking: 'Checking for update, wait a moment...',
     updateHint: 'New version v{version}, Update?',
@@ -122,7 +133,7 @@ export default {
   tabMain: {
     info: 'Info',
     value: 'Value',
-    console: 'Console',
+    terminal: 'Terminal',
     memory: 'Memory',
     slow: 'SlowLog',
     monitor: 'Monitor',
@@ -154,7 +165,7 @@ export default {
     keyRequired: 'Please input key',
     typeRequired: 'Please select type',
     ttlRequired: 'Please input TTL',
-    ttlValidator: 'TTL timeout duration only allows -1(Permanent) or positive integer (Seconds)',
+    ttlValidator: '-1 (Forever) or positive integer',
     valueRequired: 'Please input value',
     hashValidator: 'HashKey and hashValue required',
     hashHint: '(HashKey: HashValue)',
@@ -164,9 +175,9 @@ export default {
     key: 'Key',
     field: 'Field',
     type: 'Type',
-    ttl: 'TTL',
-    negativeOneHint: '-1 means Permanent',
-    permanent: 'Permanent',
+    ttl: 'TTL (-1 means Forever)',
+    negativeOneHint: '-1 means Forever',
+    forever: 'Forever',
     second: 'Second | Seconds',
     value: 'Value',
     element: 'Element',
@@ -366,11 +377,11 @@ export default {
   },
 
   redisValue: {
-    ttlValidator: 'TTL timeout duration only allows -1(Permanent) or positive integer (Seconds)',
-    ttlOk: 'Set TTL Success',
     optional: 'Optional',
     hashKey: 'HashKey',
-    ttlHint: 'Click to modify the expiration time of the key (unit is seconds, -1 means permanent)',
+    ttlHint: 'Click to modify the key expiration time',
+    ttlHintReadonly: 'Key expiration time',
+    ttlForever: 'Forever',
     deleteKey: 'Delete Key',
     prettyHint: 'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',
     tableKeyword: 'Fuzzy Filter',
@@ -384,6 +395,7 @@ export default {
     noKeySelected: 'No Key Selected',
     loadMore: 'Load More',
     loadAll: 'Load All',
+    renameKey: 'Rename Key',
   },
 
   redisChart: {
@@ -413,5 +425,20 @@ export default {
     treeView: 'Tree View',
     loadMore: 'Load More',
     loadAll: 'Load All',
+  },
+
+  ttlSet: {
+    title: 'Update TTL',
+    key: 'Key',
+    ttl: 'TTL (-1 means Forever)',
+    quickSet: 'Quick Set',
+    quick01: 'Forever',
+    quick02: '10 Seconds',
+    quick03: '1 Minute',
+    quick04: '1 Hour',
+    quick05: '1 Day',
+    ttlOk: 'Set TTL Success',
+    quired: 'Please input TTL',
+    ttlValidator: '-1 (Forever) or positive integer',
   }
 }

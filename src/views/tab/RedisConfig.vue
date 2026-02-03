@@ -142,7 +142,7 @@ function calcRowStyle({row}) {
     </el-table>
 
     <me-dialog icon="me-icon-redis" :title="`${configVersion} ${t('redisConfig.defaultConfig')}`" v-model="dialog.raw" width="60vw">
-      <me-code :value="configRaw" mode="properties" read-only />
+      <me-code :modelValue="configRaw" mode="properties" read-only />
     </me-dialog>
   </div>
 </template>

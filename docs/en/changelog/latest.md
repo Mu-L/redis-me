@@ -3,7 +3,16 @@
 ## Future
 
 - Terminal: Add command prompts, add command list for manual selection
-- Scan scanning for hash, list, set, zset
+
+## v1.7.0 (2026-02-03)
+- Sentinel mode supports quick connection testing
+- Sentinel mode supports automatic retrieval of master lists for selection
+- Error messages in Rust code are all changed to English
+- The type display of RedisValue is centered
+- RedisValue supports modifying key names
+- Connection checks must complete within 1 second; if not completed, the connection is automatically rebuilt
+- TTL modification optimization: pop-up settings, supporting time unit selection
+- CodeMirror upgraded to version 6, optimizing rendering for large data volumes
 
 ## v1.6.1 (2026-01-30)
 

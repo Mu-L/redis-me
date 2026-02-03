@@ -1,7 +1,7 @@
 use crate::client::client_trait::RedisMeClient;
 use crate::client::impl_cluster::RedisMeCluster;
 use crate::client::impl_single::RedisMeSingle;
-use crate::utils::model::RedisConn;
+use crate::utils::model::RedisConf;
 use crate::utils::util::AnyResult;
 use anyhow::anyhow;
 use log::{debug, info};
@@ -12,21 +12,21 @@ use tauri::{AppHandle, Manager, State};
 #[derive(Default)]
 pub struct AppState {
     // 初始化连接列表
-    pub connections: Mutex<HashMap<String, RedisConn>>,
+    pub connections: Mutex<HashMap<String, RedisConf>>,
 
     // 缓存连接客户端
     pub clients: RwLock<HashMap<String, Arc<Box<dyn RedisMeClient>>>>,
 }
 
 pub trait ClientAccess {
-    fn conn_list(&self, conn_list: Vec<RedisConn>) -> AnyResult<()>;
+    fn conn_list(&self, conn_list: Vec<RedisConf>) -> AnyResult<()>;
     fn get_client(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>>;
     fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>>;
     fn disconnect(&self, id: &str) -> AnyResult<()>;
 }
 
 impl ClientAccess for AppHandle {
-    fn conn_list(&self, conn_list: Vec<RedisConn>) -> AnyResult<()> {
+    fn conn_list(&self, conn_list: Vec<RedisConf>) -> AnyResult<()> {
         let state: State<AppState> = self.state();
         let mut map = state.connections.lock().unwrap();
         map.clear();
@@ -53,7 +53,7 @@ impl ClientAccess for AppHandle {
     fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>> {
         let state: State<AppState> = self.state();
         let map = state.connections.lock().unwrap();
-        let conn = map.get(id).ok_or(anyhow!("未找到连接: {}", id))?;
+        let conn = map.get(id).ok_or(anyhow!("no connection found: {}", id))?;
 
         let mut clients = state.clients.write().unwrap();
         let client = Arc::new(if conn.cluster {

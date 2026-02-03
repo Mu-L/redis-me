@@ -23,8 +23,8 @@ mod tests {
     }
 
     #[allow(unused)]
-    fn conn_single() -> RedisConn {
-        RedisConn {
+    fn conf_single() -> RedisConf {
+        RedisConf {
             id: "test".into(),
             name: "test".into(),
             host: "ali.hepengju.com".into(),
@@ -43,8 +43,8 @@ mod tests {
     }
 
     #[allow(unused)]
-    fn conn_cluster() -> RedisConn {
-        RedisConn {
+    fn conf_cluster() -> RedisConf {
+        RedisConf {
             id: "test".into(),
             name: "test".into(),
             host: "ali.hepengju.com".into(),
@@ -64,14 +64,14 @@ mod tests {
 
     #[allow(unused)]
     fn client_single() -> Box<dyn RedisMeClient> {
-        let conn = conn_single();
-        RedisMeSingle::init(&conn).unwrap()
+        let conf = conf_single();
+        RedisMeSingle::init(&conf).unwrap()
     }
 
     #[allow(unused)]
     fn client_cluster() -> Box<dyn RedisMeClient> {
-        let conn = conn_cluster();
-        RedisMeCluster::init(&conn).unwrap()
+        let conf = conf_cluster();
+        RedisMeCluster::init(&conf).unwrap()
     }
 
     #[test]
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_field_scan_mock() -> AnyResult<()>{
-        let conn_single = conn_single();
+        let conn_single = conf_single();
         let client = get_client_single(&conn_single)?;
         let mut conn = client.get_connection()?;
 
@@ -149,7 +149,7 @@ mod tests {
         }
         let _: () = pipe.query(&mut conn)?;
 
-        let conn_cluster = conn_cluster();
+        let conn_cluster = conf_cluster();
         let client = get_client_cluster(&conn_cluster)?;
         let mut conn = client.get_connection()?;
 
@@ -161,7 +161,7 @@ mod tests {
         pipe.del("field-scan:zset").ignore();
 
         pipe.set("field-scan:string", "字段扫描字符串类型 😄").ignore();
-        for i in 0..600 { // 大于512个
+        for i in 0..555 { // 大于512个
             pipe.hset("field-scan:hash", format!("k{i}"), format!("v{i}")).ignore();
             pipe.rpush("field-scan:list", format!("v{i}")).ignore();
             pipe.sadd("field-scan:set", format!("v{i}")).ignore();

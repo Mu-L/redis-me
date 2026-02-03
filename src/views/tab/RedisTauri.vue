@@ -81,7 +81,7 @@ function invokeCommand() {
       </el-form>
     </div>
     <div class="body" v-loading="loading">
-      <me-code v-model:value="result" read-only/>
+      <me-code v-model="result"/>
     </div>
 
   </div>

@@ -21,6 +21,15 @@ export default {
   editOk: '保存成功',
   saveOk: '保存成功',
   deleteOk: '删除成功',
+  actionOk: '操作成功',
+
+  timeUnit: {
+    width: '80',
+    second: '秒',
+    minute: '分',
+    hour: '小时',
+    day: '天',
+  },
 
   appMain: {
     readonly: '只读',
@@ -88,9 +97,11 @@ export default {
     sentinel: '哨兵',
     sentinelConfig: '哨兵配置',
     sentinelLabelWidth: '100',
-    masterName: '主节点名称',
+    masterName: '主节点组名',
     masterUsername: '主节点用户',
     masterPassword: '主节点密码',
+    autoDiscover: '自动查询组名',
+    autoDiscoverOk: '查询到{count}个主节点',
 
     nameHint: '【可选】默认自动根据主机和端口生成',
     certHint: 'PEM格式公钥文件 (Cert)',
@@ -123,7 +134,7 @@ export default {
   tabMain: {
     info: '信息',
     value: '键值',
-    console: '终端',
+    terminal: '终端',
     memory: '内存',
     slow: '慢日志',
     monitor: '监控',
@@ -155,7 +166,7 @@ export default {
     keyRequired: '请输入键名',
     typeRequired: '请选择类型',
     ttlRequired: '请输入TTL',
-    ttlValidator: 'TTL超时时长只允许-1(永久)或正整数(秒)',
+    ttlValidator: '只允许-1(永久) 或 正整数',
     valueRequired: '值不允许为空',
     hashValidator: '哈希键和值不允许为空',
     hashHint: '(哈希键: 值)',
@@ -165,7 +176,7 @@ export default {
     key: '键',
     field: '字段',
     type: '类型',
-    ttl: 'TTL超时时长',
+    ttl: 'TTL超时时长 (-1代表永久)',
     negativeOneHint: '-1代表永久',
     permanent: '永久',
     second: '秒',
@@ -368,11 +379,11 @@ export default {
   },
 
   redisValue: {
-    ttlValidator: 'TTL超时时长只允许-1(永久)或正整数(秒)',
-    ttlOk: '设置TTL成功',
     optional: '可选输入',
     hashKey: '哈希键',
-    ttlHint: '点击修改键的过期时间（单位为秒，-1代表永久）',
+    ttlHint: '点击修改键的过期时间',
+    ttlHintReadonly: '键的过期时间',
+    ttlForever: '永久',
     deleteKey: '删除键',
     prettyHint: '默认开启美化，开启后针对hash/list/set/json等进行格式化，关闭后显示原始值toString',
     tableKeyword: '模糊筛选',
@@ -386,6 +397,7 @@ export default {
     noKeySelected: '未选择任何键',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
+    renameKey: '重命名键',
   },
 
   redisChart: {
@@ -415,5 +427,20 @@ export default {
     treeView: '键树形展示',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
+  },
+
+  ttlSet: {
+    title: '更新TTL',
+    key: '键',
+    ttl: 'TTL超时时长 (-1代表永久)',
+    quickSet: '快捷设置',
+    quick01: '永久',
+    quick02: '10秒',
+    quick03: '1分',
+    quick04: '1小时',
+    quick05: '1天',
+    ttlOk: '设置TTL成功',
+    ttlRequired: '请输入TTL',
+    ttlValidator: '只允许-1(永久) 或 正整数',
   }
 }

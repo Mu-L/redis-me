@@ -5,7 +5,7 @@ use crate::utils::model::*;
 use crate::utils::util::*;
 use anyhow::bail;
 use chrono::Utc;
-use log::info;
+use log::{info, warn};
 use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo;
@@ -227,6 +227,10 @@ impl RedisMeClient for RedisMeCluster {
         del0(self.get_conn()?, key)
     }
 
+    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<()> {
+        rename0(self.get_conn()?, key, new_key)
+    }
+    
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
         field_add0(self.get_conn()?, param)
     }
@@ -450,7 +454,7 @@ impl RedisMeClient for RedisMeCluster {
 
 // 个性化方法
 impl RedisMeCluster {
-    pub fn init(redis_conn: &RedisConn) -> AnyResult<Box<dyn RedisMeClient>> {
+    pub fn init(redis_conn: &RedisConf) -> AnyResult<Box<dyn RedisMeClient>> {
         let client = get_client_cluster(redis_conn)?;
         let mut conn = Self::new_conn(&client)?;
 
@@ -471,6 +475,9 @@ impl RedisMeCluster {
         let mut conn = client.get_connection()?;
         // 设置客户端名称
         set_client_name(&mut conn)?;
+
+        conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
+        conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
         Ok(conn)
     }
 
@@ -494,8 +501,7 @@ impl RedisMeCluster {
                     conn
                 } else {
                     self.last_check_time.store(curr, Relaxed);
-                    if conn.check_connection() {
-                        info!("检查Redis集群连接正常: {}", self.conf.name);
+                    if self.check_connection_timeout(&mut conn).unwrap_or(false) {
                         conn
                     } else {
                         drop(conn);  // 此处一定要释放锁
@@ -504,9 +510,21 @@ impl RedisMeCluster {
                     }
                 }
             }),
-            None => {
-                bail!("获取连接加锁超时");
-            }
+            None => bail!("connection acquisition lock timeout")
+        }
+    }
+
+    fn check_connection_timeout(&self, conn: &mut ClusterConnection) -> AnyResult<bool> {
+        conn.set_read_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
+        conn.set_write_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
+        if conn.check_connection() {
+            conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
+            conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
+            info!("检查Redis集群连接正常: {}", self.conf.name);
+            Ok(true)
+        } else {
+            warn!("检查Redis集群连接异常: {}", self.conf.name);
+            Ok(false)
         }
     }
 
@@ -529,7 +547,7 @@ impl RedisMeCluster {
             });
             Ok((route, node))
         } else {
-            bail!("Invalid node format: {}", node)
+            bail!("invalid node format: {}", node)
         }
     }
 

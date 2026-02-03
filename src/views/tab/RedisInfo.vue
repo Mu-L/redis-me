@@ -254,7 +254,7 @@ function goMemory() {
   </div>
 
   <me-dialog v-model="dialog.raw"  icon="me-icon-raw" title="Info"  width="60vw">
-    <me-code :value="raw" mode="properties" read-only/>
+    <me-code :modelValue="raw" mode="properties" read-only/>
   </me-dialog>
 
   <me-dialog v-model="dialog.client" icon="el-icon-mic" :title="t('redisInfo.client')"

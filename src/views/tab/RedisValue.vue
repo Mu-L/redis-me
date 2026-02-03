@@ -1,9 +1,20 @@
 <script setup>
-import {capitalize} from 'lodash'
-import {bus, KEY_DELETE, KEY_REFRESH, meCopy, meDeleteKey, meHumanSize, meInvoke, meOk, meType} from '@/utils/util.js'
+import {
+  bus,
+  KEY_DELETE,
+  KEY_REFRESH,
+  meCopy,
+  meDeleteKey, meHumanSeconds,
+  meHumanSize,
+  meInvoke,
+  meOk,
+  mePrompt,
+  meType
+} from '@/utils/util.js'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 import {useI18n} from 'vue-i18n'
+import TTLSet from '@/views/ext/TTLSet.vue'
 
 const { t } = useI18n()
 // 刷新键
@@ -92,15 +103,18 @@ watchEffect(() => {
 })
 
 // TTL设置
-async function setTTL(){
-  const seconds = redisValue.value.ttl
-  if (seconds <=0 && seconds !== -1) {
-    meOk(t('redisValue.ttlValidator'))
-    return
+let timer = null
+onUnmounted(() => clearInterval(timer))
+async function setTimer(seconds) {
+  redisValue.value.ttl = seconds
+  clearInterval(timer)
+  if (redisValue.value.ttl > 0) {
+    timer = setInterval(() => {
+      if (redisValue.value.ttl > 0) {
+        redisValue.value.ttl--
+      }
+    }, 1000)
   }
-
-  await meInvoke('ttl', {id: share.conn.id, ttl: seconds, key: share.redisKey})
-  meOk(t('redisValue.ttlOk'))
 }
 
 function resetParam(){
@@ -138,9 +152,28 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
     } else {
       redisValue.value = data
     }
+
+    await setTimer(redisValue.value.ttl)
   } finally {
     loading.value = false
   }
+}
+
+async function renameKey() {
+  mePrompt(t('redisValue.renameKey'), {
+        inputValue: share.redisKey.key,
+        inputType: 'text'
+      },
+      async ({value}) => {
+        const newKey = {key: value, bytes: ""}
+        const params = {id: share.conn.id, key: share.redisKey, newKey}
+        await meInvoke('rename', params)
+
+        // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
+        share.redisKey.key = newKey.key
+        share.redisKey.bytes = newKey.bytes
+        meOk(t('actionOk'))
+      })
 }
 
 // 删除键
@@ -167,9 +200,19 @@ async function setValue() {
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// 更新TTL
+const ttlSetRef = useTemplateRef('ttlSetRef')
+function updateTTL() {
+  if(!canEdit.value) return
+
+  ttlSetRef.value?.open({
+    ttl: redisValue.value.ttl,
+  })
+}
+
 // 字段新增
 const fieldAddRef = useTemplateRef('fieldAddRef')
-function fieldAdd(){
+function fieldAdd() {
   fieldAddRef.value?.open({
     mode: 'field',
     type: redisValue.value.type,
@@ -243,7 +286,7 @@ async function fieldDel(row) {
       <div class="key">
         <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
           <template #prepend>
-            <el-text style="margin-left: 6px;" :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
+            <el-text :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
           </template>
           <template #append>
             <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(share.redisKey.key)" placement="top"/>
@@ -258,24 +301,14 @@ async function fieldDel(row) {
         </el-input>
 
         <div class="me-flex">
-          <!-- 宽度170可以完全显示1天：86400秒 -->
-          <el-input v-model.number="redisValue.ttl" style="width: 170px; margin: 0 10px;">
-            <template #prepend>TTL</template>
-            <template #append v-if="canEdit">
-              <me-button :info="t('redisValue.ttlHint')"
-                         icon="el-icon-select" @click="setTTL"
-                         :disabled="!share.redisKey.key" placement="top-end"/>
-            </template>
-          </el-input>
+          <me-button icon="el-icon-timer" :info="canEdit ? t('redisValue.ttlHint') : t('redisValue.ttlHintReadonly')" placement="top" style="margin: 0 10px" @click="updateTTL">
+            {{ redisValue.ttl === -1 ? t('redisValue.ttlForever') : meHumanSeconds(redisValue.ttl)}}
+          </me-button>
 
           <el-button-group>
-            <me-button :info="t('refresh')" icon="el-icon-refresh"
-                       @click="refreshKey(false)" :disabled="!share.redisKey.key"
-                       placement="top"/>
-            <me-button :info="t('redisValue.deleteKey')" icon="el-icon-delete"
-                       v-if="canEdit" type="danger"
-                       @click="delKey"
-                       :disabled="!share.redisKey.key" placement="top"/>
+            <me-button :info="t('refresh')"              icon="el-icon-refresh" placement="top" @click="refreshKey(false)"/>
+            <me-button :info="t('edit')"                 icon="el-icon-edit"    placement="top" @click="renameKey" v-if="canEdit"/>
+            <me-button :info="t('redisValue.deleteKey')" icon="el-icon-delete"  placement="top" @click="delKey"    v-if="canEdit" type="danger"/>
           </el-button-group>
         </div>
       </div>
@@ -283,7 +316,7 @@ async function fieldDel(row) {
       <div class="value">
         <!-- json显示 -->
         <template v-if="viewType === 'json'">
-          <me-code :value="showValue" @update:value="(newValue) => redisValue.newValue=newValue" :read-only="!canSave"/>
+          <me-code :modelValue="showValue" @update:modelValue="(newValue) => redisValue.newValue=newValue" :read-only="!canSave"/>
 
           <div class="btn-rb" v-if="canSave">
             <me-button class="save" :info="t('save')" type="danger" icon="me-icon-save" @click="setValue" placement="top"/>
@@ -381,7 +414,8 @@ async function fieldDel(row) {
     </template>
     <el-empty v-else :description="t('redisValue.noKeySelected')"></el-empty>
 
-    <!-- 字段新增 -->
+    <!-- 更新TTL, 字段新增 -->
+    <TTLSet ref="ttlSetRef" @success="setTimer"/>
     <FieldAdd ref="fieldAddRef" @success="refreshKey"/>
   </div>
 </template>

@@ -15,7 +15,7 @@ api_model!(RedisDB {
 });
 
 // 连接信息
-api_model!(RedisConn {
+api_model!(RedisConf {
     id: String,
     name: String,
 
@@ -36,7 +36,7 @@ api_model!(RedisConn {
     master_password: String,
 });
 
-impl RedisConn {
+impl RedisConf {
     pub fn test(&self) -> AnyResult<()> {
         if self.cluster {
             get_client_cluster(self)?;
@@ -44,6 +44,15 @@ impl RedisConn {
             get_client_single(self)?;
         };
         Ok(())
+    }
+
+    pub fn masters(&self) -> AnyResult<Vec<HashMap<String, String>>> {
+        let mut conf = self.clone();
+        conf.sentinel = false;
+        let client = get_client_single(&conf)?;
+        let mut conn = client.get_connection()?;
+        let masters: Vec<HashMap<String, String>> = redis::cmd("sentinel").arg("masters").query(&mut conn)?;
+        Ok(masters)
     }
 }
 
