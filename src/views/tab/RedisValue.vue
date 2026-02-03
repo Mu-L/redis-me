@@ -65,8 +65,8 @@ const showValue = computed(() => {
 
 // 键大小
 const showSize = computed(() => meHumanSize(redisValue.value?.size))
-// 加载更多（loading时也不显示，可以避免界面按钮闪烁一下）
-const showMore = computed(() => !loading.value && !(cursor.value?.finished))
+// 加载更多(手动控制，而不是计算属性，避免cursor变化多次导致按钮闪现又丢失)
+const showMore = ref(false)
 
 // 表格数据
 const dataList = computed(() => {
@@ -154,6 +154,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
     }
 
     await setTimer(redisValue.value.ttl)
+    showMore.value = !(cursor.value?.finished)
   } finally {
     loading.value = false
   }
