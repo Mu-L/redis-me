@@ -29,8 +29,6 @@ html {
      system-ui: 兜底
   */
   --code-font: Menlo, Monaco, Consolas, 黑体, system-ui;
-
-  --json-value-color: #a11;
 }
 
 /* 黑色主题 */
@@ -44,8 +42,6 @@ html.dark {
   --el-bg-color-overlay: var(--me-bg-color); /* el-tabs的背景色: Redis信息      */
   --el-fill-color-blank: var(--me-bg-color); /* el-select的填充颜色 */
   --el-fill-color-lighter: #2F2F2F;          /* el-table表格斑马纹 */
-
-  --json-value-color: #e6db74;
 }
 
 html, body {
