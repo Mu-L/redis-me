@@ -56,10 +56,16 @@ const phrases = computed(() => isZh() ? zhPhrases: {})
 </script>
 
 <template>
-  <code-mirror v-bind="$attrs" :dark :lang :phrases :disabled="readOnly" basic />
+  <!-- https://github.com/logue/vue-codemirror6  -->
+  <code-mirror v-bind="$attrs" :dark :lang :phrases :readonly="readOnly" basic
+               :class="readOnly ? ['codemirror-opacity' , 'is-disabled'] : []" />
 </template>
 
 <style scoped lang="scss">
+.codemirror-opacity {
+  opacity: 0.6;
+}
+
 .vue-codemirror {
   height: 100%;
   font-size: 15px;
