@@ -69,15 +69,16 @@ function quickSet(ttl, ttlUnit) {
       </el-form-item>
 
       <el-form-item :label="t('ttlSet.ttl')" prop="ttl">
-        <div class="me-flex" style="width: 100%">
-          <el-input v-model.number="form.ttl" style="flex: 1"/>
-          <el-select v-model="form.ttlUnit" :style="{width: t('timeUnit.width') + 'px'}">
-            <el-option :label="t('timeUnit.second', form.ttl)" value="second"/>
-            <el-option :label="t('timeUnit.minute', form.ttl)" value="minute"/>
-            <el-option :label="t('timeUnit.hour', form.ttl)"   value="hour"/>
-            <el-option :label="t('timeUnit.day', form.ttl)"    value="day"/>
-          </el-select>
-        </div>
+        <el-input v-model.number="form.ttl" style="flex: 1">
+          <template #append>
+            <el-select v-model="form.ttlUnit" :style="{width: t('timeUnit.width') + 'px'}">
+              <el-option :label="t('timeUnit.second', form.ttl)" value="second"/>
+              <el-option :label="t('timeUnit.minute', form.ttl)" value="minute"/>
+              <el-option :label="t('timeUnit.hour', form.ttl)"   value="hour"/>
+              <el-option :label="t('timeUnit.day', form.ttl)"    value="day"/>
+            </el-select>
+          </template>
+        </el-input>
       </el-form-item>
       <el-form-item :label="t('ttlSet.quickSet')">
         <div class="me-flex" style="width: 100%">
