@@ -281,7 +281,8 @@ async function fieldDel(row) {
 </script>
 
 <template>
-  <div class="redis-value" v-loading="loading">
+  <!-- 大部分Key都很快得到，element-loading-background设置为unset避免loading背景一闪而过，不友好  -->
+  <div class="redis-value" v-loading="loading" element-loading-background="unset">
     <template v-if="share.redisKey && redisValue">
       <div class="key">
         <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
