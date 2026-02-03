@@ -70,8 +70,14 @@ svg {
   outline: none;
 }
 
+/* 弹框提示宽度显示 */
 .el-popper {
-  max-width: 800px;
+  max-width: 80vh;
+}
+
+/* 输入库的前缀和后缀去掉特殊颜色 */
+.el-input-group__append, .el-input-group__prepend {
+  background-color: unset;
 }
 
 /* 单行文本省略号 */
