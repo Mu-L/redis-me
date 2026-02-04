@@ -263,6 +263,11 @@ export default {
     defaultConfig: '默认配置',
     all: '全部',
     diff: '差异',
+    configSet: '修改配置',
+    valueRequired: 'value不能为空',
+    command: '命令',
+    autoBroadcast: '广播',
+    autoBroadcastTip: '开启时自动广播到集群的所有节点'
   },
 
   redisInfo: {

@@ -262,6 +262,11 @@ export default {
     defaultConfig: 'Default',
     all: 'All',
     diff: 'Diff',
+    configSet: 'Config Set',
+    valueRequired: 'value required',
+    command: 'Command',
+    autoBroadcast: 'Broadcast',
+    autoBroadcastTip: 'Automatically broadcast to all nodes in the cluster when enabled'
   },
 
   redisInfo: {
