@@ -295,9 +295,9 @@ async function fieldDel(row) {
           </me-button>
 
           <el-button-group>
-            <me-button :info="t('refresh')"              icon="el-icon-refresh" placement="top" @click="refreshKey(false)"/>
-            <me-button :info="t('edit')"                 icon="el-icon-edit"    placement="top" @click="renameKey" v-if="canEdit"/>
-            <me-button :info="t('redisValue.deleteKey')" icon="el-icon-delete"  placement="top" @click="delKey"    v-if="canEdit" type="danger"/>
+            <me-button :info="t('redisValue.refreshKey')" icon="el-icon-refresh" placement="top" @click="refreshKey(false)"/>
+            <me-button :info="t('redisValue.renameKey')"  icon="el-icon-edit"    placement="top" @click="renameKey" v-if="canEdit"/>
+            <me-button :info="t('redisValue.deleteKey')"  icon="el-icon-delete"  placement="top" @click="delKey"    v-if="canEdit" type="danger"/>
           </el-button-group>
         </div>
       </div>
@@ -323,7 +323,7 @@ async function fieldDel(row) {
 
             <el-button-group>
               <el-button style="margin-left: 10px">Size: {{ showSize }}</el-button>
-              <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(showValue)"/>
+              <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(showValue)" placement="bottom"/>
               <me-button :info="t('redisValue.prettyHint')"
                          placement="bottom-end"
                          icon="el-icon-magic-stick"

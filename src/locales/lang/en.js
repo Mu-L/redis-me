@@ -402,6 +402,8 @@ export default {
     noKeySelected: 'No Key Selected',
     loadMore: 'Load More',
     loadAll: 'Load All',
+    renameKey: 'Rename Key',
+    refreshKey: 'Refresh Key',
   },
 
   redisChart: {

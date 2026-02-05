@@ -404,6 +404,8 @@ export default {
     noKeySelected: '未选择任何键',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
+    renameKey: '重命名键',
+    refreshKey: '刷新键',
   },
 
   redisChart: {
