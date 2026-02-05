@@ -228,15 +228,15 @@ function keyMemory(folder) {
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-tooltip :content="t('keyMain.exactSearch')">
+        <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
           <el-checkbox size="small" v-model="exact" style="margin-left: 10px"/>
         </el-tooltip>
       </template>
       <template #append>
         <el-button-group>
-          <me-button :info="t('keyMain.refreshKey')" @click="scanKey(false, false)" icon="el-icon-search"></me-button>
+          <me-button :info="t('keyMain.refreshKey')" @click="scanKey(false, false)" icon="el-icon-search" placement="bottom"/>
           <me-button :info="t('keyMain.addKey')" @click="addKey" style="border-color: var(--el-button-border-color)" v-if="canEdit"
-                     icon="el-icon-plus"></me-button>
+                     icon="el-icon-plus" placement="bottom"/>
         </el-button-group>
       </template>
     </el-input>
