@@ -213,13 +213,14 @@ function keyMemory(folder) {
               clearable>
       <template #prepend>
         <el-dropdown placement="bottom-start" @command="chooseKeyType">
-          <el-tag :type="keyType.type" effect="plain" style="width: 32px; height: 32px; font-weight: bold">{{keyType.value.slice(0, 1)}}
+          <el-tag :type="keyType.type" effect="plain" style="width: 32px; height: 32px; font-weight: bold; border-bottom-right-radius: 0; border-top-right-radius: 0;">
+            {{ keyType.value.slice(0, 1) }}
           </el-tag>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item">
                 <el-tag :type="item.type" :effect="item.value === keyType.value ? 'dark' : 'plain'"
-                        style="font-weight: bold; width: 26px">
+                        style="font-weight: bold; width: 26px;">
                   {{ item.value.slice(0, 1) }}
                 </el-tag>
                 <el-text style="margin-left: 6px" :type="item.type">{{ item.value }}</el-text>
