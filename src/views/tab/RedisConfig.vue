@@ -2,7 +2,7 @@
 import {configTip as tips} from '@/utils/tip.js'
 import {redisConfDict} from '@/utils/redis.js'
 import NodeList from '../ext/NodeList.vue'
-import {meInvoke, meOk, meTtlSeconds} from '@/utils/util.js'
+import {meInvoke, meOk} from '@/utils/util.js'
 import {sortBy} from 'lodash'
 import {useI18n} from 'vue-i18n'
 import {BaseDirectory} from '@tauri-apps/api/path'
