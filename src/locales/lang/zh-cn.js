@@ -410,11 +410,15 @@ export default {
 
   redisChart: {
     command: '命令执行数/秒',
-    memory: '内存使用',
+    memory: '已使用内存',
     networkIn: '网络输入（Kb/s）',
     networkOut: '网络输出（Kb/s）',
-    keyTotal: '键数量',
-    client: '客户端数量',
+
+    keyTotal: '键总数',
+    connectedClients: '客户端连接数',
+    cacheHitRatio: '缓存命中率',
+    totalConnectionsReceived: '服务器接受的总连接数',
+    totalCommandsProcessed: '服务器处理的总命令数',
 
     labelWidth: '70',
     autoRefresh: '自动刷新',
@@ -424,6 +428,7 @@ export default {
     keepUnit: '分',
     maxPointCount: '最大点数',
     pointUnit: '个',
+    moreChart: '更多图表'
   },
 
   keyMain: {

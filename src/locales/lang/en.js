@@ -411,8 +411,12 @@ export default {
     memory: 'Used Memory',
     networkIn: 'Network Input（Kb/s）',
     networkOut: 'Network Output（Kb/s）',
+
     keyTotal: 'Key Count',
-    client: 'Clients',
+    connectedClients: 'Connected Clients',
+    cacheHitRatio: 'Cache Hit Ratio',
+    totalConnectionsReceived: 'Total Connections Received',
+    totalCommandsProcessed: 'Total Commands Processed',
 
     labelWidth: '120',
     autoRefresh: 'Auto Refresh',
@@ -422,6 +426,7 @@ export default {
     keepUnit: 'm',
     maxPointCount: 'Max Point Count',
     pointUnit: '',
+    moreChart: 'More Charts'
   },
 
   keyMain: {

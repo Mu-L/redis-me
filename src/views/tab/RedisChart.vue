@@ -1,5 +1,5 @@
 <script setup>
-import {meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
+import {meHumanSize, meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
 import {Line} from 'vue-chartjs'
 import {
   Chart as ChartJS, Legend, LinearScale, LineController, LineElement, PointElement, TimeScale, CategoryScale,
@@ -20,12 +20,13 @@ ChartJS.register(LineController, LineElement, PointElement, TimeScale, LinearSca
 const {t} = useI18n()
 
 const share = inject('share')
-const node = ref('')            // 指定节点
-const autoRefresh = ref(true)   // 自动刷新
-const refreshInterval = ref(5)  // 刷新间隔（秒）
-const keepMinutes = ref(60)     // 保留N分钟的数据
-const maxPointCount = ref(100)  // 最多保存N个数据
-const nowPointCount = ref(0)    // 当前数据条数
+const node = ref('')             // 指定节点
+const autoRefresh = ref(true)    // 自动刷新
+const refreshInterval = ref(5)   // 刷新间隔（秒）
+const keepMinutes = ref(60)      // 保留N分钟的数据
+const maxPointCount = ref(100)   // 最多保存N个数据
+const nowPointCount = ref(0)     // 当前数据条数
+const showMoreChart = ref(false) // 显示更多图表
 
 // 自动刷新及刷新间隔配置
 let timer = null
@@ -41,10 +42,21 @@ watch([autoRefresh, refreshInterval], ([val, _]) => {
 const commandRef = useTemplateRef('command')
 const memoryRef = useTemplateRef('memory')
 const networkRef = useTemplateRef('network')
+const keyTotalRef = useTemplateRef('keyTotal')
+const connectedClientsRef = useTemplateRef('connectedClients')
+const cacheHitRatioRef = useTemplateRef('cacheHitRatio')
+const totalConnectionsReceivedRef = useTemplateRef('totalConnectionsReceived')
+const totalCommandsProcessedRef = useTemplateRef('totalCommandsProcessed')
 function refreshInstance(){
   commandRef.value?.chart.update()
   memoryRef.value?.chart.update()
   networkRef.value?.chart.update()
+
+  keyTotalRef.value?.chart.update()
+  connectedClientsRef.value?.chart.update()
+  cacheHitRatioRef.value?.chart.update()
+  totalConnectionsReceivedRef.value?.chart.update()
+  totalCommandsProcessedRef.value?.chart.update()
 }
 
 // 从后台获取原始数据
@@ -57,6 +69,13 @@ async function getData() {
     addChartData(label, res, 'memory', 'usedMemory')
     addChartData(label, res, 'network', 'instantaneousInputKbps', 'instantaneousOutputKbps')
 
+    addChartData(label, res, 'keyTotal', 'keyTotal')
+    addChartData(label, res, 'connectedClients', 'connectedClients')
+    addChartData(label, res, 'cacheHitRatio', 'cacheHitRatio')
+    addChartData(label, res, 'totalConnectionsReceived', 'totalConnectionsReceived')
+    addChartData(label, res, 'totalCommandsProcessed', 'totalCommandsProcessed')
+
+
     // 保存当前数据条数, 超过最大条数，则均分取样
     nowPointCount.value = chartData.value.command.labels.length
     if (nowPointCount.value > maxPointCount.value) {
@@ -64,6 +83,11 @@ async function getData() {
       cutChartData(indexes, 'command')
       cutChartData(indexes, 'memory')
       cutChartData(indexes, 'network')
+      cutChartData(indexes, 'keyTotal')
+      cutChartData(indexes, 'connectedClients')
+      cutChartData(indexes, 'cacheHitRatio')
+      cutChartData(indexes, 'totalConnectionsReceived')
+      cutChartData(indexes, 'totalCommandsProcessed')
       chartData.value = cloneDeep(chartData.value) // 直接更新时图表没有重新渲染，因此克隆1份，让vue进行重新渲染
       nowPointCount.value = chartData.value.command.labels.length
     }
@@ -256,6 +280,32 @@ const memoryOptions = computed(() => {
   })
 })
 
+const ratioOptions = computed(() => {
+  return merge(cloneDeep(options.value), {
+    scales: {
+      y: {
+        min: 0, // 从零开始
+        max: 1
+      }
+    }
+  })
+})
+
+const totalOptions = computed(() => {
+  return merge(cloneDeep(options.value), {
+    scales: {
+      y: {
+        ticks: {
+          // 关键：修改 Y 轴刻度的显示单位
+          callback: function (value) {
+            return meHumanSize(value, '0', 2)
+          }
+        },
+      }
+    }
+  })
+})
+
 // chart.js数据配置项
 const dataset = {
   data: [],
@@ -263,23 +313,57 @@ const dataset = {
 }
 
 const initData = computed(() => ({
+  // 命令执行数/秒
   command: {
     labels: [],
     datasets: [
       {label: t('redisChart.command'), borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
     ]
   },
+  // 已使用内存
   memory: {
     labels: [],
     datasets: [
       {label: t('redisChart.memory'), borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
   },
+  // 网络输入输出
   network: {
     labels: [],
     datasets: [
       {label: t('redisChart.networkIn'), borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
       {label: t('redisChart.networkOut'), borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
     ]
+  },
+
+  // 键数量
+  keyTotal: {
+    labels: [],
+    datasets: [
+      {label: t('redisChart.keyTotal'), borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}]
+  },
+  // 客户端连接数
+  connectedClients: {
+    labels: [],
+    datasets: [
+      {label: t('redisChart.connectedClients'), borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
+  },
+  // 缓存命中率
+  cacheHitRatio: {
+    labels: [],
+    datasets: [
+      {label: t('redisChart.cacheHitRatio'), borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)}]
+  },
+  // 服务器接受的总连接数
+  totalConnectionsReceived: {
+    labels: [],
+    datasets: [
+      {label: t('redisChart.totalConnectionsReceived'), borderColor: PREDEFINE_COLORS[3], ...cloneDeep(dataset)}]
+  },
+  // 服务器处理的总命令数
+  totalCommandsProcessed: {
+    labels: [],
+    datasets: [
+      {label: t('redisChart.totalCommandsProcessed'), borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}]
   },
 }))
 
@@ -299,13 +383,17 @@ watch(() => meTauri.settings.language, () => {
   chartData.value.memory.datasets[0].label = t('redisChart.memory')
   chartData.value.network.datasets[0].label = t('redisChart.networkIn')
   chartData.value.network.datasets[1].label = t('redisChart.networkOut')
+
+  chartData.value.keyTotal.datasets[0].label = t('redisChart.keyTotal')
+  chartData.value.connectedClients.datasets[0].label = t('redisChart.connectedClients')
+  chartData.value.cacheHitRatio.datasets[0].label = t('redisChart.cacheHitRatio')
+  chartData.value.totalConnectionsReceived.datasets[0].label = t('redisChart.totalConnectionsReceived')
+  chartData.value.totalCommandsProcessed.datasets[0].label = t('redisChart.totalCommandsProcessed')
   chartData.value = cloneDeep(chartData.value) // 直接更新时label并没有更新，因此克隆1份，让vue进行重新渲染
 }, {immediate: true})
 
 // 主题切换
-watch(() => meTauri.settings.theme, () => {
-  refreshInstance()
-})
+watch(() => meTauri.settings.theme, () => refreshInstance())
 </script>
 
 <template>
@@ -321,7 +409,7 @@ watch(() => meTauri.settings.theme, () => {
               <el-form :label-width="t('redisChart.labelWidth')" label-position="right">
                 <el-dropdown-item>
                   <el-form-item :label="t('redisChart.autoRefresh')">
-                    <el-switch v-model="autoRefresh" style="margin-left: 10px"> 自动刷新</el-switch>
+                    <el-switch v-model="autoRefresh" style="margin-left: 10px"/>
                   </el-form-item>
                 </el-dropdown-item>
                 <el-dropdown-item>
@@ -348,6 +436,12 @@ watch(() => meTauri.settings.theme, () => {
                     </el-input-number>
                   </el-form-item>
                 </el-dropdown-item>
+
+                <el-dropdown-item>
+                  <el-form-item :label="t('redisChart.moreChart')">
+                    <el-switch v-model="showMoreChart" style="margin-left: 10px"/>
+                  </el-form-item>
+                </el-dropdown-item>
               </el-form>
             </el-dropdown-menu>
           </template>
@@ -360,15 +454,17 @@ watch(() => meTauri.settings.theme, () => {
     </div>
 
     <div class="charts">
-      <div class="chart">
-        <Line ref="command" :data="chartData.command" :options/>
-      </div>
-      <div class="chart">
-        <Line ref="memory" :data="chartData.memory" :options="memoryOptions"/>
-      </div>
-      <div class="chart">
-        <Line ref="network" :data="chartData.network" :options/>
-      </div>
+      <div class="chart"><Line ref="command" :data="chartData.command" :options/></div>
+      <div class="chart"><Line ref="memory" :data="chartData.memory" :options="memoryOptions"/></div>
+      <div class="chart"><Line ref="network" :data="chartData.network" :options/></div>
+
+      <template v-if="showMoreChart">
+        <div class="chart"><Line ref="keyTotal" :data="chartData.keyTotal" :options/></div>
+        <div class="chart"><Line ref="connectedClients" :data="chartData.connectedClients" :options/></div>
+        <div class="chart"><Line ref="cacheHitRatio" :data="chartData.cacheHitRatio" :options="ratioOptions"/></div>
+        <div class="chart"><Line ref="totalConnectionsReceived" :data="chartData.totalConnectionsReceived" :options="totalOptions"/></div>
+        <div class="chart"><Line ref="totalCommandsProcessed" :data="chartData.totalCommandsProcessed" :options="totalOptions"/></div>
+      </template>
     </div>
   </div>
 </template>
@@ -408,7 +504,7 @@ watch(() => meTauri.settings.theme, () => {
     flex-grow: 1;
 
     .chart {
-      height: 33%;
+      height: min(28vh, 33%);
       padding: 10px;
     }
   }
