@@ -4,7 +4,20 @@
 
 - Terminal: Add command prompts, add command list for manual selection
 
+## v1.8.0 (2026-02-08)
+
+- Charts can optionally display more charts (number of keys, number of clients, cache hit rate, etc.)
+- Configuration supports direct value modification and clusters support automatic broadcasting
+- Right-click rename key name function added for keys
+- Clients display all columns and add attribute explanations
+- Automatically send requests after selecting from client dropdown
+- Prompt message handling after successful TTL update
+- Change the TTL unit to suffix display
+- Style optimization for prefix and suffix of input boxes
+- Redis Value loading, no background needed, to avoid button flickering
+
 ## v1.7.0 (2026-02-03)
+
 - Sentinel mode supports quick connection testing
 - Sentinel mode supports automatic retrieval of master lists for selection
 - Error messages in Rust code are all changed to English

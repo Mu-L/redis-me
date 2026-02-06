@@ -75,7 +75,6 @@ async function getData() {
     addChartData(label, res, 'totalConnectionsReceived', 'totalConnectionsReceived')
     addChartData(label, res, 'totalCommandsProcessed', 'totalCommandsProcessed')
 
-
     // 保存当前数据条数, 超过最大条数，则均分取样
     nowPointCount.value = chartData.value.command.labels.length
     if (nowPointCount.value > maxPointCount.value) {
