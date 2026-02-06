@@ -1,5 +1,5 @@
 <script setup>
-import {meHumanSize, meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
+import {meHumanNums, meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
 import {Line} from 'vue-chartjs'
 import {
   Chart as ChartJS, Legend, LinearScale, LineController, LineElement, PointElement, TimeScale, CategoryScale,
@@ -297,7 +297,7 @@ const totalOptions = computed(() => {
         ticks: {
           // 关键：修改 Y 轴刻度的显示单位
           callback: function (value) {
-            return meHumanSize(value, '0', 2)
+            return meHumanNums(value, '0', 2)
           }
         },
       }
