@@ -106,7 +106,13 @@ function propWidth(item) {
                 @sort-change="sortChange"
                 border stripe height="100%">
 
-        <el-table-column label="ID" prop="id" show-overflow-tooltip sortable width="100" align="right"/>
+        <el-table-column label="ID" prop="id" show-overflow-tooltip sortable width="100" align="right">
+          <template #header>
+            <el-tooltip :content="tips['id'] || 'id'" placement="top">
+              <span>ID</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column prop="addr" show-overflow-tooltip width="180">
           <template #header>
             <el-tooltip :content="tips['addr'] || 'addr'" placement="top">
