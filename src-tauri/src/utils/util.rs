@@ -256,6 +256,11 @@ pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
         }
     }
     chart.key_total = key_total;
+    chart.cache_hit_ratio = if chart.keyspace_hits + chart.keyspace_misses > 0 {
+        chart.keyspace_hits as f64 / (chart.keyspace_hits + chart.keyspace_misses) as f64
+    } else {
+        0.0
+    };
     Ok(chart)
 }
 

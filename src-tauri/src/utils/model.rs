@@ -82,6 +82,7 @@ RedisChart {
     // 计算缓存命中率: Cache Hit Ratio = keyspace_hits / (keyspace_hits + keyspace_misses)
     keyspace_hits: u64,              // 在主字典中成功查找键的数量
     keyspace_misses: u64,            // 在主字典中查找键失败的数量
+    cache_hit_ratio: f64,            // 缓存命中率
 });
 
 // 信息 info命令
