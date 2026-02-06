@@ -120,6 +120,7 @@ export default {
   util: {
     days: '天',
     deleteKey: '确定删除键【{key}】吗？',
+    renameKey: '重命名键',
     checking: '检查更新中，请稍后...',
     updateHint: '有新版本 v{version}，是否升级？',
     changelog: '更新日志',
@@ -128,7 +129,7 @@ export default {
     updateDone: '更新完成，是否立刻重启？',
     updateErr: '下载安装包失败',
     latestVersion: '当前为最新版本',
-    checkUpdateErr: '检查更新失败'
+    checkUpdateErr: '检查更新失败',
   },
 
   tabMain: {
@@ -223,6 +224,7 @@ export default {
     refreshKey: '重新载入',
     copyKey: '复制键名',
     deleteKey: '删除键',
+    renameKey: '重命名键',
   },
 
   keyTree: {
@@ -261,6 +263,11 @@ export default {
     defaultConfig: '默认配置',
     all: '全部',
     diff: '差异',
+    configSet: '修改配置',
+    valueRequired: 'value不能为空',
+    command: '命令',
+    autoBroadcast: '广播',
+    autoBroadcastTip: '开启时自动广播到集群的所有节点'
   },
 
   redisInfo: {
@@ -398,15 +405,20 @@ export default {
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
     renameKey: '重命名键',
+    refreshKey: '刷新键',
   },
 
   redisChart: {
     command: '命令执行数/秒',
-    memory: '内存使用',
+    memory: '已使用内存',
     networkIn: '网络输入（Kb/s）',
     networkOut: '网络输出（Kb/s）',
-    keyTotal: '键数量',
-    client: '客户端数量',
+
+    keyTotal: '键总数',
+    connectedClients: '客户端连接数',
+    cacheHitRatio: '缓存命中率',
+    totalConnectionsReceived: '服务器接受的总连接数',
+    totalCommandsProcessed: '服务器处理的总命令数',
 
     labelWidth: '70',
     autoRefresh: '自动刷新',
@@ -416,6 +428,7 @@ export default {
     keepUnit: '分',
     maxPointCount: '最大点数',
     pointUnit: '个',
+    moreChart: '更多图表'
   },
 
   keyMain: {

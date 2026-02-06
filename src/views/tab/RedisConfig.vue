@@ -2,7 +2,7 @@
 import {configTip as tips} from '@/utils/tip.js'
 import {redisConfDict} from '@/utils/redis.js'
 import NodeList from '../ext/NodeList.vue'
-import {meInvoke} from '@/utils/util.js'
+import {meInvoke, meOk} from '@/utils/util.js'
 import {sortBy} from 'lodash'
 import {useI18n} from 'vue-i18n'
 import {BaseDirectory} from '@tauri-apps/api/path'
@@ -11,6 +11,7 @@ import {readTextFile} from '@tauri-apps/plugin-fs'
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
+const canEdit = computed(() => !share.readonly)
 const {initNode} = defineProps({
   initNode: {type: String, default: ''}
 })
@@ -31,7 +32,6 @@ watchEffect(async () => {
     // configRaw.value = redisConfText[configVersion.value]
     configRaw.value = await readTextFile(`resources/conf/${configVersion.value}.conf`, {baseDir: BaseDirectory.Resource})
   } catch (e) {
-    console.log(e)
     configRaw.value = t('redisConfig.noConfig')
   }
 })
@@ -93,6 +93,45 @@ const dialog = reactive({
 function calcRowStyle({row}) {
   return {'color': row.value === dictRaw.value[row.param] ? '' : share.color}
 }
+
+
+// 设置参数
+const formRef = useTemplateRef('formRef')
+const editLoading = ref(false)
+const editShow = ref(false)
+const form = reactive({
+  param: '',
+  value: '',
+  autoBroadcast: true
+})
+const command = computed(() => `CONFIG SET ${form.param} ${form.value?.includes(' ') ? '"' + form.value + '"' : form.value}`)
+async function editConfig(row) {
+  form.param = row.param
+  form.value = row.value
+  await nextTick(() => {
+    editShow.value = true
+  })
+}
+async function configSet() {
+  formRef.value.validate(async valid => {
+    if (!valid) return
+
+    editLoading.value = true
+    try {
+      const param = {command: command.value, node: form.autoBroadcast ? '' : node.value, autoBroadcast: form.autoBroadcast}
+      await meInvoke('execute_command', {id: share.conn.id, param})
+      meOk(t('saveOk'))
+      await refresh()
+      editShow.value = false
+    } finally {
+      editLoading.value = false
+    }
+  })
+}
+
+const rules = computed(() => ({
+  value: [ {required: true, message: t('redisConfig.valueRequired')}]
+}))
 </script>
 
 <template>
@@ -139,11 +178,43 @@ function calcRowStyle({row}) {
           <span style="color: var(--el-color-info)">{{tips[scope.row.param]}}</span>
         </template>
       </el-table-column>
+
+      <el-table-column :label="t('action')" width="80" align="center" fixed="right" v-if="canEdit">
+        <template #default="scope">
+          <me-icon :info="t('redisConfig.configSet')" icon="el-icon-edit" class="icon-btn"
+                   @click="editConfig(scope.row)" style="justify-content: center"/>
+        </template>
+      </el-table-column>
     </el-table>
 
     <me-dialog icon="me-icon-redis" :title="`${configVersion} ${t('redisConfig.defaultConfig')}`" v-model="dialog.raw" width="60vw">
       <me-code :modelValue="configRaw" mode="properties" read-only />
     </me-dialog>
+
+    <el-dialog :title="t('redisConfig.configSet')" v-model="editShow" align-center>
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item :label="t('redisConfig.param')">
+          <el-input v-model="form.param" disabled/>
+        </el-form-item>
+        <el-form-item :label="t('redisConfig.value')" prop="value">
+          <div class="me-flex" style="width: 100%">
+            <el-input v-model="form.value" :placeholder="t('redisConfig.value')" clearable style="flex: 1"/>
+            <el-tooltip :content="t('redisConfig.autoBroadcastTip')" placement="top-end" :show-after="500">
+              <el-checkbox v-model="form.autoBroadcast" :label="t('redisConfig.autoBroadcast')"
+                           style="margin-left: 20px" v-if="share.nodeList.length > 0"/>
+            </el-tooltip>
+          </div>
+        </el-form-item>
+        <el-form-item :label="t('redisConfig.command')">
+          <el-text type="primary">{{command}}</el-text>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="editShow=false" >{{ t('cancel') }}</el-button>
+        <el-button type="primary" :loading="editLoading" @click="configSet">{{ t('save') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

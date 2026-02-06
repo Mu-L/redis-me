@@ -1,6 +1,6 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE};
+use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE};
 use anyhow::{bail};
 use chrono::{Local, Utc};
 use log::info;
@@ -510,9 +510,10 @@ pub fn subscribe0(
     Ok(())
 }
 
-pub fn subscribe_stop0(running: Arc<AtomicBool>) -> AnyResult<()> {
+pub fn subscribe_stop0(conn: MutexGuard<impl Commands>, running: Arc<AtomicBool>) -> AnyResult<()> {
     running.store(false, Ordering::Relaxed);
-    Ok(())
+    // 停止订阅时必须发送一个消息，否则会阻塞
+    publish0(conn, REDIS_ME_SUBSCRIBE_STOP_MESSAGE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE)
 }
 
 pub fn monitor0(

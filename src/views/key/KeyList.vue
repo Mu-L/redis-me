@@ -67,6 +67,7 @@ function getKeyClass(item){
     <me-context ref="meContextRef" @handle-command="handleCommand" @handle-close="handleClose">
       <el-dropdown-item command="refreshKey"><me-icon icon="el-icon-refresh"       :name="t('keyList.refreshKey')"/></el-dropdown-item>
       <el-dropdown-item command="copyKey"   ><me-icon icon="el-icon-document-copy" :name="t('keyList.copyKey')"/></el-dropdown-item>
+      <el-dropdown-item command="renameKey" ><me-icon icon="el-icon-edit"          :name="t('keyList.renameKey')"/></el-dropdown-item>
       <el-dropdown-item command="deleteKey" divided v-if="canEdit"><me-icon icon="el-icon-delete" :name="t('keyList.deleteKey')"/></el-dropdown-item>
     </me-context>
   </div>

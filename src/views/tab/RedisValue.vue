@@ -8,7 +8,7 @@ import {
   meHumanSize,
   meInvoke,
   meOk,
-  mePrompt,
+  meRenameKey,
   meType
 } from '@/utils/util.js'
 import FieldAdd from '../ext/FieldAdd.vue'
@@ -65,8 +65,8 @@ const showValue = computed(() => {
 
 // 键大小
 const showSize = computed(() => meHumanSize(redisValue.value?.size))
-// 加载更多（loading时也不显示，可以避免界面按钮闪烁一下）
-const showMore = computed(() => !loading.value && !(cursor.value?.finished))
+// 加载更多(手动控制，而不是计算属性，避免cursor变化多次导致按钮闪现又丢失)
+const showMore = ref(false)
 
 // 表格数据
 const dataList = computed(() => {
@@ -154,26 +154,10 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
     }
 
     await setTimer(redisValue.value.ttl)
+    showMore.value = !(cursor.value?.finished)
   } finally {
     loading.value = false
   }
-}
-
-async function renameKey() {
-  mePrompt(t('redisValue.renameKey'), {
-        inputValue: share.redisKey.key,
-        inputType: 'text'
-      },
-      async ({value}) => {
-        const newKey = {key: value, bytes: ""}
-        const params = {id: share.conn.id, key: share.redisKey, newKey}
-        await meInvoke('rename', params)
-
-        // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
-        share.redisKey.key = newKey.key
-        share.redisKey.bytes = newKey.bytes
-        meOk(t('actionOk'))
-      })
 }
 
 // 删除键
@@ -186,6 +170,10 @@ function deleteKey() {
 
 function delKey() {
   meDeleteKey(share.conn.id, share.redisKey)
+}
+
+function renameKey(){
+  meRenameKey(share.conn.id, share.redisKey)
 }
 
 // 保存值
@@ -281,7 +269,8 @@ async function fieldDel(row) {
 </script>
 
 <template>
-  <div class="redis-value" v-loading="loading">
+  <!-- 大部分Key都很快得到，element-loading-background设置为unset避免loading背景一闪而过，不友好  -->
+  <div class="redis-value" v-loading="loading" element-loading-background="unset">
     <template v-if="share.redisKey && redisValue">
       <div class="key">
         <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
@@ -306,9 +295,9 @@ async function fieldDel(row) {
           </me-button>
 
           <el-button-group>
-            <me-button :info="t('refresh')"              icon="el-icon-refresh" placement="top" @click="refreshKey(false)"/>
-            <me-button :info="t('edit')"                 icon="el-icon-edit"    placement="top" @click="renameKey" v-if="canEdit"/>
-            <me-button :info="t('redisValue.deleteKey')" icon="el-icon-delete"  placement="top" @click="delKey"    v-if="canEdit" type="danger"/>
+            <me-button :info="t('redisValue.refreshKey')" icon="el-icon-refresh" placement="top" @click="refreshKey(false)"/>
+            <me-button :info="t('redisValue.renameKey')"  icon="el-icon-edit"    placement="top" @click="renameKey" v-if="canEdit"/>
+            <me-button :info="t('redisValue.deleteKey')"  icon="el-icon-delete"  placement="top" @click="delKey"    v-if="canEdit" type="danger"/>
           </el-button-group>
         </div>
       </div>
@@ -334,7 +323,7 @@ async function fieldDel(row) {
 
             <el-button-group>
               <el-button style="margin-left: 10px">Size: {{ showSize }}</el-button>
-              <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(showValue)"/>
+              <me-button :info="t('copy')" icon="el-icon-document-copy" @click="meCopy(showValue)" placement="bottom"/>
               <me-button :info="t('redisValue.prettyHint')"
                          placement="bottom-end"
                          icon="el-icon-magic-stick"

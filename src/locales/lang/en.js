@@ -119,6 +119,7 @@ export default {
   util: {
     days: 'd',
     deleteKey: 'Delete [{key}]?',
+    renameKey: 'Rename Key',
     checking: 'Checking for update, wait a moment...',
     updateHint: 'New version v{version}, Update?',
     changelog: 'changelog',
@@ -222,6 +223,7 @@ export default {
     refreshKey: 'Reload',
     copyKey: 'Copy',
     deleteKey: 'Delete',
+    renameKey: 'Rename',
   },
 
   keyTree: {
@@ -260,6 +262,11 @@ export default {
     defaultConfig: 'Default',
     all: 'All',
     diff: 'Diff',
+    configSet: 'Config Set',
+    valueRequired: 'value required',
+    command: 'Command',
+    autoBroadcast: 'Broadcast',
+    autoBroadcastTip: 'Automatically broadcast to all nodes in the cluster when enabled'
   },
 
   redisInfo: {
@@ -396,6 +403,7 @@ export default {
     loadMore: 'Load More',
     loadAll: 'Load All',
     renameKey: 'Rename Key',
+    refreshKey: 'Refresh Key',
   },
 
   redisChart: {
@@ -403,8 +411,12 @@ export default {
     memory: 'Used Memory',
     networkIn: 'Network Input（Kb/s）',
     networkOut: 'Network Output（Kb/s）',
+
     keyTotal: 'Key Count',
-    client: 'Clients',
+    connectedClients: 'Connected Clients',
+    cacheHitRatio: 'Cache Hit Ratio',
+    totalConnectionsReceived: 'Total Connections Received',
+    totalCommandsProcessed: 'Total Commands Processed',
 
     labelWidth: '120',
     autoRefresh: 'Auto Refresh',
@@ -414,6 +426,7 @@ export default {
     keepUnit: 'm',
     maxPointCount: 'Max Point Count',
     pointUnit: '',
+    moreChart: 'More Charts'
   },
 
   keyMain: {
@@ -438,7 +451,7 @@ export default {
     quick04: '1 Hour',
     quick05: '1 Day',
     ttlOk: 'Set TTL Success',
-    quired: 'Please input TTL',
+    ttlRequired: 'Please input TTL',
     ttlValidator: '-1 (Forever) or positive integer',
   }
 }

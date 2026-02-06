@@ -155,6 +155,27 @@ export function meHumanSize(size, zeroShow = '0B', fractionDigits = 2) {
   return size + 'B'; // 小于1KB的情况
 }
 
+// 人类可读的大小
+const humanNums = [
+  {threshold: 1        , symbol: ''},
+  {threshold: 1000     , symbol: 'K'},
+  {threshold: 1000 ** 2, symbol: 'M'},
+  {threshold: 1000 ** 3, symbol: 'B'},
+]
+export function meHumanNums(size, zeroShow = '0', fractionDigits = 2) {
+  if (!size) return zeroShow || ''
+
+  // 从大到小查找合适的单位
+  for (let i = humanNums.length - 1; i >= 0; i--) {
+    if (size >= humanNums[i].threshold) {
+      const value = size / humanNums[i].threshold;
+      return value.toFixed(fractionDigits) + humanNums[i].symbol;
+    }
+  }
+
+  return size; // 小于1000的情况
+}
+
 // w天 xx:yy:zz 的格式
 export function meHumanSeconds(seconds) {
   const days = Math.floor(seconds / (3600 * 24)) // 计算天数
@@ -204,6 +225,24 @@ export function meDeleteKey(id, redisKey, thenFn) {
       thenFn()
     }
   })
+}
+
+// 重命名键
+export function meRenameKey(id, redisKey) {
+  mePrompt(t('util.renameKey'), {
+      inputValue: redisKey.key,
+      inputType: 'text'
+    },
+    async ({value}) => {
+      const newKey = {key: value, bytes: ""}
+      const params = {id, key: redisKey, newKey}
+      await meInvoke('rename', params)
+
+      // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
+      redisKey.key = newKey.key
+      redisKey.bytes = newKey.bytes
+      meOk(t('actionOk'))
+    })
 }
 
 

@@ -12,7 +12,7 @@ import {
   meDeleteKey,
   meInvoke,
   meType,
-  meOk
+  meOk, meRenameKey
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatchDel from './key/KeyBatchDel.vue'
@@ -146,6 +146,8 @@ function contextKey(command, redisKey) {
     meCopy(redisKey.key)
   } else if (command === 'deleteKey') {
     meDeleteKey(share.conn.id, redisKey)
+  } else if (command === 'renameKey') {
+    meRenameKey(share.conn.id, redisKey)
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -211,13 +213,14 @@ function keyMemory(folder) {
               clearable>
       <template #prepend>
         <el-dropdown placement="bottom-start" @command="chooseKeyType">
-          <el-tag :type="keyType.type" effect="plain" style="width: 32px; height: 32px; font-weight: bold">{{keyType.value.slice(0, 1)}}
+          <el-tag :type="keyType.type" effect="plain" style="width: 32px; height: 32px; font-weight: bold; border-bottom-right-radius: 0; border-top-right-radius: 0;">
+            {{ keyType.value.slice(0, 1) }}
           </el-tag>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item">
                 <el-tag :type="item.type" :effect="item.value === keyType.value ? 'dark' : 'plain'"
-                        style="font-weight: bold; width: 26px">
+                        style="font-weight: bold; width: 26px;">
                   {{ item.value.slice(0, 1) }}
                 </el-tag>
                 <el-text style="margin-left: 6px" :type="item.type">{{ item.value }}</el-text>
@@ -225,15 +228,15 @@ function keyMemory(folder) {
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-tooltip :content="t('keyMain.exactSearch')">
+        <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
           <el-checkbox size="small" v-model="exact" style="margin-left: 10px"/>
         </el-tooltip>
       </template>
       <template #append>
         <el-button-group>
-          <me-button :info="t('keyMain.refreshKey')" @click="scanKey(false, false)" icon="el-icon-search"></me-button>
+          <me-button :info="t('keyMain.refreshKey')" @click="scanKey(false, false)" icon="el-icon-search" placement="bottom"/>
           <me-button :info="t('keyMain.addKey')" @click="addKey" style="border-color: var(--el-button-border-color)" v-if="canEdit"
-                     icon="el-icon-plus"></me-button>
+                     icon="el-icon-plus" placement="bottom"/>
         </el-button-group>
       </template>
     </el-input>

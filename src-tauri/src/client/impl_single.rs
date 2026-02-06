@@ -331,7 +331,7 @@ impl RedisMeClient for RedisMeSingle {
     }
 
     fn subscribe_stop(&self) -> AnyResult<()> {
-        subscribe_stop0(self.subscribe_running.clone())
+        subscribe_stop0(self.get_conn()?, self.subscribe_running.clone())
     }
 
     fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {

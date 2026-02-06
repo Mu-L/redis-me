@@ -1,4 +1,5 @@
 <script setup>
+import {clientTip as tips} from '@/utils/tip.js'
 import NodeList from '@/views/ext/NodeList.vue'
 import {meConfirm, meHumanSeconds, meInvoke, meOk} from '@/utils/util.js'
 import {useI18n} from 'vue-i18n'
@@ -63,6 +64,19 @@ async function killClient(row) {
     await refresh()
   })
 }
+
+// 客户端属性
+const totalProps = ["user","db","id","addr","laddr","fd","name","age","idle","flags","sub","psub","ssub","multi","watch","qbuf","qbufFree","argvMem","multiMem","obl","oll","omem","totMem","events","cmd","redir","resp","rbp","rbs","libName","libVer","ioThread","totNetIn","totNetOut","totCmds"]
+const mainProps = ["id", "addr", "name", "age", "idle", "cmd"]
+const otherProps = totalProps.filter(p => !mainProps.includes(p))
+function propWidth(item) {
+  if (item === 'laddr') return 180;
+  if (item.length == 2) return 70;
+  if (item.length == 3) return 80;
+  if (item.length == 4 ) return 96;
+  if (item.length == 5 ) return 100;
+  return 130;
+}
 </script>
 
 <template>
@@ -70,7 +84,9 @@ async function killClient(row) {
     <div class="me-flex header">
       <div>
         <node-list v-model="node" style="margin-right: 10px" @change="refresh"/>
-        <el-select v-model="clientType" style="width: 120px;margin-right: 10px;" :placeholder="t('redisClient.clientType')" clearable>
+        <el-select v-model="clientType" style="width: 120px;margin-right: 10px;"
+                   @change="refresh"
+                   :placeholder="t('redisClient.clientType')" clearable>
           <el-option value="NORMAL"/>
           <el-option value="MASTER"/>
           <el-option value="SLAVE"/>
@@ -90,18 +106,57 @@ async function killClient(row) {
                 @sort-change="sortChange"
                 border stripe height="100%">
 
-        <el-table-column label="ID" prop="id" show-overflow-tooltip sortable width="100" align="right"/>
-        <el-table-column :label="t('redisClient.addr')" prop="addr" show-overflow-tooltip width="180"/>
-        <el-table-column :label="t('redisClient.name')" prop="name" show-overflow-tooltip width="160"/>
-        <el-table-column :label="t('redisClient.age')" prop="age" show-overflow-tooltip sortable width="140" align="right"
-                         :formatter="row => meHumanSeconds(row.age)"/>
-        <el-table-column :label="t('redisClient.idle')" prop="idle" show-overflow-tooltip sortable width="120" align="right"
-                         :formatter="row => meHumanSeconds(row.idle)"/>
-        <el-table-column :label="t('redisClient.cmd')" prop="cmd" show-overflow-tooltip sortable min-width="200"/>
-        <el-table-column label="user" prop="user" show-overflow-tooltip sortable width="100"/>
-        <el-table-column label="db" prop="db" show-overflow-tooltip sortable width="80" align="center"/>
-        <el-table-column label="totMem" prop="totMem" show-overflow-tooltip sortable width="120" align="right"/>
-        <el-table-column label="rbs" prop="rbs" show-overflow-tooltip sortable width="100" align="right"/>
+        <el-table-column label="ID" prop="id" show-overflow-tooltip sortable width="100" align="right">
+          <template #header>
+            <el-tooltip :content="tips['id'] || 'id'" placement="top">
+              <span>ID</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column prop="addr" show-overflow-tooltip width="180">
+          <template #header>
+            <el-tooltip :content="tips['addr'] || 'addr'" placement="top">
+              <span>{{ t('redisClient.addr') }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column prop="name" show-overflow-tooltip width="160">
+          <template #header>
+            <el-tooltip :content="tips['name'] || 'name'" placement="top">
+              <span>{{ t('redisClient.name') }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column prop="age" show-overflow-tooltip sortable width="140" align="right" :formatter="row => meHumanSeconds(row.age)">
+          <template #header>
+            <el-tooltip :content="tips['age'] || 'age'" placement="top">
+              <span>{{ t('redisClient.age') }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column prop="idle" show-overflow-tooltip sortable width="120" align="right" :formatter="row => meHumanSeconds(row.idle)">
+          <template #header>
+            <el-tooltip :content="tips['idle'] || 'idle'" placement="top">
+              <span>{{ t('redisClient.idle') }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column prop="cmd" show-overflow-tooltip sortable min-width="200">
+          <template #header>
+            <el-tooltip :content="tips['cmd'] || 'cmd'" placement="top">
+              <span>{{ t('redisClient.cmd') }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+
+        <el-table-column v-for="item in otherProps" :key="item" :prop="item" show-overflow-tooltip sortable :width="propWidth(item)" align="right">
+          <template #header>
+              <el-tooltip :content="tips[item] || item" placement="top">
+                <span>{{ item }}</span>
+              </el-tooltip>
+          </template>
+        </el-table-column>
+
         <el-table-column :label="t('action')" width="80" align="center" fixed="right" v-if="canEdit">
           <template #default="scope">
             <me-icon :info="t('redisClient.killClientHint')" icon="el-icon-CircleCloseFilled" class="icon-btn"
