@@ -2,7 +2,8 @@
 
 ## Future
 
-- Terminal: Add command prompts, add command list for manual selection
+- Terminal: Add command prompts, add command list, convenient for manual selection
+- Key: Import and export support
 
 ## v1.8.0 (2026-02-06)
 
