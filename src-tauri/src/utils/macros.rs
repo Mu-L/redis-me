@@ -1,18 +1,22 @@
-// Model定义宏（DeepSeek生成）
+// Model定义宏（DeepSeek生成, DeepSeek优化）
 #[macro_export]
 macro_rules! api_model {
-    ($struct:ident {
-        $(
-            $(#[$meta:meta])*  // 匹配字段前的属性
-            $field:ident : $type:ty
-        ),+
-        $(,)?
-    }) => {
+    (
+        $(#[$struct_attr:meta])*
+        $struct:ident {
+            $(
+                $(#[$field_meta:meta])*
+                $field:ident : $type:ty
+            ),+
+            $(,)?
+        }
+    ) => {
+        $(#[$struct_attr])*
         #[derive(Serialize, Deserialize, Debug, Clone)]
         #[serde(rename_all = "camelCase")]
         pub struct $struct {
             $(
-                $(#[$meta])*    // 展开字段前的属性
+                $(#[$field_meta])*
                 pub $field: $type
             ),+
         }

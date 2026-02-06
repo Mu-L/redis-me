@@ -63,37 +63,26 @@ api_model!(SslOption {
 });
 
 // 信息 图形
-api_model!(RedisChart {
+api_model!(
+#[derive(Default)]
+RedisChart {
     node: String,
 
     // db0:keys=1558,expires=0,avg_ttl=0,subexpiry=0; db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
     key_total: u64,                  // 键总数
     connected_clients: u64,          // 客户端数量
     instantaneous_ops_per_sec: f64,  // 命令执行数/秒
-    used_memory: f64,                // 内存使用量
+    used_memory: u64,                // 内存使用量
     instantaneous_input_kbps: f64,   // 网络输入
     instantaneous_output_kbps: f64,  // 网络输出
+
+    total_connections_received: u64, // 服务器接受的总连接数
+    total_commands_processed: u64,   // 服务器处理的总命令数
 
     // 计算缓存命中率: Cache Hit Ratio = keyspace_hits / (keyspace_hits + keyspace_misses)
     keyspace_hits: u64,              // 在主字典中成功查找键的数量
     keyspace_misses: u64,            // 在主字典中查找键失败的数量
 });
-
-impl Default for RedisChart {
-    fn default() -> Self {
-        RedisChart {
-            node: "".to_string(),
-            key_total: 0,
-            connected_clients: 0,
-            instantaneous_ops_per_sec: 0.0,
-            used_memory: 0.0,
-            instantaneous_input_kbps: 0.0,
-            instantaneous_output_kbps: 0.0,
-            keyspace_hits: 0,
-            keyspace_misses: 0,
-        }
-    }
-}
 
 // 信息 info命令
 api_model!(RedisInfo {
@@ -142,41 +131,23 @@ api_model!(FieldScanParam {
     load_all: bool,
 });
 
-api_model!(FieldScanValue {
+api_model!(
+#[derive(Default)]
+FieldScanValue {
     hash: HashMap<String, String>,
     set: Vec<String>,
     zset: Vec<RedisZetItem>,
 });
 
-impl Default for FieldScanValue {
-    fn default() -> Self {
-        Self {
-            hash: Default::default(),
-            set: Default::default(),
-            zset: Default::default(),
-        }
-    }
-}
-
 // 扫描游标
-api_model!(ScanCursor {
+api_model!(
+#[derive(Default)]
+ScanCursor {
     ready_nodes: Vec<String>,
     now_node: String,
     now_cursor: u64,
     finished: bool,
 });
-
-// 直接将默认值添加在api_model宏上了，即所有Model都实现Default接口
-impl Default for ScanCursor {
-    fn default() -> Self {
-        ScanCursor {
-            ready_nodes: vec![],
-            now_node: "".to_string(),
-            now_cursor: 0,
-            finished: false,
-        }
-    }
-}
 
 // 扫描结果
 api_model!(ScanResult {

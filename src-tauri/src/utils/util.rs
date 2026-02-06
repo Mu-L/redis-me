@@ -223,13 +223,15 @@ pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
 
         if let Some((key, value)) = line.split_once(":").map(|(k, v)| (k.trim(), v.trim())) {
             match key {
-                "connected_clients" => chart.connected_clients = value.parse::<>()?,
-                "instantaneous_ops_per_sec" => chart.instantaneous_ops_per_sec = value.parse::<>()?,
-                "used_memory" => chart.used_memory = value.parse::<>()?,
-                "instantaneous_input_kbps" => chart.instantaneous_input_kbps = value.parse::<>()?,
-                "instantaneous_output_kbps" => chart.instantaneous_output_kbps = value.parse::<>()?,
-                "keyspace_hits" => chart.keyspace_hits = value.parse::<>()?,
-                "keyspace_misses" => chart.keyspace_misses = value.parse::<>()?,
+                "connected_clients" => chart.connected_clients = value.parse::<>().unwrap_or_default(),
+                "instantaneous_ops_per_sec" => chart.instantaneous_ops_per_sec = value.parse::<>().unwrap_or_default(),
+                "used_memory" => chart.used_memory = value.parse::<>().unwrap_or_default(),
+                "instantaneous_input_kbps" => chart.instantaneous_input_kbps = value.parse::<>().unwrap_or_default(),
+                "instantaneous_output_kbps" => chart.instantaneous_output_kbps = value.parse::<>().unwrap_or_default(),
+                "total_connections_received" => chart.total_connections_received = value.parse::<>().unwrap_or_default(),
+                "total_commands_processed" => chart.total_commands_processed = value.parse::<>().unwrap_or_default(),
+                "keyspace_hits" => chart.keyspace_hits = value.parse::<>().unwrap_or_default(),
+                "keyspace_misses" => chart.keyspace_misses = value.parse::<>().unwrap_or_default(),
                 _ => {
                     // db0:keys=14410,expires=3997,avg_ttl=736124073
                     // db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
