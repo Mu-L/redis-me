@@ -2,7 +2,14 @@
 import {isDark, meHumanNums, meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
 import {Line} from 'vue-chartjs'
 import {
-  Chart as ChartJS, Legend, LinearScale, LineController, LineElement, PointElement, TimeScale, CategoryScale,
+  CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LinearScale,
+  LineController,
+  LineElement,
+  PointElement,
+  TimeScale,
   Tooltip
 } from 'chart.js'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
@@ -10,7 +17,6 @@ import {cloneDeep, merge} from 'lodash'
 import NodeList from '@/views/ext/NodeList.vue'
 import {useI18n} from 'vue-i18n'
 import dayjs from 'dayjs'
-import {useDark} from '@vueuse/core'
 
 // 只注册必要的组件即可
 // https://chartjs.cn/docs/latest/getting-started/integration.html
@@ -131,11 +137,9 @@ function cutArray(arr, indexes) {
 function calcLabelIndexes() {
   const labels = chartData.value.command.labels
   const minLabel = Date.now() - keepMinutes.value * 60 * 1000
-  meLog('minLabel', new Date(minLabel))
 
   // 最大值减去最小值，除以 maxPointCount 获得刻度间隔
   const interval = Math.floor((labels[labels.length - 1] - Math.max(labels[0], minLabel)) / maxPointCount.value) * 1.5
-  meLog('interval', interval, 'max', labels[labels.length - 1], 'min', Math.max(labels[0], minLabel))
 
   const indexes = []
   let intervalLabel = undefined
@@ -144,7 +148,6 @@ function calcLabelIndexes() {
 
     // 超过保留时间的数据跳过
     if (label < minLabel) {
-      meLog('小于保留时间数据跳过')
       continue
     }
 
@@ -159,7 +162,6 @@ function calcLabelIndexes() {
       intervalLabel = label
     }
   }
-  meLog('indexes', indexes)
   return indexes
 }
 
