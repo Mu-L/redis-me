@@ -49,6 +49,7 @@
     "vue-chartjs": "^5.3.3",
     "vue-codemirror6": "^1.4.1",
     "vue-i18n": "^11.2.8",
+    "vue-web-terminal": "^3.4.1",
     "xterminal": "^2.2.1"
   },
   "devDependencies": {
