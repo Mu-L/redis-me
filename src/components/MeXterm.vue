@@ -52,6 +52,7 @@ function onKeydown(e){
     case 'L': // 清屏
       term.clearLog()
       term.pushMessage(welcome)
+      term.setCommand('')
       break
     case 'C': // 停止当前命令 （但不能保留之前的命令）
       term.setCommand('')
