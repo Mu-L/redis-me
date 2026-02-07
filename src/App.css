@@ -8,7 +8,7 @@ html {
 .el-descriptions__content,
 .el-table__body-wrapper .el-table__cell,
 .el-tooltip,
-#terminal {
+.terminal {
   user-select: text;
   -webkit-user-select: text; /* Chrome, Safari */
   -moz-user-select: text;    /* Firefox */
