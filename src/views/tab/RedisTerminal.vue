@@ -52,7 +52,7 @@ function autoCopyIfNeed(text) {
     <me-xterm class="terminal" :exec-command="execCommand" :prefix :welcome/>
     <div class="node me-flex" v-if="share.conn?.cluster">
       <me-icon icon="el-icon-question-filled" :info="hint" raw-content placement="top" :show-after="0"/>
-      <el-checkbox v-model="autoBroadcast" :label="t('redisTerminal.autoBroadcast')" border style="margin-left: 10px"/>
+      <el-checkbox v-model="autoBroadcast" :label="t('redisTerminal.autoBroadcast')" style="margin-left: 10px"/>
       <node-list v-model="node" clearable style="margin-left: 10px"/>
     </div>
     <div class="auto-copy">
@@ -81,6 +81,7 @@ function autoCopyIfNeed(text) {
     position: absolute;
     right: 0;
     top: 0;
+    z-index: 10;
   }
 
   .auto-copy {

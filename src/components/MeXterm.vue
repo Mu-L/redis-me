@@ -51,6 +51,12 @@ const theme = computed(() => isDark.value ? 'dark' : 'light')
 //  color: var(--el-color-primary);
 //}
 
+/* 帮助手册 */
+.t-cmd-help {
+  top: 5px !important;
+  right: 5px !important;
+}
+
 /* padding 和 背景色修改 */
 .t-window {
   padding: 5px 5px 5px 20px !important;
