@@ -11,13 +11,16 @@ const canEdit = computed(() => !share.readonly)
 
 // 待颜色的文本
 function colorText(color, text) {
+  // XTernimal
   return `<span style="color: ${color}">${text}</span>`
+  // vue-web-terminal
+  // return text
 }
 
 const autoBroadcast = ref(true)
 const node  = ref('')
 const hint = computed(() => t('redisTerminal.hint'))
-const prefix = computed(() => colorText('var(--el-color-primary)', node.value ? node.value + '> ' : '$ '))
+const prefix = computed(() => node.value ? node.value + '> ' : '$ ')
 const welcome = computed(() => t('redisTerminal.welcome', {RedisME: colorText('var(--el-color-primary)', 'RedisME')}))
 
 // 定制化执行命令
