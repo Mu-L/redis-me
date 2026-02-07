@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // 说明: 基于Xterm的自定义终端组件
 import {computed, onMounted, onUnmounted, watch} from 'vue'
-import {useDark} from "@vueuse/core"
+import {isDark} from '@/utils/util.js'
 import 'xterminal/dist/xterminal.css'
 import XTerminal from 'xterminal'
 
@@ -71,7 +71,6 @@ function prompt(printWelcome = false, printlnPrefix = true) {
 }
 
 // 主题颜色
-const isDark = useDark()
 const terminalClass = computed(() => isDark.value ? 'dark' : '')
 </script>
 

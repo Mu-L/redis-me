@@ -1,5 +1,5 @@
 <script setup>
-import {meHumanNums, meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
+import {isDark, meHumanNums, meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
 import {Line} from 'vue-chartjs'
 import {
   Chart as ChartJS, Legend, LinearScale, LineController, LineElement, PointElement, TimeScale, CategoryScale,
@@ -256,7 +256,6 @@ const darkOptions = {
   // },
 }
 
-const isDark = useDark()
 const options = computed(() => {
   const option = cloneDeep(baseOptions)
   return isDark.value ? merge(option, darkOptions) : merge(option, lightOptions)

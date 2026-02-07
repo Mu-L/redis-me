@@ -1,6 +1,6 @@
 import mitt from 'mitt'
 import {sampleSize} from 'lodash'
-import {useClipboard} from '@vueuse/core'
+import {useClipboard, useDark} from '@vueuse/core'
 import {ElLink, ElMessage, ElMessageBox} from 'element-plus'
 import {invoke} from '@tauri-apps/api/core'
 import {check} from '@tauri-apps/plugin-updater'
@@ -60,10 +60,13 @@ export function meLog(...args) {
 }
 
 // 是否是中文模式
-export function isZh() {
+export const isZh = computed(() => {
   const language = meTauri.settings.language === 'system' ? meTauri.systemLanguage : meTauri.settings.language
   return language?.startsWith('zh')
-}
+})
+
+// 是否黑色主题
+export const isDark = useDark()
 
 // invoke命令: 打印日志
 let retryCount = 0

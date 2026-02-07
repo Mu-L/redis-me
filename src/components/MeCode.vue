@@ -13,7 +13,7 @@ const {mode, readOnly} = defineProps({
 
 const dark = useDark()
 const lang = mode === 'json' ? json() : python() // 暂未找到ini或properties的语法高亮，暂用python代替（也是#作为注释）
-const phrases = computed(() => isZh() ? zhPhrases: {})
+const phrases = computed(() => isZh.value ? zhPhrases: {})
 const extensions = [meBasicSetup] // 不使用默认的basicSetup，自己定义扩展（取消高亮当前行等）
 </script>
 
