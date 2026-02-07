@@ -4,7 +4,6 @@ import {isDark} from '@/utils/util.js'
 import 'xterminal/dist/xterminal.css'
 import {Terminal} from 'vue-web-terminal'
 
-// TODO 命令提示
 const {welcome, prefix, execCommand} = defineProps({
   welcome: {
     type: String,
@@ -23,6 +22,7 @@ const {welcome, prefix, execCommand} = defineProps({
 const terminalRef = useTemplateRef('terminal')
 onMounted(() => terminalRef.value.pushMessage(welcome))
 
+// 命令执行
 async function execCmd(_commandKey, command, success, _failed, _name) {
   const data = await execCommand(command)
   const message = { type: 'html', content: data}
@@ -31,11 +31,45 @@ async function execCmd(_commandKey, command, success, _failed, _name) {
 
 // 主题颜色
 const theme = computed(() => isDark.value ? 'dark' : 'light')
+
+// 快捷键
+// 上下历史记录，回车执行，Ctrl + A光标到行首 已内置支持
+// 新增下面的键: F11 全屏, Ctrl + L/C/E 清屏/停止当前命令/光标到行尾
+function onKeydown(e){
+  const key = e.key.toUpperCase()
+  const term = terminalRef.value
+
+  // 全屏
+  if (e.key === 'F11') {
+    term.fullscreen()
+    return
+  }
+
+  // 其他快捷键
+  if (!e.ctrlKey) return
+
+  switch (key) {
+    case 'L': // 清屏
+      term.clearLog()
+      term.pushMessage(welcome)
+      break
+    case 'C': // 停止当前命令 （但不能保留之前的命令）
+      term.setCommand('')
+      break
+    //case 'A': // 光标到行首
+      // 似乎已支持, 但只有Ctrl键弹起时才生效（可能跟浏览器自带的全选有关系）
+      //  break
+    case 'E': // 光标到行尾
+      term.setCommand(term.getCommand())
+      break
+  }
+}
 </script>
 
 <template>
   <terminal name="terminal" ref="terminal"
             @exec-cmd="execCmd"
+            @on-keydown="onKeydown"
             :theme
             :show-header="false"
             :line-space="2"
