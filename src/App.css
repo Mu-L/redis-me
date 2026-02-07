@@ -53,6 +53,32 @@ html, body {
   overflow: hidden;
 }
 
+/* 滚动条样式: 参考vue-web-terminal https://gitee.com/tzfun/vue-web-terminal/blob/vue3/src/css/scrollbar.css */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+}
+*::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  border-style: dashed;
+  border-color: transparent;
+  border-width: 2px;
+  background-color: rgba(157, 165, 183, 0.4);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(157, 165, 183, 0.7);
+  cursor: pointer;
+}
+*::-webkit-scrollbar-track {
+  border-radius: 6px;
+}
+
 
 /*所有元素的盒子模型的宽高统一包含边框*/
 /*原因：很多场景调试样式，需要加个边框测试*/
