@@ -86,8 +86,8 @@ function autoCopyIfNeed(text) {
 
   .auto-copy {
     position: absolute;
-    right: 20px;
-    bottom: -5px;
+    right: 10px;
+    bottom: 0;
   }
 }
 </style>
