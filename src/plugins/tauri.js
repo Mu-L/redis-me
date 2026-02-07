@@ -4,6 +4,7 @@ import {LazyStore} from '@tauri-apps/plugin-store'
 import {appConfigDir, appDataDir, appLocalDataDir, appLogDir, BaseDirectory} from '@tauri-apps/api/path'
 import {meLog} from '@/utils/util.js'
 import {exists} from '@tauri-apps/plugin-fs'
+import {openUrl} from '@tauri-apps/plugin-opener'
 
 // 打包后关闭右键菜单
 if (import.meta.env.PROD) {
@@ -55,6 +56,12 @@ const meTauri = reactive({
 })
 // 放在Window全局变量中方便使用
 window.meTauri = meTauri
+
+// window.open不能用，修改为tauri的openUrl
+try {
+  window.open = openUrl
+} catch (e) {
+}
 
 // 配置保存
 watch(meTauri, async (newValue) => {
