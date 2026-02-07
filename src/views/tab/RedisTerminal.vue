@@ -10,18 +10,15 @@ const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 
 // 待颜色的文本
-function colorText(color, text) {
-  // XTernimal
-  return `<span style="color: ${color}">${text}</span>`
-  // vue-web-terminal
-  // return text
+function colorText(color, text, bold = false) {
+  return bold ? `<span style="color: ${color}; font-weight: bold">${text}</span>` : `<span style="color: ${color}">${text}</span>`
 }
 
 const autoBroadcast = ref(true)
 const node  = ref('')
 const hint = computed(() => t('redisTerminal.hint'))
 const prefix = computed(() => node.value ? node.value + '> ' : '$ ')
-const welcome = computed(() => t('redisTerminal.welcome', {RedisME: colorText('var(--el-color-primary)', 'RedisME')}))
+const welcome = computed(() => t('redisTerminal.welcome', {RedisME: colorText('var(--el-color-primary)', 'RedisME', true)}))
 
 // 定制化执行命令
 async function execCommand(command) {
@@ -33,7 +30,8 @@ async function execCommand(command) {
     const param = {command, node: node.value, autoBroadcast: autoBroadcast.value}
     const data = await meInvoke('execute_command', {id: share.conn.id, param}, false)
     autoCopyIfNeed(data)
-    return colorText('var(--el-color-success)', data)
+    const html = data.split(/\r?\n/).join('<br/>')
+    return colorText('var(--el-color-success)', html)
   } catch (e) {
     autoCopyIfNeed(e)
     return colorText('var(--el-color-error)', `(error) ${e}`)
@@ -41,7 +39,7 @@ async function execCommand(command) {
 }
 
 // 自动复制命令结果
-const autoCopy = ref(true)
+const autoCopy = ref(false)
 function autoCopyIfNeed(text) {
   if (autoCopy.value) {
     meCopy(text, null, false)

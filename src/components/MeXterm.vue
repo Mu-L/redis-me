@@ -8,7 +8,7 @@ import {Terminal} from 'vue-web-terminal'
 const {welcome, prefix, execCommand} = defineProps({
   welcome: {
     type: String,
-    default: '欢迎使用 XTerminal',
+    default: '欢迎使用 Terminal',
   },
   prefix: {
     type: String,
@@ -20,20 +20,25 @@ const {welcome, prefix, execCommand} = defineProps({
   },
 })
 
-const terminalRef = useTemplateRef('terminalRef')
-onMounted(() => {
-  terminalRef.value.pushMessage(welcome)
-})
+const terminalRef = useTemplateRef('terminal')
+onMounted(() => terminalRef.value.pushMessage(welcome))
+
+async function execCmd(_commandKey, command, success, _failed, _name) {
+  const data = await execCommand(command)
+  const message = { type: 'html', content: data}
+  success(message)
+}
+
 // 主题颜色
 const theme = computed(() => isDark.value ? 'dark' : 'light')
 </script>
 
 <template>
-  <terminal name="terminal"
-            ref="terminalRef"
+  <terminal name="terminal" ref="terminal"
+            @exec-cmd="execCmd"
             :theme
             :show-header="false"
-            :line-space="0"
+            :line-space="2"
             cursor-style="bar"
             context=""
             :context-suffix="prefix">
@@ -42,13 +47,13 @@ const theme = computed(() => isDark.value ? 'dark' : 'light')
 
 <style lang="scss">
 /* 提示颜色 */
-.t-prompt {
-  color: var(--el-color-primary);
-}
+//.t-prompt {
+//  color: var(--el-color-primary);
+//}
 
 /* padding 和 背景色修改 */
 .t-window {
-  padding: 10px !important;
+  padding: 5px 5px 5px 20px !important;
   background-color: #EFEFEF !important;
 }
 
