@@ -1,9 +1,9 @@
 <script setup>
 import NodeList from '../ext/NodeList.vue'
-import {isZh, meCopy, meInvoke} from '@/utils/util.js'
+import {meCopy, meInvoke} from '@/utils/util.js'
 import MeIcon from '@/components/MeIcon.vue'
 import {useI18n} from 'vue-i18n'
-import {commands} from '@/utils/cmd.js'
+import {commandHelp} from '@/utils/cmd.js'
 
 const { t } = useI18n()
 // 共享数据
@@ -47,13 +47,20 @@ function autoCopyIfNeed(text) {
   }
 }
 
-// 命令帮助
-const commandHelp = commands
+// 命令提示的中英文实时切换
+// 说明: vue-web-terminal的命令只能初始化1次, 后续更新无效。因此考虑销毁重建
+const showCode = ref(true)
+watch(commandHelp, () => {
+  showCode.value = false
+  nextTick(() => {
+    showCode.value = true
+  })
+})
 </script>
 
 <template>
   <div class="redis-terminal">
-    <me-xterm class="terminal" :exec-command="execCommand" :prefix :welcome :command-help="commandHelp"/>
+    <me-xterm v-if="showCode" class="terminal" :exec-command="execCommand" :prefix :welcome :command-help="commandHelp"/>
     <div class="node me-flex" v-if="share.conn?.cluster">
       <me-icon icon="el-icon-question-filled" :info="hint" raw-content placement="top" :show-after="0"/>
       <el-checkbox v-model="autoBroadcast" :label="t('redisTerminal.autoBroadcast')" style="margin-left: 10px"/>

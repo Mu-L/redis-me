@@ -25,6 +25,7 @@ import fs from 'fs'
 import frontMatter from 'front-matter'
 
 const commands = []
+const summarys = []
 const dir = 'C:/Users/he_pe/Desktop/work/docs/content/commands/'
 fs.readdirSync(dir).forEach(file => {
   if (file.endsWith('.md')) {
@@ -41,12 +42,16 @@ fs.readdirSync(dir).forEach(file => {
       key: title,
       title,
       group,
-      description: summary + ` @since ${since} [${group}]`,
+      description: summary,
+      since,
       usage: syntax_fmt
     })
+
+    summarys.push(summary)
   }
 })
 
 // 将命令保存为json文件
-fs.writeFileSync('commands-usage.json', JSON.stringify(commands, null, 2))
+//fs.writeFileSync('commands-usage.json', JSON.stringify(commands, null, 2))
+// fs.writeFileSync('commands-summarys.json', JSON.stringify(summarys, null, 2))
 console.log('命令总数', commands.length)
