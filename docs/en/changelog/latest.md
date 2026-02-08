@@ -2,8 +2,15 @@
 
 ## Future
 
-- Terminal: Add command prompts, add command list, convenient for manual selection
 - Key: Import and export support
+
+## v1.9.0 (2026-02-08)
+
+- Terminal: Upgraded to [VueWebTerminal](https://tzfun.github.io/vue-web-terminal/)
+    * Added Chinese and English command prompts
+    * Supports folding of response text
+    * Supports right-click copy after selecting text, and right-click paste text
+- Interface: Global scrollbar style optimized
 
 ## v1.8.0 (2026-02-06)
 
