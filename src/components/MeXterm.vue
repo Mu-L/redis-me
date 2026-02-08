@@ -1,15 +1,13 @@
-<script setup lang="ts">
-// 说明: 基于Xterm的自定义终端组件
-import {computed, onMounted, onUnmounted, watch} from 'vue'
-import {useDark} from "@vueuse/core"
+<script setup>
+import {computed} from 'vue'
+import {isDark} from '@/utils/util.js'
 import 'xterminal/dist/xterminal.css'
-import XTerminal from 'xterminal'
+import {Terminal} from 'vue-web-terminal'
 
-// TODO 命令提示
-const {welcome, prefix, execCommand} = defineProps({
+const {welcome, prefix, execCommand, commandHelp} = defineProps({
   welcome: {
     type: String,
-    default: '欢迎使用 XTerminal',
+    default: '欢迎使用 Terminal',
   },
   prefix: {
     type: String,
@@ -17,101 +15,103 @@ const {welcome, prefix, execCommand} = defineProps({
   },
   execCommand: {
     type: Function,
-    default: async (command: string) => `TODO 后台运行命令: ${command}`,
+    default: async (command) => `TODO 后台运行命令: ${command}`,
   },
-})
-
-watch(() => prefix, () => prompt())
-
-const term = new XTerminal()
-
-// 处理命令
-term.on('data', async (data) => {
-  if (data) {
-    term.pause()
-    const result = await execCommand(data)
-    term.write(result)
-    prompt()
-  } else {
-    prompt(false, false)
+  commandHelp: {
+    type: Array,
+    defaults: []
   }
 })
 
-// 追加额外快捷键
-term.on('keypress', e => {
-  const key = e.key.toLowerCase();
-  // 上下历史记录，回车执行，Ctrl + A光标到行首 已内置支持
+const terminalRef = useTemplateRef('terminal')
+onMounted(() => terminalRef.value.pushMessage(welcome))
 
-  // 新增下面的键: Ctrl + L/C/E 清屏/停止当前命令/光标到行尾
-  if (e.ctrlKey && key === 'l') { // Ctrl + L 清屏
-    term.clear()
-    term.clearInput()
-    prompt(true)
-  } else if (e.ctrlKey && key === 'c') {  // Ctrl + C 取消命令
-    term.write('^C')
-    term.clearInput()
-    prompt(false)
-  }
-})
-
-// 挂载和卸载
-onMounted(() => {
-  term.mount('#terminal')
-  prompt(true)
-})
-onUnmounted(() => term?.dispose())
-
-// 命令行提示符
-function prompt(printWelcome = false, printlnPrefix = true) {
-  term.write(printWelcome ? welcome : '')
-  term.write(printlnPrefix ? '\n' : '')
-  term.write(prefix)
-  term.resume()
-  term.focus()
+// 命令执行
+async function execCmd(_commandKey, command, success, _failed, _name) {
+  const data = await execCommand(command)
+  const message = { type: 'html', content: data}
+  success(message)
 }
 
 // 主题颜色
-const isDark = useDark()
-const terminalClass = computed(() => isDark.value ? 'dark' : '')
+const theme = computed(() => isDark.value ? 'dark' : 'light')
+
+// 快捷键
+// 上下历史记录，回车执行，Ctrl + A光标到行首 已内置支持
+// 新增下面的键: F11 全屏, Ctrl + L/C/E 清屏/停止当前命令/光标到行尾
+function onKeydown(e){
+  const key = e.key.toUpperCase()
+  const term = terminalRef.value
+
+  // 全屏
+  if (e.key === 'F11') {
+    term.fullscreen()
+    return
+  }
+
+  // 其他快捷键
+  if (!e.ctrlKey) return
+
+  switch (key) {
+    case 'L': // 清屏
+      term.clearLog()
+      term.pushMessage(welcome)
+      term.setCommand('')
+      break
+    case 'C': // 停止当前命令 （但不能保留之前的命令）
+      term.setCommand('')
+      break
+    //case 'A': // 光标到行首
+      // 似乎已支持, 但只有Ctrl键弹起时才生效（可能跟浏览器自带的全选有关系）
+      //  break
+    case 'E': // 光标到行尾
+      term.setCommand(term.getCommand())
+      break
+  }
+}
 </script>
 
 <template>
-  <div id="terminal" :class="terminalClass"/>
+  <terminal name="terminal" ref="terminal"
+            @exec-cmd="execCmd"
+            @on-keydown="onKeydown"
+            :theme
+            :show-header="false"
+            :line-space="2"
+            cursor-style="bar"
+            context=""
+            :command-store="commandHelp"
+            :context-suffix="prefix">
+  </terminal>
 </template>
 
-<style scoped lang="scss">
-#terminal {
-  --xt-font-family: var(--code-font);
-  --xt-bg: #efefef;
-  --xt-fg: #191a22;
-}
-
-#terminal.dark {
-  --xt-bg: #191a22;
-  --xt-fg: #efefef;
-}
-
-</style>
-
 <style lang="scss">
-// 光标样式修改, 默认样式为块状（我喜欢闪烁的竖线）
-@keyframes blink {
-  0%  {border-left: 1.5px solid var(--xt-fg);}
-  50% {border-left: 1.5px solid transparent;}
+/* 提示颜色 */
+//.t-prompt {
+//  color: var(--el-color-primary);
+//}
+
+/* 帮助手册 */
+.t-cmd-help {
+  top: 5px !important;
+  right: 5px !important;
 }
 
-.terminal {
-  .xt>.xt-stdout>.xt-cursor {
-    border: none;
-    border-left: 1.5px solid var(--xt-fg);
-    color: var(--xt-fg);
-    background-color: transparent;
-    animation: blink 1s step-end infinite;
-  }
+/* padding 和 背景色修改 */
+.t-window {
+  padding: 5px 5px 5px 20px !important;
+  background-color: #EFEFEF !important;
+}
 
-  .xt.xt-inactive>.xt-stdout>.xt-cursor {
-    border: 1px solid currentColor;
-    animation: none;
+/* 深色主题下的背景色 */
+html.dark {
+  .t-window {
+    background-color: var(--t-main-background-color) !important;
   }
+}
+
+/* 字体设置 */
+.t-window, .t-ask-input, .t-window p, .t-window div, .t-crude-font {
+  font-family: var(--code-font) !important;
 }
 </style>

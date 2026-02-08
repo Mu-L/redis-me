@@ -1056,7 +1056,7 @@ const enClientTip = {
 }
 
 // 中文语言返回中文提示，否则返回英文提示
-const infoTip = computed(() => isZh() ? zhInfoTip : enInfoTip)
-const configTip = computed(() => isZh() ? zhConfigTip : enConfigTip)
-const clientTip = computed(() => isZh() ? zhClientTip : enClientTip)
+const infoTip = computed(() => isZh.value ? zhInfoTip : enInfoTip)
+const configTip = computed(() => isZh.value ? zhConfigTip : enConfigTip)
+const clientTip = computed(() => isZh.value ? zhClientTip : enClientTip)
 export {infoTip, configTip, clientTip}

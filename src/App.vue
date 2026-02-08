@@ -1,13 +1,12 @@
 <script setup>
 import AppMain from '@/views/AppMain.vue'
 import AppTitle from '@/views/ext/AppTitle.vue'
-import {useDark} from '@vueuse/core'
 import {useI18n} from 'vue-i18n'
+import {isDark} from '@/utils/util.js'
 
 const {locale: i18nLocale} = useI18n()
 
 // 主题切换
-const isDark = useDark()
 watch(() => meTauri.settings.theme, (newValue) => {
   const newTheme = newValue === 'system' ? meTauri.systemTheme : newValue
   isDark.value = newTheme === 'dark'
