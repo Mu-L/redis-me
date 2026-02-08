@@ -4,7 +4,7 @@ import {isDark} from '@/utils/util.js'
 import 'xterminal/dist/xterminal.css'
 import {Terminal} from 'vue-web-terminal'
 
-const {welcome, prefix, execCommand} = defineProps({
+const {welcome, prefix, execCommand, commandHelp} = defineProps({
   welcome: {
     type: String,
     default: '欢迎使用 Terminal',
@@ -17,6 +17,10 @@ const {welcome, prefix, execCommand} = defineProps({
     type: Function,
     default: async (command) => `TODO 后台运行命令: ${command}`,
   },
+  commandHelp: {
+    type: Array,
+    defaults: []
+  }
 })
 
 const terminalRef = useTemplateRef('terminal')
@@ -76,6 +80,7 @@ function onKeydown(e){
             :line-space="2"
             cursor-style="bar"
             context=""
+            :command-store="commandHelp"
             :context-suffix="prefix">
   </terminal>
 </template>

@@ -1,8 +1,9 @@
 <script setup>
 import NodeList from '../ext/NodeList.vue'
-import {meCopy, meInvoke} from '@/utils/util.js'
+import {isZh, meCopy, meInvoke} from '@/utils/util.js'
 import MeIcon from '@/components/MeIcon.vue'
 import {useI18n} from 'vue-i18n'
+import {commands} from '@/utils/cmd.js'
 
 const { t } = useI18n()
 // 共享数据
@@ -45,11 +46,14 @@ function autoCopyIfNeed(text) {
     meCopy(text, null, false)
   }
 }
+
+// 命令帮助
+const commandHelp = commands
 </script>
 
 <template>
   <div class="redis-terminal">
-    <me-xterm class="terminal" :exec-command="execCommand" :prefix :welcome/>
+    <me-xterm class="terminal" :exec-command="execCommand" :prefix :welcome :command-help="commandHelp"/>
     <div class="node me-flex" v-if="share.conn?.cluster">
       <me-icon icon="el-icon-question-filled" :info="hint" raw-content placement="top" :show-after="0"/>
       <el-checkbox v-model="autoBroadcast" :label="t('redisTerminal.autoBroadcast')" style="margin-left: 10px"/>

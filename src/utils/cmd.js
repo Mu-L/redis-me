@@ -1,2303 +1,3671 @@
 export const commands =
-[
-  {
-    "group": "generic",
-    "commands": [
-      {
-        "name": "COPY",
-        "summary": "Copies the value of a key to a new key",
-        "summaryZh": "将键的值复制到新键",
-        "since": "6.2.0"
-      },
-      {
-        "name": "DEL",
-        "summary": "Deletes one or more keys",
-        "summaryZh": "删除一个或多个键",
-        "since": "1.0.0"
-      },
-      {
-        "name": "DUMP",
-        "summary": "Returns a serialized representation of the value stored at a key",
-        "summaryZh": "返回存储在键中的值的序列化表示",
-        "since": "2.6.0"
-      },
-      {
-        "name": "EXISTS",
-        "summary": "Determines whether one or more keys exist",
-        "summaryZh": "确定一个或多个键是否存在",
-        "since": "1.0.0"
-      },
-      {
-        "name": "EXPIRE",
-        "summary": "Sets the expiration time of a key in seconds",
-        "summaryZh": "设置键的过期时间（秒）",
-        "since": "1.0.0"
-      },
-      {
-        "name": "EXPIREAT",
-        "summary": "Sets the expiration time of a key to a Unix timestamp",
-        "summaryZh": "将键的过期时间设置为Unix时间戳",
-        "since": "1.2.0"
-      },
-      {
-        "name": "EXPIRETIME",
-        "summary": "Returns the expiration time of a key as a Unix timestamp",
-        "summaryZh": "返回键的过期时间作为Unix时间戳",
-        "since": "7.0.0"
-      },
-      {
-        "name": "KEYS",
-        "summary": "Returns all key names that match a pattern",
-        "summaryZh": "返回所有匹配模式的键名",
-        "since": "1.0.0"
-      },
-      {
-        "name": "MIGRATE",
-        "summary": "Atomically transfers a key from one Redis instance to another",
-        "summaryZh": "原子地将键从一个Redis实例传输到另一个",
-        "since": "2.6.0"
-      },
-      {
-        "name": "MOVE",
-        "summary": "Moves a key to another database",
-        "summaryZh": "将键移动到另一个数据库",
-        "since": "1.0.0"
-      },
-      {
-        "name": "OBJECT",
-        "summary": "A container for object introspection commands",
-        "summaryZh": "对象内省命令的容器",
-        "since": "2.2.3"
-      },
-      {
-        "name": "OBJECT ENCODING",
-        "summary": "Returns the internal encoding of a Redis object",
-        "summaryZh": "返回Redis对象的内部编码",
-        "since": "2.2.3"
-      },
-      {
-        "name": "OBJECT FREQ",
-        "summary": "Returns the logarithmic access frequency counter of a Redis object",
-        "summaryZh": "返回Redis对象的对数访问频率计数器",
-        "since": "4.0.0"
-      },
-      {
-        "name": "OBJECT HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "6.2.0"
-      },
-      {
-        "name": "OBJECT IDLETIME",
-        "summary": "Returns the time since the last access to a Redis object",
-        "summaryZh": "返回自上次访问Redis对象以来的时间",
-        "since": "2.2.3"
-      },
-      {
-        "name": "OBJECT REFCOUNT",
-        "summary": "Returns the reference count of a value of a key",
-        "summaryZh": "返回键值的引用计数",
-        "since": "2.2.3"
-      },
-      {
-        "name": "PERSIST",
-        "summary": "Removes the expiration time of a key",
-        "summaryZh": "移除键的过期时间",
-        "since": "2.2.0"
-      },
-      {
-        "name": "PEXPIRE",
-        "summary": "Sets the expiration time of a key in milliseconds",
-        "summaryZh": "设置键的过期时间（毫秒）",
-        "since": "2.6.0"
-      },
-      {
-        "name": "PEXPIREAT",
-        "summary": "Sets the expiration time of a key to a Unix milliseconds timestamp",
-        "summaryZh": "将键的过期时间设置为Unix毫秒时间戳",
-        "since": "2.6.0"
-      },
-      {
-        "name": "PEXPIRETIME",
-        "summary": "Returns the expiration time of a key as a Unix milliseconds timestamp",
-        "summaryZh": "返回键的过期时间作为Unix毫秒时间戳",
-        "since": "7.0.0"
-      },
-      {
-        "name": "PTTL",
-        "summary": "Returns the expiration time in milliseconds of a key",
-        "summaryZh": "返回键的过期时间（毫秒）",
-        "since": "2.6.0"
-      },
-      {
-        "name": "RANDOMKEY",
-        "summary": "Returns a random key name from the database",
-        "summaryZh": "从数据库返回一个随机键名",
-        "since": "1.0.0"
-      },
-      {
-        "name": "RENAME",
-        "summary": "Renames a key and overwrites the destination",
-        "summaryZh": "重命名键并覆盖目标",
-        "since": "1.0.0"
-      },
-      {
-        "name": "RENAMENX",
-        "summary": "Renames a key only when the target key name doesn't exist",
-        "summaryZh": "仅当目标键名不存在时重命名键",
-        "since": "1.0.0"
-      },
-      {
-        "name": "RESTORE",
-        "summary": "Creates a key from the serialized representation of a value",
-        "summaryZh": "从值的序列化表示创建键",
-        "since": "2.6.0"
-      },
-      {
-        "name": "SCAN",
-        "summary": "Iterates over the key names in the database",
-        "summaryZh": "迭代数据库中的键名",
-        "since": "2.8.0"
-      },
-      {
-        "name": "SORT",
-        "summary": "Sorts the elements in a list, a set, or a sorted set, optionally storing the result",
-        "summaryZh": "对列表、集合或有序集合中的元素进行排序，可选地存储结果",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SORT_RO",
-        "summary": "Returns the sorted elements of a list, a set, or a sorted set",
-        "summaryZh": "返回列表、集合或有序集合的排序元素",
-        "since": "7.0.0"
-      },
-      {
-        "name": "TOUCH",
-        "summary": "Returns the number of existing keys out of those specified after updating the time they were last accessed",
-        "summaryZh": "在更新最后访问时间后，返回指定键中存在的键的数量",
-        "since": "3.2.1"
-      },
-      {
-        "name": "TTL",
-        "summary": "Returns the expiration time in seconds of a key",
-        "summaryZh": "返回键的过期时间（秒）",
-        "since": "1.0.0"
-      },
-      {
-        "name": "TYPE",
-        "summary": "Determines the type of value stored at a key",
-        "summaryZh": "确定存储在键中的值的类型",
-        "since": "1.0.0"
-      },
-      {
-        "name": "UNLINK",
-        "summary": "Asynchronously deletes one or more keys",
-        "summaryZh": "异步删除一个或多个键",
-        "since": "4.0.0"
-      },
-      {
-        "name": "WAIT",
-        "summary": "Blocks until the asynchronous replication of all preceding write commands sent by the connection is completed",
-        "summaryZh": "阻塞直到连接发送的所有先前写入命令的异步复制完成",
-        "since": "3.0.0"
-      },
-      {
-        "name": "WAITAOF",
-        "summary": "Blocks until all of the preceding write commands sent by the connection are written to the append-only file of the master and/or replicas",
-        "summaryZh": "阻塞直到连接发送的所有先前写入命令被写入主节点和/或副本的追加文件",
-        "since": "7.2.0"
-      }
-    ]
-  },
-  {
-    "group": "string",
-    "commands": [
-      {
-        "name": "APPEND",
-        "summary": "Appends a string to the value of a key. Creates the key if it doesn't exist",
-        "summaryZh": "将字符串追加到键的值。如果键不存在则创建",
-        "since": "2.0.0"
-      },
-      {
-        "name": "DECR",
-        "summary": "Decrements the integer value of a key by one. Uses 0 as initial value if the key doesn't exist",
-        "summaryZh": "将键的整数值减一。如果键不存在则使用0作为初始值",
-        "since": "1.0.0"
-      },
-      {
-        "name": "DECRBY",
-        "summary": "Decrements a number from the integer value of a key. Uses 0 as initial value if the key doesn't exist",
-        "summaryZh": "从键的整数值中减去一个数。如果键不存在则使用0作为初始值",
-        "since": "1.0.0"
-      },
-      {
-        "name": "GET",
-        "summary": "Returns the string value of a key",
-        "summaryZh": "返回键的字符串值",
-        "since": "1.0.0"
-      },
-      {
-        "name": "GETDEL",
-        "summary": "Returns the string value of a key after deleting the key",
-        "summaryZh": "删除键后返回键的字符串值",
-        "since": "6.2.0"
-      },
-      {
-        "name": "GETEX",
-        "summary": "Returns the string value of a key after setting its expiration time",
-        "summaryZh": "设置键的过期时间后返回键的字符串值",
-        "since": "6.2.0"
-      },
-      {
-        "name": "GETRANGE",
-        "summary": "Returns a substring of the string stored at a key",
-        "summaryZh": "返回存储在键中的字符串的子字符串",
-        "since": "2.4.0"
-      },
-      {
-        "name": "GETSET",
-        "summary": "Returns the previous string value of a key after setting it to a new value",
-        "summaryZh": "将键设置为新值后返回键的先前字符串值",
-        "since": "1.0.0"
-      },
-      {
-        "name": "INCR",
-        "summary": "Increments the integer value of a key by one. Uses 0 as initial value if the key doesn't exist",
-        "summaryZh": "将键的整数值加一。如果键不存在则使用0作为初始值",
-        "since": "1.0.0"
-      },
-      {
-        "name": "INCRBY",
-        "summary": "Increments the integer value of a key by a number. Uses 0 as initial value if the key doesn't exist",
-        "summaryZh": "将键的整数值增加一个数。如果键不存在则使用0作为初始值",
-        "since": "1.0.0"
-      },
-      {
-        "name": "INCRBYFLOAT",
-        "summary": "Increment the floating point value of a key by a number. Uses 0 as initial value if the key doesn't exist",
-        "summaryZh": "将键的浮点值增加一个数。如果键不存在则使用0作为初始值",
-        "since": "2.6.0"
-      },
-      {
-        "name": "LCS",
-        "summary": "Finds the longest common substring",
-        "summaryZh": "查找最长公共子字符串",
-        "since": "7.0.0"
-      },
-      {
-        "name": "MGET",
-        "summary": "Atomically returns the string values of one or more keys",
-        "summaryZh": "原子地返回一个或多个键的字符串值",
-        "since": "1.0.0"
-      },
-      {
-        "name": "MSET",
-        "summary": "Atomically creates or modifies the string values of one or more keys",
-        "summaryZh": "原子地创建或修改一个或多个键的字符串值",
-        "since": "1.0.1"
-      },
-      {
-        "name": "MSETNX",
-        "summary": "Atomically modifies the string values of one or more keys only when all keys don't exist",
-        "summaryZh": "仅当所有键不存在时，原子地修改一个或多个键的字符串值",
-        "since": "1.0.1"
-      },
-      {
-        "name": "PSETEX",
-        "summary": "Sets both string value and expiration time in milliseconds of a key. The key is created if it doesn't exist",
-        "summaryZh": "设置键的字符串值和过期时间（毫秒）。如果键不存在则创建",
-        "since": "2.6.0"
-      },
-      {
-        "name": "SET",
-        "summary": "Sets the string value of a key, ignoring its type. The key is created if it doesn't exist",
-        "summaryZh": "设置键的字符串值，忽略其类型。如果键不存在则创建",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SETEX",
-        "summary": "Sets the string value and expiration time of a key. Creates the key if it doesn't exist",
-        "summaryZh": "设置键的字符串值和过期时间。如果键不存在则创建",
-        "since": "2.0.0"
-      },
-      {
-        "name": "SETNX",
-        "summary": "Set the string value of a key only when the key doesn't exist",
-        "summaryZh": "仅当键不存在时设置键的字符串值",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SETRANGE",
-        "summary": "Overwrites a part of a string value with another by an offset. Creates the key if it doesn't exist",
-        "summaryZh": "通过偏移量用另一个字符串覆盖字符串值的一部分。如果键不存在则创建",
-        "since": "2.2.0"
-      },
-      {
-        "name": "STRLEN",
-        "summary": "Returns the length of a string value",
-        "summaryZh": "返回字符串值的长度",
-        "since": "2.2.0"
-      },
-      {
-        "name": "SUBSTR",
-        "summary": "Returns a substring from a string value",
-        "summaryZh": "返回字符串值的子字符串",
-        "since": "1.0.0"
-      }
-    ]
-  },
-  {
-    "group": "hash",
-    "commands": [
-      {
-        "name": "HDEL",
-        "summary": "Deletes one or more fields and their values from a hash. Deletes the hash if no fields remain",
-        "summaryZh": "从哈希中删除一个或多个字段及其值。如果没有字段剩余则删除哈希",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HEXISTS",
-        "summary": "Determines whether a field exists in a hash",
-        "summaryZh": "确定字段是否存在于哈希中",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HGET",
-        "summary": "Returns the value of a field in a hash",
-        "summaryZh": "返回哈希中字段的值",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HGETALL",
-        "summary": "Returns all fields and values in a hash",
-        "summaryZh": "返回哈希中的所有字段和值",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HINCRBY",
-        "summary": "Increments the integer value of a field in a hash by a number. Uses 0 as initial value if the field doesn't exist",
-        "summaryZh": "将哈希中字段的整数值增加一个数。如果字段不存在则使用0作为初始值",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HINCRBYFLOAT",
-        "summary": "Increments the floating point value of a field by a number. Uses 0 as initial value if the field doesn't exist",
-        "summaryZh": "将字段的浮点值增加一个数。如果字段不存在则使用0作为初始值",
-        "since": "2.6.0"
-      },
-      {
-        "name": "HKEYS",
-        "summary": "Returns all fields in a hash",
-        "summaryZh": "返回哈希中的所有字段",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HLEN",
-        "summary": "Returns the number of fields in a hash",
-        "summaryZh": "返回哈希中的字段数量",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HMGET",
-        "summary": "Returns the values of all fields in a hash",
-        "summaryZh": "返回哈希中所有字段的值",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HMSET",
-        "summary": "Sets the values of multiple fields",
-        "summaryZh": "设置多个字段的值",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HRANDFIELD",
-        "summary": "Returns one or more random fields from a hash",
-        "summaryZh": "从哈希返回一个或多个随机字段",
-        "since": "6.2.0"
-      },
-      {
-        "name": "HSCAN",
-        "summary": "Iterates over fields and values of a hash",
-        "summaryZh": "迭代哈希的字段和值",
-        "since": "2.8.0"
-      },
-      {
-        "name": "HSET",
-        "summary": "Creates or modifies the value of a field in a hash",
-        "summaryZh": "创建或修改哈希中字段的值",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HSETNX",
-        "summary": "Sets the value of a field in a hash only when the field doesn't exist",
-        "summaryZh": "仅当字段不存在时设置哈希中字段的值",
-        "since": "2.0.0"
-      },
-      {
-        "name": "HSTRLEN",
-        "summary": "Returns the length of the value of a field",
-        "summaryZh": "返回字段值的长度",
-        "since": "3.2.0"
-      },
-      {
-        "name": "HVALS",
-        "summary": "Returns all values in a hash",
-        "summaryZh": "返回哈希中的所有值",
-        "since": "2.0.0"
-      }
-    ]
-  },
-  {
-    "group": "list",
-    "commands": [
-      {
-        "name": "BLMOVE",
-        "summary": "Pops an element from a list, pushes it to another list and returns it. Blocks until an element is available otherwise. Deletes the list if the last element was moved",
-        "summaryZh": "从一个列表弹出一个元素，将其推入另一个列表并返回它。否则阻塞直到元素可用。如果最后一个元素被移动则删除列表",
-        "since": "6.2.0"
-      },
-      {
-        "name": "BLMPOP",
-        "summary": "Pops the first element from one of multiple lists. Blocks until an element is available otherwise. Deletes the list if the last element was popped",
-        "summaryZh": "从多个列表中的一个弹出第一个元素。否则阻塞直到元素可用。如果最后一个元素被弹出则删除列表",
-        "since": "7.0.0"
-      },
-      {
-        "name": "BLPOP",
-        "summary": "Removes and returns the first element in a list. Blocks until an element is available otherwise. Deletes the list if the last element was popped",
-        "summaryZh": "移除并返回列表中的第一个元素。否则阻塞直到元素可用。如果最后一个元素被弹出则删除列表",
-        "since": "2.0.0"
-      },
-      {
-        "name": "BRPOP",
-        "summary": "Removes and returns the last element in a list. Blocks until an element is available otherwise. Deletes the list if the last element was popped",
-        "summaryZh": "移除并返回列表中的最后一个元素。否则阻塞直到元素可用。如果最后一个元素被弹出则删除列表",
-        "since": "2.0.0"
-      },
-      {
-        "name": "BRPOPLPUSH",
-        "summary": "Pops an element from a list, pushes it to another list and returns it. Block until an element is available otherwise. Deletes the list if the last element was popped",
-        "summaryZh": "从一个列表弹出一个元素，将其推入另一个列表并返回它。否则阻塞直到元素可用。如果最后一个元素被弹出则删除列表",
-        "since": "2.2.0"
-      },
-      {
-        "name": "LINDEX",
-        "summary": "Returns an element from a list by its index",
-        "summaryZh": "通过索引返回列表中的元素",
-        "since": "1.0.0"
-      },
-      {
-        "name": "LINSERT",
-        "summary": "Inserts an element before or after another element in a list",
-        "summaryZh": "在列表中的另一个元素之前或之后插入元素",
-        "since": "2.2.0"
-      },
-      {
-        "name": "LLEN",
-        "summary": "Returns the length of a list",
-        "summaryZh": "返回列表的长度",
-        "since": "1.0.0"
-      },
-      {
-        "name": "LMOVE",
-        "summary": "Returns an element after popping it from one list and pushing it to another. Deletes the list if the last element was moved",
-        "summaryZh": "从一个列表弹出元素并将其推入另一个列表后返回该元素。如果最后一个元素被移动则删除列表",
-        "since": "6.2.0"
-      },
-      {
-        "name": "LMPOP",
-        "summary": "Returns multiple elements from a list after removing them. Deletes the list if the last element was popped",
-        "summaryZh": "移除后返回列表中的多个元素。如果最后一个元素被弹出则删除列表",
-        "since": "7.0.0"
-      },
-      {
-        "name": "LPOP",
-        "summary": "Returns the first elements in a list after removing it. Deletes the list if the last element was popped",
-        "summaryZh": "移除后返回列表中的第一个元素。如果最后一个元素被弹出则删除列表",
-        "since": "1.0.0"
-      },
-      {
-        "name": "LPOS",
-        "summary": "Returns the index of matching elements in a list",
-        "summaryZh": "返回列表中匹配元素的索引",
-        "since": "6.0.6"
-      },
-      {
-        "name": "LPUSH",
-        "summary": "Prepends one or more elements to a list. Creates the key if it doesn't exist",
-        "summaryZh": "向列表 prepend 一个或多个元素。如果键不存在则创建",
-        "since": "1.0.0"
-      },
-      {
-        "name": "LPUSHX",
-        "summary": "Prepends one or more elements to a list only when the list exists",
-        "summaryZh": "仅当列表存在时向列表 prepend 一个或多个元素",
-        "since": "2.2.0"
-      },
-      {
-        "name": "LRANGE",
-        "summary": "Returns a range of elements from a list",
-        "summaryZh": "返回列表中的一个元素范围",
-        "since": "1.0.0"
-      },
-      {
-        "name": "LREM",
-        "summary": "Removes elements from a list. Deletes the list if the last element was removed",
-        "summaryZh": "从列表中移除元素。如果最后一个元素被移除则删除列表",
-        "since": "1.0.0"
-      },
-      {
-        "name": "LSET",
-        "summary": "Sets the value of an element in a list by its index",
-        "summaryZh": "通过索引设置列表中元素的值",
-        "since": "1.0.0"
-      },
-      {
-        "name": "LTRIM",
-        "summary": "Removes elements from both ends a list. Deletes the list if all elements were trimmed",
-        "summaryZh": "从列表两端移除元素。如果所有元素都被修剪则删除列表",
-        "since": "1.0.0"
-      },
-      {
-        "name": "RPOP",
-        "summary": "Returns and removes the last elements of a list. Deletes the list if the last element was popped",
-        "summaryZh": "返回并移除列表的最后一个元素。如果最后一个元素被弹出则删除列表",
-        "since": "1.0.0"
-      },
-      {
-        "name": "RPOPLPUSH",
-        "summary": "Returns the last element of a list after removing and pushing it to another list. Deletes the list if the last element was popped",
-        "summaryZh": "移除并将列表的最后一个元素推入另一个列表后返回该元素。如果最后一个元素被弹出则删除列表",
-        "since": "1.2.0"
-      },
-      {
-        "name": "RPUSH",
-        "summary": "Appends one or more elements to a list. Creates the key if it doesn't exist",
-        "summaryZh": "向列表追加一个或多个元素。如果键不存在则创建",
-        "since": "1.0.0"
-      },
-      {
-        "name": "RPUSHX",
-        "summary": "Appends an element to a list only when the list exists",
-        "summaryZh": "仅当列表存在时向列表追加元素",
-        "since": "2.2.0"
-      }
-    ]
-  },
-  {
-    "group": "set",
-    "commands": [
-      {
-        "name": "SADD",
-        "summary": "Adds one or more members to a set. Creates the key if it doesn't exist",
-        "summaryZh": "向集合添加一个或多个成员。如果键不存在则创建",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SCARD",
-        "summary": "Returns the number of members in a set",
-        "summaryZh": "返回集合中的成员数量",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SDIFF",
-        "summary": "Returns the difference of multiple sets",
-        "summaryZh": "返回多个集合的差集",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SDIFFSTORE",
-        "summary": "Stores the difference of multiple sets in a key",
-        "summaryZh": "将多个集合的差集存储在键中",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SINTER",
-        "summary": "Returns the intersect of multiple sets",
-        "summaryZh": "返回多个集合的交集",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SINTERCARD",
-        "summary": "Returns the number of members of the intersect of multiple sets",
-        "summaryZh": "返回多个集合交集的成员数量",
-        "since": "7.0.0"
-      },
-      {
-        "name": "SINTERSTORE",
-        "summary": "Stores the intersect of multiple sets in a key",
-        "summaryZh": "将多个集合的交集存储在键中",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SISMEMBER",
-        "summary": "Determines whether a member belongs to a set",
-        "summaryZh": "确定成员是否属于集合",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SMEMBERS",
-        "summary": "Returns all members of a set",
-        "summaryZh": "返回集合的所有成员",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SMISMEMBER",
-        "summary": "Determines whether multiple members belong to a set",
-        "summaryZh": "确定多个成员是否属于集合",
-        "since": "6.2.0"
-      },
-      {
-        "name": "SMOVE",
-        "summary": "Moves a member from one set to another",
-        "summaryZh": "将成员从一个集合移动到另一个集合",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SPOP",
-        "summary": "Returns one or more random members from a set after removing them. Deletes the set if the last member was popped",
-        "summaryZh": "移除后从集合返回一个或多个随机成员。如果最后一个成员被弹出则删除集合",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SRANDMEMBER",
-        "summary": "Get one or multiple random members from a set",
-        "summaryZh": "从集合获取一个或多个随机成员",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SREM",
-        "summary": "Removes one or more members from a set. Deletes the set if the last member was removed",
-        "summaryZh": "从集合中移除一个或多个成员。如果最后一个成员被移除则删除集合",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SSCAN",
-        "summary": "Iterates over members of a set",
-        "summaryZh": "迭代集合的成员",
-        "since": "2.8.0"
-      },
-      {
-        "name": "SUNION",
-        "summary": "Returns the union of multiple sets",
-        "summaryZh": "返回多个集合的并集",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SUNIONSTORE",
-        "summary": "Stores the union of multiple sets in a key",
-        "summaryZh": "将多个集合的并集存储在键中",
-        "since": "1.0.0"
-      }
-    ]
-  },
-  {
-    "group": "sorted-set",
-    "commands": [
-      {
-        "name": "BZMPOP",
-        "summary": "Removes and returns a member by score from one or more sorted sets. Blocks until a member is available otherwise. Deletes the sorted set if the last element was popped",
-        "summaryZh": "通过分数从一个或多个有序集合中移除并返回成员。否则阻塞直到成员可用。如果最后一个元素被弹出则删除有序集合",
-        "since": "7.0.0"
-      },
-      {
-        "name": "BZPOPMAX",
-        "summary": "Removes and returns the member with the highest score from one or more sorted sets. Blocks until a member available otherwise.  Deletes the sorted set if the last element was popped",
-        "summaryZh": "从一个或多个有序集合中移除并返回分数最高的成员。否则阻塞直到成员可用。如果最后一个元素被弹出则删除有序集合",
-        "since": "5.0.0"
-      },
-      {
-        "name": "BZPOPMIN",
-        "summary": "Removes and returns the member with the lowest score from one or more sorted sets. Blocks until a member is available otherwise. Deletes the sorted set if the last element was popped",
-        "summaryZh": "从一个或多个有序集合中移除并返回分数最低的成员。否则阻塞直到成员可用。如果最后一个元素被弹出则删除有序集合",
-        "since": "5.0.0"
-      },
-      {
-        "name": "ZADD",
-        "summary": "Adds one or more members to a sorted set, or updates their scores. Creates the key if it doesn't exist",
-        "summaryZh": "向有序集合添加一个或多个成员，或更新它们的分数。如果键不存在则创建",
-        "since": "1.2.0"
-      },
-      {
-        "name": "ZCARD",
-        "summary": "Returns the number of members in a sorted set",
-        "summaryZh": "返回有序集合中的成员数量",
-        "since": "1.2.0"
-      },
-      {
-        "name": "ZCOUNT",
-        "summary": "Returns the count of members in a sorted set that have scores within a range",
-        "summaryZh": "返回有序集合中分数在范围内的成员数量",
-        "since": "2.0.0"
-      },
-      {
-        "name": "ZDIFF",
-        "summary": "Returns the difference between multiple sorted sets",
-        "summaryZh": "返回多个有序集合的差集",
-        "since": "6.2.0"
-      },
-      {
-        "name": "ZDIFFSTORE",
-        "summary": "Stores the difference of multiple sorted sets in a key",
-        "summaryZh": "将多个有序集合的差集存储在键中",
-        "since": "6.2.0"
-      },
-      {
-        "name": "ZINCRBY",
-        "summary": "Increments the score of a member in a sorted set",
-        "summaryZh": "增加有序集合中成员的分数",
-        "since": "1.2.0"
-      },
-      {
-        "name": "ZINTER",
-        "summary": "Returns the intersect of multiple sorted sets",
-        "summaryZh": "返回多个有序集合的交集",
-        "since": "6.2.0"
-      },
-      {
-        "name": "ZINTERCARD",
-        "summary": "Returns the number of members of the intersect of multiple sorted sets",
-        "summaryZh": "返回多个有序集合交集的成员数量",
-        "since": "7.0.0"
-      },
-      {
-        "name": "ZINTERSTORE",
-        "summary": "Stores the intersect of multiple sorted sets in a key",
-        "summaryZh": "将多个有序集合的交集存储在键中",
-        "since": "2.0.0"
-      },
-      {
-        "name": "ZLEXCOUNT",
-        "summary": "Returns the number of members in a sorted set within a lexicographical range",
-        "summaryZh": "返回有序集合中字典序范围内的成员数量",
-        "since": "2.8.9"
-      },
-      {
-        "name": "ZMPOP",
-        "summary": "Returns the highest- or lowest-scoring members from one or more sorted sets after removing them. Deletes the sorted set if the last member was popped",
-        "summaryZh": "移除后从一个或多个有序集合中返回分数最高或最低的成员。如果最后一个成员被弹出则删除有序集合",
-        "since": "7.0.0"
-      },
-      {
-        "name": "ZMSCORE",
-        "summary": "Returns the score of one or more members in a sorted set",
-        "summaryZh": "返回有序集合中一个或多个成员的分数",
-        "since": "6.2.0"
-      },
-      {
-        "name": "ZPOPMAX",
-        "summary": "Returns the highest-scoring members from a sorted set after removing them. Deletes the sorted set if the last member was popped",
-        "summaryZh": "移除后从有序集合中返回分数最高的成员。如果最后一个成员被弹出则删除有序集合",
-        "since": "5.0.0"
-      },
-      {
-        "name": "ZPOPMIN",
-        "summary": "Returns the lowest-scoring members from a sorted set after removing them. Deletes the sorted set if the last member was popped",
-        "summaryZh": "移除后从有序集合中返回分数最低的成员。如果最后一个成员被弹出则删除有序集合",
-        "since": "5.0.0"
-      },
-      {
-        "name": "ZRANDMEMBER",
-        "summary": "Returns one or more random members from a sorted set",
-        "summaryZh": "从有序集合返回一个或多个随机成员",
-        "since": "6.2.0"
-      },
-      {
-        "name": "ZRANGE",
-        "summary": "Returns members in a sorted set within a range of indexes",
-        "summaryZh": "返回有序集合中索引范围内的成员",
-        "since": "1.2.0"
-      },
-      {
-        "name": "ZRANGEBYLEX",
-        "summary": "Returns members in a sorted set within a lexicographical range",
-        "summaryZh": "返回有序集合中字典序范围内的成员",
-        "since": "2.8.9"
-      },
-      {
-        "name": "ZRANGEBYSCORE",
-        "summary": "Returns members in a sorted set within a range of scores",
-        "summaryZh": "返回有序集合中分数范围内的成员",
-        "since": "1.0.5"
-      },
-      {
-        "name": "ZRANGESTORE",
-        "summary": "Stores a range of members from sorted set in a key",
-        "summaryZh": "将有序集合中的一个成员范围存储在键中",
-        "since": "6.2.0"
-      },
-      {
-        "name": "ZRANK",
-        "summary": "Returns the index of a member in a sorted set ordered by ascending scores",
-        "summaryZh": "返回按分数升序排列的有序集合中成员的索引",
-        "since": "2.0.0"
-      },
-      {
-        "name": "ZREM",
-        "summary": "Removes one or more members from a sorted set. Deletes the sorted set if all members were removed",
-        "summaryZh": "从有序集合中移除一个或多个成员。如果所有成员都被移除则删除有序集合",
-        "since": "1.2.0"
-      },
-      {
-        "name": "ZREMRANGEBYLEX",
-        "summary": "Removes members in a sorted set within a lexicographical range. Deletes the sorted set if all members were removed",
-        "summaryZh": "从有序集合中移除字典序范围内的成员。如果所有成员都被移除则删除有序集合",
-        "since": "2.8.9"
-      },
-      {
-        "name": "ZREMRANGEBYRANK",
-        "summary": "Removes members in a sorted set within a range of indexes. Deletes the sorted set if all members were removed",
-        "summaryZh": "从有序集合中移除索引范围内的成员。如果所有成员都被移除则删除有序集合",
-        "since": "2.0.0"
-      },
-      {
-        "name": "ZREMRANGEBYSCORE",
-        "summary": "Removes members in a sorted set within a range of scores. Deletes the sorted set if all members were removed",
-        "summaryZh": "从有序集合中移除分数范围内的成员。如果所有成员都被移除则删除有序集合",
-        "since": "1.2.0"
-      },
-      {
-        "name": "ZREVRANGE",
-        "summary": "Returns members in a sorted set within a range of indexes in reverse order",
-        "summaryZh": "返回有序集合中索引范围内的成员（逆序）",
-        "since": "1.2.0"
-      },
-      {
-        "name": "ZREVRANGEBYLEX",
-        "summary": "Returns members in a sorted set within a lexicographical range in reverse order",
-        "summaryZh": "返回有序集合中字典序范围内的成员（逆序）",
-        "since": "2.8.9"
-      },
-      {
-        "name": "ZREVRANGEBYSCORE",
-        "summary": "Returns members in a sorted set within a range of scores in reverse order",
-        "summaryZh": "返回有序集合中分数范围内的成员（逆序）",
-        "since": "2.2.0"
-      },
-      {
-        "name": "ZREVRANK",
-        "summary": "Returns the index of a member in a sorted set ordered by descending scores",
-        "summaryZh": "返回有序集合中按降序排列的成员索引",
-        "since": "2.0.0"
-      },
-      {
-        "name": "ZSCAN",
-        "summary": "Iterates over members and scores of a sorted set",
-        "summaryZh": "迭代有序集合的成员和分数",
-        "since": "2.8.0"
-      },
-      {
-        "name": "ZSCORE",
-        "summary": "Returns the score of a member in a sorted set",
-        "summaryZh": "返回有序集合中成员的分数",
-        "since": "1.2.0"
-      },
-      {
-        "name": "ZUNION",
-        "summary": "Returns the union of multiple sorted sets",
-        "summaryZh": "返回多个有序集合的并集",
-        "since": "6.2.0"
-      },
-      {
-        "name": "ZUNIONSTORE",
-        "summary": "Stores the union of multiple sorted sets in a key",
-        "summaryZh": "将多个有序集合的并集存储在键中",
-        "since": "2.0.0"
-      }
-    ]
-  },
-  {
-    "group": "stream",
-    "commands": [
-      {
-        "name": "XACK",
-        "summary": "Returns the number of messages that were successfully acknowledged by the consumer group member of a stream",
-        "summaryZh": "返回流的消费者组成员成功确认的消息数量",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XADD",
-        "summary": "Appends a new message to a stream. Creates the key if it doesn't exist",
-        "summaryZh": "向流追加新消息。如果键不存在则创建",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XAUTOCLAIM",
-        "summary": "Changes, or acquires, ownership of messages in a consumer group, as if the messages were delivered to as consumer group member",
-        "summaryZh": "更改或获取消费者组中消息的所有权，就像消息已传递给消费者组成员一样",
-        "since": "6.2.0"
-      },
-      {
-        "name": "XCLAIM",
-        "summary": "Changes, or acquires, ownership of a message in a consumer group, as if the message was delivered a consumer group member",
-        "summaryZh": "更改或获取消费者组中消息的所有权，就像消息已传递给消费者组成员一样",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XDEL",
-        "summary": "Returns the number of messages after removing them from a stream",
-        "summaryZh": "返回从流中删除后的消息数量",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XGROUP",
-        "summary": "A container for consumer groups commands",
-        "summaryZh": "消费者组命令的容器",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XGROUP CREATE",
-        "summary": "Creates a consumer group",
-        "summaryZh": "创建消费者组",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XGROUP CREATECONSUMER",
-        "summary": "Creates a consumer in a consumer group",
-        "summaryZh": "在消费者组中创建消费者",
-        "since": "6.2.0"
-      },
-      {
-        "name": "XGROUP DELCONSUMER",
-        "summary": "Deletes a consumer from a consumer group",
-        "summaryZh": "从消费者组中删除消费者",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XGROUP DESTROY",
-        "summary": "Destroys a consumer group",
-        "summaryZh": "销毁消费者组",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XGROUP HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XGROUP SETID",
-        "summary": "Sets the last-delivered ID of a consumer group",
-        "summaryZh": "设置消费者组的最后传递 ID",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XINFO",
-        "summary": "A container for stream introspection commands",
-        "summaryZh": "流内省命令的容器",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XINFO CONSUMERS",
-        "summary": "Returns a list of the consumers in a consumer group",
-        "summaryZh": "返回消费者组中的消费者列表",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XINFO GROUPS",
-        "summary": "Returns a list of the consumer groups of a stream",
-        "summaryZh": "返回流的消费者组列表",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XINFO HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XINFO STREAM",
-        "summary": "Returns information about a stream",
-        "summaryZh": "返回有关流的信息",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XLEN",
-        "summary": "Return the number of messages in a stream",
-        "summaryZh": "返回流中的消息数量",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XPENDING",
-        "summary": "Returns the information and entries from a stream consumer group's pending entries list",
-        "summaryZh": "返回流消费者组待处理条目列表的信息和条目",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XRANGE",
-        "summary": "Returns the messages from a stream within a range of IDs",
-        "summaryZh": "返回流中 ID 范围内的消息",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XREAD",
-        "summary": "Returns messages from multiple streams with IDs greater than the ones requested. Blocks until a message is available otherwise",
-        "summaryZh": "返回来自多个流的消息，其 ID 大于请求的 ID。否则阻塞直到消息可用",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XREADGROUP",
-        "summary": "Returns new or historical messages from a stream for a consumer in a group. Blocks until a message is available otherwise",
-        "summaryZh": "为组中的消费者返回流中的新消息或历史消息。否则阻塞直到消息可用",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XREVRANGE",
-        "summary": "Returns the messages from a stream within a range of IDs in reverse order",
-        "summaryZh": "返回流中 ID 范围内的消息（逆序）",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XSETID",
-        "summary": "An internal command for replicating stream values",
-        "summaryZh": "用于复制流值的内部命令",
-        "since": "5.0.0"
-      },
-      {
-        "name": "XTRIM",
-        "summary": "Deletes messages from the beginning of a stream",
-        "summaryZh": "从流的开头删除消息",
-        "since": "5.0.0"
-      }
-    ]
-  },
-  {
-    "group": "hyperloglog",
-    "commands": [
-      {
-        "name": "PFADD",
-        "summary": "Adds elements to a HyperLogLog key. Creates the key if it doesn't exist",
-        "summaryZh": "向 HyperLogLog 键添加元素。如果键不存在则创建",
-        "since": "2.8.9"
-      },
-      {
-        "name": "PFCOUNT",
-        "summary": "Returns the approximated cardinality of the set(s) observed by the HyperLogLog key(s)",
-        "summaryZh": "返回 HyperLogLog 键观察到的集合的近似基数",
-        "since": "2.8.9"
-      },
-      {
-        "name": "PFDEBUG",
-        "summary": "Internal commands for debugging HyperLogLog values",
-        "summaryZh": "用于调试 HyperLogLog 值的内部命令",
-        "since": "2.8.9"
-      },
-      {
-        "name": "PFMERGE",
-        "summary": "Merges one or more HyperLogLog values into a single key",
-        "summaryZh": "将一个或多个 HyperLogLog 值合并到单个键中",
-        "since": "2.8.9"
-      },
-      {
-        "name": "PFSELFTEST",
-        "summary": "An internal command for testing HyperLogLog values",
-        "summaryZh": "用于测试 HyperLogLog 值的内部命令",
-        "since": "2.8.9"
-      }
-    ]
-  },
-  {
-    "group": "geo",
-    "commands": [
-      {
-        "name": "GEOADD",
-        "summary": "Adds one or more members to a geospatial index. The key is created if it doesn't exist",
-        "summaryZh": "向地理空间索引添加一个或多个成员。如果键不存在则创建",
-        "since": "3.2.0"
-      },
-      {
-        "name": "GEODIST",
-        "summary": "Returns the distance between two members of a geospatial index",
-        "summaryZh": "返回地理空间索引中两个成员之间的距离",
-        "since": "3.2.0"
-      },
-      {
-        "name": "GEOHASH",
-        "summary": "Returns members from a geospatial index as geohash strings",
-        "summaryZh": "以 geohash 字符串形式返回地理空间索引中的成员",
-        "since": "3.2.0"
-      },
-      {
-        "name": "GEOPOS",
-        "summary": "Returns the longitude and latitude of members from a geospatial index",
-        "summaryZh": "返回地理空间索引中成员的经度和纬度",
-        "since": "3.2.0"
-      },
-      {
-        "name": "GEORADIUS",
-        "summary": "Queries a geospatial index for members within a distance from a coordinate, optionally stores the result",
-        "summaryZh": "查询地理空间索引中距离坐标一定范围内的成员，可选地存储结果",
-        "since": "3.2.0"
-      },
-      {
-        "name": "GEORADIUSBYMEMBER",
-        "summary": "Queries a geospatial index for members within a distance from a member, optionally stores the result",
-        "summaryZh": "查询地理空间索引中距离成员一定范围内的成员，可选地存储结果",
-        "since": "3.2.0"
-      },
-      {
-        "name": "GEORADIUSBYMEMBER_RO",
-        "summary": "Returns members from a geospatial index that are within a distance from a member",
-        "summaryZh": "返回地理空间索引中距离成员一定范围内的成员",
-        "since": "3.2.10"
-      },
-      {
-        "name": "GEORADIUS_RO",
-        "summary": "Returns members from a geospatial index that are within a distance from a coordinate",
-        "summaryZh": "返回地理空间索引中距离坐标一定范围内的成员",
-        "since": "3.2.10"
-      },
-      {
-        "name": "GEOSEARCH",
-        "summary": "Queries a geospatial index for members inside an area of a box or a circle",
-        "summaryZh": "查询地理空间索引中方框或圆形区域内的成员",
-        "since": "6.2.0"
-      },
-      {
-        "name": "GEOSEARCHSTORE",
-        "summary": "Queries a geospatial index for members inside an area of a box or a circle, optionally stores the result",
-        "summaryZh": "查询地理空间索引中方框或圆形区域内的成员，可选地存储结果",
-        "since": "6.2.0"
-      }
-    ]
-  },
-  {
-    "group": "bitmap",
-    "commands": [
-      {
-        "name": "BITCOUNT",
-        "summary": "Counts the number of set bits (population counting) in a string",
-        "summaryZh": "计算字符串中设置的位（人口计数）数量",
-        "since": "2.6.0"
-      },
-      {
-        "name": "BITFIELD",
-        "summary": "Performs arbitrary bitfield integer operations on strings",
-        "summaryZh": "对字符串执行任意位字段整数操作",
-        "since": "3.2.0"
-      },
-      {
-        "name": "BITFIELD_RO",
-        "summary": "Performs arbitrary read-only bitfield integer operations on strings",
-        "summaryZh": "对字符串执行任意只读位字段整数操作",
-        "since": "6.0.0"
-      },
-      {
-        "name": "BITOP",
-        "summary": "Performs bitwise operations on multiple strings, and stores the result",
-        "summaryZh": "对多个字符串执行位操作，并存储结果",
-        "since": "2.6.0"
-      },
-      {
-        "name": "BITPOS",
-        "summary": "Finds the first set (1) or clear (0) bit in a string",
-        "summaryZh": "查找字符串中第一个设置（1）或清除（0）的位",
-        "since": "2.8.7"
-      },
-      {
-        "name": "GETBIT",
-        "summary": "Returns a bit value by offset",
-        "summaryZh": "按偏移量返回位值",
-        "since": "2.2.0"
-      },
-      {
-        "name": "SETBIT",
-        "summary": "Sets or clears the bit at offset of the string value. Creates the key if it doesn't exist",
-        "summaryZh": "设置或清除字符串值偏移量处的位。如果键不存在则创建",
-        "since": "2.2.0"
-      }
-    ]
-  },
-  {
-    "group": "cluster",
-    "commands": [
-      {
-        "name": "ASKING",
-        "summary": "Signals that a cluster client is following an -ASK redirect",
-        "summaryZh": "表示集群客户端正在遵循 -ASK 重定向",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER",
-        "summary": "A container for Redis Cluster commands",
-        "summaryZh": "Redis 集群命令的容器",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER ADDSLOTS",
-        "summary": "Assigns new hash slots to a node",
-        "summaryZh": "为节点分配新的哈希槽",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER ADDSLOTSRANGE",
-        "summary": "Assigns new hash slot ranges to a node",
-        "summaryZh": "为节点分配新的哈希槽范围",
-        "since": "7.0.0"
-      },
-      {
-        "name": "CLUSTER BUMPEPOCH",
-        "summary": "Advances the cluster config epoch",
-        "summaryZh": "推进集群配置纪元",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER COUNT-FAILURE-REPORTS",
-        "summary": "Returns the number of active failure reports active for a node",
-        "summaryZh": "返回节点的活动故障报告数量",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER COUNTKEYSINSLOT",
-        "summary": "Returns the number of keys in a hash slot",
-        "summaryZh": "返回哈希槽中的键数量",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER DELSLOTS",
-        "summary": "Sets hash slots as unbound for a node",
-        "summaryZh": "将哈希槽设置为节点的未绑定状态",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER DELSLOTSRANGE",
-        "summary": "Sets hash slot ranges as unbound for a node",
-        "summaryZh": "将哈希槽范围设置为节点的未绑定状态",
-        "since": "7.0.0"
-      },
-      {
-        "name": "CLUSTER FAILOVER",
-        "summary": "Forces a replica to perform a manual failover of its master",
-        "summaryZh": "强制副本对其主节点执行手动故障转移",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER FLUSHSLOTS",
-        "summary": "Deletes all slots information from a node",
-        "summaryZh": "从节点中删除所有槽信息",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER FORGET",
-        "summary": "Removes a node from the nodes table",
-        "summaryZh": "从节点表中删除节点",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER GETKEYSINSLOT",
-        "summary": "Returns the key names in a hash slot",
-        "summaryZh": "返回哈希槽中的键名",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "5.0.0"
-      },
-      {
-        "name": "CLUSTER INFO",
-        "summary": "Returns information about the state of a node",
-        "summaryZh": "返回有关节点状态的信息",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER KEYSLOT",
-        "summary": "Returns the hash slot for a key",
-        "summaryZh": "返回键的哈希槽",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER LINKS",
-        "summary": "Returns a list of all TCP links to and from peer nodes",
-        "summaryZh": "返回与对等节点之间的所有 TCP 链接列表",
-        "since": "7.0.0"
-      },
-      {
-        "name": "CLUSTER MEET",
-        "summary": "Forces a node to handshake with another node",
-        "summaryZh": "强制节点与另一个节点握手",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER MYID",
-        "summary": "Returns the ID of a node",
-        "summaryZh": "返回节点的 ID",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER MYSHARDID",
-        "summary": "Returns the shard ID of a node",
-        "summaryZh": "返回节点的分片 ID",
-        "since": "7.2.0"
-      },
-      {
-        "name": "CLUSTER NODES",
-        "summary": "Returns the cluster configuration for a node",
-        "summaryZh": "返回节点的集群配置",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER REPLICAS",
-        "summary": "Lists the replica nodes of a master node",
-        "summaryZh": "列出主节点的副本节点",
-        "since": "5.0.0"
-      },
-      {
-        "name": "CLUSTER REPLICATE",
-        "summary": "Configure a node as replica of a master node",
-        "summaryZh": "将节点配置为主节点的副本",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER RESET",
-        "summary": "Resets a node",
-        "summaryZh": "重置节点",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER SAVECONFIG",
-        "summary": "Forces a node to save the cluster configuration to disk",
-        "summaryZh": "强制节点将集群配置保存到磁盘",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER SET-CONFIG-EPOCH",
-        "summary": "Sets the configuration epoch for a new node",
-        "summaryZh": "为新节点设置配置纪元",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER SETSLOT",
-        "summary": "Binds a hash slot to a node",
-        "summaryZh": "将哈希槽绑定到节点",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER SHARDS",
-        "summary": "Returns the mapping of cluster slots to shards",
-        "summaryZh": "返回集群槽到分片的映射",
-        "since": "7.0.0"
-      },
-      {
-        "name": "CLUSTER SLAVES",
-        "summary": "Lists the replica nodes of a master node",
-        "summaryZh": "列出主节点的副本节点",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLUSTER SLOTS",
-        "summary": "Returns the mapping of cluster slots to nodes",
-        "summaryZh": "返回集群槽到节点的映射",
-        "since": "3.0.0"
-      },
-      {
-        "name": "READONLY",
-        "summary": "Enables read-only queries for a connection to a Redis Cluster replica node",
-        "summaryZh": "为 Redis 集群副本节点的连接启用只读查询",
-        "since": "3.0.0"
-      },
-      {
-        "name": "READWRITE",
-        "summary": "Enables read-write queries for a connection to a Reids Cluster replica node",
-        "summaryZh": "为 Redis 集群副本节点的连接启用读写查询",
-        "since": "3.0.0"
-      }
-    ]
-  },
-  {
-    "group": "connection",
-    "commands": [
-      {
-        "name": "AUTH",
-        "summary": "Authenticates the connection",
-        "summaryZh": "验证连接",
-        "since": "1.0.0"
-      },
-      {
-        "name": "CLIENT",
-        "summary": "A container for client connection commands",
-        "summaryZh": "客户端连接命令的容器",
-        "since": "2.4.0"
-      },
-      {
-        "name": "CLIENT CACHING",
-        "summary": "Instructs the server whether to track the keys in the next request",
-        "summaryZh": "指示服务器是否跟踪下一个请求中的键",
-        "since": "6.0.0"
-      },
-      {
-        "name": "CLIENT GETNAME",
-        "summary": "Returns the name of the connection",
-        "summaryZh": "返回连接的名称",
-        "since": "2.6.9"
-      },
-      {
-        "name": "CLIENT GETREDIR",
-        "summary": "Returns the client ID to which the connection's tracking notifications are redirected",
-        "summaryZh": "返回连接的跟踪通知被重定向到的客户端 ID",
-        "since": "6.0.0"
-      },
-      {
-        "name": "CLIENT HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "5.0.0"
-      },
-      {
-        "name": "CLIENT ID",
-        "summary": "Returns the unique client ID of the connection",
-        "summaryZh": "返回连接的唯一客户端 ID",
-        "since": "5.0.0"
-      },
-      {
-        "name": "CLIENT INFO",
-        "summary": "Returns information about the connection",
-        "summaryZh": "返回有关连接的信息",
-        "since": "6.2.0"
-      },
-      {
-        "name": "CLIENT KILL",
-        "summary": "Terminates open connections",
-        "summaryZh": "终止打开的连接",
-        "since": "2.4.0"
-      },
-      {
-        "name": "CLIENT LIST",
-        "summary": "Lists open connections",
-        "summaryZh": "列出打开的连接",
-        "since": "2.4.0"
-      },
-      {
-        "name": "CLIENT NO-EVICT",
-        "summary": "Sets the client eviction mode of the connection",
-        "summaryZh": "设置连接的客户端驱逐模式",
-        "since": "7.0.0"
-      },
-      {
-        "name": "CLIENT NO-TOUCH",
-        "summary": "Controls whether commands sent by the client affect the LRU/LFU of accessed keys",
-        "summaryZh": "控制客户端发送的命令是否影响访问键的 LRU/LFU",
-        "since": "7.2.0"
-      },
-      {
-        "name": "CLIENT PAUSE",
-        "summary": "Suspends commands processing",
-        "summaryZh": "暂停命令处理",
-        "since": "3.0.0"
-      },
-      {
-        "name": "CLIENT REPLY",
-        "summary": "Instructs the server whether to reply to commands",
-        "summaryZh": "指示服务器是否回复命令",
-        "since": "3.2.0"
-      },
-      {
-        "name": "CLIENT SETINFO",
-        "summary": "Sets information specific to the client or connection",
-        "summaryZh": "设置特定于客户端或连接的信息",
-        "since": "7.2.0"
-      },
-      {
-        "name": "CLIENT SETNAME",
-        "summary": "Sets the connection name",
-        "summaryZh": "设置连接名称",
-        "since": "2.6.9"
-      },
-      {
-        "name": "CLIENT TRACKING",
-        "summary": "Controls server-assisted client-side caching for the connection",
-        "summaryZh": "控制连接的服务器辅助客户端缓存",
-        "since": "6.0.0"
-      },
-      {
-        "name": "CLIENT TRACKINGINFO",
-        "summary": "Returns information about server-assisted client-side caching for the connection",
-        "summaryZh": "返回有关连接的服务器辅助客户端缓存的信息",
-        "since": "6.2.0"
-      },
-      {
-        "name": "CLIENT UNBLOCK",
-        "summary": "Unblocks a client blocked by a blocking command from a different connection",
-        "summaryZh": "从不同连接解除被阻塞命令阻塞的客户端",
-        "since": "5.0.0"
-      },
-      {
-        "name": "CLIENT UNPAUSE",
-        "summary": "Resumes processing commands from paused clients",
-        "summaryZh": "恢复处理来自暂停客户端的命令",
-        "since": "6.2.0"
-      },
-      {
-        "name": "ECHO",
-        "summary": "Returns the given string",
-        "summaryZh": "返回给定的字符串",
-        "since": "1.0.0"
-      },
-      {
-        "name": "HELLO",
-        "summary": "Handshakes with the Redis server",
-        "summaryZh": "与Redis服务器握手",
-        "since": "6.0.0"
-      },
-      {
-        "name": "PING",
-        "summary": "Returns the server's liveliness response",
-        "summaryZh": "返回服务器的活跃响应",
-        "since": "1.0.0"
-      },
-      {
-        "name": "QUIT",
-        "summary": "Closes the connection",
-        "summaryZh": "关闭连接",
-        "since": "1.0.0"
-      },
-      {
-        "name": "RESET",
-        "summary": "Resets the connection",
-        "summaryZh": "重置连接",
-        "since": "6.2.0"
-      },
-      {
-        "name": "SELECT",
-        "summary": "Changes the selected database",
-        "summaryZh": "更改所选数据库",
-        "since": "1.0.0"
-      }
-    ]
-  },
-  {
-    "group": "pubsub",
-    "commands": [
-      {
-        "name": "PSUBSCRIBE",
-        "summary": "Listens for messages published to channels that match one or more patterns",
-        "summaryZh": "监听发布到匹配一个或多个模式的频道的消息",
-        "since": "2.0.0"
-      },
-      {
-        "name": "PUBLISH",
-        "summary": "Posts a message to a channel",
-        "summaryZh": "向频道发布消息",
-        "since": "2.0.0"
-      },
-      {
-        "name": "PUBSUB",
-        "summary": "A container for Pub/Sub commands",
-        "summaryZh": "Pub/Sub 命令的容器",
-        "since": "2.8.0"
-      },
-      {
-        "name": "PUBSUB CHANNELS",
-        "summary": "Returns the active channels",
-        "summaryZh": "返回活动频道",
-        "since": "2.8.0"
-      },
-      {
-        "name": "PUBSUB HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "6.2.0"
-      },
-      {
-        "name": "PUBSUB NUMPAT",
-        "summary": "Returns a count of unique pattern subscriptions",
-        "summaryZh": "返回唯一模式订阅的计数",
-        "since": "2.8.0"
-      },
-      {
-        "name": "PUBSUB NUMSUB",
-        "summary": "Returns a count of subscribers to channels",
-        "summaryZh": "返回频道订阅者的计数",
-        "since": "2.8.0"
-      },
-      {
-        "name": "PUBSUB SHARDCHANNELS",
-        "summary": "Returns the active shard channels",
-        "summaryZh": "返回活动分片频道",
-        "since": "7.0.0"
-      },
-      {
-        "name": "PUBSUB SHARDNUMSUB",
-        "summary": "Returns the count of subscribers of shard channels",
-        "summaryZh": "返回分片频道订阅者的计数",
-        "since": "7.0.0"
-      },
-      {
-        "name": "PUNSUBSCRIBE",
-        "summary": "Stops listening to messages published to channels that match one or more patterns",
-        "summaryZh": "停止监听发布到匹配一个或多个模式的频道的消息",
-        "since": "2.0.0"
-      },
-      {
-        "name": "SPUBLISH",
-        "summary": "Post a message to a shard channel",
-        "summaryZh": "向分片频道发布消息",
-        "since": "7.0.0"
-      },
-      {
-        "name": "SSUBSCRIBE",
-        "summary": "Listens for messages published to shard channels",
-        "summaryZh": "监听发布到分片频道的消息",
-        "since": "7.0.0"
-      },
-      {
-        "name": "SUBSCRIBE",
-        "summary": "Listens for messages published to channels",
-        "summaryZh": "监听发布到频道的消息",
-        "since": "2.0.0"
-      },
-      {
-        "name": "SUNSUBSCRIBE",
-        "summary": "Stops listening to messages posted to shard channels",
-        "summaryZh": "停止监听发布到分片频道的消息",
-        "since": "7.0.0"
-      },
-      {
-        "name": "UNSUBSCRIBE",
-        "summary": "Stops listening to messages posted to channels",
-        "summaryZh": "停止监听发布到频道的消息",
-        "since": "2.0.0"
-      }
-    ]
-  },
-  {
-    "group": "transactions",
-    "commands": [
-      {
-        "name": "DISCARD",
-        "summary": "Discards a transaction",
-        "summaryZh": "放弃事务",
-        "since": "2.0.0"
-      },
-      {
-        "name": "EXEC",
-        "summary": "Executes all commands in a transaction",
-        "summaryZh": "执行事务中的所有命令",
-        "since": "1.2.0"
-      },
-      {
-        "name": "MULTI",
-        "summary": "Starts a transaction",
-        "summaryZh": "开始事务",
-        "since": "1.2.0"
-      },
-      {
-        "name": "UNWATCH",
-        "summary": "Forgets about watched keys of a transaction",
-        "summaryZh": "忘记事务的已监视键",
-        "since": "2.2.0"
-      },
-      {
-        "name": "WATCH",
-        "summary": "Monitors changes to keys to determine the execution of a transaction",
-        "summaryZh": "监控键的变化以确定事务的执行",
-        "since": "2.2.0"
-      }
-    ]
-  },
-  {
-    "group": "scripting",
-    "commands": [
-      {
-        "name": "EVAL",
-        "summary": "Executes a server-side Lua script",
-        "summaryZh": "执行服务器端Lua脚本",
-        "since": "2.6.0"
-      },
-      {
-        "name": "EVALSHA",
-        "summary": "Executes a server-side Lua script by SHA1 digest",
-        "summaryZh": "通过 SHA1 摘要执行服务器端 Lua 脚本",
-        "since": "2.6.0"
-      },
-      {
-        "name": "EVALSHA_RO",
-        "summary": "Executes a read-only server-side Lua script by SHA1 digest",
-        "summaryZh": "通过 SHA1 摘要执行只读服务器端 Lua 脚本",
-        "since": "7.0.0"
-      },
-      {
-        "name": "EVAL_RO",
-        "summary": "Executes a read-only server-side Lua script",
-        "summaryZh": "执行只读服务器端 Lua 脚本",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FCALL",
-        "summary": "Invokes a function",
-        "summaryZh": "调用函数",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FCALL_RO",
-        "summary": "Invokes a read-only function",
-        "summaryZh": "调用只读函数",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FUNCTION",
-        "summary": "A container for function commands",
-        "summaryZh": "函数命令的容器",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FUNCTION DELETE",
-        "summary": "Deletes a library and its functions",
-        "summaryZh": "删除库及其函数",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FUNCTION DUMP",
-        "summary": "Dumps all libraries into a serialized binary payload",
-        "summaryZh": "将所有库转储到序列化的二进制有效负载中",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FUNCTION FLUSH",
-        "summary": "Deletes all libraries and functions",
-        "summaryZh": "删除所有库和函数",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FUNCTION HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FUNCTION KILL",
-        "summary": "Terminates a function during execution",
-        "summaryZh": "在执行期间终止函数",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FUNCTION LIST",
-        "summary": "Returns information about all libraries",
-        "summaryZh": "返回有关所有库的信息",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FUNCTION LOAD",
-        "summary": "Creates a library",
-        "summaryZh": "创建库",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FUNCTION RESTORE",
-        "summary": "Restores all libraries from a payload",
-        "summaryZh": "从有效负载恢复所有库",
-        "since": "7.0.0"
-      },
-      {
-        "name": "FUNCTION STATS",
-        "summary": "Returns information about a function during execution",
-        "summaryZh": "返回执行期间函数的信息",
-        "since": "7.0.0"
-      },
-      {
-        "name": "SCRIPT",
-        "summary": "A container for Lua scripts management commands",
-        "summaryZh": "Lua 脚本管理命令的容器",
-        "since": "2.6.0"
-      },
-      {
-        "name": "SCRIPT DEBUG",
-        "summary": "Sets the debug mode of server-side Lua scripts",
-        "summaryZh": "设置服务器端 Lua 脚本的调试模式",
-        "since": "3.2.0"
-      },
-      {
-        "name": "SCRIPT EXISTS",
-        "summary": "Determines whether server-side Lua scripts exist in the script cache",
-        "summaryZh": "确定服务器端 Lua 脚本是否存在于脚本缓存中",
-        "since": "2.6.0"
-      },
-      {
-        "name": "SCRIPT FLUSH",
-        "summary": "Removes all server-side Lua scripts from the script cache",
-        "summaryZh": "从脚本缓存中删除所有服务器端 Lua 脚本",
-        "since": "2.6.0"
-      },
-      {
-        "name": "SCRIPT HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "5.0.0"
-      },
-      {
-        "name": "SCRIPT KILL",
-        "summary": "Terminates a server-side Lua script during execution",
-        "summaryZh": "在执行期间终止服务器端 Lua 脚本",
-        "since": "2.6.0"
-      },
-      {
-        "name": "SCRIPT LOAD",
-        "summary": "Loads a server-side Lua script to the script cache",
-        "summaryZh": "将服务器端Lua脚本加载到脚本缓存",
-        "since": "2.6.0"
-      }
-    ]
-  },
-  {
-    "group": "server",
-    "commands": [
-      {
-        "name": "ACL",
-        "summary": "A container for Access List Control commands",
-        "summaryZh": "访问列表控制命令的容器",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL CAT",
-        "summary": "Lists the ACL categories, or the commands inside a category",
-        "summaryZh": "列出 ACL 类别或类别中的命令",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL DELUSER",
-        "summary": "Deletes ACL users, and terminates their connections",
-        "summaryZh": "删除 ACL 用户并终止其连接",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL DRYRUN",
-        "summary": "Simulates the execution of a command by a user, without executing the command",
-        "summaryZh": "模拟用户执行命令，但不执行命令",
-        "since": "7.0.0"
-      },
-      {
-        "name": "ACL GENPASS",
-        "summary": "Generates a pseudorandom, secure password that can be used to identify ACL users",
-        "summaryZh": "生成可用于标识 ACL 用户的伪随机安全密码",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL GETUSER",
-        "summary": "Lists the ACL rules of a user",
-        "summaryZh": "列出用户的 ACL 规则",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL LIST",
-        "summary": "Dumps the effective rules in ACL file format",
-        "summaryZh": "以 ACL 文件格式转储有效规则",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL LOAD",
-        "summary": "Reloads the rules from the configured ACL file",
-        "summaryZh": "从配置的 ACL 文件重新加载规则",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL LOG",
-        "summary": "Lists recent security events generated due to ACL rules",
-        "summaryZh": "列出由于 ACL 规则生成的最近安全事件",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL SAVE",
-        "summary": "Saves the effective ACL rules in the configured ACL file",
-        "summaryZh": "将有效 ACL 规则保存到配置的 ACL 文件中",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL SETUSER",
-        "summary": "Creates and modifies an ACL user and its rules",
-        "summaryZh": "创建和修改 ACL 用户及其规则",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL USERS",
-        "summary": "Lists all ACL users",
-        "summaryZh": "列出所有 ACL 用户",
-        "since": "6.0.0"
-      },
-      {
-        "name": "ACL WHOAMI",
-        "summary": "Returns the authenticated username of the current connection",
-        "summaryZh": "返回当前连接的认证用户名",
-        "since": "6.0.0"
-      },
-      {
-        "name": "BGREWRITEAOF",
-        "summary": "Asynchronously rewrites the append-only file to disk",
-        "summaryZh": "异步重写追加文件到磁盘",
-        "since": "1.0.0"
-      },
-      {
-        "name": "BGSAVE",
-        "summary": "Asynchronously saves the database(s) to disk",
-        "summaryZh": "异步将数据库保存到磁盘",
-        "since": "1.0.0"
-      },
-      {
-        "name": "COMMAND",
-        "summary": "Returns detailed information about all commands",
-        "summaryZh": "返回有关所有命令的详细信息",
-        "since": "2.8.13"
-      },
-      {
-        "name": "COMMAND COUNT",
-        "summary": "Returns a count of commands",
-        "summaryZh": "返回命令计数",
-        "since": "2.8.13"
-      },
-      {
-        "name": "COMMAND DOCS",
-        "summary": "Returns documentary information about one, multiple or all commands",
-        "summaryZh": "返回有关一个、多个或所有命令的文档信息",
-        "since": "7.0.0"
-      },
-      {
-        "name": "COMMAND GETKEYS",
-        "summary": "Extracts the key names from an arbitrary command",
-        "summaryZh": "从任意命令中提取键名",
-        "since": "2.8.13"
-      },
-      {
-        "name": "COMMAND GETKEYSANDFLAGS",
-        "summary": "Extracts the key names and access flags for an arbitrary command",
-        "summaryZh": "从任意命令中提取键名和访问标志",
-        "since": "7.0.0"
-      },
-      {
-        "name": "COMMAND HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "5.0.0"
-      },
-      {
-        "name": "COMMAND INFO",
-        "summary": "Returns information about one, multiple or all commands",
-        "summaryZh": "返回有关一个、多个或所有命令的信息",
-        "since": "2.8.13"
-      },
-      {
-        "name": "COMMAND LIST",
-        "summary": "Returns a list of command names",
-        "summaryZh": "返回命令名称列表",
-        "since": "7.0.0"
-      },
-      {
-        "name": "CONFIG",
-        "summary": "A container for server configuration commands",
-        "summaryZh": "服务器配置命令的容器",
-        "since": "2.0.0"
-      },
-      {
-        "name": "CONFIG GET",
-        "summary": "Returns the effective values of configuration parameters",
-        "summaryZh": "返回配置参数的有效值",
-        "since": "2.0.0"
-      },
-      {
-        "name": "CONFIG HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "5.0.0"
-      },
-      {
-        "name": "CONFIG RESETSTAT",
-        "summary": "Resets the server's statistics",
-        "summaryZh": "重置服务器的统计信息",
-        "since": "2.0.0"
-      },
-      {
-        "name": "CONFIG REWRITE",
-        "summary": "Persists the effective configuration to file",
-        "summaryZh": "将有效配置持久化到文件",
-        "since": "2.8.0"
-      },
-      {
-        "name": "CONFIG SET",
-        "summary": "Sets configuration parameters in-flight",
-        "summaryZh": "动态设置配置参数",
-        "since": "2.0.0"
-      },
-      {
-        "name": "DBSIZE",
-        "summary": "Returns the number of keys in the database",
-        "summaryZh": "返回数据库中的键数量",
-        "since": "1.0.0"
-      },
-      {
-        "name": "DEBUG",
-        "summary": "A container for debugging commands",
-        "summaryZh": "调试命令的容器",
-        "since": "1.0.0"
-      },
-      {
-        "name": "FAILOVER",
-        "summary": "Starts a coordinated failover from a server to one of its replicas",
-        "summaryZh": "启动从服务器到其一个副本的协调故障转移",
-        "since": "6.2.0"
-      },
-      {
-        "name": "FLUSHALL",
-        "summary": "Removes all keys from all databases",
-        "summaryZh": "从所有数据库中删除所有键",
-        "since": "1.0.0"
-      },
-      {
-        "name": "FLUSHDB",
-        "summary": "Remove all keys from the current database",
-        "summaryZh": "从当前数据库中删除所有键",
-        "since": "1.0.0"
-      },
-      {
-        "name": "INFO",
-        "summary": "Returns information and statistics about the server",
-        "summaryZh": "返回有关服务器的信息和统计数据",
-        "since": "1.0.0"
-      },
-      {
-        "name": "LASTSAVE",
-        "summary": "Returns the Unix timestamp of the last successful save to disk",
-        "summaryZh": "返回最后一次成功保存到磁盘的 Unix 时间戳",
-        "since": "1.0.0"
-      },
-      {
-        "name": "LATENCY",
-        "summary": "A container for latency diagnostics commands",
-        "summaryZh": "延迟诊断命令的容器",
-        "since": "2.8.13"
-      },
-      {
-        "name": "LATENCY DOCTOR",
-        "summary": "Returns a human-readable latency analysis report",
-        "summaryZh": "返回人类可读的延迟分析报告",
-        "since": "2.8.13"
-      },
-      {
-        "name": "LATENCY GRAPH",
-        "summary": "Returns a latency graph for an event",
-        "summaryZh": "返回事件的延迟图表",
-        "since": "2.8.13"
-      },
-      {
-        "name": "LATENCY HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "2.8.13"
-      },
-      {
-        "name": "LATENCY HISTOGRAM",
-        "summary": "Returns the cumulative distribution of latencies of a subset or all commands",
-        "summaryZh": "返回子集或所有命令的延迟累积分布",
-        "since": "7.0.0"
-      },
-      {
-        "name": "LATENCY HISTORY",
-        "summary": "Returns timestamp-latency samples for an event",
-        "summaryZh": "返回事件的时间戳-延迟样本",
-        "since": "2.8.13"
-      },
-      {
-        "name": "LATENCY LATEST",
-        "summary": "Returns the latest latency samples for all events",
-        "summaryZh": "返回所有事件的最新延迟样本",
-        "since": "2.8.13"
-      },
-      {
-        "name": "LATENCY RESET",
-        "summary": "Resets the latency data for one or more events",
-        "summaryZh": "重置一个或多个事件的延迟数据",
-        "since": "2.8.13"
-      },
-      {
-        "name": "LOLWUT",
-        "summary": "Displays computer art and the Redis version",
-        "summaryZh": "显示计算机艺术和 Redis 版本",
-        "since": "5.0.0"
-      },
-      {
-        "name": "MEMORY",
-        "summary": "A container for memory diagnostics commands",
-        "summaryZh": "内存诊断命令的容器",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MEMORY DOCTOR",
-        "summary": "Outputs a memory problems report",
-        "summaryZh": "输出内存问题报告",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MEMORY HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MEMORY MALLOC-STATS",
-        "summary": "Returns the allocator statistics",
-        "summaryZh": "返回分配器统计信息",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MEMORY PURGE",
-        "summary": "Asks the allocator to release memory",
-        "summaryZh": "请求分配器释放内存",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MEMORY STATS",
-        "summary": "Returns details about memory usage",
-        "summaryZh": "返回有关内存使用情况的详细信息",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MEMORY USAGE",
-        "summary": "Estimates the memory usage of a key",
-        "summaryZh": "估计键的内存使用情况",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MODULE",
-        "summary": "A container for module commands",
-        "summaryZh": "模块命令的容器",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MODULE HELP",
-        "summary": "Returns helpful text about the different subcommands",
-        "summaryZh": "返回关于不同子命令的帮助文本",
-        "since": "5.0.0"
-      },
-      {
-        "name": "MODULE LIST",
-        "summary": "Returns all loaded modules",
-        "summaryZh": "返回所有加载的模块",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MODULE LOAD",
-        "summary": "Loads a module",
-        "summaryZh": "加载模块",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MODULE LOADEX",
-        "summary": "Loads a module using extended parameters",
-        "summaryZh": "使用扩展参数加载模块",
-        "since": "7.0.0"
-      },
-      {
-        "name": "MODULE UNLOAD",
-        "summary": "Unloads a module",
-        "summaryZh": "卸载模块",
-        "since": "4.0.0"
-      },
-      {
-        "name": "MONITOR",
-        "summary": "Listens for all requests received by the server in real-time",
-        "summaryZh": "实时监听服务器收到的所有请求",
-        "since": "1.0.0"
-      },
-      {
-        "name": "PSYNC",
-        "summary": "An internal command used in replication",
-        "summaryZh": "复制中使用的内部命令",
-        "since": "2.8.0"
-      },
-      {
-        "name": "REPLCONF",
-        "summary": "An internal command for configuring the replication stream",
-        "summaryZh": "用于配置复制流的内部命令",
-        "since": "3.0.0"
-      },
-      {
-        "name": "REPLICAOF",
-        "summary": "Configures a server as replica of another, or promotes it to a master",
-        "summaryZh": "将服务器配置为另一个服务器的副本，或将其提升为主服务器",
-        "since": "5.0.0"
-      },
-      {
-        "name": "RESTORE-ASKING",
-        "summary": "An internal command for migrating keys in a cluster",
-        "summaryZh": "集群中迁移键的内部命令",
-        "since": "3.0.0"
-      },
-      {
-        "name": "ROLE",
-        "summary": "Returns the replication role",
-        "summaryZh": "返回复制角色",
-        "since": "2.8.12"
-      },
-      {
-        "name": "SAVE",
-        "summary": "Synchronously saves the database(s) to disk",
-        "summaryZh": "同步将数据库保存到磁盘",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SHUTDOWN",
-        "summary": "Synchronously saves the database(s) to disk and shuts down the Redis server",
-        "summaryZh": "同步将数据库保存到磁盘并关闭Redis服务器",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SLAVEOF",
-        "summary": "Sets a Redis server as a replica of another, or promotes it to being a master",
-        "summaryZh": "将Redis服务器设置为另一个服务器的副本，或将其提升为主服务器",
-        "since": "1.0.0"
-      },
-      {
-        "name": "SLOWLOG",
-        "summary": "A container for slow log commands",
-        "summaryZh": "慢日志命令的容器",
-        "since": "2.2.12"
-      },
-      {
-        "name": "SLOWLOG GET",
-        "summary": "Returns the slow log's entries",
-        "summaryZh": "返回慢日志的条目",
-        "since": "2.2.12"
-      },
-      {
-        "name": "SLOWLOG HELP",
-        "summary": "Show helpful text about the different subcommands",
-        "summaryZh": "显示关于不同子命令的帮助文本",
-        "since": "6.2.0"
-      },
-      {
-        "name": "SLOWLOG LEN",
-        "summary": "Returns the number of entries in the slow log",
-        "summaryZh": "返回慢日志中的条目数量",
-        "since": "2.2.12"
-      },
-      {
-        "name": "SLOWLOG RESET",
-        "summary": "Clears all entries from the slow log",
-        "summaryZh": "清除慢日志中的所有条目",
-        "since": "2.2.12"
-      },
-      {
-        "name": "SWAPDB",
-        "summary": "Swaps two Redis databases",
-        "summaryZh": "交换两个Redis数据库",
-        "since": "4.0.0"
-      },
-      {
-        "name": "SYNC",
-        "summary": "An internal command used in replication",
-        "summaryZh": "复制中使用的内部命令",
-        "since": "1.0.0"
-      },
-      {
-        "name": "TIME",
-        "summary": "Returns the server time",
-        "summaryZh": "返回服务器时间",
-        "since": "2.6.0"
-      }
-    ]
-  }
-]
+  [
+    {
+      "key": "ACL CAT",
+      "title": "ACL CAT",
+      "group": "server",
+      "description": "Lists the ACL categories, or the commands inside a category. @since 6.0.0 [server]",
+      "usage": "ACL CAT [category]"
+    },
+    {
+      "key": "ACL DELUSER",
+      "title": "ACL DELUSER",
+      "group": "server",
+      "description": "Deletes ACL users, and terminates their connections. @since 6.0.0 [server]",
+      "usage": "ACL DELUSER username [username ...]"
+    },
+    {
+      "key": "ACL DRYRUN",
+      "title": "ACL DRYRUN",
+      "group": "server",
+      "description": "Simulates the execution of a command by a user, without executing the command. @since 7.0.0 [server]",
+      "usage": "ACL DRYRUN username command [arg [arg ...]]"
+    },
+    {
+      "key": "ACL GENPASS",
+      "title": "ACL GENPASS",
+      "group": "server",
+      "description": "Generates a pseudorandom, secure password that can be used to identify ACL users. @since 6.0.0 [server]",
+      "usage": "ACL GENPASS [bits]"
+    },
+    {
+      "key": "ACL GETUSER",
+      "title": "ACL GETUSER",
+      "group": "server",
+      "description": "Lists the ACL rules of a user. @since 6.0.0 [server]",
+      "usage": "ACL GETUSER username"
+    },
+    {
+      "key": "ACL HELP",
+      "title": "ACL HELP",
+      "group": "server",
+      "description": "Returns helpful text about the different subcommands. @since 6.0.0 [server]",
+      "usage": "ACL HELP"
+    },
+    {
+      "key": "ACL LIST",
+      "title": "ACL LIST",
+      "group": "server",
+      "description": "Dumps the effective rules in ACL file format. @since 6.0.0 [server]",
+      "usage": "ACL LIST"
+    },
+    {
+      "key": "ACL LOAD",
+      "title": "ACL LOAD",
+      "group": "server",
+      "description": "Reloads the rules from the configured ACL file. @since 6.0.0 [server]",
+      "usage": "ACL LOAD"
+    },
+    {
+      "key": "ACL LOG",
+      "title": "ACL LOG",
+      "group": "server",
+      "description": "Lists recent security events generated due to ACL rules. @since 6.0.0 [server]",
+      "usage": "ACL LOG [count | RESET]"
+    },
+    {
+      "key": "ACL SAVE",
+      "title": "ACL SAVE",
+      "group": "server",
+      "description": "Saves the effective ACL rules in the configured ACL file. @since 6.0.0 [server]",
+      "usage": "ACL SAVE"
+    },
+    {
+      "key": "ACL SETUSER",
+      "title": "ACL SETUSER",
+      "group": "server",
+      "description": "Creates and modifies an ACL user and its rules. @since 6.0.0 [server]",
+      "usage": "ACL SETUSER username [rule [rule ...]]"
+    },
+    {
+      "key": "ACL USERS",
+      "title": "ACL USERS",
+      "group": "server",
+      "description": "Lists all ACL users. @since 6.0.0 [server]",
+      "usage": "ACL USERS"
+    },
+    {
+      "key": "ACL WHOAMI",
+      "title": "ACL WHOAMI",
+      "group": "server",
+      "description": "Returns the authenticated username of the current connection. @since 6.0.0 [server]",
+      "usage": "ACL WHOAMI"
+    },
+    {
+      "key": "ACL",
+      "title": "ACL",
+      "group": "server",
+      "description": "A container for Access List Control commands. @since 6.0.0 [server]",
+      "usage": "ACL"
+    },
+    {
+      "key": "APPEND",
+      "title": "APPEND",
+      "group": "string",
+      "description": "Appends a string to the value of a key. Creates the key if it doesn't exist. @since 2.0.0 [string]",
+      "usage": "APPEND key value"
+    },
+    {
+      "key": "ASKING",
+      "title": "ASKING",
+      "group": "cluster",
+      "description": "Signals that a cluster client is following an -ASK redirect. @since 3.0.0 [cluster]",
+      "usage": "ASKING"
+    },
+    {
+      "key": "AUTH",
+      "title": "AUTH",
+      "group": "connection",
+      "description": "Authenticates the connection. @since 1.0.0 [connection]",
+      "usage": "AUTH [username] password"
+    },
+    {
+      "key": "BF.ADD",
+      "title": "BF.ADD",
+      "group": "bf",
+      "description": "Adds an item to a Bloom Filter @since 1.0.0 [bf]",
+      "usage": "BF.ADD key item"
+    },
+    {
+      "key": "BF.CARD",
+      "title": "BF.CARD",
+      "group": "bf",
+      "description": "Returns the cardinality of a Bloom filter @since 2.4.4 [bf]",
+      "usage": "BF.CARD key"
+    },
+    {
+      "key": "BF.EXISTS",
+      "title": "BF.EXISTS",
+      "group": "bf",
+      "description": "Checks whether an item exists in a Bloom Filter @since 1.0.0 [bf]",
+      "usage": "BF.EXISTS key item"
+    },
+    {
+      "key": "BF.INFO",
+      "title": "BF.INFO",
+      "group": "bf",
+      "description": "Returns information about a Bloom Filter @since 1.0.0 [bf]",
+      "usage": "BF.INFO key [CAPACITY | SIZE | FILTERS | ITEMS | EXPANSION]"
+    },
+    {
+      "key": "BF.INSERT",
+      "title": "BF.INSERT",
+      "group": "bf",
+      "description": "Adds one or more items to a Bloom Filter. A filter will be created if it does not exist @since 1.0.0 [bf]",
+      "usage": "BF.INSERT key [CAPACITY capacity] [ERROR error]\n  [EXPANSION expansion] [NOCREATE] [NONSCALING] ITEMS item [item\n  ...]"
+    },
+    {
+      "key": "BF.LOADCHUNK",
+      "title": "BF.LOADCHUNK",
+      "group": "bf",
+      "description": "Restores a filter previously saved using SCANDUMP @since 1.0.0 [bf]",
+      "usage": "BF.LOADCHUNK key iterator data"
+    },
+    {
+      "key": "BF.MADD",
+      "title": "BF.MADD",
+      "group": "bf",
+      "description": "Adds one or more items to a Bloom Filter. A filter will be created if it does not exist @since 1.0.0 [bf]",
+      "usage": "BF.MADD key item [item ...]"
+    },
+    {
+      "key": "BF.MEXISTS",
+      "title": "BF.MEXISTS",
+      "group": "bf",
+      "description": "Checks whether one or more items exist in a Bloom Filter @since 1.0.0 [bf]",
+      "usage": "BF.MEXISTS key item [item ...]"
+    },
+    {
+      "key": "BF.RESERVE",
+      "title": "BF.RESERVE",
+      "group": "bf",
+      "description": "Creates a new Bloom Filter @since 1.0.0 [bf]",
+      "usage": "BF.RESERVE key error_rate capacity [EXPANSION expansion]\n  [NONSCALING]"
+    },
+    {
+      "key": "BF.SCANDUMP",
+      "title": "BF.SCANDUMP",
+      "group": "bf",
+      "description": "Begins an incremental save of the bloom filter @since 1.0.0 [bf]",
+      "usage": "BF.SCANDUMP key iterator"
+    },
+    {
+      "key": "BGREWRITEAOF",
+      "title": "BGREWRITEAOF",
+      "group": "server",
+      "description": "Asynchronously rewrites the append-only file to disk. @since 1.0.0 [server]",
+      "usage": "BGREWRITEAOF"
+    },
+    {
+      "key": "BGSAVE",
+      "title": "BGSAVE",
+      "group": "server",
+      "description": "Asynchronously saves the database(s) to disk. @since 1.0.0 [server]",
+      "usage": "BGSAVE [SCHEDULE]"
+    },
+    {
+      "key": "BITCOUNT",
+      "title": "BITCOUNT",
+      "group": "bitmap",
+      "description": "Counts the number of set bits (population counting) in a string. @since 2.6.0 [bitmap]",
+      "usage": "BITCOUNT key [start end [BYTE | BIT]]"
+    },
+    {
+      "key": "BITFIELD",
+      "title": "BITFIELD",
+      "group": "bitmap",
+      "description": "Performs arbitrary bitfield integer operations on strings. @since 3.2.0 [bitmap]",
+      "usage": "BITFIELD key [GET encoding offset | [OVERFLOW <WRAP | SAT | FAIL>]\n  <SET encoding offset value | INCRBY encoding offset increment>\n  [GET encoding offset | [OVERFLOW <WRAP | SAT | FAIL>]\n  <SET encoding offset value | INCRBY encoding offset increment>\n  ...]]"
+    },
+    {
+      "key": "BITFIELD_RO",
+      "title": "BITFIELD_RO",
+      "group": "bitmap",
+      "description": "Performs arbitrary read-only bitfield integer operations on strings. @since 6.0.0 [bitmap]",
+      "usage": "BITFIELD_RO key [GET encoding offset [GET encoding offset ...]]"
+    },
+    {
+      "key": "BITOP",
+      "title": "BITOP",
+      "group": "bitmap",
+      "description": "Performs bitwise operations on multiple strings, and stores the result. @since 2.6.0 [bitmap]",
+      "usage": "BITOP <AND | OR | XOR | NOT | DIFF | DIFF1 | ANDOR | ONE> destkey key [key ...]"
+    },
+    {
+      "key": "BITPOS",
+      "title": "BITPOS",
+      "group": "bitmap",
+      "description": "Finds the first set (1) or clear (0) bit in a string. @since 2.8.7 [bitmap]",
+      "usage": "BITPOS key bit [start [end [BYTE | BIT]]]"
+    },
+    {
+      "key": "BLMOVE",
+      "title": "BLMOVE",
+      "group": "list",
+      "description": "Pops an element from a list, pushes it to another list and returns it. Blocks until an element is available otherwise. Deletes the list if the last element was moved. @since 6.2.0 [list]",
+      "usage": "BLMOVE source destination <LEFT | RIGHT> <LEFT | RIGHT> timeout"
+    },
+    {
+      "key": "BLMPOP",
+      "title": "BLMPOP",
+      "group": "list",
+      "description": "Pops the first element from one of multiple lists. Blocks until an element is available otherwise. Deletes the list if the last element was popped. @since 7.0.0 [list]",
+      "usage": "BLMPOP timeout numkeys key [key ...] <LEFT | RIGHT> [COUNT count]"
+    },
+    {
+      "key": "BLPOP",
+      "title": "BLPOP",
+      "group": "list",
+      "description": "Removes and returns the first element in a list. Blocks until an element is available otherwise. Deletes the list if the last element was popped. @since 2.0.0 [list]",
+      "usage": "BLPOP key [key ...] timeout"
+    },
+    {
+      "key": "BRPOP",
+      "title": "BRPOP",
+      "group": "list",
+      "description": "Removes and returns the last element in a list. Blocks until an element is available otherwise. Deletes the list if the last element was popped. @since 2.0.0 [list]",
+      "usage": "BRPOP key [key ...] timeout"
+    },
+    {
+      "key": "BRPOPLPUSH",
+      "title": "BRPOPLPUSH",
+      "group": "list",
+      "description": "Pops an element from a list, pushes it to another list and returns it. Block until an element is available otherwise. Deletes the list if the last element was popped. @since 2.2.0 [list]",
+      "usage": "BRPOPLPUSH source destination timeout"
+    },
+    {
+      "key": "BZMPOP",
+      "title": "BZMPOP",
+      "group": "sorted-set",
+      "description": "Removes and returns a member by score from one or more sorted sets. Blocks until a member is available otherwise. Deletes the sorted set if the last element was popped. @since 7.0.0 [sorted-set]",
+      "usage": "BZMPOP timeout numkeys key [key ...] <MIN | MAX> [COUNT count]"
+    },
+    {
+      "key": "BZPOPMAX",
+      "title": "BZPOPMAX",
+      "group": "sorted-set",
+      "description": "Removes and returns the member with the highest score from one or more sorted sets. Blocks until a member available otherwise.  Deletes the sorted set if the last element was popped. @since 5.0.0 [sorted-set]",
+      "usage": "BZPOPMAX key [key ...] timeout"
+    },
+    {
+      "key": "BZPOPMIN",
+      "title": "BZPOPMIN",
+      "group": "sorted-set",
+      "description": "Removes and returns the member with the lowest score from one or more sorted sets. Blocks until a member is available otherwise. Deletes the sorted set if the last element was popped. @since 5.0.0 [sorted-set]",
+      "usage": "BZPOPMIN key [key ...] timeout"
+    },
+    {
+      "key": "CF.ADD",
+      "title": "CF.ADD",
+      "group": "cf",
+      "description": "Adds an item to a Cuckoo Filter @since 1.0.0 [cf]",
+      "usage": "CF.ADD key item"
+    },
+    {
+      "key": "CF.ADDNX",
+      "title": "CF.ADDNX",
+      "group": "cf",
+      "description": "Adds an item to a Cuckoo Filter if the item did not exist previously. @since 1.0.0 [cf]",
+      "usage": "CF.ADDNX key item"
+    },
+    {
+      "key": "CF.COUNT",
+      "title": "CF.COUNT",
+      "group": "cf",
+      "description": "Return the number of times an item might be in a Cuckoo Filter @since 1.0.0 [cf]",
+      "usage": "CF.COUNT key item"
+    },
+    {
+      "key": "CF.DEL",
+      "title": "CF.DEL",
+      "group": "cf",
+      "description": "Deletes an item from a Cuckoo Filter @since 1.0.0 [cf]",
+      "usage": "CF.DEL key item"
+    },
+    {
+      "key": "CF.EXISTS",
+      "title": "CF.EXISTS",
+      "group": "cf",
+      "description": "Checks whether one or more items exist in a Cuckoo Filter @since 1.0.0 [cf]",
+      "usage": "CF.EXISTS key item"
+    },
+    {
+      "key": "CF.INFO",
+      "title": "CF.INFO",
+      "group": "cf",
+      "description": "Returns information about a Cuckoo Filter @since 1.0.0 [cf]",
+      "usage": "CF.INFO key"
+    },
+    {
+      "key": "CF.INSERT",
+      "title": "CF.INSERT",
+      "group": "cf",
+      "description": "Adds one or more items to a Cuckoo Filter. A filter will be created if it does not exist @since 1.0.0 [cf]",
+      "usage": "CF.INSERT key [CAPACITY capacity] [NOCREATE] ITEMS item [item ...]"
+    },
+    {
+      "key": "CF.INSERTNX",
+      "title": "CF.INSERTNX",
+      "group": "cf",
+      "description": "Adds one or more items to a Cuckoo Filter if the items did not exist previously. A filter will be created if it does not exist @since 1.0.0 [cf]",
+      "usage": "CF.INSERTNX key [CAPACITY capacity] [NOCREATE] ITEMS item [item ...]"
+    },
+    {
+      "key": "CF.LOADCHUNK",
+      "title": "CF.LOADCHUNK",
+      "group": "cf",
+      "description": "Restores a filter previously saved using SCANDUMP @since 1.0.0 [cf]",
+      "usage": "CF.LOADCHUNK key iterator data"
+    },
+    {
+      "key": "CF.MEXISTS",
+      "title": "CF.MEXISTS",
+      "group": "cf",
+      "description": "Checks whether one or more items exist in a Cuckoo Filter @since 1.0.0 [cf]",
+      "usage": "CF.MEXISTS key item [item ...]"
+    },
+    {
+      "key": "CF.RESERVE",
+      "title": "CF.RESERVE",
+      "group": "cf",
+      "description": "Creates a new Cuckoo Filter @since 1.0.0 [cf]",
+      "usage": "CF.RESERVE key capacity [BUCKETSIZE bucketsize]\n  [MAXITERATIONS maxiterations] [EXPANSION expansion]"
+    },
+    {
+      "key": "CF.SCANDUMP",
+      "title": "CF.SCANDUMP",
+      "group": "cf",
+      "description": "Begins an incremental save of the bloom filter @since 1.0.0 [cf]",
+      "usage": "CF.SCANDUMP key iterator"
+    },
+    {
+      "key": "CLIENT CACHING",
+      "title": "CLIENT CACHING",
+      "group": "connection",
+      "description": "Instructs the server whether to track the keys in the next request. @since 6.0.0 [connection]",
+      "usage": "CLIENT CACHING <YES | NO>"
+    },
+    {
+      "key": "CLIENT GETNAME",
+      "title": "CLIENT GETNAME",
+      "group": "connection",
+      "description": "Returns the name of the connection. @since 2.6.9 [connection]",
+      "usage": "CLIENT GETNAME"
+    },
+    {
+      "key": "CLIENT GETREDIR",
+      "title": "CLIENT GETREDIR",
+      "group": "connection",
+      "description": "Returns the client ID to which the connection's tracking notifications are redirected. @since 6.0.0 [connection]",
+      "usage": "CLIENT GETREDIR"
+    },
+    {
+      "key": "CLIENT HELP",
+      "title": "CLIENT HELP",
+      "group": "connection",
+      "description": "Returns helpful text about the different subcommands. @since 5.0.0 [connection]",
+      "usage": "CLIENT HELP"
+    },
+    {
+      "key": "CLIENT ID",
+      "title": "CLIENT ID",
+      "group": "connection",
+      "description": "Returns the unique client ID of the connection. @since 5.0.0 [connection]",
+      "usage": "CLIENT ID"
+    },
+    {
+      "key": "CLIENT INFO",
+      "title": "CLIENT INFO",
+      "group": "connection",
+      "description": "Returns information about the connection. @since 6.2.0 [connection]",
+      "usage": "CLIENT INFO"
+    },
+    {
+      "key": "CLIENT KILL",
+      "title": "CLIENT KILL",
+      "group": "connection",
+      "description": "Terminates open connections. @since 2.4.0 [connection]",
+      "usage": "CLIENT KILL <ip:port | <[ID client-id] | [TYPE <NORMAL | MASTER |\n  SLAVE | REPLICA | PUBSUB>] | [USER username] | [ADDR ip:port] |\n  [LADDR ip:port] | [SKIPME <YES | NO>] | [MAXAGE maxage]\n  [[ID client-id] | [TYPE <NORMAL | MASTER | SLAVE | REPLICA |\n  PUBSUB>] | [USER username] | [ADDR ip:port] | [LADDR ip:port] |\n  [SKIPME <YES | NO>] | [MAXAGE maxage] ...]>>"
+    },
+    {
+      "key": "CLIENT LIST",
+      "title": "CLIENT LIST",
+      "group": "connection",
+      "description": "Lists open connections. @since 2.4.0 [connection]",
+      "usage": "CLIENT LIST [TYPE <NORMAL | MASTER | REPLICA | PUBSUB>]\n  [ID client-id [client-id ...]]"
+    },
+    {
+      "key": "CLIENT NO-EVICT",
+      "title": "CLIENT NO-EVICT",
+      "group": "connection",
+      "description": "Sets the client eviction mode of the connection. @since 7.0.0 [connection]",
+      "usage": "CLIENT NO-EVICT <ON | OFF>"
+    },
+    {
+      "key": "CLIENT NO-TOUCH",
+      "title": "CLIENT NO-TOUCH",
+      "group": "connection",
+      "description": "Controls whether commands sent by the client affect the LRU/LFU of accessed keys. @since 7.2.0 [connection]",
+      "usage": "CLIENT NO-TOUCH <ON | OFF>"
+    },
+    {
+      "key": "CLIENT PAUSE",
+      "title": "CLIENT PAUSE",
+      "group": "connection",
+      "description": "Suspends commands processing. @since 3.0.0 [connection]",
+      "usage": "CLIENT PAUSE timeout [WRITE | ALL]"
+    },
+    {
+      "key": "CLIENT REPLY",
+      "title": "CLIENT REPLY",
+      "group": "connection",
+      "description": "Instructs the server whether to reply to commands. @since 3.2.0 [connection]",
+      "usage": "CLIENT REPLY <ON | OFF | SKIP>"
+    },
+    {
+      "key": "CLIENT SETINFO",
+      "title": "CLIENT SETINFO",
+      "group": "connection",
+      "description": "Sets information specific to the client or connection. @since 7.2.0 [connection]",
+      "usage": "CLIENT SETINFO <LIB-NAME libname | LIB-VER libver>"
+    },
+    {
+      "key": "CLIENT SETNAME",
+      "title": "CLIENT SETNAME",
+      "group": "connection",
+      "description": "Sets the connection name. @since 2.6.9 [connection]",
+      "usage": "CLIENT SETNAME connection-name"
+    },
+    {
+      "key": "CLIENT TRACKING",
+      "title": "CLIENT TRACKING",
+      "group": "connection",
+      "description": "Controls server-assisted client-side caching for the connection. @since 6.0.0 [connection]",
+      "usage": "CLIENT TRACKING <ON | OFF> [REDIRECT client-id] [PREFIX prefix\n  [PREFIX prefix ...]] [BCAST] [OPTIN] [OPTOUT] [NOLOOP]"
+    },
+    {
+      "key": "CLIENT TRACKINGINFO",
+      "title": "CLIENT TRACKINGINFO",
+      "group": "connection",
+      "description": "Returns information about server-assisted client-side caching for the connection. @since 6.2.0 [connection]",
+      "usage": "CLIENT TRACKINGINFO"
+    },
+    {
+      "key": "CLIENT UNBLOCK",
+      "title": "CLIENT UNBLOCK",
+      "group": "connection",
+      "description": "Unblocks a client blocked by a blocking command from a different connection. @since 5.0.0 [connection]",
+      "usage": "CLIENT UNBLOCK client-id [TIMEOUT | ERROR]"
+    },
+    {
+      "key": "CLIENT UNPAUSE",
+      "title": "CLIENT UNPAUSE",
+      "group": "connection",
+      "description": "Resumes processing commands from paused clients. @since 6.2.0 [connection]",
+      "usage": "CLIENT UNPAUSE"
+    },
+    {
+      "key": "CLIENT",
+      "title": "CLIENT",
+      "group": "connection",
+      "description": "A container for client connection commands. @since 2.4.0 [connection]",
+      "usage": "CLIENT"
+    },
+    {
+      "key": "CLUSTER ADDSLOTS",
+      "title": "CLUSTER ADDSLOTS",
+      "group": "cluster",
+      "description": "Assigns new hash slots to a node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER ADDSLOTS slot [slot ...]"
+    },
+    {
+      "key": "CLUSTER ADDSLOTSRANGE",
+      "title": "CLUSTER ADDSLOTSRANGE",
+      "group": "cluster",
+      "description": "Assigns new hash slot ranges to a node. @since 7.0.0 [cluster]",
+      "usage": "CLUSTER ADDSLOTSRANGE start-slot end-slot [start-slot end-slot ...]"
+    },
+    {
+      "key": "CLUSTER BUMPEPOCH",
+      "title": "CLUSTER BUMPEPOCH",
+      "group": "cluster",
+      "description": "Advances the cluster config epoch. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER BUMPEPOCH"
+    },
+    {
+      "key": "CLUSTER COUNT-FAILURE-REPORTS",
+      "title": "CLUSTER COUNT-FAILURE-REPORTS",
+      "group": "cluster",
+      "description": "Returns the number of active failure reports active for a node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER COUNT-FAILURE-REPORTS node-id"
+    },
+    {
+      "key": "CLUSTER COUNTKEYSINSLOT",
+      "title": "CLUSTER COUNTKEYSINSLOT",
+      "group": "cluster",
+      "description": "Returns the number of keys in a hash slot. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER COUNTKEYSINSLOT slot"
+    },
+    {
+      "key": "CLUSTER DELSLOTS",
+      "title": "CLUSTER DELSLOTS",
+      "group": "cluster",
+      "description": "Sets hash slots as unbound for a node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER DELSLOTS slot [slot ...]"
+    },
+    {
+      "key": "CLUSTER DELSLOTSRANGE",
+      "title": "CLUSTER DELSLOTSRANGE",
+      "group": "cluster",
+      "description": "Sets hash slot ranges as unbound for a node. @since 7.0.0 [cluster]",
+      "usage": "CLUSTER DELSLOTSRANGE start-slot end-slot [start-slot end-slot ...]"
+    },
+    {
+      "key": "CLUSTER FAILOVER",
+      "title": "CLUSTER FAILOVER",
+      "group": "cluster",
+      "description": "Forces a replica to perform a manual failover of its master. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER FAILOVER [FORCE | TAKEOVER]"
+    },
+    {
+      "key": "CLUSTER FLUSHSLOTS",
+      "title": "CLUSTER FLUSHSLOTS",
+      "group": "cluster",
+      "description": "Deletes all slots information from a node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER FLUSHSLOTS"
+    },
+    {
+      "key": "CLUSTER FORGET",
+      "title": "CLUSTER FORGET",
+      "group": "cluster",
+      "description": "Removes a node from the nodes table. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER FORGET node-id"
+    },
+    {
+      "key": "CLUSTER GETKEYSINSLOT",
+      "title": "CLUSTER GETKEYSINSLOT",
+      "group": "cluster",
+      "description": "Returns the key names in a hash slot. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER GETKEYSINSLOT slot count"
+    },
+    {
+      "key": "CLUSTER HELP",
+      "title": "CLUSTER HELP",
+      "group": "cluster",
+      "description": "Returns helpful text about the different subcommands. @since 5.0.0 [cluster]",
+      "usage": "CLUSTER HELP"
+    },
+    {
+      "key": "CLUSTER INFO",
+      "title": "CLUSTER INFO",
+      "group": "cluster",
+      "description": "Returns information about the state of a node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER INFO"
+    },
+    {
+      "key": "CLUSTER KEYSLOT",
+      "title": "CLUSTER KEYSLOT",
+      "group": "cluster",
+      "description": "Returns the hash slot for a key. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER KEYSLOT key"
+    },
+    {
+      "key": "CLUSTER LINKS",
+      "title": "CLUSTER LINKS",
+      "group": "cluster",
+      "description": "Returns a list of all TCP links to and from peer nodes. @since 7.0.0 [cluster]",
+      "usage": "CLUSTER LINKS"
+    },
+    {
+      "key": "CLUSTER MEET",
+      "title": "CLUSTER MEET",
+      "group": "cluster",
+      "description": "Forces a node to handshake with another node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER MEET ip port [cluster-bus-port]"
+    },
+    {
+      "key": "CLUSTER MIGRATION",
+      "title": "CLUSTER MIGRATION",
+      "group": "cluster",
+      "description": "Start, monitor, and cancel atomic slot migration tasks. @since 8.4.0 [cluster]",
+      "usage": "CLUSTER MIGRATION <IMPORT start-slot end-slot\n  [start-slot end-slot ...] | CANCEL <ID task-id | ALL> |\n  STATUS <[ID task-id] | [ALL]>>"
+    },
+    {
+      "key": "CLUSTER MYID",
+      "title": "CLUSTER MYID",
+      "group": "cluster",
+      "description": "Returns the ID of a node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER MYID"
+    },
+    {
+      "key": "CLUSTER MYSHARDID",
+      "title": "CLUSTER MYSHARDID",
+      "group": "cluster",
+      "description": "Returns the shard ID of a node. @since 7.2.0 [cluster]",
+      "usage": "CLUSTER MYSHARDID"
+    },
+    {
+      "key": "CLUSTER NODES",
+      "title": "CLUSTER NODES",
+      "group": "cluster",
+      "description": "Returns the cluster configuration for a node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER NODES"
+    },
+    {
+      "key": "CLUSTER REPLICAS",
+      "title": "CLUSTER REPLICAS",
+      "group": "cluster",
+      "description": "Lists the replica nodes of a master node. @since 5.0.0 [cluster]",
+      "usage": "CLUSTER REPLICAS node-id"
+    },
+    {
+      "key": "CLUSTER REPLICATE",
+      "title": "CLUSTER REPLICATE",
+      "group": "cluster",
+      "description": "Configure a node as replica of a master node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER REPLICATE node-id"
+    },
+    {
+      "key": "CLUSTER RESET",
+      "title": "CLUSTER RESET",
+      "group": "cluster",
+      "description": "Resets a node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER RESET [HARD | SOFT]"
+    },
+    {
+      "key": "CLUSTER SAVECONFIG",
+      "title": "CLUSTER SAVECONFIG",
+      "group": "cluster",
+      "description": "Forces a node to save the cluster configuration to disk. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER SAVECONFIG"
+    },
+    {
+      "key": "CLUSTER SET-CONFIG-EPOCH",
+      "title": "CLUSTER SET-CONFIG-EPOCH",
+      "group": "cluster",
+      "description": "Sets the configuration epoch for a new node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER SET-CONFIG-EPOCH config-epoch"
+    },
+    {
+      "key": "CLUSTER SETSLOT",
+      "title": "CLUSTER SETSLOT",
+      "group": "cluster",
+      "description": "Binds a hash slot to a node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER SETSLOT slot <IMPORTING node-id | MIGRATING node-id |\n  NODE node-id | STABLE>"
+    },
+    {
+      "key": "CLUSTER SHARDS",
+      "title": "CLUSTER SHARDS",
+      "group": "cluster",
+      "description": "Returns the mapping of cluster slots to shards. @since 7.0.0 [cluster]",
+      "usage": "CLUSTER SHARDS"
+    },
+    {
+      "key": "CLUSTER SLAVES",
+      "title": "CLUSTER SLAVES",
+      "group": "cluster",
+      "description": "Lists the replica nodes of a master node. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER SLAVES node-id"
+    },
+    {
+      "key": "CLUSTER SLOT-STATS",
+      "title": "CLUSTER SLOT-STATS",
+      "group": "cluster",
+      "description": "Return an array of slot usage statistics for slots assigned to the current node. @since 8.2.0 [cluster]",
+      "usage": "CLUSTER SLOT-STATS <SLOTSRANGE start-slot end-slot | ORDERBY metric\n  [LIMIT limit] [ASC | DESC]>"
+    },
+    {
+      "key": "CLUSTER SLOTS",
+      "title": "CLUSTER SLOTS",
+      "group": "cluster",
+      "description": "Returns the mapping of cluster slots to nodes. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER SLOTS"
+    },
+    {
+      "key": "CLUSTER",
+      "title": "CLUSTER",
+      "group": "cluster",
+      "description": "A container for Redis Cluster commands. @since 3.0.0 [cluster]",
+      "usage": "CLUSTER"
+    },
+    {
+      "key": "CMS.INCRBY",
+      "title": "CMS.INCRBY",
+      "group": "cms",
+      "description": "Increases the count of one or more items by increment @since 2.0.0 [cms]",
+      "usage": "CMS.INCRBY key item increment [item increment ...]"
+    },
+    {
+      "key": "CMS.INFO",
+      "title": "CMS.INFO",
+      "group": "cms",
+      "description": "Returns information about a sketch @since 2.0.0 [cms]",
+      "usage": "CMS.INFO key"
+    },
+    {
+      "key": "CMS.INITBYDIM",
+      "title": "CMS.INITBYDIM",
+      "group": "cms",
+      "description": "Initializes a Count-Min Sketch to dimensions specified by user @since 2.0.0 [cms]",
+      "usage": "CMS.INITBYDIM key width depth"
+    },
+    {
+      "key": "CMS.INITBYPROB",
+      "title": "CMS.INITBYPROB",
+      "group": "cms",
+      "description": "Initializes a Count-Min Sketch to accommodate requested tolerances. @since 2.0.0 [cms]",
+      "usage": "CMS.INITBYPROB key error probability"
+    },
+    {
+      "key": "CMS.MERGE",
+      "title": "CMS.MERGE",
+      "group": "cms",
+      "description": "Merges several sketches into one sketch @since 2.0.0 [cms]",
+      "usage": "CMS.MERGE destination numKeys source [source ...] [WEIGHTS weight\n  [weight ...]]"
+    },
+    {
+      "key": "CMS.QUERY",
+      "title": "CMS.QUERY",
+      "group": "cms",
+      "description": "Returns the count for one or more items in a sketch @since 2.0.0 [cms]",
+      "usage": "CMS.QUERY key item [item ...]"
+    },
+    {
+      "key": "COMMAND COUNT",
+      "title": "COMMAND COUNT",
+      "group": "server",
+      "description": "Returns a count of commands. @since 2.8.13 [server]",
+      "usage": "COMMAND COUNT"
+    },
+    {
+      "key": "COMMAND DOCS",
+      "title": "COMMAND DOCS",
+      "group": "server",
+      "description": "Returns documentary information about one, multiple or all commands. @since 7.0.0 [server]",
+      "usage": "COMMAND DOCS [command-name [command-name ...]]"
+    },
+    {
+      "key": "COMMAND GETKEYS",
+      "title": "COMMAND GETKEYS",
+      "group": "server",
+      "description": "Extracts the key names from an arbitrary command. @since 2.8.13 [server]",
+      "usage": "COMMAND GETKEYS command [arg [arg ...]]"
+    },
+    {
+      "key": "COMMAND GETKEYSANDFLAGS",
+      "title": "COMMAND GETKEYSANDFLAGS",
+      "group": "server",
+      "description": "Extracts the key names and access flags for an arbitrary command. @since 7.0.0 [server]",
+      "usage": "COMMAND GETKEYSANDFLAGS command [arg [arg ...]]"
+    },
+    {
+      "key": "COMMAND HELP",
+      "title": "COMMAND HELP",
+      "group": "server",
+      "description": "Returns helpful text about the different subcommands. @since 5.0.0 [server]",
+      "usage": "COMMAND HELP"
+    },
+    {
+      "key": "COMMAND INFO",
+      "title": "COMMAND INFO",
+      "group": "server",
+      "description": "Returns information about one, multiple or all commands. @since 2.8.13 [server]",
+      "usage": "COMMAND INFO [command-name [command-name ...]]"
+    },
+    {
+      "key": "COMMAND LIST",
+      "title": "COMMAND LIST",
+      "group": "server",
+      "description": "Returns a list of command names. @since 7.0.0 [server]",
+      "usage": "COMMAND LIST [FILTERBY <MODULE module-name | ACLCAT category |\n  PATTERN pattern>]"
+    },
+    {
+      "key": "COMMAND",
+      "title": "COMMAND",
+      "group": "server",
+      "description": "Returns detailed information about all commands. @since 2.8.13 [server]",
+      "usage": "COMMAND"
+    },
+    {
+      "key": "CONFIG GET",
+      "title": "CONFIG GET",
+      "group": "server",
+      "description": "Returns the effective values of configuration parameters. @since 2.0.0 [server]",
+      "usage": "CONFIG GET parameter [parameter ...]"
+    },
+    {
+      "key": "CONFIG HELP",
+      "title": "CONFIG HELP",
+      "group": "server",
+      "description": "Returns helpful text about the different subcommands. @since 5.0.0 [server]",
+      "usage": "CONFIG HELP"
+    },
+    {
+      "key": "CONFIG RESETSTAT",
+      "title": "CONFIG RESETSTAT",
+      "group": "server",
+      "description": "Resets the server's statistics. @since 2.0.0 [server]",
+      "usage": "CONFIG RESETSTAT"
+    },
+    {
+      "key": "CONFIG REWRITE",
+      "title": "CONFIG REWRITE",
+      "group": "server",
+      "description": "Persists the effective configuration to file. @since 2.8.0 [server]",
+      "usage": "CONFIG REWRITE"
+    },
+    {
+      "key": "CONFIG SET",
+      "title": "CONFIG SET",
+      "group": "server",
+      "description": "Sets configuration parameters in-flight. @since 2.0.0 [server]",
+      "usage": "CONFIG SET parameter value [parameter value ...]"
+    },
+    {
+      "key": "CONFIG",
+      "title": "CONFIG",
+      "group": "server",
+      "description": "A container for server configuration commands. @since 2.0.0 [server]",
+      "usage": "CONFIG"
+    },
+    {
+      "key": "COPY",
+      "title": "COPY",
+      "group": "generic",
+      "description": "Copies the value of a key to a new key. @since 6.2.0 [generic]",
+      "usage": "COPY source destination [DB destination-db] [REPLACE]"
+    },
+    {
+      "key": "DBSIZE",
+      "title": "DBSIZE",
+      "group": "server",
+      "description": "Returns the number of keys in the database. @since 1.0.0 [server]",
+      "usage": "DBSIZE"
+    },
+    {
+      "key": "DEBUG",
+      "title": "DEBUG",
+      "group": "server",
+      "description": "A container for debugging commands. @since 1.0.0 [server]",
+      "usage": "DEBUG"
+    },
+    {
+      "key": "DECR",
+      "title": "DECR",
+      "group": "string",
+      "description": "Decrements the integer value of a key by one. Uses 0 as initial value if the key doesn't exist. @since 1.0.0 [string]",
+      "usage": "DECR key"
+    },
+    {
+      "key": "DECRBY",
+      "title": "DECRBY",
+      "group": "string",
+      "description": "Decrements a number from the integer value of a key. Uses 0 as initial value if the key doesn't exist. @since 1.0.0 [string]",
+      "usage": "DECRBY key decrement"
+    },
+    {
+      "key": "DEL",
+      "title": "DEL",
+      "group": "generic",
+      "description": "Deletes one or more keys. @since 1.0.0 [generic]",
+      "usage": "DEL key [key ...]"
+    },
+    {
+      "key": "DELEX",
+      "title": "DELEX",
+      "group": "string",
+      "description": "Conditionally removes the specified key based on value or hash digest comparison. @since 8.4.0 [string]",
+      "usage": "DELEX key [IFEQ ifeq-value | IFNE ifne-value | IFDEQ ifdeq-digest |\n  IFDNE ifdne-digest]"
+    },
+    {
+      "key": "DIGEST",
+      "title": "DIGEST",
+      "group": "string",
+      "description": "Returns the hash digest of a string value as a hexadecimal string. @since 8.4.0 [string]",
+      "usage": "DIGEST key"
+    },
+    {
+      "key": "DISCARD",
+      "title": "DISCARD",
+      "group": "transactions",
+      "description": "Discards a transaction. @since 2.0.0 [transactions]",
+      "usage": "DISCARD"
+    },
+    {
+      "key": "DUMP",
+      "title": "DUMP",
+      "group": "generic",
+      "description": "Returns a serialized representation of the value stored at a key. @since 2.6.0 [generic]",
+      "usage": "DUMP key"
+    },
+    {
+      "key": "ECHO",
+      "title": "ECHO",
+      "group": "connection",
+      "description": "Returns the given string. @since 1.0.0 [connection]",
+      "usage": "ECHO message"
+    },
+    {
+      "key": "EVAL",
+      "title": "EVAL",
+      "group": "scripting",
+      "description": "Executes a server-side Lua script. @since 2.6.0 [scripting]",
+      "usage": "EVAL script numkeys [key [key ...]] [arg [arg ...]]"
+    },
+    {
+      "key": "EVALSHA",
+      "title": "EVALSHA",
+      "group": "scripting",
+      "description": "Executes a server-side Lua script by SHA1 digest. @since 2.6.0 [scripting]",
+      "usage": "EVALSHA sha1 numkeys [key [key ...]] [arg [arg ...]]"
+    },
+    {
+      "key": "EVALSHA_RO",
+      "title": "EVALSHA_RO",
+      "group": "scripting",
+      "description": "Executes a read-only server-side Lua script by SHA1 digest. @since 7.0.0 [scripting]",
+      "usage": "EVALSHA_RO sha1 numkeys [key [key ...]] [arg [arg ...]]"
+    },
+    {
+      "key": "EVAL_RO",
+      "title": "EVAL_RO",
+      "group": "scripting",
+      "description": "Executes a read-only server-side Lua script. @since 7.0.0 [scripting]",
+      "usage": "EVAL_RO script numkeys [key [key ...]] [arg [arg ...]]"
+    },
+    {
+      "key": "EXEC",
+      "title": "EXEC",
+      "group": "transactions",
+      "description": "Executes all commands in a transaction. @since 1.2.0 [transactions]",
+      "usage": "EXEC"
+    },
+    {
+      "key": "EXISTS",
+      "title": "EXISTS",
+      "group": "generic",
+      "description": "Determines whether one or more keys exist. @since 1.0.0 [generic]",
+      "usage": "EXISTS key [key ...]"
+    },
+    {
+      "key": "EXPIRE",
+      "title": "EXPIRE",
+      "group": "generic",
+      "description": "Sets the expiration time of a key in seconds. @since 1.0.0 [generic]",
+      "usage": "EXPIRE key seconds [NX | XX | GT | LT]"
+    },
+    {
+      "key": "EXPIREAT",
+      "title": "EXPIREAT",
+      "group": "generic",
+      "description": "Sets the expiration time of a key to a Unix timestamp. @since 1.2.0 [generic]",
+      "usage": "EXPIREAT key unix-time-seconds [NX | XX | GT | LT]"
+    },
+    {
+      "key": "EXPIRETIME",
+      "title": "EXPIRETIME",
+      "group": "generic",
+      "description": "Returns the expiration time of a key as a Unix timestamp. @since 7.0.0 [generic]",
+      "usage": "EXPIRETIME key"
+    },
+    {
+      "key": "FAILOVER",
+      "title": "FAILOVER",
+      "group": "server",
+      "description": "Starts a coordinated failover from a server to one of its replicas. @since 6.2.0 [server]",
+      "usage": "FAILOVER [TO host port [FORCE]] [ABORT] [TIMEOUT milliseconds]"
+    },
+    {
+      "key": "FCALL",
+      "title": "FCALL",
+      "group": "scripting",
+      "description": "Invokes a function. @since 7.0.0 [scripting]",
+      "usage": "FCALL function numkeys [key [key ...]] [arg [arg ...]]"
+    },
+    {
+      "key": "FCALL_RO",
+      "title": "FCALL_RO",
+      "group": "scripting",
+      "description": "Invokes a read-only function. @since 7.0.0 [scripting]",
+      "usage": "FCALL_RO function numkeys [key [key ...]] [arg [arg ...]]"
+    },
+    {
+      "key": "FLUSHALL",
+      "title": "FLUSHALL",
+      "group": "server",
+      "description": "Removes all keys from all databases. @since 1.0.0 [server]",
+      "usage": "FLUSHALL [ASYNC | SYNC]"
+    },
+    {
+      "key": "FLUSHDB",
+      "title": "FLUSHDB",
+      "group": "server",
+      "description": "Remove all keys from the current database. @since 1.0.0 [server]",
+      "usage": "FLUSHDB [ASYNC | SYNC]"
+    },
+    {
+      "key": "FT.AGGREGATE",
+      "title": "FT.AGGREGATE",
+      "group": "search",
+      "description": "Run a search query on an index and perform aggregate transformations on the results @since 1.1.0 [search]",
+      "usage": "FT.AGGREGATE index query [VERBATIM] [LOAD count field [field ...]]\n  [TIMEOUT timeout] [LOAD *] [GROUPBY nargs property [property ...]\n  [REDUCE function nargs arg [arg ...] [AS name] [REDUCE function\n  nargs arg [arg ...] [AS name] ...]] [GROUPBY nargs property\n  [property ...] [REDUCE function nargs arg [arg ...] [AS name]\n  [REDUCE function nargs arg [arg ...] [AS name] ...]] ...]]\n  [SORTBY nargs [property <ASC | DESC> [property <ASC | DESC> ...]]\n  [MAX num]] [APPLY expression AS name [APPLY expression AS name\n  ...]] [LIMIT offset num] [FILTER filter] [WITHCURSOR\n  [COUNT read_size] [MAXIDLE idle_time]] [PARAMS nargs name value\n  [name value ...]] [DIALECT dialect]"
+    },
+    {
+      "key": "FT.ALIASADD",
+      "title": "FT.ALIASADD",
+      "group": "search",
+      "description": "Adds an alias to the index @since 1.0.0 [search]",
+      "usage": "FT.ALIASADD alias index"
+    },
+    {
+      "key": "FT.ALIASDEL",
+      "title": "FT.ALIASDEL",
+      "group": "search",
+      "description": "Deletes an alias from the index @since 1.0.0 [search]",
+      "usage": "FT.ALIASDEL alias"
+    },
+    {
+      "key": "FT.ALIASUPDATE",
+      "title": "FT.ALIASUPDATE",
+      "group": "search",
+      "description": "Adds or updates an alias to the index @since 1.0.0 [search]",
+      "usage": "FT.ALIASUPDATE alias index"
+    },
+    {
+      "key": "FT.ALTER",
+      "title": "FT.ALTER",
+      "group": "search",
+      "description": "Adds a new field to the index @since 1.0.0 [search]",
+      "usage": "FT.ALTER index [SKIPINITIALSCAN] SCHEMA ADD field options"
+    },
+    {
+      "key": "FT.CONFIG GET",
+      "title": "FT.CONFIG GET",
+      "group": "search",
+      "description": "Retrieves runtime configuration options @since 1.0.0 [search]",
+      "usage": "FT.CONFIG GET option"
+    },
+    {
+      "key": "FT.CONFIG HELP",
+      "title": "FT.CONFIG HELP",
+      "group": "search",
+      "description": "Help description of runtime configuration options @since 1.0.0 [search]",
+      "usage": "FT.CONFIG HELP option"
+    },
+    {
+      "key": "FT.CONFIG SET",
+      "title": "FT.CONFIG SET",
+      "group": "search",
+      "description": "Sets runtime configuration options @since 1.0.0 [search]",
+      "usage": "FT.CONFIG SET option value"
+    },
+    {
+      "key": "FT.CREATE",
+      "title": "FT.CREATE",
+      "group": "search",
+      "description": "Creates an index with the given spec @since 1.0.0 [search]",
+      "usage": "FT.CREATE index [ON <HASH | JSON>] [PREFIX count prefix [prefix\n  ...]] [FILTER filter] [LANGUAGE default_lang]\n  [LANGUAGE_FIELD lang_attribute] [SCORE default_score]\n  [SCORE_FIELD score_attribute] [PAYLOAD_FIELD payload_attribute]\n  [MAXTEXTFIELDS] [TEMPORARY seconds] [NOOFFSETS] [NOHL] [NOFIELDS]\n  [NOFREQS] [STOPWORDS count [stopword [stopword ...]]]\n  [SKIPINITIALSCAN] [INDEXALL <ENABLE | DISABLE>] SCHEMA field_name [AS alias] <TEXT | TAG |\n  NUMERIC | GEO | VECTOR> [WITHSUFFIXTRIE] [INDEXEMPTY]\n  [INDEXMISSING] [SORTABLE [UNF]] [NOINDEX] [field_name [AS alias]\n  <TEXT | TAG | NUMERIC | GEO | VECTOR> [WITHSUFFIXTRIE]\n  [INDEXEMPTY] [INDEXMISSING] [SORTABLE [UNF]] [NOINDEX] ...]"
+    },
+    {
+      "key": "FT.CURSOR DEL",
+      "title": "FT.CURSOR DEL",
+      "group": "search",
+      "description": "Deletes a cursor @since 1.1.0 [search]",
+      "usage": "FT.CURSOR DEL index cursor_id"
+    },
+    {
+      "key": "FT.CURSOR READ",
+      "title": "FT.CURSOR READ",
+      "group": "search",
+      "description": "Reads from a cursor @since 1.1.0 [search]",
+      "usage": "FT.CURSOR READ index cursor_id [COUNT read size]"
+    },
+    {
+      "key": "FT.DICTADD",
+      "title": "FT.DICTADD",
+      "group": "search",
+      "description": "Adds terms to a dictionary @since 1.4.0 [search]",
+      "usage": "FT.DICTADD dict term [term ...]"
+    },
+    {
+      "key": "FT.DICTDEL",
+      "title": "FT.DICTDEL",
+      "group": "search",
+      "description": "Deletes terms from a dictionary @since 1.4.0 [search]",
+      "usage": "FT.DICTDEL dict term [term ...]"
+    },
+    {
+      "key": "FT.DICTDUMP",
+      "title": "FT.DICTDUMP",
+      "group": "search",
+      "description": "Dumps all terms in the given dictionary @since 1.4.0 [search]",
+      "usage": "FT.DICTDUMP dict"
+    },
+    {
+      "key": "FT.DROPINDEX",
+      "title": "FT.DROPINDEX",
+      "group": "search",
+      "description": "Deletes the index @since 2.0.0 [search]",
+      "usage": "FT.DROPINDEX index [DD]"
+    },
+    {
+      "key": "FT.EXPLAIN",
+      "title": "FT.EXPLAIN",
+      "group": "search",
+      "description": "Returns the execution plan for a complex query @since 1.0.0 [search]",
+      "usage": "FT.EXPLAIN index query [DIALECT dialect]"
+    },
+    {
+      "key": "FT.EXPLAINCLI",
+      "title": "FT.EXPLAINCLI",
+      "group": "search",
+      "description": "Returns the execution plan for a complex query @since 1.0.0 [search]",
+      "usage": "FT.EXPLAINCLI index query [DIALECT dialect]"
+    },
+    {
+      "key": "FT.HYBRID",
+      "title": "FT.HYBRID",
+      "group": "search",
+      "description": "Performs hybrid search combining text search and vector similarity search @since 8.4.0 [search]",
+      "usage": "FT.HYBRID index\n  SEARCH query\n    [SCORER scorer]\n    [YIELD_SCORE_AS name]\n  VSIM vector_field $vector_param\n    [KNN count K k [EF_RUNTIME ef_runtime]]\n    [RANGE count RADIUS radius [EPSILON epsilon]]\n    [YIELD_SCORE_AS name]\n    [FILTER filter]\n  [COMBINE RRF count [CONSTANT constant] [WINDOW window] [YIELD_SCORE_AS name]]\n  [COMBINE LINEAR count [[ALPHA alpha] [BETA beta]] [WINDOW window] [YIELD_SCORE_AS name]]\n  [LIMIT offset num]\n  [SORTBY count sortby [ASC | DESC]]\n  [NOSORT]\n  [LOAD count field [field ...]]\n  [LOAD *]\n  [GROUPBY nargs property [property ...]\n  [GROUPBY nargs property [property ...]\n    [REDUCE function nargs arg [arg ...] [AS name]\n    [REDUCE function nargs arg [arg ...] [AS name] ...]] ...]]\n  [APPLY expression AS name [APPLY expression AS name ...]]\n  [FILTER filter]\n  PARAMS nargs vector_param vector_blob [name value ...]\n  [TIMEOUT timeout]"
+    },
+    {
+      "key": "FT.INFO",
+      "title": "FT.INFO",
+      "group": "search",
+      "description": "Returns information and statistics on the index @since 1.0.0 [search]",
+      "usage": "FT.INFO index"
+    },
+    {
+      "key": "FT.PROFILE",
+      "title": "FT.PROFILE",
+      "group": "search",
+      "description": "Performs a `FT.SEARCH` or `FT.AGGREGATE` command and collects performance information @since 2.2.0 [search]",
+      "usage": "FT.PROFILE index <SEARCH | AGGREGATE> [LIMITED] QUERY query"
+    },
+    {
+      "key": "FT.SEARCH",
+      "title": "FT.SEARCH",
+      "group": "search",
+      "description": "Searches the index with a textual query, returning either documents or just ids @since 1.0.0 [search]",
+      "usage": "FT.SEARCH index query [NOCONTENT] [VERBATIM] [NOSTOPWORDS]\n  [WITHSCORES] [WITHPAYLOADS] [WITHSORTKEYS] [FILTER numeric_field\n  min max [FILTER numeric_field min max ...]] [GEOFILTER geo_field\n  lon lat radius <m | km | mi | ft> [GEOFILTER geo_field lon lat\n  radius <m | km | mi | ft> ...]] [INKEYS count key [key ...]]\n  [INFIELDS count field [field ...]] [RETURN count identifier\n  [AS property] [identifier [AS property] ...]] [SUMMARIZE\n  [FIELDS count field [field ...]] [FRAGS num] [LEN fragsize]\n  [SEPARATOR separator]] [HIGHLIGHT [FIELDS count field [field ...]]\n  [TAGS open close]] [SLOP slop] [TIMEOUT timeout] [INORDER]\n  [LANGUAGE language] [EXPANDER expander] [SCORER scorer]\n  [EXPLAINSCORE] [PAYLOAD payload] [SORTBY sortby [ASC | DESC]]\n  [LIMIT offset num] [PARAMS nargs name value [name value ...]]\n  [DIALECT dialect]"
+    },
+    {
+      "key": "FT.SPELLCHECK",
+      "title": "FT.SPELLCHECK",
+      "group": "search",
+      "description": "Performs spelling correction on a query, returning suggestions for misspelled terms @since 1.4.0 [search]",
+      "usage": "FT.SPELLCHECK index query [DISTANCE distance] [TERMS <INCLUDE |\n  EXCLUDE> dictionary [terms [terms ...]]] [DIALECT dialect]"
+    },
+    {
+      "key": "FT.SUGADD",
+      "title": "FT.SUGADD",
+      "group": "suggestion",
+      "description": "Adds a suggestion string to an auto-complete suggestion dictionary @since 1.0.0 [suggestion]",
+      "usage": "FT.SUGADD key string score [INCR] [PAYLOAD payload]"
+    },
+    {
+      "key": "FT.SUGDEL",
+      "title": "FT.SUGDEL",
+      "group": "suggestion",
+      "description": "Deletes a string from a suggestion index @since 1.0.0 [suggestion]",
+      "usage": "FT.SUGDEL key string"
+    },
+    {
+      "key": "FT.SUGGET",
+      "title": "FT.SUGGET",
+      "group": "suggestion",
+      "description": "Gets completion suggestions for a prefix @since 1.0.0 [suggestion]",
+      "usage": "FT.SUGGET key prefix [FUZZY] [WITHSCORES] [WITHPAYLOADS] [MAX max]"
+    },
+    {
+      "key": "FT.SUGLEN",
+      "title": "FT.SUGLEN",
+      "group": "suggestion",
+      "description": "Gets the size of an auto-complete suggestion dictionary @since 1.0.0 [suggestion]",
+      "usage": "FT.SUGLEN key"
+    },
+    {
+      "key": "FT.SYNDUMP",
+      "title": "FT.SYNDUMP",
+      "group": "search",
+      "description": "Dumps the contents of a synonym group @since 1.2.0 [search]",
+      "usage": "FT.SYNDUMP index"
+    },
+    {
+      "key": "FT.SYNUPDATE",
+      "title": "FT.SYNUPDATE",
+      "group": "search",
+      "description": "Creates or updates a synonym group with additional terms @since 1.2.0 [search]",
+      "usage": "FT.SYNUPDATE index synonym_group_id [SKIPINITIALSCAN] term [term\n  ...]"
+    },
+    {
+      "key": "FT.TAGVALS",
+      "title": "FT.TAGVALS",
+      "group": "search",
+      "description": "Returns the distinct tags indexed in a Tag field @since 1.0.0 [search]",
+      "usage": "FT.TAGVALS index field_name"
+    },
+    {
+      "key": "FT._LIST",
+      "title": "FT._LIST",
+      "group": "search",
+      "description": "Returns a list of all existing indexes @since 2.0.0 [search]",
+      "usage": "FT._LIST"
+    },
+    {
+      "key": "FUNCTION DELETE",
+      "title": "FUNCTION DELETE",
+      "group": "scripting",
+      "description": "Deletes a library and its functions. @since 7.0.0 [scripting]",
+      "usage": "FUNCTION DELETE library-name"
+    },
+    {
+      "key": "FUNCTION DUMP",
+      "title": "FUNCTION DUMP",
+      "group": "scripting",
+      "description": "Dumps all libraries into a serialized binary payload. @since 7.0.0 [scripting]",
+      "usage": "FUNCTION DUMP"
+    },
+    {
+      "key": "FUNCTION FLUSH",
+      "title": "FUNCTION FLUSH",
+      "group": "scripting",
+      "description": "Deletes all libraries and functions. @since 7.0.0 [scripting]",
+      "usage": "FUNCTION FLUSH [ASYNC | SYNC]"
+    },
+    {
+      "key": "FUNCTION HELP",
+      "title": "FUNCTION HELP",
+      "group": "scripting",
+      "description": "Returns helpful text about the different subcommands. @since 7.0.0 [scripting]",
+      "usage": "FUNCTION HELP"
+    },
+    {
+      "key": "FUNCTION KILL",
+      "title": "FUNCTION KILL",
+      "group": "scripting",
+      "description": "Terminates a function during execution. @since 7.0.0 [scripting]",
+      "usage": "FUNCTION KILL"
+    },
+    {
+      "key": "FUNCTION LIST",
+      "title": "FUNCTION LIST",
+      "group": "scripting",
+      "description": "Returns information about all libraries. @since 7.0.0 [scripting]",
+      "usage": "FUNCTION LIST [LIBRARYNAME library-name-pattern] [WITHCODE]"
+    },
+    {
+      "key": "FUNCTION LOAD",
+      "title": "FUNCTION LOAD",
+      "group": "scripting",
+      "description": "Creates a library. @since 7.0.0 [scripting]",
+      "usage": "FUNCTION LOAD [REPLACE] function-code"
+    },
+    {
+      "key": "FUNCTION RESTORE",
+      "title": "FUNCTION RESTORE",
+      "group": "scripting",
+      "description": "Restores all libraries from a payload. @since 7.0.0 [scripting]",
+      "usage": "FUNCTION RESTORE serialized-value [FLUSH | APPEND | REPLACE]"
+    },
+    {
+      "key": "FUNCTION STATS",
+      "title": "FUNCTION STATS",
+      "group": "scripting",
+      "description": "Returns information about a function during execution. @since 7.0.0 [scripting]",
+      "usage": "FUNCTION STATS"
+    },
+    {
+      "key": "FUNCTION",
+      "title": "FUNCTION",
+      "group": "scripting",
+      "description": "A container for function commands. @since 7.0.0 [scripting]",
+      "usage": "FUNCTION"
+    },
+    {
+      "key": "GEOADD",
+      "title": "GEOADD",
+      "group": "geo",
+      "description": "Adds one or more members to a geospatial index. The key is created if it doesn't exist. @since 3.2.0 [geo]",
+      "usage": "GEOADD key [NX | XX] [CH] longitude latitude member [longitude\n  latitude member ...]"
+    },
+    {
+      "key": "GEODIST",
+      "title": "GEODIST",
+      "group": "geo",
+      "description": "Returns the distance between two members of a geospatial index. @since 3.2.0 [geo]",
+      "usage": "GEODIST key member1 member2 [M | KM | FT | MI]"
+    },
+    {
+      "key": "GEOHASH",
+      "title": "GEOHASH",
+      "group": "geo",
+      "description": "Returns members from a geospatial index as geohash strings. @since 3.2.0 [geo]",
+      "usage": "GEOHASH key [member [member ...]]"
+    },
+    {
+      "key": "GEOPOS",
+      "title": "GEOPOS",
+      "group": "geo",
+      "description": "Returns the longitude and latitude of members from a geospatial index. @since 3.2.0 [geo]",
+      "usage": "GEOPOS key [member [member ...]]"
+    },
+    {
+      "key": "GEORADIUS",
+      "title": "GEORADIUS",
+      "group": "geo",
+      "description": "Queries a geospatial index for members within a distance from a coordinate, optionally stores the result. @since 3.2.0 [geo]",
+      "usage": "GEORADIUS key longitude latitude radius <M | KM | FT | MI>\n  [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count [ANY]] [ASC | DESC]\n  [STORE key | STOREDIST key]"
+    },
+    {
+      "key": "GEORADIUSBYMEMBER",
+      "title": "GEORADIUSBYMEMBER",
+      "group": "geo",
+      "description": "Queries a geospatial index for members within a distance from a member, optionally stores the result. @since 3.2.0 [geo]",
+      "usage": "GEORADIUSBYMEMBER key member radius <M | KM | FT | MI> [WITHCOORD]\n  [WITHDIST] [WITHHASH] [COUNT count [ANY]] [ASC | DESC] [STORE key\n  | STOREDIST key]"
+    },
+    {
+      "key": "GEORADIUSBYMEMBER_RO",
+      "title": "GEORADIUSBYMEMBER_RO",
+      "group": "geo",
+      "description": "Returns members from a geospatial index that are within a distance from a member. @since 3.2.10 [geo]",
+      "usage": "GEORADIUSBYMEMBER_RO key member radius <M | KM | FT | MI>\n  [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count [ANY]] [ASC | DESC]"
+    },
+    {
+      "key": "GEORADIUS_RO",
+      "title": "GEORADIUS_RO",
+      "group": "geo",
+      "description": "Returns members from a geospatial index that are within a distance from a coordinate. @since 3.2.10 [geo]",
+      "usage": "GEORADIUS_RO key longitude latitude radius <M | KM | FT | MI>\n  [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count [ANY]] [ASC | DESC]"
+    },
+    {
+      "key": "GEOSEARCH",
+      "title": "GEOSEARCH",
+      "group": "geo",
+      "description": "Queries a geospatial index for members inside an area of a box or a circle. @since 6.2.0 [geo]",
+      "usage": "GEOSEARCH key <FROMMEMBER member | FROMLONLAT longitude latitude>\n  <BYRADIUS radius <M | KM | FT | MI> | BYBOX width height <M | KM |\n  FT | MI>> [ASC | DESC] [COUNT count [ANY]] [WITHCOORD] [WITHDIST]\n  [WITHHASH]"
+    },
+    {
+      "key": "GEOSEARCHSTORE",
+      "title": "GEOSEARCHSTORE",
+      "group": "geo",
+      "description": "Queries a geospatial index for members inside an area of a box or a circle, optionally stores the result. @since 6.2.0 [geo]",
+      "usage": "GEOSEARCHSTORE destination source <FROMMEMBER member |\n  FROMLONLAT longitude latitude> <BYRADIUS radius <M | KM | FT | MI>\n  | BYBOX width height <M | KM | FT | MI>> [ASC | DESC] [COUNT count\n  [ANY]] [STOREDIST]"
+    },
+    {
+      "key": "GET",
+      "title": "GET",
+      "group": "string",
+      "description": "Returns the string value of a key. @since 1.0.0 [string]",
+      "usage": "GET key"
+    },
+    {
+      "key": "GETBIT",
+      "title": "GETBIT",
+      "group": "bitmap",
+      "description": "Returns a bit value by offset. @since 2.2.0 [bitmap]",
+      "usage": "GETBIT key offset"
+    },
+    {
+      "key": "GETDEL",
+      "title": "GETDEL",
+      "group": "string",
+      "description": "Returns the string value of a key after deleting the key. @since 6.2.0 [string]",
+      "usage": "GETDEL key"
+    },
+    {
+      "key": "GETEX",
+      "title": "GETEX",
+      "group": "string",
+      "description": "Returns the string value of a key after setting its expiration time. @since 6.2.0 [string]",
+      "usage": "GETEX key [EX seconds | PX milliseconds | EXAT unix-time-seconds |\n  PXAT unix-time-milliseconds | PERSIST]"
+    },
+    {
+      "key": "GETRANGE",
+      "title": "GETRANGE",
+      "group": "string",
+      "description": "Returns a substring of the string stored at a key. @since 2.4.0 [string]",
+      "usage": "GETRANGE key start end"
+    },
+    {
+      "key": "GETSET",
+      "title": "GETSET",
+      "group": "string",
+      "description": "Returns the previous string value of a key after setting it to a new value. @since 1.0.0 [string]",
+      "usage": "GETSET key value"
+    },
+    {
+      "key": "HDEL",
+      "title": "HDEL",
+      "group": "hash",
+      "description": "Deletes one or more fields and their values from a hash. Deletes the hash if no fields remain. @since 2.0.0 [hash]",
+      "usage": "HDEL key field [field ...]"
+    },
+    {
+      "key": "HELLO",
+      "title": "HELLO",
+      "group": "connection",
+      "description": "Handshakes with the Redis server. @since 6.0.0 [connection]",
+      "usage": "HELLO [protover [AUTH username password] [SETNAME clientname]]"
+    },
+    {
+      "key": "HEXISTS",
+      "title": "HEXISTS",
+      "group": "hash",
+      "description": "Determines whether a field exists in a hash. @since 2.0.0 [hash]",
+      "usage": "HEXISTS key field"
+    },
+    {
+      "key": "HEXPIRE",
+      "title": "HEXPIRE",
+      "group": "hash",
+      "description": "Set expiry for hash field using relative time to expire (seconds) @since 7.4.0 [hash]",
+      "usage": "HEXPIRE key seconds [NX | XX | GT | LT] FIELDS numfields field\n  [field ...]"
+    },
+    {
+      "key": "HEXPIREAT",
+      "title": "HEXPIREAT",
+      "group": "hash",
+      "description": "Set expiry for hash field using an absolute Unix timestamp (seconds) @since 7.4.0 [hash]",
+      "usage": "HEXPIREAT key unix-time-seconds [NX | XX | GT | LT] FIELDS numfields\n  field [field ...]"
+    },
+    {
+      "key": "HEXPIRETIME",
+      "title": "HEXPIRETIME",
+      "group": "hash",
+      "description": "Returns the expiration time of a hash field as a Unix timestamp, in seconds. @since 7.4.0 [hash]",
+      "usage": "HEXPIRETIME key FIELDS numfields field [field ...]"
+    },
+    {
+      "key": "HGET",
+      "title": "HGET",
+      "group": "hash",
+      "description": "Returns the value of a field in a hash. @since 2.0.0 [hash]",
+      "usage": "HGET key field"
+    },
+    {
+      "key": "HGETALL",
+      "title": "HGETALL",
+      "group": "hash",
+      "description": "Returns all fields and values in a hash. @since 2.0.0 [hash]",
+      "usage": "HGETALL key"
+    },
+    {
+      "key": "HGETDEL",
+      "title": "HGETDEL",
+      "group": "hash",
+      "description": "Returns the value of a field and deletes it from the hash. @since 8.0.0 [hash]",
+      "usage": "HGETDEL key FIELDS numfields field [field ...]"
+    },
+    {
+      "key": "HGETEX",
+      "title": "HGETEX",
+      "group": "hash",
+      "description": "Get the value of one or more fields of a given hash key, and optionally set their expiration. @since 8.0.0 [hash]",
+      "usage": "HGETEX key [EX seconds | PX milliseconds | EXAT unix-time-seconds |\n  PXAT unix-time-milliseconds | PERSIST] FIELDS numfields field\n  [field ...]"
+    },
+    {
+      "key": "HINCRBY",
+      "title": "HINCRBY",
+      "group": "hash",
+      "description": "Increments the integer value of a field in a hash by a number. Uses 0 as initial value if the field doesn't exist. @since 2.0.0 [hash]",
+      "usage": "HINCRBY key field increment"
+    },
+    {
+      "key": "HINCRBYFLOAT",
+      "title": "HINCRBYFLOAT",
+      "group": "hash",
+      "description": "Increments the floating point value of a field by a number. Uses 0 as initial value if the field doesn't exist. @since 2.6.0 [hash]",
+      "usage": "HINCRBYFLOAT key field increment"
+    },
+    {
+      "key": "HKEYS",
+      "title": "HKEYS",
+      "group": "hash",
+      "description": "Returns all fields in a hash. @since 2.0.0 [hash]",
+      "usage": "HKEYS key"
+    },
+    {
+      "key": "HLEN",
+      "title": "HLEN",
+      "group": "hash",
+      "description": "Returns the number of fields in a hash. @since 2.0.0 [hash]",
+      "usage": "HLEN key"
+    },
+    {
+      "key": "HMGET",
+      "title": "HMGET",
+      "group": "hash",
+      "description": "Returns the values of all fields in a hash. @since 2.0.0 [hash]",
+      "usage": "HMGET key field [field ...]"
+    },
+    {
+      "key": "HMSET",
+      "title": "HMSET",
+      "group": "hash",
+      "description": "Sets the values of multiple fields. @since 2.0.0 [hash]",
+      "usage": "HMSET key field value [field value ...]"
+    },
+    {
+      "key": "HPERSIST",
+      "title": "HPERSIST",
+      "group": "hash",
+      "description": "Removes the expiration time for each specified field @since 7.4.0 [hash]",
+      "usage": "HPERSIST key FIELDS numfields field [field ...]"
+    },
+    {
+      "key": "HPEXPIRE",
+      "title": "HPEXPIRE",
+      "group": "hash",
+      "description": "Set expiry for hash field using relative time to expire (milliseconds) @since 7.4.0 [hash]",
+      "usage": "HPEXPIRE key milliseconds [NX | XX | GT | LT] FIELDS numfields field\n  [field ...]"
+    },
+    {
+      "key": "HPEXPIREAT",
+      "title": "HPEXPIREAT",
+      "group": "hash",
+      "description": "Set expiry for hash field using an absolute Unix timestamp (milliseconds) @since 7.4.0 [hash]",
+      "usage": "HPEXPIREAT key unix-time-milliseconds [NX | XX | GT | LT]\n  FIELDS numfields field [field ...]"
+    },
+    {
+      "key": "HPEXPIRETIME",
+      "title": "HPEXPIRETIME",
+      "group": "hash",
+      "description": "Returns the expiration time of a hash field as a Unix timestamp, in msec. @since 7.4.0 [hash]",
+      "usage": "HPEXPIRETIME key FIELDS numfields field [field ...]"
+    },
+    {
+      "key": "HPTTL",
+      "title": "HPTTL",
+      "group": "hash",
+      "description": "Returns the TTL in milliseconds of a hash field. @since 7.4.0 [hash]",
+      "usage": "HPTTL key FIELDS numfields field [field ...]"
+    },
+    {
+      "key": "HRANDFIELD",
+      "title": "HRANDFIELD",
+      "group": "hash",
+      "description": "Returns one or more random fields from a hash. @since 6.2.0 [hash]",
+      "usage": "HRANDFIELD key [count [WITHVALUES]]"
+    },
+    {
+      "key": "HSCAN",
+      "title": "HSCAN",
+      "group": "hash",
+      "description": "Iterates over fields and values of a hash. @since 2.8.0 [hash]",
+      "usage": "HSCAN key cursor [MATCH pattern] [COUNT count] [NOVALUES]"
+    },
+    {
+      "key": "HSET",
+      "title": "HSET",
+      "group": "hash",
+      "description": "Creates or modifies the value of a field in a hash. @since 2.0.0 [hash]",
+      "usage": "HSET key field value [field value ...]"
+    },
+    {
+      "key": "HSETEX",
+      "title": "HSETEX",
+      "group": "hash",
+      "description": "Set the value of one or more fields of a given hash key, and optionally set their expiration. @since 8.0.0 [hash]",
+      "usage": "HSETEX key [FNX | FXX] [EX seconds | PX milliseconds |\n  EXAT unix-time-seconds | PXAT unix-time-milliseconds | KEEPTTL]\n  FIELDS numfields field value [field value ...]"
+    },
+    {
+      "key": "HSETNX",
+      "title": "HSETNX",
+      "group": "hash",
+      "description": "Sets the value of a field in a hash only when the field doesn't exist. @since 2.0.0 [hash]",
+      "usage": "HSETNX key field value"
+    },
+    {
+      "key": "HSTRLEN",
+      "title": "HSTRLEN",
+      "group": "hash",
+      "description": "Returns the length of the value of a field. @since 3.2.0 [hash]",
+      "usage": "HSTRLEN key field"
+    },
+    {
+      "key": "HTTL",
+      "title": "HTTL",
+      "group": "hash",
+      "description": "Returns the TTL in seconds of a hash field. @since 7.4.0 [hash]",
+      "usage": "HTTL key FIELDS numfields field [field ...]"
+    },
+    {
+      "key": "HVALS",
+      "title": "HVALS",
+      "group": "hash",
+      "description": "Returns all values in a hash. @since 2.0.0 [hash]",
+      "usage": "HVALS key"
+    },
+    {
+      "key": "INCR",
+      "title": "INCR",
+      "group": "string",
+      "description": "Increments the integer value of a key by one. Uses 0 as initial value if the key doesn't exist. @since 1.0.0 [string]",
+      "usage": "INCR key"
+    },
+    {
+      "key": "INCRBY",
+      "title": "INCRBY",
+      "group": "string",
+      "description": "Increments the integer value of a key by a number. Uses 0 as initial value if the key doesn't exist. @since 1.0.0 [string]",
+      "usage": "INCRBY key increment"
+    },
+    {
+      "key": "INCRBYFLOAT",
+      "title": "INCRBYFLOAT",
+      "group": "string",
+      "description": "Increment the floating point value of a key by a number. Uses 0 as initial value if the key doesn't exist. @since 2.6.0 [string]",
+      "usage": "INCRBYFLOAT key increment"
+    },
+    {
+      "key": "INFO",
+      "title": "INFO",
+      "group": "server",
+      "description": "Returns information and statistics about the server. @since 1.0.0 [server]",
+      "usage": "INFO [section [section ...]]"
+    },
+    {
+      "key": "JSON.ARRAPPEND",
+      "title": "JSON.ARRAPPEND",
+      "group": "json",
+      "description": "Append one or more json values into the array at path after the last element in it. @since 1.0.0 [json]",
+      "usage": "JSON.ARRAPPEND key [path] value [value ...]"
+    },
+    {
+      "key": "JSON.ARRINDEX",
+      "title": "JSON.ARRINDEX",
+      "group": "json",
+      "description": "Returns the index of the first occurrence of a JSON scalar value in the array at path @since 1.0.0 [json]",
+      "usage": "JSON.ARRINDEX key path value [start [stop]]"
+    },
+    {
+      "key": "JSON.ARRINSERT",
+      "title": "JSON.ARRINSERT",
+      "group": "json",
+      "description": "Inserts the JSON scalar(s) value at the specified index in the array at path @since 1.0.0 [json]",
+      "usage": "JSON.ARRINSERT key path index value [value ...]"
+    },
+    {
+      "key": "JSON.ARRLEN",
+      "title": "JSON.ARRLEN",
+      "group": "json",
+      "description": "Returns the length of the array at path @since 1.0.0 [json]",
+      "usage": "JSON.ARRLEN key [path]"
+    },
+    {
+      "key": "JSON.ARRPOP",
+      "title": "JSON.ARRPOP",
+      "group": "json",
+      "description": "Removes and returns the element at the specified index in the array at path @since 1.0.0 [json]",
+      "usage": "JSON.ARRPOP key [path [index]]"
+    },
+    {
+      "key": "JSON.ARRTRIM",
+      "title": "JSON.ARRTRIM",
+      "group": "json",
+      "description": "Trims the array at path to contain only the specified inclusive range of indices from start to stop @since 1.0.0 [json]",
+      "usage": "JSON.ARRTRIM key path start stop"
+    },
+    {
+      "key": "JSON.CLEAR",
+      "title": "JSON.CLEAR",
+      "group": "json",
+      "description": "Clears all values from an array or an object and sets numeric values to `0` @since 2.0.0 [json]",
+      "usage": "JSON.CLEAR key [path]"
+    },
+    {
+      "key": "JSON.DEBUG HELP",
+      "title": "JSON.DEBUG HELP",
+      "group": "json",
+      "description": "Shows helpful information @since 1.0.0 [json]",
+      "usage": "JSON.DEBUG HELP"
+    },
+    {
+      "key": "JSON.DEBUG MEMORY",
+      "title": "JSON.DEBUG MEMORY",
+      "group": "json",
+      "description": "Reports the size in bytes of a key @since 1.0.0 [json]",
+      "usage": "JSON.DEBUG MEMORY key [path]"
+    },
+    {
+      "key": "JSON.DEBUG",
+      "title": "JSON.DEBUG",
+      "group": "json",
+      "description": "Debugging container command @since 1.0.0 [json]",
+      "usage": "JSON.DEBUG"
+    },
+    {
+      "key": "JSON.DEL",
+      "title": "JSON.DEL",
+      "group": "json",
+      "description": "Deletes a value @since 1.0.0 [json]",
+      "usage": "JSON.DEL key [path]"
+    },
+    {
+      "key": "JSON.FORGET",
+      "title": "JSON.FORGET",
+      "group": "json",
+      "description": "Deletes a value @since 1.0.0 [json]",
+      "usage": "JSON.FORGET key [path]"
+    },
+    {
+      "key": "JSON.GET",
+      "title": "JSON.GET",
+      "group": "json",
+      "description": "Gets the value at one or more paths in JSON serialized form @since 1.0.0 [json]",
+      "usage": "JSON.GET key [INDENT indent] [NEWLINE newline] [SPACE space] [path\n  [path ...]]"
+    },
+    {
+      "key": "JSON.MERGE",
+      "title": "JSON.MERGE",
+      "group": "json",
+      "description": "Merges a given JSON value into matching paths. Consequently, JSON values at matching paths are updated, deleted, or expanded with new children @since 2.6.0 [json]",
+      "usage": "JSON.MERGE key path value"
+    },
+    {
+      "key": "JSON.MGET",
+      "title": "JSON.MGET",
+      "group": "json",
+      "description": "Returns the values at a path from one or more keys @since 1.0.0 [json]",
+      "usage": "JSON.MGET key [key ...] path"
+    },
+    {
+      "key": "JSON.MSET",
+      "title": "JSON.MSET",
+      "group": "json",
+      "description": "Sets or updates the JSON value of one or more keys @since 2.6.0 [json]",
+      "usage": "JSON.MSET key path value [key path value ...]"
+    },
+    {
+      "key": "JSON.NUMINCRBY",
+      "title": "JSON.NUMINCRBY",
+      "group": "json",
+      "description": "Increments the numeric value at path by a value @since 1.0.0 [json]",
+      "usage": "JSON.NUMINCRBY key path value"
+    },
+    {
+      "key": "JSON.NUMMULTBY",
+      "title": "JSON.NUMMULTBY",
+      "group": "json",
+      "description": "Multiplies the numeric value at path by a value @since 1.0.0 [json]",
+      "usage": "JSON.NUMMULTBY key path value"
+    },
+    {
+      "key": "JSON.OBJKEYS",
+      "title": "JSON.OBJKEYS",
+      "group": "json",
+      "description": "Returns the JSON keys of the object at path @since 1.0.0 [json]",
+      "usage": "JSON.OBJKEYS key [path]"
+    },
+    {
+      "key": "JSON.OBJLEN",
+      "title": "JSON.OBJLEN",
+      "group": "json",
+      "description": "Returns the number of keys of the object at path @since 1.0.0 [json]",
+      "usage": "JSON.OBJLEN key [path]"
+    },
+    {
+      "key": "JSON.RESP",
+      "title": "JSON.RESP",
+      "group": "json",
+      "description": "Returns the JSON value at path in Redis Serialization Protocol (RESP) @since 1.0.0 [json]",
+      "usage": "JSON.RESP key [path]"
+    },
+    {
+      "key": "JSON.SET",
+      "title": "JSON.SET",
+      "group": "json",
+      "description": "Sets or updates the JSON value at a path @since 1.0.0 [json]",
+      "usage": "JSON.SET key path value [NX | XX]"
+    },
+    {
+      "key": "JSON.STRAPPEND",
+      "title": "JSON.STRAPPEND",
+      "group": "json",
+      "description": "Appends a string to a JSON string value at path @since 1.0.0 [json]",
+      "usage": "JSON.STRAPPEND key [path] value"
+    },
+    {
+      "key": "JSON.STRLEN",
+      "title": "JSON.STRLEN",
+      "group": "json",
+      "description": "Returns the length of the JSON String at path in key @since 1.0.0 [json]",
+      "usage": "JSON.STRLEN key [path]"
+    },
+    {
+      "key": "JSON.TOGGLE",
+      "title": "JSON.TOGGLE",
+      "group": "json",
+      "description": "Toggles a boolean value @since 2.0.0 [json]",
+      "usage": "JSON.TOGGLE key path"
+    },
+    {
+      "key": "JSON.TYPE",
+      "title": "JSON.TYPE",
+      "group": "json",
+      "description": "Returns the type of the JSON value at path @since 1.0.0 [json]",
+      "usage": "JSON.TYPE key [path]"
+    },
+    {
+      "key": "KEYS",
+      "title": "KEYS",
+      "group": "generic",
+      "description": "Returns all key names that match a pattern. @since 1.0.0 [generic]",
+      "usage": "KEYS pattern"
+    },
+    {
+      "key": "LASTSAVE",
+      "title": "LASTSAVE",
+      "group": "server",
+      "description": "Returns the Unix timestamp of the last successful save to disk. @since 1.0.0 [server]",
+      "usage": "LASTSAVE"
+    },
+    {
+      "key": "LATENCY DOCTOR",
+      "title": "LATENCY DOCTOR",
+      "group": "server",
+      "description": "Returns a human-readable latency analysis report. @since 2.8.13 [server]",
+      "usage": "LATENCY DOCTOR"
+    },
+    {
+      "key": "LATENCY GRAPH",
+      "title": "LATENCY GRAPH",
+      "group": "server",
+      "description": "Returns a latency graph for an event. @since 2.8.13 [server]",
+      "usage": "LATENCY GRAPH event"
+    },
+    {
+      "key": "LATENCY HELP",
+      "title": "LATENCY HELP",
+      "group": "server",
+      "description": "Returns helpful text about the different subcommands. @since 2.8.13 [server]",
+      "usage": "LATENCY HELP"
+    },
+    {
+      "key": "LATENCY HISTOGRAM",
+      "title": "LATENCY HISTOGRAM",
+      "group": "server",
+      "description": "Returns the cumulative distribution of latencies of a subset or all commands. @since 7.0.0 [server]",
+      "usage": "LATENCY HISTOGRAM [command [command ...]]"
+    },
+    {
+      "key": "LATENCY HISTORY",
+      "title": "LATENCY HISTORY",
+      "group": "server",
+      "description": "Returns timestamp-latency samples for an event. @since 2.8.13 [server]",
+      "usage": "LATENCY HISTORY event"
+    },
+    {
+      "key": "LATENCY LATEST",
+      "title": "LATENCY LATEST",
+      "group": "server",
+      "description": "Returns the latest latency samples for all events. @since 2.8.13 [server]",
+      "usage": "LATENCY LATEST"
+    },
+    {
+      "key": "LATENCY RESET",
+      "title": "LATENCY RESET",
+      "group": "server",
+      "description": "Resets the latency data for one or more events. @since 2.8.13 [server]",
+      "usage": "LATENCY RESET [event [event ...]]"
+    },
+    {
+      "key": "LATENCY",
+      "title": "LATENCY",
+      "group": "server",
+      "description": "A container for latency diagnostics commands. @since 2.8.13 [server]",
+      "usage": "LATENCY"
+    },
+    {
+      "key": "LCS",
+      "title": "LCS",
+      "group": "string",
+      "description": "Finds the longest common substring. @since 7.0.0 [string]",
+      "usage": "LCS key1 key2 [LEN] [IDX] [MINMATCHLEN min-match-len] [WITHMATCHLEN]"
+    },
+    {
+      "key": "LINDEX",
+      "title": "LINDEX",
+      "group": "list",
+      "description": "Returns an element from a list by its index. @since 1.0.0 [list]",
+      "usage": "LINDEX key index"
+    },
+    {
+      "key": "LINSERT",
+      "title": "LINSERT",
+      "group": "list",
+      "description": "Inserts an element before or after another element in a list. @since 2.2.0 [list]",
+      "usage": "LINSERT key <BEFORE | AFTER> pivot element"
+    },
+    {
+      "key": "LLEN",
+      "title": "LLEN",
+      "group": "list",
+      "description": "Returns the length of a list. @since 1.0.0 [list]",
+      "usage": "LLEN key"
+    },
+    {
+      "key": "LMOVE",
+      "title": "LMOVE",
+      "group": "list",
+      "description": "Returns an element after popping it from one list and pushing it to another. Deletes the list if the last element was moved. @since 6.2.0 [list]",
+      "usage": "LMOVE source destination <LEFT | RIGHT> <LEFT | RIGHT>"
+    },
+    {
+      "key": "LMPOP",
+      "title": "LMPOP",
+      "group": "list",
+      "description": "Returns multiple elements from a list after removing them. Deletes the list if the last element was popped. @since 7.0.0 [list]",
+      "usage": "LMPOP numkeys key [key ...] <LEFT | RIGHT> [COUNT count]"
+    },
+    {
+      "key": "LOLWUT",
+      "title": "LOLWUT",
+      "group": "server",
+      "description": "Displays computer art and the Redis version @since 5.0.0 [server]",
+      "usage": "LOLWUT [VERSION version]"
+    },
+    {
+      "key": "LPOP",
+      "title": "LPOP",
+      "group": "list",
+      "description": "Returns the first elements in a list after removing it. Deletes the list if the last element was popped. @since 1.0.0 [list]",
+      "usage": "LPOP key [count]"
+    },
+    {
+      "key": "LPOS",
+      "title": "LPOS",
+      "group": "list",
+      "description": "Returns the index of matching elements in a list. @since 6.0.6 [list]",
+      "usage": "LPOS key element [RANK rank] [COUNT num-matches] [MAXLEN len]"
+    },
+    {
+      "key": "LPUSH",
+      "title": "LPUSH",
+      "group": "list",
+      "description": "Prepends one or more elements to a list. Creates the key if it doesn't exist. @since 1.0.0 [list]",
+      "usage": "LPUSH key element [element ...]"
+    },
+    {
+      "key": "LPUSHX",
+      "title": "LPUSHX",
+      "group": "list",
+      "description": "Prepends one or more elements to a list only when the list exists. @since 2.2.0 [list]",
+      "usage": "LPUSHX key element [element ...]"
+    },
+    {
+      "key": "LRANGE",
+      "title": "LRANGE",
+      "group": "list",
+      "description": "Returns a range of elements from a list. @since 1.0.0 [list]",
+      "usage": "LRANGE key start stop"
+    },
+    {
+      "key": "LREM",
+      "title": "LREM",
+      "group": "list",
+      "description": "Removes elements from a list. Deletes the list if the last element was removed. @since 1.0.0 [list]",
+      "usage": "LREM key count element"
+    },
+    {
+      "key": "LSET",
+      "title": "LSET",
+      "group": "list",
+      "description": "Sets the value of an element in a list by its index. @since 1.0.0 [list]",
+      "usage": "LSET key index element"
+    },
+    {
+      "key": "LTRIM",
+      "title": "LTRIM",
+      "group": "list",
+      "description": "Removes elements from both ends a list. Deletes the list if all elements were trimmed. @since 1.0.0 [list]",
+      "usage": "LTRIM key start stop"
+    },
+    {
+      "key": "MEMORY DOCTOR",
+      "title": "MEMORY DOCTOR",
+      "group": "server",
+      "description": "Outputs a memory problems report. @since 4.0.0 [server]",
+      "usage": "MEMORY DOCTOR"
+    },
+    {
+      "key": "MEMORY HELP",
+      "title": "MEMORY HELP",
+      "group": "server",
+      "description": "Returns helpful text about the different subcommands. @since 4.0.0 [server]",
+      "usage": "MEMORY HELP"
+    },
+    {
+      "key": "MEMORY MALLOC-STATS",
+      "title": "MEMORY MALLOC-STATS",
+      "group": "server",
+      "description": "Returns the allocator statistics. @since 4.0.0 [server]",
+      "usage": "MEMORY MALLOC-STATS"
+    },
+    {
+      "key": "MEMORY PURGE",
+      "title": "MEMORY PURGE",
+      "group": "server",
+      "description": "Asks the allocator to release memory. @since 4.0.0 [server]",
+      "usage": "MEMORY PURGE"
+    },
+    {
+      "key": "MEMORY STATS",
+      "title": "MEMORY STATS",
+      "group": "server",
+      "description": "Returns details about memory usage. @since 4.0.0 [server]",
+      "usage": "MEMORY STATS"
+    },
+    {
+      "key": "MEMORY USAGE",
+      "title": "MEMORY USAGE",
+      "group": "server",
+      "description": "Estimates the memory usage of a key. @since 4.0.0 [server]",
+      "usage": "MEMORY USAGE key [SAMPLES count]"
+    },
+    {
+      "key": "MEMORY",
+      "title": "MEMORY",
+      "group": "server",
+      "description": "A container for memory diagnostics commands. @since 4.0.0 [server]",
+      "usage": "MEMORY"
+    },
+    {
+      "key": "MGET",
+      "title": "MGET",
+      "group": "string",
+      "description": "Atomically returns the string values of one or more keys. @since 1.0.0 [string]",
+      "usage": "MGET key [key ...]"
+    },
+    {
+      "key": "MIGRATE",
+      "title": "MIGRATE",
+      "group": "generic",
+      "description": "Atomically transfers a key from one Redis instance to another. @since 2.6.0 [generic]",
+      "usage": "MIGRATE host port <key | \"\"> destination-db timeout [COPY] [REPLACE]\n  [AUTH password | AUTH2 username password] [KEYS key [key ...]]"
+    },
+    {
+      "key": "MODULE HELP",
+      "title": "MODULE HELP",
+      "group": "server",
+      "description": "Returns helpful text about the different subcommands. @since 5.0.0 [server]",
+      "usage": "MODULE HELP"
+    },
+    {
+      "key": "MODULE LIST",
+      "title": "MODULE LIST",
+      "group": "server",
+      "description": "Returns all loaded modules. @since 4.0.0 [server]",
+      "usage": "MODULE LIST"
+    },
+    {
+      "key": "MODULE LOAD",
+      "title": "MODULE LOAD",
+      "group": "server",
+      "description": "Loads a module. @since 4.0.0 [server]",
+      "usage": "MODULE LOAD path [arg [arg ...]]"
+    },
+    {
+      "key": "MODULE LOADEX",
+      "title": "MODULE LOADEX",
+      "group": "server",
+      "description": "Loads a module using extended parameters. @since 7.0.0 [server]",
+      "usage": "MODULE LOADEX path [CONFIG name value [CONFIG name value ...]]\n  [ARGS args [args ...]]"
+    },
+    {
+      "key": "MODULE UNLOAD",
+      "title": "MODULE UNLOAD",
+      "group": "server",
+      "description": "Unloads a module. @since 4.0.0 [server]",
+      "usage": "MODULE UNLOAD name"
+    },
+    {
+      "key": "MODULE",
+      "title": "MODULE",
+      "group": "server",
+      "description": "A container for module commands. @since 4.0.0 [server]",
+      "usage": "MODULE"
+    },
+    {
+      "key": "MONITOR",
+      "title": "MONITOR",
+      "group": "server",
+      "description": "Listens for all requests received by the server in real-time. @since 1.0.0 [server]",
+      "usage": "MONITOR"
+    },
+    {
+      "key": "MOVE",
+      "title": "MOVE",
+      "group": "generic",
+      "description": "Moves a key to another database. @since 1.0.0 [generic]",
+      "usage": "MOVE key db"
+    },
+    {
+      "key": "MSET",
+      "title": "MSET",
+      "group": "string",
+      "description": "Atomically creates or modifies the string values of one or more keys. @since 1.0.1 [string]",
+      "usage": "MSET key value [key value ...]"
+    },
+    {
+      "key": "MSETEX",
+      "title": "MSETEX",
+      "group": "string",
+      "description": "Atomically sets multiple string keys with a shared expiration in a single operation. @since 8.4.0 [string]",
+      "usage": "MSETEX numkeys key value [key value ...] [NX | XX] [EX seconds |\n  PX milliseconds | EXAT unix-time-seconds |\n  PXAT unix-time-milliseconds | KEEPTTL]"
+    },
+    {
+      "key": "MSETNX",
+      "title": "MSETNX",
+      "group": "string",
+      "description": "Atomically modifies the string values of one or more keys only when all keys don't exist. @since 1.0.1 [string]",
+      "usage": "MSETNX key value [key value ...]"
+    },
+    {
+      "key": "MULTI",
+      "title": "MULTI",
+      "group": "transactions",
+      "description": "Starts a transaction. @since 1.2.0 [transactions]",
+      "usage": "MULTI"
+    },
+    {
+      "key": "OBJECT ENCODING",
+      "title": "OBJECT ENCODING",
+      "group": "generic",
+      "description": "Returns the internal encoding of a Redis object. @since 2.2.3 [generic]",
+      "usage": "OBJECT ENCODING key"
+    },
+    {
+      "key": "OBJECT FREQ",
+      "title": "OBJECT FREQ",
+      "group": "generic",
+      "description": "Returns the logarithmic access frequency counter of a Redis object. @since 4.0.0 [generic]",
+      "usage": "OBJECT FREQ key"
+    },
+    {
+      "key": "OBJECT HELP",
+      "title": "OBJECT HELP",
+      "group": "generic",
+      "description": "Returns helpful text about the different subcommands. @since 6.2.0 [generic]",
+      "usage": "OBJECT HELP"
+    },
+    {
+      "key": "OBJECT IDLETIME",
+      "title": "OBJECT IDLETIME",
+      "group": "generic",
+      "description": "Returns the time since the last access to a Redis object. @since 2.2.3 [generic]",
+      "usage": "OBJECT IDLETIME key"
+    },
+    {
+      "key": "OBJECT REFCOUNT",
+      "title": "OBJECT REFCOUNT",
+      "group": "generic",
+      "description": "Returns the reference count of a value of a key. @since 2.2.3 [generic]",
+      "usage": "OBJECT REFCOUNT key"
+    },
+    {
+      "key": "OBJECT",
+      "title": "OBJECT",
+      "group": "generic",
+      "description": "A container for object introspection commands. @since 2.2.3 [generic]",
+      "usage": "OBJECT"
+    },
+    {
+      "key": "PERSIST",
+      "title": "PERSIST",
+      "group": "generic",
+      "description": "Removes the expiration time of a key. @since 2.2.0 [generic]",
+      "usage": "PERSIST key"
+    },
+    {
+      "key": "PEXPIRE",
+      "title": "PEXPIRE",
+      "group": "generic",
+      "description": "Sets the expiration time of a key in milliseconds. @since 2.6.0 [generic]",
+      "usage": "PEXPIRE key milliseconds [NX | XX | GT | LT]"
+    },
+    {
+      "key": "PEXPIREAT",
+      "title": "PEXPIREAT",
+      "group": "generic",
+      "description": "Sets the expiration time of a key to a Unix milliseconds timestamp. @since 2.6.0 [generic]",
+      "usage": "PEXPIREAT key unix-time-milliseconds [NX | XX | GT | LT]"
+    },
+    {
+      "key": "PEXPIRETIME",
+      "title": "PEXPIRETIME",
+      "group": "generic",
+      "description": "Returns the expiration time of a key as a Unix milliseconds timestamp. @since 7.0.0 [generic]",
+      "usage": "PEXPIRETIME key"
+    },
+    {
+      "key": "PFADD",
+      "title": "PFADD",
+      "group": "hyperloglog",
+      "description": "Adds elements to a HyperLogLog key. Creates the key if it doesn't exist. @since 2.8.9 [hyperloglog]",
+      "usage": "PFADD key [element [element ...]]"
+    },
+    {
+      "key": "PFCOUNT",
+      "title": "PFCOUNT",
+      "group": "hyperloglog",
+      "description": "Returns the approximated cardinality of the set(s) observed by the HyperLogLog key(s). @since 2.8.9 [hyperloglog]",
+      "usage": "PFCOUNT key [key ...]"
+    },
+    {
+      "key": "PFDEBUG",
+      "title": "PFDEBUG",
+      "group": "hyperloglog",
+      "description": "Internal commands for debugging HyperLogLog values. @since 2.8.9 [hyperloglog]",
+      "usage": "PFDEBUG subcommand key"
+    },
+    {
+      "key": "PFMERGE",
+      "title": "PFMERGE",
+      "group": "hyperloglog",
+      "description": "Merges one or more HyperLogLog values into a single key. @since 2.8.9 [hyperloglog]",
+      "usage": "PFMERGE destkey [sourcekey [sourcekey ...]]"
+    },
+    {
+      "key": "PFSELFTEST",
+      "title": "PFSELFTEST",
+      "group": "hyperloglog",
+      "description": "An internal command for testing HyperLogLog values. @since 2.8.9 [hyperloglog]",
+      "usage": "PFSELFTEST"
+    },
+    {
+      "key": "PING",
+      "title": "PING",
+      "group": "connection",
+      "description": "Returns the server's liveliness response. @since 1.0.0 [connection]",
+      "usage": "PING [message]"
+    },
+    {
+      "key": "PSETEX",
+      "title": "PSETEX",
+      "group": "string",
+      "description": "Sets both string value and expiration time in milliseconds of a key. The key is created if it doesn't exist. @since 2.6.0 [string]",
+      "usage": "PSETEX key milliseconds value"
+    },
+    {
+      "key": "PSUBSCRIBE",
+      "title": "PSUBSCRIBE",
+      "group": "pubsub",
+      "description": "Listens for messages published to channels that match one or more patterns. @since 2.0.0 [pubsub]",
+      "usage": "PSUBSCRIBE pattern [pattern ...]"
+    },
+    {
+      "key": "PSYNC",
+      "title": "PSYNC",
+      "group": "server",
+      "description": "An internal command used in replication. @since 2.8.0 [server]",
+      "usage": "PSYNC replicationid offset"
+    },
+    {
+      "key": "PTTL",
+      "title": "PTTL",
+      "group": "generic",
+      "description": "Returns the expiration time in milliseconds of a key. @since 2.6.0 [generic]",
+      "usage": "PTTL key"
+    },
+    {
+      "key": "PUBLISH",
+      "title": "PUBLISH",
+      "group": "pubsub",
+      "description": "Posts a message to a channel. @since 2.0.0 [pubsub]",
+      "usage": "PUBLISH channel message"
+    },
+    {
+      "key": "PUBSUB CHANNELS",
+      "title": "PUBSUB CHANNELS",
+      "group": "pubsub",
+      "description": "Returns the active channels. @since 2.8.0 [pubsub]",
+      "usage": "PUBSUB CHANNELS [pattern]"
+    },
+    {
+      "key": "PUBSUB HELP",
+      "title": "PUBSUB HELP",
+      "group": "pubsub",
+      "description": "Returns helpful text about the different subcommands. @since 6.2.0 [pubsub]",
+      "usage": "PUBSUB HELP"
+    },
+    {
+      "key": "PUBSUB NUMPAT",
+      "title": "PUBSUB NUMPAT",
+      "group": "pubsub",
+      "description": "Returns a count of unique pattern subscriptions. @since 2.8.0 [pubsub]",
+      "usage": "PUBSUB NUMPAT"
+    },
+    {
+      "key": "PUBSUB NUMSUB",
+      "title": "PUBSUB NUMSUB",
+      "group": "pubsub",
+      "description": "Returns a count of subscribers to channels. @since 2.8.0 [pubsub]",
+      "usage": "PUBSUB NUMSUB [channel [channel ...]]"
+    },
+    {
+      "key": "PUBSUB SHARDCHANNELS",
+      "title": "PUBSUB SHARDCHANNELS",
+      "group": "pubsub",
+      "description": "Returns the active shard channels. @since 7.0.0 [pubsub]",
+      "usage": "PUBSUB SHARDCHANNELS [pattern]"
+    },
+    {
+      "key": "PUBSUB SHARDNUMSUB",
+      "title": "PUBSUB SHARDNUMSUB",
+      "group": "pubsub",
+      "description": "Returns the count of subscribers of shard channels. @since 7.0.0 [pubsub]",
+      "usage": "PUBSUB SHARDNUMSUB [shardchannel [shardchannel ...]]"
+    },
+    {
+      "key": "PUBSUB",
+      "title": "PUBSUB",
+      "group": "pubsub",
+      "description": "A container for Pub/Sub commands. @since 2.8.0 [pubsub]",
+      "usage": "PUBSUB"
+    },
+    {
+      "key": "PUNSUBSCRIBE",
+      "title": "PUNSUBSCRIBE",
+      "group": "pubsub",
+      "description": "Stops listening to messages published to channels that match one or more patterns. @since 2.0.0 [pubsub]",
+      "usage": "PUNSUBSCRIBE [pattern [pattern ...]]"
+    },
+    {
+      "key": "QUIT",
+      "title": "QUIT",
+      "group": "connection",
+      "description": "Closes the connection. @since 1.0.0 [connection]",
+      "usage": "QUIT"
+    },
+    {
+      "key": "RANDOMKEY",
+      "title": "RANDOMKEY",
+      "group": "generic",
+      "description": "Returns a random key name from the database. @since 1.0.0 [generic]",
+      "usage": "RANDOMKEY"
+    },
+    {
+      "key": "READONLY",
+      "title": "READONLY",
+      "group": "cluster",
+      "description": "Enables read-only queries for a connection to a Redis Cluster replica node. @since 3.0.0 [cluster]",
+      "usage": "READONLY"
+    },
+    {
+      "key": "READWRITE",
+      "title": "READWRITE",
+      "group": "cluster",
+      "description": "Enables read-write queries for a connection to a Reids Cluster replica node. @since 3.0.0 [cluster]",
+      "usage": "READWRITE"
+    },
+    {
+      "key": "RENAME",
+      "title": "RENAME",
+      "group": "generic",
+      "description": "Renames a key and overwrites the destination. @since 1.0.0 [generic]",
+      "usage": "RENAME key newkey"
+    },
+    {
+      "key": "RENAMENX",
+      "title": "RENAMENX",
+      "group": "generic",
+      "description": "Renames a key only when the target key name doesn't exist. @since 1.0.0 [generic]",
+      "usage": "RENAMENX key newkey"
+    },
+    {
+      "key": "REPLCONF",
+      "title": "REPLCONF",
+      "group": "server",
+      "description": "An internal command for configuring the replication stream. @since 3.0.0 [server]",
+      "usage": "REPLCONF"
+    },
+    {
+      "key": "REPLICAOF",
+      "title": "REPLICAOF",
+      "group": "server",
+      "description": "Configures a server as replica of another, or promotes it to a master. @since 5.0.0 [server]",
+      "usage": "REPLICAOF <host port | NO ONE>"
+    },
+    {
+      "key": "RESET",
+      "title": "RESET",
+      "group": "connection",
+      "description": "Resets the connection. @since 6.2.0 [connection]",
+      "usage": "RESET"
+    },
+    {
+      "key": "RESTORE-ASKING",
+      "title": "RESTORE-ASKING",
+      "group": "server",
+      "description": "An internal command for migrating keys in a cluster. @since 3.0.0 [server]",
+      "usage": "RESTORE-ASKING key ttl serialized-value [REPLACE] [ABSTTL]\n  [IDLETIME seconds] [FREQ frequency]"
+    },
+    {
+      "key": "RESTORE",
+      "title": "RESTORE",
+      "group": "generic",
+      "description": "Creates a key from the serialized representation of a value. @since 2.6.0 [generic]",
+      "usage": "RESTORE key ttl serialized-value [REPLACE] [ABSTTL]\n  [IDLETIME seconds] [FREQ frequency]"
+    },
+    {
+      "key": "ROLE",
+      "title": "ROLE",
+      "group": "server",
+      "description": "Returns the replication role. @since 2.8.12 [server]",
+      "usage": "ROLE"
+    },
+    {
+      "key": "RPOP",
+      "title": "RPOP",
+      "group": "list",
+      "description": "Returns and removes the last elements of a list. Deletes the list if the last element was popped. @since 1.0.0 [list]",
+      "usage": "RPOP key [count]"
+    },
+    {
+      "key": "RPOPLPUSH",
+      "title": "RPOPLPUSH",
+      "group": "list",
+      "description": "Returns the last element of a list after removing and pushing it to another list. Deletes the list if the last element was popped. @since 1.2.0 [list]",
+      "usage": "RPOPLPUSH source destination"
+    },
+    {
+      "key": "RPUSH",
+      "title": "RPUSH",
+      "group": "list",
+      "description": "Appends one or more elements to a list. Creates the key if it doesn't exist. @since 1.0.0 [list]",
+      "usage": "RPUSH key element [element ...]"
+    },
+    {
+      "key": "RPUSHX",
+      "title": "RPUSHX",
+      "group": "list",
+      "description": "Appends an element to a list only when the list exists. @since 2.2.0 [list]",
+      "usage": "RPUSHX key element [element ...]"
+    },
+    {
+      "key": "SADD",
+      "title": "SADD",
+      "group": "set",
+      "description": "Adds one or more members to a set. Creates the key if it doesn't exist. @since 1.0.0 [set]",
+      "usage": "SADD key member [member ...]"
+    },
+    {
+      "key": "SAVE",
+      "title": "SAVE",
+      "group": "server",
+      "description": "Synchronously saves the database(s) to disk. @since 1.0.0 [server]",
+      "usage": "SAVE"
+    },
+    {
+      "key": "SCAN",
+      "title": "SCAN",
+      "group": "generic",
+      "description": "Iterates over the key names in the database. @since 2.8.0 [generic]",
+      "usage": "SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]"
+    },
+    {
+      "key": "SCARD",
+      "title": "SCARD",
+      "group": "set",
+      "description": "Returns the number of members in a set. @since 1.0.0 [set]",
+      "usage": "SCARD key"
+    },
+    {
+      "key": "SCRIPT DEBUG",
+      "title": "SCRIPT DEBUG",
+      "group": "scripting",
+      "description": "Sets the debug mode of server-side Lua scripts. @since 3.2.0 [scripting]",
+      "usage": "SCRIPT DEBUG <YES | SYNC | NO>"
+    },
+    {
+      "key": "SCRIPT EXISTS",
+      "title": "SCRIPT EXISTS",
+      "group": "scripting",
+      "description": "Determines whether server-side Lua scripts exist in the script cache. @since 2.6.0 [scripting]",
+      "usage": "SCRIPT EXISTS sha1 [sha1 ...]"
+    },
+    {
+      "key": "SCRIPT FLUSH",
+      "title": "SCRIPT FLUSH",
+      "group": "scripting",
+      "description": "Removes all server-side Lua scripts from the script cache. @since 2.6.0 [scripting]",
+      "usage": "SCRIPT FLUSH [ASYNC | SYNC]"
+    },
+    {
+      "key": "SCRIPT HELP",
+      "title": "SCRIPT HELP",
+      "group": "scripting",
+      "description": "Returns helpful text about the different subcommands. @since 5.0.0 [scripting]",
+      "usage": "SCRIPT HELP"
+    },
+    {
+      "key": "SCRIPT KILL",
+      "title": "SCRIPT KILL",
+      "group": "scripting",
+      "description": "Terminates a server-side Lua script during execution. @since 2.6.0 [scripting]",
+      "usage": "SCRIPT KILL"
+    },
+    {
+      "key": "SCRIPT LOAD",
+      "title": "SCRIPT LOAD",
+      "group": "scripting",
+      "description": "Loads a server-side Lua script to the script cache. @since 2.6.0 [scripting]",
+      "usage": "SCRIPT LOAD script"
+    },
+    {
+      "key": "SCRIPT",
+      "title": "SCRIPT",
+      "group": "scripting",
+      "description": "A container for Lua scripts management commands. @since 2.6.0 [scripting]",
+      "usage": "SCRIPT"
+    },
+    {
+      "key": "SDIFF",
+      "title": "SDIFF",
+      "group": "set",
+      "description": "Returns the difference of multiple sets. @since 1.0.0 [set]",
+      "usage": "SDIFF key [key ...]"
+    },
+    {
+      "key": "SDIFFSTORE",
+      "title": "SDIFFSTORE",
+      "group": "set",
+      "description": "Stores the difference of multiple sets in a key. @since 1.0.0 [set]",
+      "usage": "SDIFFSTORE destination key [key ...]"
+    },
+    {
+      "key": "SELECT",
+      "title": "SELECT",
+      "group": "connection",
+      "description": "Changes the selected database. @since 1.0.0 [connection]",
+      "usage": "SELECT index"
+    },
+    {
+      "key": "SET",
+      "title": "SET",
+      "group": "string",
+      "description": "Sets the string value of a key, ignoring its type. The key is created if it doesn't exist. @since 1.0.0 [string]",
+      "usage": "SET key value [NX | XX | IFEQ ifeq-value | IFNE ifne-value |\n  IFDEQ ifdeq-digest | IFDNE ifdne-digest] [GET] [EX seconds |\n  PX milliseconds | EXAT unix-time-seconds |\n  PXAT unix-time-milliseconds | KEEPTTL]"
+    },
+    {
+      "key": "SETBIT",
+      "title": "SETBIT",
+      "group": "bitmap",
+      "description": "Sets or clears the bit at offset of the string value. Creates the key if it doesn't exist. @since 2.2.0 [bitmap]",
+      "usage": "SETBIT key offset value"
+    },
+    {
+      "key": "SETEX",
+      "title": "SETEX",
+      "group": "string",
+      "description": "Sets the string value and expiration time of a key. Creates the key if it doesn't exist. @since 2.0.0 [string]",
+      "usage": "SETEX key seconds value"
+    },
+    {
+      "key": "SETNX",
+      "title": "SETNX",
+      "group": "string",
+      "description": "Set the string value of a key only when the key doesn't exist. @since 1.0.0 [string]",
+      "usage": "SETNX key value"
+    },
+    {
+      "key": "SETRANGE",
+      "title": "SETRANGE",
+      "group": "string",
+      "description": "Overwrites a part of a string value with another by an offset. Creates the key if it doesn't exist. @since 2.2.0 [string]",
+      "usage": "SETRANGE key offset value"
+    },
+    {
+      "key": "SHUTDOWN",
+      "title": "SHUTDOWN",
+      "group": "server",
+      "description": "Synchronously saves the database(s) to disk and shuts down the Redis server. @since 1.0.0 [server]",
+      "usage": "SHUTDOWN [NOSAVE | SAVE] [NOW] [FORCE] [ABORT]"
+    },
+    {
+      "key": "SINTER",
+      "title": "SINTER",
+      "group": "set",
+      "description": "Returns the intersect of multiple sets. @since 1.0.0 [set]",
+      "usage": "SINTER key [key ...]"
+    },
+    {
+      "key": "SINTERCARD",
+      "title": "SINTERCARD",
+      "group": "set",
+      "description": "Returns the number of members of the intersect of multiple sets. @since 7.0.0 [set]",
+      "usage": "SINTERCARD numkeys key [key ...] [LIMIT limit]"
+    },
+    {
+      "key": "SINTERSTORE",
+      "title": "SINTERSTORE",
+      "group": "set",
+      "description": "Stores the intersect of multiple sets in a key. @since 1.0.0 [set]",
+      "usage": "SINTERSTORE destination key [key ...]"
+    },
+    {
+      "key": "SISMEMBER",
+      "title": "SISMEMBER",
+      "group": "set",
+      "description": "Determines whether a member belongs to a set. @since 1.0.0 [set]",
+      "usage": "SISMEMBER key member"
+    },
+    {
+      "key": "SLAVEOF",
+      "title": "SLAVEOF",
+      "group": "server",
+      "description": "Sets a Redis server as a replica of another, or promotes it to being a master. @since 1.0.0 [server]",
+      "usage": "SLAVEOF <host port | NO ONE>"
+    },
+    {
+      "key": "SLOWLOG GET",
+      "title": "SLOWLOG GET",
+      "group": "server",
+      "description": "Returns the slow log's entries. @since 2.2.12 [server]",
+      "usage": "SLOWLOG GET [count]"
+    },
+    {
+      "key": "SLOWLOG HELP",
+      "title": "SLOWLOG HELP",
+      "group": "server",
+      "description": "Show helpful text about the different subcommands @since 6.2.0 [server]",
+      "usage": "SLOWLOG HELP"
+    },
+    {
+      "key": "SLOWLOG LEN",
+      "title": "SLOWLOG LEN",
+      "group": "server",
+      "description": "Returns the number of entries in the slow log. @since 2.2.12 [server]",
+      "usage": "SLOWLOG LEN"
+    },
+    {
+      "key": "SLOWLOG RESET",
+      "title": "SLOWLOG RESET",
+      "group": "server",
+      "description": "Clears all entries from the slow log. @since 2.2.12 [server]",
+      "usage": "SLOWLOG RESET"
+    },
+    {
+      "key": "SLOWLOG",
+      "title": "SLOWLOG",
+      "group": "server",
+      "description": "A container for slow log commands. @since 2.2.12 [server]",
+      "usage": "SLOWLOG"
+    },
+    {
+      "key": "SMEMBERS",
+      "title": "SMEMBERS",
+      "group": "set",
+      "description": "Returns all members of a set. @since 1.0.0 [set]",
+      "usage": "SMEMBERS key"
+    },
+    {
+      "key": "SMISMEMBER",
+      "title": "SMISMEMBER",
+      "group": "set",
+      "description": "Determines whether multiple members belong to a set. @since 6.2.0 [set]",
+      "usage": "SMISMEMBER key member [member ...]"
+    },
+    {
+      "key": "SMOVE",
+      "title": "SMOVE",
+      "group": "set",
+      "description": "Moves a member from one set to another. @since 1.0.0 [set]",
+      "usage": "SMOVE source destination member"
+    },
+    {
+      "key": "SORT",
+      "title": "SORT",
+      "group": "generic",
+      "description": "Sorts the elements in a list, a set, or a sorted set, optionally storing the result. @since 1.0.0 [generic]",
+      "usage": "SORT key [BY pattern] [LIMIT offset count] [GET pattern [GET pattern\n  ...]] [ASC | DESC] [ALPHA] [STORE destination]"
+    },
+    {
+      "key": "SORT_RO",
+      "title": "SORT_RO",
+      "group": "generic",
+      "description": "Returns the sorted elements of a list, a set, or a sorted set. @since 7.0.0 [generic]",
+      "usage": "SORT_RO key [BY pattern] [LIMIT offset count] [GET pattern [GET\n  pattern ...]] [ASC | DESC] [ALPHA]"
+    },
+    {
+      "key": "SPOP",
+      "title": "SPOP",
+      "group": "set",
+      "description": "Returns one or more random members from a set after removing them. Deletes the set if the last member was popped. @since 1.0.0 [set]",
+      "usage": "SPOP key [count]"
+    },
+    {
+      "key": "SPUBLISH",
+      "title": "SPUBLISH",
+      "group": "pubsub",
+      "description": "Post a message to a shard channel @since 7.0.0 [pubsub]",
+      "usage": "SPUBLISH shardchannel message"
+    },
+    {
+      "key": "SRANDMEMBER",
+      "title": "SRANDMEMBER",
+      "group": "set",
+      "description": "Get one or multiple random members from a set @since 1.0.0 [set]",
+      "usage": "SRANDMEMBER key [count]"
+    },
+    {
+      "key": "SREM",
+      "title": "SREM",
+      "group": "set",
+      "description": "Removes one or more members from a set. Deletes the set if the last member was removed. @since 1.0.0 [set]",
+      "usage": "SREM key member [member ...]"
+    },
+    {
+      "key": "SSCAN",
+      "title": "SSCAN",
+      "group": "set",
+      "description": "Iterates over members of a set. @since 2.8.0 [set]",
+      "usage": "SSCAN key cursor [MATCH pattern] [COUNT count]"
+    },
+    {
+      "key": "SSUBSCRIBE",
+      "title": "SSUBSCRIBE",
+      "group": "pubsub",
+      "description": "Listens for messages published to shard channels. @since 7.0.0 [pubsub]",
+      "usage": "SSUBSCRIBE shardchannel [shardchannel ...]"
+    },
+    {
+      "key": "STRLEN",
+      "title": "STRLEN",
+      "group": "string",
+      "description": "Returns the length of a string value. @since 2.2.0 [string]",
+      "usage": "STRLEN key"
+    },
+    {
+      "key": "SUBSCRIBE",
+      "title": "SUBSCRIBE",
+      "group": "pubsub",
+      "description": "Listens for messages published to channels. @since 2.0.0 [pubsub]",
+      "usage": "SUBSCRIBE channel [channel ...]"
+    },
+    {
+      "key": "SUBSTR",
+      "title": "SUBSTR",
+      "group": "string",
+      "description": "Returns a substring from a string value. @since 1.0.0 [string]",
+      "usage": "SUBSTR key start end"
+    },
+    {
+      "key": "SUNION",
+      "title": "SUNION",
+      "group": "set",
+      "description": "Returns the union of multiple sets. @since 1.0.0 [set]",
+      "usage": "SUNION key [key ...]"
+    },
+    {
+      "key": "SUNIONSTORE",
+      "title": "SUNIONSTORE",
+      "group": "set",
+      "description": "Stores the union of multiple sets in a key. @since 1.0.0 [set]",
+      "usage": "SUNIONSTORE destination key [key ...]"
+    },
+    {
+      "key": "SUNSUBSCRIBE",
+      "title": "SUNSUBSCRIBE",
+      "group": "pubsub",
+      "description": "Stops listening to messages posted to shard channels. @since 7.0.0 [pubsub]",
+      "usage": "SUNSUBSCRIBE [shardchannel [shardchannel ...]]"
+    },
+    {
+      "key": "SWAPDB",
+      "title": "SWAPDB",
+      "group": "server",
+      "description": "Swaps two Redis databases. @since 4.0.0 [server]",
+      "usage": "SWAPDB index1 index2"
+    },
+    {
+      "key": "SYNC",
+      "title": "SYNC",
+      "group": "server",
+      "description": "An internal command used in replication. @since 1.0.0 [server]",
+      "usage": "SYNC"
+    },
+    {
+      "key": "TDIGEST.ADD",
+      "title": "TDIGEST.ADD",
+      "group": "tdigest",
+      "description": "Adds one or more observations to a t-digest sketch @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.ADD key value [value ...]"
+    },
+    {
+      "key": "TDIGEST.BYRANK",
+      "title": "TDIGEST.BYRANK",
+      "group": "tdigest",
+      "description": "Returns, for each input rank, an estimation of the value (floating-point) with that rank @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.BYRANK key rank [rank ...]"
+    },
+    {
+      "key": "TDIGEST.BYREVRANK",
+      "title": "TDIGEST.BYREVRANK",
+      "group": "tdigest",
+      "description": "Returns, for each input reverse rank, an estimation of the value (floating-point) with that reverse rank @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.BYREVRANK key reverse_rank [reverse_rank ...]"
+    },
+    {
+      "key": "TDIGEST.CDF",
+      "title": "TDIGEST.CDF",
+      "group": "tdigest",
+      "description": "Returns, for each input value, an estimation of the fraction (floating-point) of (observations smaller than the given value + half the observations equal to the given value) @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.CDF key value [value ...]"
+    },
+    {
+      "key": "TDIGEST.CREATE",
+      "title": "TDIGEST.CREATE",
+      "group": "tdigest",
+      "description": "Allocates memory and initializes a new t-digest sketch @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.CREATE key [COMPRESSION compression]"
+    },
+    {
+      "key": "TDIGEST.INFO",
+      "title": "TDIGEST.INFO",
+      "group": "tdigest",
+      "description": "Returns information and statistics about a t-digest sketch @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.INFO key"
+    },
+    {
+      "key": "TDIGEST.MAX",
+      "title": "TDIGEST.MAX",
+      "group": "tdigest",
+      "description": "Returns the maximum observation value from a t-digest sketch @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.MAX key"
+    },
+    {
+      "key": "TDIGEST.MERGE",
+      "title": "TDIGEST.MERGE",
+      "group": "tdigest",
+      "description": "Merges multiple t-digest sketches into a single sketch @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.MERGE destination-key numkeys source-key [source-key ...]\n  [COMPRESSION compression] [OVERRIDE]"
+    },
+    {
+      "key": "TDIGEST.MIN",
+      "title": "TDIGEST.MIN",
+      "group": "tdigest",
+      "description": "Returns the minimum observation value from a t-digest sketch @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.MIN key"
+    },
+    {
+      "key": "TDIGEST.QUANTILE",
+      "title": "TDIGEST.QUANTILE",
+      "group": "tdigest",
+      "description": "Returns, for each input fraction, an estimation of the value (floating point) that is smaller than the given fraction of observations @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.QUANTILE key quantile [quantile ...]"
+    },
+    {
+      "key": "TDIGEST.RANK",
+      "title": "TDIGEST.RANK",
+      "group": "tdigest",
+      "description": "Returns, for each input value (floating-point), the estimated rank of the value (the number of observations in the sketch that are smaller than the value + half the number of observations that are equal to the value) @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.RANK key value [value ...]"
+    },
+    {
+      "key": "TDIGEST.RESET",
+      "title": "TDIGEST.RESET",
+      "group": "tdigest",
+      "description": "Resets a t-digest sketch: empty the sketch and re-initializes it. @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.RESET key"
+    },
+    {
+      "key": "TDIGEST.REVRANK",
+      "title": "TDIGEST.REVRANK",
+      "group": "tdigest",
+      "description": "Returns, for each input value (floating-point), the estimated reverse rank of the value (the number of observations in the sketch that are larger than the value + half the number of observations that are equal to the value) @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.REVRANK key value [value ...]"
+    },
+    {
+      "key": "TDIGEST.TRIMMED_MEAN",
+      "title": "TDIGEST.TRIMMED_MEAN",
+      "group": "tdigest",
+      "description": "Returns an estimation of the mean value from the sketch, excluding observation values outside the low and high cutoff quantiles @since 2.4.0 [tdigest]",
+      "usage": "TDIGEST.TRIMMED_MEAN key low_cut_quantile high_cut_quantile"
+    },
+    {
+      "key": "TIME",
+      "title": "TIME",
+      "group": "server",
+      "description": "Returns the server time. @since 2.6.0 [server]",
+      "usage": "TIME"
+    },
+    {
+      "key": "TOPK.ADD",
+      "title": "TOPK.ADD",
+      "group": "topk",
+      "description": "Adds an item to a Top-k sketch. Multiple items can be added at the same time. @since 2.0.0 [topk]",
+      "usage": "TOPK.ADD key items [items ...]"
+    },
+    {
+      "key": "TOPK.COUNT",
+      "title": "TOPK.COUNT",
+      "group": "topk",
+      "description": "Return the count for one or more items are in a sketch @since 2.0.0 [topk]",
+      "usage": "TOPK.COUNT key item [item ...]"
+    },
+    {
+      "key": "TOPK.INCRBY",
+      "title": "TOPK.INCRBY",
+      "group": "topk",
+      "description": "Increases the count of one or more items by increment @since 2.0.0 [topk]",
+      "usage": "TOPK.INCRBY key item increment [item increment ...]"
+    },
+    {
+      "key": "TOPK.INFO",
+      "title": "TOPK.INFO",
+      "group": "topk",
+      "description": "Returns information about a sketch @since 2.0.0 [topk]",
+      "usage": "TOPK.INFO key"
+    },
+    {
+      "key": "TOPK.LIST",
+      "title": "TOPK.LIST",
+      "group": "topk",
+      "description": "Return full list of items in Top K list @since 2.0.0 [topk]",
+      "usage": "TOPK.LIST key [WITHCOUNT]"
+    },
+    {
+      "key": "TOPK.QUERY",
+      "title": "TOPK.QUERY",
+      "group": "topk",
+      "description": "Checks whether one or more items are in a sketch @since 2.0.0 [topk]",
+      "usage": "TOPK.QUERY key item [item ...]"
+    },
+    {
+      "key": "TOPK.RESERVE",
+      "title": "TOPK.RESERVE",
+      "group": "topk",
+      "description": "Initializes a TopK with specified parameters @since 2.0.0 [topk]",
+      "usage": "TOPK.RESERVE key topk [width depth decay]"
+    },
+    {
+      "key": "TOUCH",
+      "title": "TOUCH",
+      "group": "generic",
+      "description": "Returns the number of existing keys out of those specified after updating the time they were last accessed. @since 3.2.1 [generic]",
+      "usage": "TOUCH key [key ...]"
+    },
+    {
+      "key": "TS.ADD",
+      "title": "TS.ADD",
+      "group": "timeseries",
+      "description": "Append a sample to a time series @since 1.0.0 [timeseries]",
+      "usage": "TS.ADD key timestamp value [RETENTION retentionPeriod]\n  [ENCODING <UNCOMPRESSED | COMPRESSED>] [CHUNK_SIZE size]\n  [ON_DUPLICATE <BLOCK | FIRST | LAST | MIN | MAX | SUM>]\n  [LABELS label value [label value ...]]"
+    },
+    {
+      "key": "TS.ALTER",
+      "title": "TS.ALTER",
+      "group": "timeseries",
+      "description": "Update the retention, chunk size, duplicate policy, and labels of an existing time series @since 1.0.0 [timeseries]",
+      "usage": "TS.ALTER key [RETENTION retentionPeriod] [CHUNK_SIZE size]\n  [DUPLICATE_POLICY <BLOCK | FIRST | LAST | MIN | MAX | SUM>] [LABELS label value\n  [label value ...]]"
+    },
+    {
+      "key": "TS.CREATE",
+      "title": "TS.CREATE",
+      "group": "timeseries",
+      "description": "Create a new time series @since 1.0.0 [timeseries]",
+      "usage": "TS.CREATE key [RETENTION retentionPeriod] [ENCODING <UNCOMPRESSED |\n  COMPRESSED>] [CHUNK_SIZE size] [DUPLICATE_POLICY <BLOCK | FIRST |\n  LAST | MIN | MAX | SUM>] [LABELS label value [label value ...]]"
+    },
+    {
+      "key": "TS.CREATERULE",
+      "title": "TS.CREATERULE",
+      "group": "timeseries",
+      "description": "Create a compaction rule @since 1.0.0 [timeseries]",
+      "usage": "TS.CREATERULE sourceKey destKey AGGREGATION <AVG | FIRST | LAST |\n  MIN | MAX | SUM | RANGE | COUNT | STD.P | STD.S | VAR.P | VAR.S |\n  TWA> bucketDuration [alignTimestamp]"
+    },
+    {
+      "key": "TS.DECRBY",
+      "title": "TS.DECRBY",
+      "group": "timeseries",
+      "description": "Decrease the value of the sample with the maximum existing timestamp, or create a new sample with a value equal to the value of the sample with the maximum existing timestamp with a given decrement @since 1.0.0 [timeseries]",
+      "usage": "TS.DECRBY key value [TIMESTAMP timestamp]\n  [RETENTION retentionPeriod] [UNCOMPRESSED] [CHUNK_SIZE size]\n  [LABELS label value [label value ...]]"
+    },
+    {
+      "key": "TS.DEL",
+      "title": "TS.DEL",
+      "group": "timeseries",
+      "description": "Delete all samples between two timestamps for a given time series @since 1.6.0 [timeseries]",
+      "usage": "TS.DEL key from_timestamp to_timestamp"
+    },
+    {
+      "key": "TS.DELETERULE",
+      "title": "TS.DELETERULE",
+      "group": "timeseries",
+      "description": "Delete a compaction rule @since 1.0.0 [timeseries]",
+      "usage": "TS.DELETERULE sourceKey destKey"
+    },
+    {
+      "key": "TS.GET",
+      "title": "TS.GET",
+      "group": "timeseries",
+      "description": "Get the sample with the highest timestamp from a given time series @since 1.0.0 [timeseries]",
+      "usage": "TS.GET key [LATEST]"
+    },
+    {
+      "key": "TS.INCRBY",
+      "title": "TS.INCRBY",
+      "group": "timeseries",
+      "description": "Increase the value of the sample with the maximum existing timestamp, or create a new sample with a value equal to the value of the sample with the maximum existing timestamp with a given increment @since 1.0.0 [timeseries]",
+      "usage": "TS.INCRBY key value [TIMESTAMP timestamp]\n  [RETENTION retentionPeriod] [UNCOMPRESSED] [CHUNK_SIZE size]\n  [LABELS label value [label value ...]]"
+    },
+    {
+      "key": "TS.INFO",
+      "title": "TS.INFO",
+      "group": "timeseries",
+      "description": "Returns information and statistics for a time series @since 1.0.0 [timeseries]",
+      "usage": "TS.INFO key [DEBUG]"
+    },
+    {
+      "key": "TS.MADD",
+      "title": "TS.MADD",
+      "group": "timeseries",
+      "description": "Append new samples to one or more time series @since 1.0.0 [timeseries]",
+      "usage": "TS.MADD key timestamp value [key timestamp value ...]"
+    },
+    {
+      "key": "TS.MGET",
+      "title": "TS.MGET",
+      "group": "timeseries",
+      "description": "Get the sample with the highest timestamp from each time series matching a specific filter @since 1.0.0 [timeseries]",
+      "usage": "TS.MGET [LATEST] [WITHLABELS | SELECTED_LABELS label1 [label1 ...]]\n  FILTER <l=v | l!=v | l= | l!= | l=(v1,v2,...) | l!=(v1,v2,...)\n  [l=v | l!=v | l= | l!= | l=(v1,v2,...) | l!=(v1,v2,...) ...]>"
+    },
+    {
+      "key": "TS.MRANGE",
+      "title": "TS.MRANGE",
+      "group": "timeseries",
+      "description": "Query a range across multiple time series by filters in forward direction @since 1.0.0 [timeseries]",
+      "usage": "TS.MRANGE fromTimestamp toTimestamp [LATEST] [FILTER_BY_TS Timestamp\n  [Timestamp ...]] [FILTER_BY_VALUE min max] [WITHLABELS |\n  SELECTED_LABELS label1 [label1 ...]] [COUNT count] [[ALIGN value]\n  AGGREGATION <AVG | FIRST | LAST | MIN | MAX | SUM | RANGE | COUNT\n  | STD.P | STD.S | VAR.P | VAR.S | TWA> bucketDuration\n  [BUCKETTIMESTAMP] [EMPTY]] FILTER <l=v | l!=v | l= | l!= |\n  l=(v1,v2,...) | l!=(v1,v2,...) [l=v | l!=v | l= | l!= |\n  l=(v1,v2,...) | l!=(v1,v2,...) ...]> [GROUPBY label REDUCE\n  reducer]"
+    },
+    {
+      "key": "TS.MREVRANGE",
+      "title": "TS.MREVRANGE",
+      "group": "timeseries",
+      "description": "Query a range across multiple time-series by filters in reverse direction @since 1.4.0 [timeseries]",
+      "usage": "TS.MREVRANGE fromTimestamp toTimestamp [LATEST]\n  [FILTER_BY_TS Timestamp [Timestamp ...]] [FILTER_BY_VALUE min max]\n  [WITHLABELS | SELECTED_LABELS label1 [label1 ...]] [COUNT count]\n  [[ALIGN value] AGGREGATION <AVG | FIRST | LAST | MIN | MAX | SUM |\n  RANGE | COUNT | STD.P | STD.S | VAR.P | VAR.S | TWA>\n  bucketDuration [BUCKETTIMESTAMP] [EMPTY]] FILTER <l=v | l!=v | l=\n  | l!= | l=(v1,v2,...) | l!=(v1,v2,...) [l=v | l!=v | l= | l!= |\n  l=(v1,v2,...) | l!=(v1,v2,...) ...]> [GROUPBY label REDUCE\n  reducer]"
+    },
+    {
+      "key": "TS.QUERYINDEX",
+      "title": "TS.QUERYINDEX",
+      "group": "timeseries",
+      "description": "Get all time series keys matching a filter list @since 1.0.0 [timeseries]",
+      "usage": "TS.QUERYINDEX <l=v | l!=v | l= | l!= | l=(v1,v2,...) |\n  l!=(v1,v2,...) [l=v | l!=v | l= | l!= | l=(v1,v2,...) |\n  l!=(v1,v2,...) ...]>"
+    },
+    {
+      "key": "TS.RANGE",
+      "title": "TS.RANGE",
+      "group": "timeseries",
+      "description": "Query a range in forward direction @since 1.0.0 [timeseries]",
+      "usage": "TS.RANGE key fromTimestamp toTimestamp [LATEST]\n  [FILTER_BY_TS Timestamp [Timestamp ...]] [FILTER_BY_VALUE min max]\n  [COUNT count] [[ALIGN value] AGGREGATION <AVG | FIRST | LAST | MIN\n  | MAX | SUM | RANGE | COUNT | STD.P | STD.S | VAR.P | VAR.S | TWA>\n  bucketDuration [BUCKETTIMESTAMP] [EMPTY]]"
+    },
+    {
+      "key": "TS.REVRANGE",
+      "title": "TS.REVRANGE",
+      "group": "timeseries",
+      "description": "Query a range in reverse direction @since 1.4.0 [timeseries]",
+      "usage": "TS.REVRANGE key fromTimestamp toTimestamp [LATEST]\n  [FILTER_BY_TS Timestamp [Timestamp ...]] [FILTER_BY_VALUE min max]\n  [COUNT count] [[ALIGN value] AGGREGATION <AVG | FIRST | LAST | MIN\n  | MAX | SUM | RANGE | COUNT | STD.P | STD.S | VAR.P | VAR.S | TWA>\n  bucketDuration [BUCKETTIMESTAMP] [EMPTY]]"
+    },
+    {
+      "key": "TTL",
+      "title": "TTL",
+      "group": "generic",
+      "description": "Returns the expiration time in seconds of a key. @since 1.0.0 [generic]",
+      "usage": "TTL key"
+    },
+    {
+      "key": "TYPE",
+      "title": "TYPE",
+      "group": "generic",
+      "description": "Determines the type of value stored at a key. @since 1.0.0 [generic]",
+      "usage": "TYPE key"
+    },
+    {
+      "key": "UNLINK",
+      "title": "UNLINK",
+      "group": "generic",
+      "description": "Asynchronously deletes one or more keys. @since 4.0.0 [generic]",
+      "usage": "UNLINK key [key ...]"
+    },
+    {
+      "key": "UNSUBSCRIBE",
+      "title": "UNSUBSCRIBE",
+      "group": "pubsub",
+      "description": "Stops listening to messages posted to channels. @since 2.0.0 [pubsub]",
+      "usage": "UNSUBSCRIBE [channel [channel ...]]"
+    },
+    {
+      "key": "UNWATCH",
+      "title": "UNWATCH",
+      "group": "transactions",
+      "description": "Forgets about watched keys of a transaction. @since 2.2.0 [transactions]",
+      "usage": "UNWATCH"
+    },
+    {
+      "key": "VADD",
+      "title": "VADD",
+      "group": "vector_set",
+      "description": "Add a new element to a vector set, or update its vector if it already exists. @since 8.0.0 [vector_set]",
+      "usage": "VADD key [REDUCE dim] (FP32 | VALUES num) vector element [CAS] [NOQUANT | Q8 | BIN]\n  [EF build-exploration-factor] [SETATTR attributes] [M numlinks]"
+    },
+    {
+      "key": "VCARD",
+      "title": "VCARD",
+      "group": "vector_set",
+      "description": "Return the number of elements in a vector set. @since 8.0.0 [vector_set]",
+      "usage": "VCARD key"
+    },
+    {
+      "key": "VDIM",
+      "title": "VDIM",
+      "group": "vector_set",
+      "description": "Return the dimension of vectors in the vector set. @since 8.0.0 [vector_set]",
+      "usage": "VDIM key"
+    },
+    {
+      "key": "VEMB",
+      "title": "VEMB",
+      "group": "vector_set",
+      "description": "Return the vector associated with an element. @since 8.0.0 [vector_set]",
+      "usage": "VEMB key element [RAW]"
+    },
+    {
+      "key": "VGETATTR",
+      "title": "VGETATTR",
+      "group": "vector_set",
+      "description": "Retrieve the JSON attributes of elements. @since 8.0.0 [vector_set]",
+      "usage": "VGETATTR key element"
+    },
+    {
+      "key": "VINFO",
+      "title": "VINFO",
+      "group": "vector_set",
+      "description": "Return information about a vector set. @since 8.0.0 [vector_set]",
+      "usage": "VINFO key"
+    },
+    {
+      "key": "VISMEMBER",
+      "title": "VISMEMBER",
+      "group": "vector_set",
+      "description": "Check if an element exists in a vector set. @since 8.0.0 [vector_set]",
+      "usage": "VISMEMBER key element"
+    },
+    {
+      "key": "VLINKS",
+      "title": "VLINKS",
+      "group": "vector_set",
+      "description": "Return the neighbors of an element at each layer in the HNSW graph. @since 8.0.0 [vector_set]",
+      "usage": "VLINKS key element [WITHSCORES]"
+    },
+    {
+      "key": "VRANDMEMBER",
+      "title": "VRANDMEMBER",
+      "group": "vector_set",
+      "description": "Return one or multiple random members from a vector set. @since 8.0.0 [vector_set]",
+      "usage": "VRANDMEMBER key [count]"
+    },
+    {
+      "key": "VRANGE",
+      "title": "VRANGE",
+      "group": "vector_set",
+      "description": "Return elements in a lexicographical range @since 8.4.0 [vector_set]",
+      "usage": "VRANGE key start end [count]"
+    },
+    {
+      "key": "VREM",
+      "title": "VREM",
+      "group": "vector_set",
+      "description": "Remove an element from a vector set. @since 8.0.0 [vector_set]",
+      "usage": "VREM key element"
+    },
+    {
+      "key": "VSETATTR",
+      "title": "VSETATTR",
+      "group": "vector_set",
+      "description": "Associate or remove the JSON attributes of elements. @since 8.0.0 [vector_set]",
+      "usage": "VSETATTR key element \"{ JSON obj }\""
+    },
+    {
+      "key": "VSIM",
+      "title": "VSIM",
+      "group": "vector_set",
+      "description": "Return elements by vector similarity. @since 8.0.0 [vector_set]",
+      "usage": "VSIM key (ELE | FP32 | VALUES num) (vector | element) [WITHSCORES] [WITHATTRIBS] [COUNT num]\n  [EPSILON delta] [EF search-exploration-factor] [FILTER expression] [FILTER-EF max-filtering-effort]\n  [TRUTH] [NOTHREAD]"
+    },
+    {
+      "key": "WAIT",
+      "title": "WAIT",
+      "group": "generic",
+      "description": "Blocks until the asynchronous replication of all preceding write commands sent by the connection is completed. @since 3.0.0 [generic]",
+      "usage": "WAIT numreplicas timeout"
+    },
+    {
+      "key": "WAITAOF",
+      "title": "WAITAOF",
+      "group": "generic",
+      "description": "Blocks until all of the preceding write commands sent by the connection are written to the append-only file of the master and/or replicas. @since 7.2.0 [generic]",
+      "usage": "WAITAOF numlocal numreplicas timeout"
+    },
+    {
+      "key": "WATCH",
+      "title": "WATCH",
+      "group": "transactions",
+      "description": "Monitors changes to keys to determine the execution of a transaction. @since 2.2.0 [transactions]",
+      "usage": "WATCH key [key ...]"
+    },
+    {
+      "key": "XACK",
+      "title": "XACK",
+      "group": "stream",
+      "description": "Returns the number of messages that were successfully acknowledged by the consumer group member of a stream. @since 5.0.0 [stream]",
+      "usage": "XACK key group id [id ...]"
+    },
+    {
+      "key": "XACKDEL",
+      "title": "XACKDEL",
+      "group": "stream",
+      "description": "Acknowledges and conditionally deletes one or multiple entries for a stream consumer group. @since 8.2.0 [stream]",
+      "usage": "XACKDEL key group [KEEPREF | DELREF | ACKED] IDS numids id [id ...]"
+    },
+    {
+      "key": "XADD",
+      "title": "XADD",
+      "group": "stream",
+      "description": "Appends a new message to a stream. Creates the key if it doesn't exist. @since 5.0.0 [stream]",
+      "usage": "XADD key [NOMKSTREAM] [KEEPREF | DELREF | ACKED] [<MAXLEN | MINID> [= | ~] threshold\n  [LIMIT count]] <* | id> field value [field value ...]"
+    },
+    {
+      "key": "XAUTOCLAIM",
+      "title": "XAUTOCLAIM",
+      "group": "stream",
+      "description": "Changes, or acquires, ownership of messages in a consumer group, as if the messages were delivered to as consumer group member. @since 6.2.0 [stream]",
+      "usage": "XAUTOCLAIM key group consumer min-idle-time start [COUNT count]\n  [JUSTID]"
+    },
+    {
+      "key": "XCLAIM",
+      "title": "XCLAIM",
+      "group": "stream",
+      "description": "Changes, or acquires, ownership of a message in a consumer group, as if the message was delivered a consumer group member. @since 5.0.0 [stream]",
+      "usage": "XCLAIM key group consumer min-idle-time id [id ...] [IDLE ms]\n  [TIME unix-time-milliseconds] [RETRYCOUNT count] [FORCE] [JUSTID]\n  [LASTID lastid]"
+    },
+    {
+      "key": "XDEL",
+      "title": "XDEL",
+      "group": "stream",
+      "description": "Returns the number of messages after removing them from a stream. @since 5.0.0 [stream]",
+      "usage": "XDEL key id [id ...]"
+    },
+    {
+      "key": "XDELEX",
+      "title": "XDELEX",
+      "group": "stream",
+      "description": "Deletes one or multiple entries from the stream. @since 8.2.0 [stream]",
+      "usage": "XDELEX key [KEEPREF | DELREF | ACKED] IDS numids id [id ...]"
+    },
+    {
+      "key": "XGROUP CREATE",
+      "title": "XGROUP CREATE",
+      "group": "stream",
+      "description": "Creates a consumer group. @since 5.0.0 [stream]",
+      "usage": "XGROUP CREATE key group <id | $> [MKSTREAM]\n  [ENTRIESREAD entries-read]"
+    },
+    {
+      "key": "XGROUP CREATECONSUMER",
+      "title": "XGROUP CREATECONSUMER",
+      "group": "stream",
+      "description": "Creates a consumer in a consumer group. @since 6.2.0 [stream]",
+      "usage": "XGROUP CREATECONSUMER key group consumer"
+    },
+    {
+      "key": "XGROUP DELCONSUMER",
+      "title": "XGROUP DELCONSUMER",
+      "group": "stream",
+      "description": "Deletes a consumer from a consumer group. @since 5.0.0 [stream]",
+      "usage": "XGROUP DELCONSUMER key group consumer"
+    },
+    {
+      "key": "XGROUP DESTROY",
+      "title": "XGROUP DESTROY",
+      "group": "stream",
+      "description": "Destroys a consumer group. @since 5.0.0 [stream]",
+      "usage": "XGROUP DESTROY key group"
+    },
+    {
+      "key": "XGROUP HELP",
+      "title": "XGROUP HELP",
+      "group": "stream",
+      "description": "Returns helpful text about the different subcommands. @since 5.0.0 [stream]",
+      "usage": "XGROUP HELP"
+    },
+    {
+      "key": "XGROUP SETID",
+      "title": "XGROUP SETID",
+      "group": "stream",
+      "description": "Sets the last-delivered ID of a consumer group. @since 5.0.0 [stream]",
+      "usage": "XGROUP SETID key group <id | $> [ENTRIESREAD entries-read]"
+    },
+    {
+      "key": "XGROUP",
+      "title": "XGROUP",
+      "group": "stream",
+      "description": "A container for consumer groups commands. @since 5.0.0 [stream]",
+      "usage": "XGROUP"
+    },
+    {
+      "key": "XINFO CONSUMERS",
+      "title": "XINFO CONSUMERS",
+      "group": "stream",
+      "description": "Returns a list of the consumers in a consumer group. @since 5.0.0 [stream]",
+      "usage": "XINFO CONSUMERS key group"
+    },
+    {
+      "key": "XINFO GROUPS",
+      "title": "XINFO GROUPS",
+      "group": "stream",
+      "description": "Returns a list of the consumer groups of a stream. @since 5.0.0 [stream]",
+      "usage": "XINFO GROUPS key"
+    },
+    {
+      "key": "XINFO HELP",
+      "title": "XINFO HELP",
+      "group": "stream",
+      "description": "Returns helpful text about the different subcommands. @since 5.0.0 [stream]",
+      "usage": "XINFO HELP"
+    },
+    {
+      "key": "XINFO STREAM",
+      "title": "XINFO STREAM",
+      "group": "stream",
+      "description": "Returns information about a stream. @since 5.0.0 [stream]",
+      "usage": "XINFO STREAM key [FULL [COUNT count]]"
+    },
+    {
+      "key": "XINFO",
+      "title": "XINFO",
+      "group": "stream",
+      "description": "A container for stream introspection commands. @since 5.0.0 [stream]",
+      "usage": "XINFO"
+    },
+    {
+      "key": "XLEN",
+      "title": "XLEN",
+      "group": "stream",
+      "description": "Return the number of messages in a stream. @since 5.0.0 [stream]",
+      "usage": "XLEN key"
+    },
+    {
+      "key": "XPENDING",
+      "title": "XPENDING",
+      "group": "stream",
+      "description": "Returns the information and entries from a stream consumer group's pending entries list. @since 5.0.0 [stream]",
+      "usage": "XPENDING key group [[IDLE min-idle-time] start end count [consumer]]"
+    },
+    {
+      "key": "XRANGE",
+      "title": "XRANGE",
+      "group": "stream",
+      "description": "Returns the messages from a stream within a range of IDs. @since 5.0.0 [stream]",
+      "usage": "XRANGE key start end [COUNT count]"
+    },
+    {
+      "key": "XREAD",
+      "title": "XREAD",
+      "group": "stream",
+      "description": "Returns messages from multiple streams with IDs greater than the ones requested. Blocks until a message is available otherwise. @since 5.0.0 [stream]",
+      "usage": "XREAD [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] id\n  [id ...]"
+    },
+    {
+      "key": "XREADGROUP",
+      "title": "XREADGROUP",
+      "group": "stream",
+      "description": "Returns new or historical messages from a stream for a consumer in a group. Blocks until a message is available otherwise. @since 5.0.0 [stream]",
+      "usage": "XREADGROUP GROUP group consumer [COUNT count] [BLOCK milliseconds]\n  [CLAIM min-idle-time] [NOACK] STREAMS key [key ...] id [id ...]"
+    },
+    {
+      "key": "XREVRANGE",
+      "title": "XREVRANGE",
+      "group": "stream",
+      "description": "Returns the messages from a stream within a range of IDs in reverse order. @since 5.0.0 [stream]",
+      "usage": "XREVRANGE key end start [COUNT count]"
+    },
+    {
+      "key": "XSETID",
+      "title": "XSETID",
+      "group": "stream",
+      "description": "An internal command for replicating stream values. @since 5.0.0 [stream]",
+      "usage": "XSETID key last-id [ENTRIESADDED entries-added]\n  [MAXDELETEDID max-deleted-id]"
+    },
+    {
+      "key": "XTRIM",
+      "title": "XTRIM",
+      "group": "stream",
+      "description": "Deletes messages from the beginning of a stream. @since 5.0.0 [stream]",
+      "usage": "XTRIM key <MAXLEN | MINID> [= | ~] threshold [LIMIT count] [KEEPREF | DELREF | ACKED]"
+    },
+    {
+      "key": "ZADD",
+      "title": "ZADD",
+      "group": "sorted-set",
+      "description": "Adds one or more members to a sorted set, or updates their scores. Creates the key if it doesn't exist. @since 1.2.0 [sorted-set]",
+      "usage": "ZADD key [NX | XX] [GT | LT] [CH] [INCR] score member [score member\n  ...]"
+    },
+    {
+      "key": "ZCARD",
+      "title": "ZCARD",
+      "group": "sorted-set",
+      "description": "Returns the number of members in a sorted set. @since 1.2.0 [sorted-set]",
+      "usage": "ZCARD key"
+    },
+    {
+      "key": "ZCOUNT",
+      "title": "ZCOUNT",
+      "group": "sorted-set",
+      "description": "Returns the count of members in a sorted set that have scores within a range. @since 2.0.0 [sorted-set]",
+      "usage": "ZCOUNT key min max"
+    },
+    {
+      "key": "ZDIFF",
+      "title": "ZDIFF",
+      "group": "sorted-set",
+      "description": "Returns the difference between multiple sorted sets. @since 6.2.0 [sorted-set]",
+      "usage": "ZDIFF numkeys key [key ...] [WITHSCORES]"
+    },
+    {
+      "key": "ZDIFFSTORE",
+      "title": "ZDIFFSTORE",
+      "group": "sorted-set",
+      "description": "Stores the difference of multiple sorted sets in a key. @since 6.2.0 [sorted-set]",
+      "usage": "ZDIFFSTORE destination numkeys key [key ...]"
+    },
+    {
+      "key": "ZINCRBY",
+      "title": "ZINCRBY",
+      "group": "sorted-set",
+      "description": "Increments the score of a member in a sorted set. @since 1.2.0 [sorted-set]",
+      "usage": "ZINCRBY key increment member"
+    },
+    {
+      "key": "ZINTER",
+      "title": "ZINTER",
+      "group": "sorted-set",
+      "description": "Returns the intersect of multiple sorted sets. @since 6.2.0 [sorted-set]",
+      "usage": "ZINTER numkeys key [key ...] [WEIGHTS weight [weight ...]]\n  [AGGREGATE <SUM | MIN | MAX>] [WITHSCORES]"
+    },
+    {
+      "key": "ZINTERCARD",
+      "title": "ZINTERCARD",
+      "group": "sorted-set",
+      "description": "Returns the number of members of the intersect of multiple sorted sets. @since 7.0.0 [sorted-set]",
+      "usage": "ZINTERCARD numkeys key [key ...] [LIMIT limit]"
+    },
+    {
+      "key": "ZINTERSTORE",
+      "title": "ZINTERSTORE",
+      "group": "sorted-set",
+      "description": "Stores the intersect of multiple sorted sets in a key. @since 2.0.0 [sorted-set]",
+      "usage": "ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight\n  [weight ...]] [AGGREGATE <SUM | MIN | MAX>]"
+    },
+    {
+      "key": "ZLEXCOUNT",
+      "title": "ZLEXCOUNT",
+      "group": "sorted-set",
+      "description": "Returns the number of members in a sorted set within a lexicographical range. @since 2.8.9 [sorted-set]",
+      "usage": "ZLEXCOUNT key min max"
+    },
+    {
+      "key": "ZMPOP",
+      "title": "ZMPOP",
+      "group": "sorted-set",
+      "description": "Returns the highest- or lowest-scoring members from one or more sorted sets after removing them. Deletes the sorted set if the last member was popped. @since 7.0.0 [sorted-set]",
+      "usage": "ZMPOP numkeys key [key ...] <MIN | MAX> [COUNT count]"
+    },
+    {
+      "key": "ZMSCORE",
+      "title": "ZMSCORE",
+      "group": "sorted-set",
+      "description": "Returns the score of one or more members in a sorted set. @since 6.2.0 [sorted-set]",
+      "usage": "ZMSCORE key member [member ...]"
+    },
+    {
+      "key": "ZPOPMAX",
+      "title": "ZPOPMAX",
+      "group": "sorted-set",
+      "description": "Returns the highest-scoring members from a sorted set after removing them. Deletes the sorted set if the last member was popped. @since 5.0.0 [sorted-set]",
+      "usage": "ZPOPMAX key [count]"
+    },
+    {
+      "key": "ZPOPMIN",
+      "title": "ZPOPMIN",
+      "group": "sorted-set",
+      "description": "Returns the lowest-scoring members from a sorted set after removing them. Deletes the sorted set if the last member was popped. @since 5.0.0 [sorted-set]",
+      "usage": "ZPOPMIN key [count]"
+    },
+    {
+      "key": "ZRANDMEMBER",
+      "title": "ZRANDMEMBER",
+      "group": "sorted-set",
+      "description": "Returns one or more random members from a sorted set. @since 6.2.0 [sorted-set]",
+      "usage": "ZRANDMEMBER key [count [WITHSCORES]]"
+    },
+    {
+      "key": "ZRANGE",
+      "title": "ZRANGE",
+      "group": "sorted-set",
+      "description": "Returns members in a sorted set within a range of indexes. @since 1.2.0 [sorted-set]",
+      "usage": "ZRANGE key start stop [BYSCORE | BYLEX] [REV] [LIMIT offset count]\n  [WITHSCORES]"
+    },
+    {
+      "key": "ZRANGEBYLEX",
+      "title": "ZRANGEBYLEX",
+      "group": "sorted-set",
+      "description": "Returns members in a sorted set within a lexicographical range. @since 2.8.9 [sorted-set]",
+      "usage": "ZRANGEBYLEX key min max [LIMIT offset count]"
+    },
+    {
+      "key": "ZRANGEBYSCORE",
+      "title": "ZRANGEBYSCORE",
+      "group": "sorted-set",
+      "description": "Returns members in a sorted set within a range of scores. @since 1.0.5 [sorted-set]",
+      "usage": "ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]"
+    },
+    {
+      "key": "ZRANGESTORE",
+      "title": "ZRANGESTORE",
+      "group": "sorted-set",
+      "description": "Stores a range of members from sorted set in a key. @since 6.2.0 [sorted-set]",
+      "usage": "ZRANGESTORE dst src min max [BYSCORE | BYLEX] [REV] [LIMIT offset\n  count]"
+    },
+    {
+      "key": "ZRANK",
+      "title": "ZRANK",
+      "group": "sorted-set",
+      "description": "Returns the index of a member in a sorted set ordered by ascending scores. @since 2.0.0 [sorted-set]",
+      "usage": "ZRANK key member [WITHSCORE]"
+    },
+    {
+      "key": "ZREM",
+      "title": "ZREM",
+      "group": "sorted-set",
+      "description": "Removes one or more members from a sorted set. Deletes the sorted set if all members were removed. @since 1.2.0 [sorted-set]",
+      "usage": "ZREM key member [member ...]"
+    },
+    {
+      "key": "ZREMRANGEBYLEX",
+      "title": "ZREMRANGEBYLEX",
+      "group": "sorted-set",
+      "description": "Removes members in a sorted set within a lexicographical range. Deletes the sorted set if all members were removed. @since 2.8.9 [sorted-set]",
+      "usage": "ZREMRANGEBYLEX key min max"
+    },
+    {
+      "key": "ZREMRANGEBYRANK",
+      "title": "ZREMRANGEBYRANK",
+      "group": "sorted-set",
+      "description": "Removes members in a sorted set within a range of indexes. Deletes the sorted set if all members were removed. @since 2.0.0 [sorted-set]",
+      "usage": "ZREMRANGEBYRANK key start stop"
+    },
+    {
+      "key": "ZREMRANGEBYSCORE",
+      "title": "ZREMRANGEBYSCORE",
+      "group": "sorted-set",
+      "description": "Removes members in a sorted set within a range of scores. Deletes the sorted set if all members were removed. @since 1.2.0 [sorted-set]",
+      "usage": "ZREMRANGEBYSCORE key min max"
+    },
+    {
+      "key": "ZREVRANGE",
+      "title": "ZREVRANGE",
+      "group": "sorted-set",
+      "description": "Returns members in a sorted set within a range of indexes in reverse order. @since 1.2.0 [sorted-set]",
+      "usage": "ZREVRANGE key start stop [WITHSCORES]"
+    },
+    {
+      "key": "ZREVRANGEBYLEX",
+      "title": "ZREVRANGEBYLEX",
+      "group": "sorted-set",
+      "description": "Returns members in a sorted set within a lexicographical range in reverse order. @since 2.8.9 [sorted-set]",
+      "usage": "ZREVRANGEBYLEX key max min [LIMIT offset count]"
+    },
+    {
+      "key": "ZREVRANGEBYSCORE",
+      "title": "ZREVRANGEBYSCORE",
+      "group": "sorted-set",
+      "description": "Returns members in a sorted set within a range of scores in reverse order. @since 2.2.0 [sorted-set]",
+      "usage": "ZREVRANGEBYSCORE key max min [WITHSCORES] [LIMIT offset count]"
+    },
+    {
+      "key": "ZREVRANK",
+      "title": "ZREVRANK",
+      "group": "sorted-set",
+      "description": "Returns the index of a member in a sorted set ordered by descending scores. @since 2.0.0 [sorted-set]",
+      "usage": "ZREVRANK key member [WITHSCORE]"
+    },
+    {
+      "key": "ZSCAN",
+      "title": "ZSCAN",
+      "group": "sorted-set",
+      "description": "Iterates over members and scores of a sorted set. @since 2.8.0 [sorted-set]",
+      "usage": "ZSCAN key cursor [MATCH pattern] [COUNT count]"
+    },
+    {
+      "key": "ZSCORE",
+      "title": "ZSCORE",
+      "group": "sorted-set",
+      "description": "Returns the score of a member in a sorted set. @since 1.2.0 [sorted-set]",
+      "usage": "ZSCORE key member"
+    },
+    {
+      "key": "ZUNION",
+      "title": "ZUNION",
+      "group": "sorted-set",
+      "description": "Returns the union of multiple sorted sets. @since 6.2.0 [sorted-set]",
+      "usage": "ZUNION numkeys key [key ...] [WEIGHTS weight [weight ...]]\n  [AGGREGATE <SUM | MIN | MAX>] [WITHSCORES]"
+    },
+    {
+      "key": "ZUNIONSTORE",
+      "title": "ZUNIONSTORE",
+      "group": "sorted-set",
+      "description": "Stores the union of multiple sorted sets in a key. @since 2.0.0 [sorted-set]",
+      "usage": "ZUNIONSTORE destination numkeys key [key ...] [WEIGHTS weight\n  [weight ...]] [AGGREGATE <SUM | MIN | MAX>]"
+    }
+  ]
