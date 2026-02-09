@@ -1,14 +1,14 @@
 - 微软应用商店里面的升级去掉，由应用商店自行处理 √
 - 终端长命令输入  （Xterm ==> XTerminal）√
 - 终端 Ctrl + L/C/E 快捷键及复制文本 √
-- 终端命令输入提示列表
+- 终端命令输入提示列表 √
 - 发布苹果商店（还需要缴费！）
 - 升级内容可以点击更新日志查看，跳转链接 √
 - RedisME官方网站的上线 √
-- Redis哨兵模式的支持
+- Redis哨兵模式的支持 √
 - 连接考虑是否需要SQLite存储，以便支持多窗口同时操作连接？
 - 微信登录同步账号信息
-- hash、list、set、zset的Scan扫描
+- hash、list、set、zset的Scan扫描 √
 
 - 字体列表读取还是需要rust版本: Windows可以提示，Mac都没有提示 √
 - Memory标签页的英文格式有些错乱需处理 √
@@ -24,7 +24,7 @@
 - 软件和网站的国际化支持 √
 - 站点文档目录优化 √
 
-- Gitee的api暂不支直接获取最新release的latest.json文件，已提issue意向
+- Gitee的api暂不支直接获取最新release的latest.json文件，已提issue意向。已更换实现方式 √
 > https://gitee.com/oschina/git-osc/issues/IDERPB?from=project-issue
 - v-model.number优化 √
 - 监控、发布/订阅优化  √
