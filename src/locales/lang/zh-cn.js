@@ -207,10 +207,10 @@ export default {
     title: '批量删除键',
     match: '键名表达式',
     deleteDirect: '直接匹配删除',
-    impactKeys: '受影响的键名({size})',
+    impactKeys: '受影响的键名({count})',
     confirmDelete: '确认删除',
     showImpactKeys: '查看受影响的键名',
-    confirmDeleteSize: '确认删除{size}个键'
+    confirmDeleteSize: '确认删除{count}个键'
   },
 
   keyMemory: {
