@@ -458,7 +458,7 @@ impl RedisMeClient for RedisMeCluster {
 
         let size = key_list.len();
         let mut pipe = ClusterPipeline::with_capacity(size);
-        for key in key_list.into_iter() {
+        for key in key_list {
             pipe.del(&key).ignore();
         }
         let mut conn = self.get_conn()?;

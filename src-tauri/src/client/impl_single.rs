@@ -354,7 +354,7 @@ impl RedisMeClient for RedisMeSingle {
 
         let size = key_list.len();
         let mut pipe = Pipeline::with_capacity(size);
-        for key in key_list.into_iter() {
+        for key in key_list {
             pipe.del(&key).ignore();
         }
         let mut conn = self.get_conn()?;
