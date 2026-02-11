@@ -104,7 +104,7 @@ pub trait RedisMeClient: Send + Sync {
     fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()>;
     fn monitor_stop(&self) -> AnyResult<()>;
 
-    fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()>;
+    fn batch_del(&self, param: RedisBatchKey) -> AnyResult<()>;
     fn mock_data(&self, count: u64) -> AnyResult<()>;
 }
 
@@ -565,37 +565,24 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
     }
 }
 
+pub fn batch_key0(rmc: &impl RedisMeClient, param: RedisBatchKey) -> AnyResult<Vec<RedisKey>> {
+    let key_list = if param.key_list.is_empty() {
+        if param.pattern.is_empty() {
+            bail!("key list and pattern parameters cannot both be empty")
+        }
+        let scan_result = rmc.scan(ScanParam::all(param.pattern))?;
+        info!("scan key count: {}", scan_result.key_list.len());
+        scan_result.key_list
+    } else {
+        param.key_list
+    };
+    Ok(key_list)
+}
+
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)
 #[macro_export]
 macro_rules! implement_pipeline_commands {
     ($struct_name:ident) => {
-        fn batch_del(&self, param: RedisBatchDelete) -> AnyResult<()> {
-            let key_list = if param.key_list.is_empty() {
-                if param.pattern.is_empty() {
-                    bail!("key list and pattern parameters cannot both be empty")
-                }
-                let scan_result = self.scan(ScanParam::all(param.pattern))?;
-                info!("scan key count: {}", scan_result.key_list.len());
-                scan_result.key_list
-            } else {
-                param.key_list
-            };
-
-            if key_list.is_empty() {
-                return Ok(());
-            }
-
-            let size = key_list.len();
-            let mut pipe = $struct_name::with_capacity(size);
-            for key in key_list.into_iter() {
-                pipe.del(&key).ignore();
-            }
-            let mut conn = self.get_conn()?;
-            let _: () = pipe.query(&mut conn)?;
-            info!("batch delete finished: {}", size);
-            Ok(())
-        }
-
         fn mock_data(&self, count: u64) -> AnyResult<()> {
             let mut pipe = $struct_name::with_capacity(count as usize);
             for _ in 0..count {

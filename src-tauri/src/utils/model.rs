@@ -231,7 +231,7 @@ api_model!(RedisValue {
 });
 
 // 批量删除
-api_model!(RedisBatchDelete {
+api_model!(RedisBatchKey {
     #[serde(rename = "match")]
     pattern: String,
     key_list: Vec<RedisKey>,

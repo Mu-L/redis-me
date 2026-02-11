@@ -345,6 +345,24 @@ impl RedisMeClient for RedisMeSingle {
         monitor_stop0(self.monitor_running.clone())
     }
 
+    fn batch_del(&self, param: RedisBatchKey) -> AnyResult<()> {
+        let key_list = batch_key0(self, param)?;
+
+        if key_list.is_empty() {
+            return Ok(());
+        }
+
+        let size = key_list.len();
+        let mut pipe = Pipeline::with_capacity(size);
+        for key in key_list.into_iter() {
+            pipe.del(&key).ignore();
+        }
+        let mut conn = self.get_conn()?;
+        let _: () = pipe.query(&mut conn)?;
+        info!("batch delete finished: {}", size);
+        Ok(())
+    }
+
     implement_pipeline_commands!(Pipeline);
 }
 
