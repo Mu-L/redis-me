@@ -105,6 +105,9 @@ pub trait RedisMeClient: Send + Sync {
     fn monitor_stop(&self) -> AnyResult<()>;
 
     fn batch_del(&self, param: RedisBatchKey) -> AnyResult<()>;
+    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()>;
+    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()>;
+
     fn mock_data(&self, count: u64) -> AnyResult<()>;
 }
 

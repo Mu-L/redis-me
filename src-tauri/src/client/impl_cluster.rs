@@ -466,6 +466,15 @@ impl RedisMeClient for RedisMeCluster {
         info!("batch delete finished: {}", size);
         Ok(())
     }
+
+    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()> {
+        todo!()
+    }
+
+    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()> {
+        todo!()
+    }
+
     implement_pipeline_commands!(ClusterPipeline);
 }
 

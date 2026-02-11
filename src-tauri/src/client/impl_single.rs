@@ -363,6 +363,14 @@ impl RedisMeClient for RedisMeSingle {
         Ok(())
     }
 
+    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()> {
+        todo!()
+    }
+
+    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()> {
+        todo!()
+    }
+
     implement_pipeline_commands!(Pipeline);
 }
 

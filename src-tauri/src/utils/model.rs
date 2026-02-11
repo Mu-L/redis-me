@@ -237,6 +237,23 @@ api_model!(RedisBatchKey {
     key_list: Vec<RedisKey>,
 });
 
+// 导出
+api_model!(RedisExportCsv {
+    #[serde(rename = "match")]
+    pattern: String,
+    key_list: Vec<RedisKey>,
+    file: String,
+    with_ttl: bool,
+});
+
+// 导入
+api_model!(RedisImportCsv {
+    file: String,
+    ttl: i64,
+    handle_ttl: String,      // TTL处理: 尝试读取, 自定义
+    handle_conflict: String, // 冲突处理: 覆盖, 忽略
+});
+
 // Zset条目
 api_model!(RedisZetItem {
     value: String,

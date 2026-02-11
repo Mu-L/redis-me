@@ -47,7 +47,6 @@ api_commands!(
     set(key: RedisKey, value: String, ttl: i64) -> ();  // 设置值
     del(key: RedisKey) -> ();                           // 删除键
     rename(key: RedisKey, new_key: RedisKey) -> ();     // 重命名键
-    batch_del(param: RedisBatchKey) -> ();           // 批量删除
     field_add(param: RedisFieldAdd) -> ();              // 新增字段
     field_set(param: RedisFieldSet) -> ();              // 编辑字段
     field_del(param: RedisFieldDel) -> ();              // 删除字段
@@ -60,6 +59,9 @@ api_commands!(
     publish(channel: &str, message: &str) -> (); // 发布消息
     subscribe_stop() -> ();                      // 订阅消息停止
     monitor_stop()   -> ();                      // 监控命令停止
+    batch_del(param: RedisBatchKey) -> ();       // 批量删除
+    export_csv(param: RedisExportCsv) -> ();     // 导出CSV
+    import_csv(param: RedisImportCsv) -> ();     // 导出CSV
     mock_data(count: u64) -> ();                 // 模拟数据
 );
 
