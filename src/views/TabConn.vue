@@ -103,7 +103,7 @@ function handleCommand(command) {
 
 // 导出连接
 async function exportConn() {
-  const fileName = 'redis-me-connections-' + dayjs().format('YYYYMMDDHHmmss')
+  const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss')
   const path = await save({multiple: false, directory: true, filters, defaultPath: fileName})
   if (path) {
     try {

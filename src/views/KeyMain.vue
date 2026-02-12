@@ -15,7 +15,7 @@ import {
   meOk, meRenameKey
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
-import KeyBatchDel from './key/KeyBatchDel.vue'
+import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
 import {useI18n} from 'vue-i18n'
 
@@ -173,6 +173,8 @@ function contextFolder(command, folder){
     keyMemory(folder)
   } else if (command === 'deleteFolder') {
     deleteFolder(folder)
+  } else if (command === 'exportFolder') {
+    exportFolder(folder)
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -192,9 +194,18 @@ function addKeyOk(redisKey) {
 }
 
 // 批量删除键
-const keyBatchDelRef = useTemplateRef('keyBatchDelRef')
+const keyBatchRef = useTemplateRef('keyBatchRef')
 function deleteFolder(folder) {
-  keyBatchDelRef.value?.open({match: folder + ':*', keyList: []})
+  keyBatchRef.value?.open({match: folder + ':*', keyList: []}, 'delete')
+}
+function exportFolder(folder) {
+  keyBatchRef.value?.open({match: folder + ':*', keyList: []}, 'export')
+}
+
+function batchKeyOk(mode) {
+  if (mode === 'delete') {
+    scanKey(false, false)
+  }
 }
 
 // 内存分析
@@ -291,7 +302,7 @@ function keyMemory(folder) {
 
     <!-- 字段新增、批量删除键、目录内存分析 -->
     <FieldAdd    ref="fieldAddRef"    @success="addKeyOk"/>
-    <KeyBatchDel ref="keyBatchDelRef" @success="scanKey(false, false)"/>
+    <KeyBatch    ref="keyBatchRef"    @success="batchKeyOk"/>
     <KeyMemory   ref="keyMemoryRef" />
   </div>
 </template>

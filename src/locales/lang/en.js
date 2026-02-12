@@ -201,15 +201,25 @@ export default {
     slave: 'S'
   },
 
-  keyBatchDel: {
+  keyBatch: {
     matchRequired: 'Key match expression required',
-    title: 'Batch Delete Keys',
     match: 'Key match expression',
-    deleteDirect: 'Delete Direct',
     impactKeys: 'Impact Key ({count}) | Impact Keys ({count})',
-    confirmDelete: 'Confirm Delete',
     showImpactKeys: 'Show Impact Keys',
-    confirmDeleteSize: 'Delete 1 Key | Delete {count} Keys'
+
+    delete: 'Batch Delete Keys',
+    deleteDirect: 'Delete Direct',
+    confirmDelete: 'Confirm Delete',
+    confirmDeleteSize: 'Delete 1 Key | Delete {count} Keys',
+
+    export: 'Export Data',
+    exportDirect: 'Export Direct',
+    confirmExport: 'Confirm Export',
+    confirmExportSize: 'Export 1 Key | Export {count} Keys',
+    exportFile: 'Export Path',
+    exportFileRequired: 'Please Select export path',
+    exportFileTip: 'Select export path',
+    expireTip: 'Include Expiration'
   },
 
   keyMemory: {
@@ -235,7 +245,8 @@ export default {
     copyFolder: 'Copy Folder',
     loadFolder: 'Load Folder',
     memoryUsage: 'Memory Usage',
-    deleteFolder: 'Batch Delete Keys'
+    deleteFolder: 'Batch Delete Keys',
+    exportFolder: 'Batch Export Keys',
   },
 
   redisClient: {

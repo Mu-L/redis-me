@@ -1,16 +1,20 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
 use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE};
-use anyhow::{bail};
+use anyhow::bail;
 use chrono::{Local, Utc};
-use log::info;
+use log::{info, warn};
 use parking_lot::MutexGuard;
 use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, Msg, SetExpiry, SetOptions, ValueType};
 use std::collections::{HashMap, HashSet};
+use std::fs::File;
+use std::io::{BufWriter, Write};
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::thread::JoinHandle;
+use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
 use tauri::{AppHandle, Emitter};
 
 // 抽取公共属性
@@ -580,6 +584,51 @@ pub fn batch_key0(rmc: &impl RedisMeClient, param: RedisBatchKey) -> AnyResult<V
         param.key_list
     };
     Ok(key_list)
+}
+
+pub fn export_csv0(mut conn: Connection, key_list: Vec<RedisKey>, file: String, with_ttl: bool) {
+    thread::spawn(move || {
+        info!("export keys count: {}", key_list.len());
+        let result = export_keys(&mut conn, key_list, &file, with_ttl);
+        match result {
+            Ok(_) => info!("export keys ok"),
+            Err(e) => warn!("export keys err: {e}")
+        }
+    });
+}
+
+fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, with_ttl: bool) -> AnyResult<()> {
+    let f = File::create(file)?;
+    info!("export keys create file ok: {}", file);
+    let mut writer = BufWriter::new(f);
+
+    let mut ok_count = 0;
+    let mut err_count = 0;
+    for key in key_list {
+        let result = export_key(&mut conn, &mut writer, key, with_ttl);
+        match result {
+            Ok(_) => ok_count += 1,
+            Err(_) => err_count += 1
+        };
+        // 通知进度
+        info!("export keys progress: {}/{}, err: {}", ok_count, ok_count + err_count, err_count);
+    }
+    writer.flush()?;
+    Ok(())
+}
+
+fn export_key(conn: &mut impl Commands, writer: &mut BufWriter<File>, key: RedisKey, with_ttl: bool) -> AnyResult<()> {
+    let bytes: Vec<u8> = redis::cmd("dump").arg(&key).query(conn)?;
+    let key = BASE64_STANDARD.encode(key.to_bytes());
+    let value = BASE64_STANDARD.encode(&bytes);
+    let ttl = if with_ttl {
+        conn.ttl(&key)?
+    } else {
+        -1
+    };
+    // 文件写入一行
+    writeln!(writer, "{key},{value},{ttl}")?;
+    Ok(())
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

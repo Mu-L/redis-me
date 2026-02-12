@@ -202,15 +202,25 @@ export default {
     slave: '从'
   },
 
-  keyBatchDel: {
+  keyBatch: {
     matchRequired: '键名表达式不能为空',
-    title: '批量删除键',
     match: '键名表达式',
-    deleteDirect: '直接匹配删除',
     impactKeys: '受影响的键名({count})',
-    confirmDelete: '确认删除',
     showImpactKeys: '查看受影响的键名',
-    confirmDeleteSize: '确认删除{count}个键'
+
+    delete: '批量删除键',
+    deleteDirect: '直接匹配删除',
+    confirmDelete: '确认删除',
+    confirmDeleteSize: '确认删除{count}个键',
+
+    export: '导出数据',
+    exportDirect: '直接匹配导出',
+    confirmExport: '确认导出',
+    confirmExportSize: '确认导出{count}个键',
+    exportFile: '导出路径',
+    exportFileRequired: '请选择文件导出路径',
+    exportFileTip: '请选择文件导出路径',
+    expireTip: '同时导出过期时间'
   },
 
   keyMemory: {
@@ -236,7 +246,8 @@ export default {
     copyFolder: '复制路径',
     loadFolder: '只加载该目录',
     memoryUsage: '目录内存分析',
-    deleteFolder: '批量删除键'
+    deleteFolder: '批量删除键',
+    exportFolder: '批量导出键',
   },
 
   redisClient: {

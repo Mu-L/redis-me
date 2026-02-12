@@ -364,7 +364,13 @@ impl RedisMeClient for RedisMeSingle {
     }
 
     fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()> {
-        todo!()
+        let key_list = batch_key0(self, param.clone().into())?;
+        if key_list.is_empty() {
+            bail!("export key_list is empty")
+        }
+        let conn = self.get_new_conn()?;
+        export_csv0(conn, key_list, param.file, param.with_ttl);
+        Ok(())
     }
 
     fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()> {
@@ -454,6 +460,11 @@ impl RedisMeSingle {
             warn!("检查Redis单机连接异常: {}", self.conf.name);
             Ok(false)
         }
+    }
+
+    // 获取一个新的连接
+    fn get_new_conn(&self) -> AnyResult<Connection> {
+        Self::new_conn(&self.client, self.db.load(Relaxed))
     }
 }
 

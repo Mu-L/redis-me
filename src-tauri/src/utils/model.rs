@@ -172,7 +172,7 @@ api_model!(RedisKey {
     key: String,    // 显示
 
     #[serde(with = "v8_base64")]
-    bytes: Vec<u8>, // 修改、删除等依据 ==>
+    bytes: Vec<u8>, // 修改、删除等依据 ==> 查询出来的二进制键
 });
 
 impl RedisKey {
@@ -245,6 +245,15 @@ api_model!(RedisExportCsv {
     file: String,
     with_ttl: bool,
 });
+
+impl Into<RedisBatchKey> for RedisExportCsv {
+    fn into(self) -> RedisBatchKey {
+        RedisBatchKey {
+            pattern: self.pattern,
+            key_list: self.key_list,
+        }
+    }
+}
 
 // 导入
 api_model!(RedisImportCsv {
