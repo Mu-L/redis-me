@@ -410,6 +410,12 @@ api_model!(MonitorEvent {
     command: String,
 });
 
+api_model!(ExportEvent {
+    ok_count: u64,
+    err_count: u64,
+    total_count: u64,
+});
+
 //~~~~~ 自定义Vec<u8>序列化为Base64字符串
 mod v8_base64 {
     use base64::Engine;

@@ -1,4 +1,4 @@
-use crate::api_commands;
+use crate::{api_commands, api_commands2};
 use crate::client::state::ClientAccess;
 use crate::utils::model::*;
 use crate::utils::util::*;
@@ -60,9 +60,15 @@ api_commands!(
     subscribe_stop() -> ();                      // 订阅消息停止
     monitor_stop()   -> ();                      // 监控命令停止
     batch_del(param: RedisBatchKey) -> ();       // 批量删除
-    export_csv(param: RedisExportCsv) -> ();     // 导出CSV
-    import_csv(param: RedisImportCsv) -> ();     // 导出CSV
     mock_data(count: u64) -> ();                 // 模拟数据
+);
+
+// 需要将app_handle传递过去的命令
+api_commands2!(
+    monitor(node: &str) -> ();                   // 监控命令
+    subscribe(channel: Option<String>)-> ();     // 订阅消息
+    export_csv(param: RedisExportCsv) -> ();     // 导出CSV
+    import_csv(param: RedisImportCsv) -> ();     // 导入CSV
 );
 
 // 连接
@@ -75,27 +81,6 @@ pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
 #[command]
 pub fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
     to_api_result(app_handle.disconnect(id))
-}
-
-//~~~~~~~~~这两个命令需要将app_handle传递过去，因此需要单独编写~~~~~~~~~
-// 监控命令
-#[command]
-pub fn monitor(app_handle: AppHandle, id: &str, node: &str) -> ApiResult<()> {
-    to_api_result(
-        app_handle
-            .get_client(id)
-            .and_then(|client| client.monitor(app_handle, node)),
-    )
-}
-
-// 订阅消息
-#[command]
-pub fn subscribe(app_handle: AppHandle, id: &str, channel: Option<String>) -> ApiResult<()> {
-    to_api_result(
-        app_handle
-            .get_client(id)
-            .and_then(|client| client.subscribe(app_handle, channel)),
-    )
 }
 
 // 导入连接（检查导入的JSON属性是否满足及去除多余属性）

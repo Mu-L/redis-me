@@ -1,6 +1,6 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE};
+use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, EVENT_EXPORT, EVENT_MONITOR, EVENT_SUBSCRIBE, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE};
 use anyhow::bail;
 use chrono::{Local, Utc};
 use log::{info, warn};
@@ -109,8 +109,8 @@ pub trait RedisMeClient: Send + Sync {
     fn monitor_stop(&self) -> AnyResult<()>;
 
     fn batch_del(&self, param: RedisBatchKey) -> AnyResult<()>;
-    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()>;
-    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()>;
+    fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()>;
+    fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()>;
 
     fn mock_data(&self, count: u64) -> AnyResult<()>;
 }
@@ -508,7 +508,7 @@ pub fn subscribe0(
                     channel: msg.get_channel_name().to_string(),
                     message: payload,
                 };
-                let _ = &app_handle.emit("subscribe", event);
+                let _ = &app_handle.emit(EVENT_SUBSCRIBE, event);
             }
         }
         info!("subscribe end: {}", &channel);
@@ -543,7 +543,7 @@ pub fn monitor0(
                 datetime: Local::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string(),
                 command,
             };
-            let _ = &app_handle.emit("monitor", event);
+            let _ = &app_handle.emit(EVENT_MONITOR, event);
         }
         info!("monitor end");
         Ok(())
@@ -567,8 +567,8 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
                 bail!("Unknown ValueType: {other}")
             }
         },
-        ValueType::Stream => bail!("Unsupport Type: Stream"),
-        _ => bail!("Unsupport Type: {value_type:?}"),
+        ValueType::Stream => bail!("Unsupported Type: Stream"),
+        _ => bail!("Unsupported Type: {value_type:?}"),
     }
 }
 
@@ -586,10 +586,10 @@ pub fn batch_key0(rmc: &impl RedisMeClient, param: RedisBatchKey) -> AnyResult<V
     Ok(key_list)
 }
 
-pub fn export_csv0(mut conn: Connection, key_list: Vec<RedisKey>, file: String, with_ttl: bool) {
+pub fn export_csv0(mut conn: Connection, app_handle: AppHandle, key_list: Vec<RedisKey>, file: String, with_ttl: bool) {
     thread::spawn(move || {
         info!("export keys count: {}", key_list.len());
-        let result = export_keys(&mut conn, key_list, &file, with_ttl);
+        let result = export_keys(&mut conn, app_handle, key_list, &file, with_ttl);
         match result {
             Ok(_) => info!("export keys ok"),
             Err(e) => warn!("export keys err: {e}")
@@ -597,21 +597,28 @@ pub fn export_csv0(mut conn: Connection, key_list: Vec<RedisKey>, file: String, 
     });
 }
 
-fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, with_ttl: bool) -> AnyResult<()> {
+fn export_keys(mut conn: impl Commands, app_handle: AppHandle, key_list: Vec<RedisKey>, file: &str, with_ttl: bool) -> AnyResult<()> {
     let f = File::create(file)?;
     info!("export keys create file ok: {}", file);
     let mut writer = BufWriter::new(f);
 
     let mut ok_count = 0;
     let mut err_count = 0;
+    let total_count = key_list.len() as u64;
     for key in key_list {
         let result = export_key(&mut conn, &mut writer, key, with_ttl);
         match result {
             Ok(_) => ok_count += 1,
             Err(_) => err_count += 1
         };
-        // 通知进度
-        info!("export keys progress: {}/{}, err: {}", ok_count, ok_count + err_count, err_count);
+        // 通知导出进度
+        let event = ExportEvent {
+            ok_count,
+            err_count,
+            total_count,
+        };
+        let _ = &app_handle.emit(EVENT_EXPORT, event);
+        //info!("export keys progress: {}/{}, err: {}", ok_count, ok_count + err_count, err_count);
     }
     writer.flush()?;
     Ok(())

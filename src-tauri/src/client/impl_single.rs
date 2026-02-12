@@ -363,17 +363,17 @@ impl RedisMeClient for RedisMeSingle {
         Ok(())
     }
 
-    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()> {
+    fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()> {
         let key_list = batch_key0(self, param.clone().into())?;
         if key_list.is_empty() {
             bail!("export key_list is empty")
         }
         let conn = self.get_new_conn()?;
-        export_csv0(conn, key_list, param.file, param.with_ttl);
+        export_csv0(conn, app_handle, key_list, param.file, param.with_ttl);
         Ok(())
     }
 
-    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()> {
+    fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()> {
         todo!()
     }
 

@@ -467,11 +467,11 @@ impl RedisMeClient for RedisMeCluster {
         Ok(())
     }
 
-    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()> {
+    fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()> {
         todo!()
     }
 
-    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()> {
+    fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()> {
         todo!()
     }
 
