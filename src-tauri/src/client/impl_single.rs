@@ -33,6 +33,8 @@ impl Drop for RedisMeSingle {
     fn drop(&mut self) {
         self.subscribe_stop().unwrap_or(());
         self.monitor_stop().unwrap_or(());
+        self.export_running.store(false, Relaxed);
+        self.import_running.store(false, Relaxed);
     }
 }
 
@@ -369,7 +371,9 @@ impl RedisMeClient for RedisMeSingle {
             bail!("export key_list is empty")
         }
         let conn = self.get_new_conn()?;
-        export_csv0(conn, app_handle, key_list, param.file, param.with_ttl);
+        let id = self.id.clone();
+        let running = self.subscribe_running.clone();
+        export_csv0(conn, key_list, param.file, param.with_ttl, running, app_handle, id)?;
         Ok(())
     }
 

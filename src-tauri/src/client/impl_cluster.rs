@@ -39,6 +39,8 @@ impl Drop for RedisMeCluster {
     fn drop(&mut self) {
         self.subscribe_stop().unwrap_or(());
         self.monitor_stop().unwrap_or(());
+        self.export_running.store(false, Relaxed);
+        self.import_running.store(false, Relaxed);
     }
 }
 

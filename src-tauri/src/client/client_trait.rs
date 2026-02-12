@@ -1,3 +1,4 @@
+use Ordering::Relaxed;
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
 use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, EVENT_EXPORT, EVENT_MONITOR, EVENT_SUBSCRIBE, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE};
@@ -24,6 +25,8 @@ pub struct RedisMeBase {
     pub db: Arc<AtomicU8>,
     pub subscribe_running: Arc<AtomicBool>,
     pub monitor_running: Arc<AtomicBool>,
+    pub export_running: Arc<AtomicBool>,
+    pub import_running: Arc<AtomicBool>,
     pub last_check_time: Arc<AtomicI64>,
 }
 
@@ -35,6 +38,8 @@ impl From<&RedisConf> for RedisMeBase {
             db: Arc::new(AtomicU8::new(conf.db)),
             subscribe_running: Arc::new(AtomicBool::new(false)),
             monitor_running: Arc::new(AtomicBool::new(false)),
+            export_running: Arc::new(AtomicBool::new(false)),
+            import_running: Arc::new(AtomicBool::new(false)),
             last_check_time: Arc::new(AtomicI64::new(Utc::now().timestamp())),
         }
     }
@@ -489,7 +494,7 @@ pub fn subscribe0(
     id: String,
 ) -> AnyResult<()> {
     set_client_name(&mut conn)?;
-    running.store(true, Ordering::Relaxed);
+    running.store(true, Relaxed);
 
     let channel = channel
         .filter(|c| !c.is_empty())
@@ -498,7 +503,7 @@ pub fn subscribe0(
     let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
         conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&channel).get_packed_command())?;
         info!("subscribe start: {}", &channel);
-        while running.load(Ordering::Relaxed) {
+        while running.load(Relaxed) {
             let response = conn.recv_response()?;
             if let Some(msg) = Msg::from_value(&response) {
                 let payload: String = msg.get_payload()?;
@@ -518,7 +523,7 @@ pub fn subscribe0(
 }
 
 pub fn subscribe_stop0(conn: MutexGuard<impl Commands>, running: Arc<AtomicBool>) -> AnyResult<()> {
-    running.store(false, Ordering::Relaxed);
+    running.store(false, Relaxed);
     // 停止订阅时必须发送一个消息，否则会阻塞
     publish0(conn, REDIS_ME_SUBSCRIBE_STOP_MESSAGE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE)
 }
@@ -530,12 +535,12 @@ pub fn monitor0(
     id: String,
 ) -> AnyResult<()> {
     set_client_name(&mut conn)?;
-    running.store(true, Ordering::Relaxed);
+    running.store(true, Relaxed);
 
     let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
         conn.send_packed_command(&redis::cmd("MONITOR").get_packed_command())?;
         info!("monitor start");
-        while running.load(Ordering::Relaxed) {
+        while running.load(Relaxed) {
             let response = conn.recv_response()?;
             let command: String = from_redis_value(response)?;
             let event = MonitorEvent {
@@ -554,7 +559,7 @@ pub fn monitor0(
 
 pub fn monitor_stop0(running: Arc<AtomicBool>) -> AnyResult<()> {
     info!("monitor stop");
-    running.store(false, Ordering::Relaxed);
+    running.store(false, Relaxed);
     Ok(())
 }
 
@@ -586,18 +591,27 @@ pub fn batch_key0(rmc: &impl RedisMeClient, param: RedisBatchKey) -> AnyResult<V
     Ok(key_list)
 }
 
-pub fn export_csv0(mut conn: Connection, app_handle: AppHandle, key_list: Vec<RedisKey>, file: String, with_ttl: bool) {
+pub fn export_csv0(mut conn: Connection, key_list: Vec<RedisKey>, file: String, with_ttl: bool,
+                   running: Arc<AtomicBool>, app_handle: AppHandle, id: String) -> AnyResult<()> {
+    if running.load(Relaxed) {
+        bail!("export is running");
+    }
+
+    running.store(true, Relaxed);
     thread::spawn(move || {
         info!("export keys count: {}", key_list.len());
-        let result = export_keys(&mut conn, app_handle, key_list, &file, with_ttl);
+        let result = export_keys(&mut conn, key_list, &file, with_ttl, running.clone(), app_handle, id);
         match result {
             Ok(_) => info!("export keys ok"),
             Err(e) => warn!("export keys err: {e}")
         }
+        running.store(false, Relaxed);
     });
+    Ok(())
 }
 
-fn export_keys(mut conn: impl Commands, app_handle: AppHandle, key_list: Vec<RedisKey>, file: &str, with_ttl: bool) -> AnyResult<()> {
+fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, with_ttl: bool,
+               running: Arc<AtomicBool>, app_handle: AppHandle, id: String) -> AnyResult<()> {
     let f = File::create(file)?;
     info!("export keys create file ok: {}", file);
     let mut writer = BufWriter::new(f);
@@ -606,19 +620,21 @@ fn export_keys(mut conn: impl Commands, app_handle: AppHandle, key_list: Vec<Red
     let mut err_count = 0;
     let total_count = key_list.len() as u64;
     for key in key_list {
-        let result = export_key(&mut conn, &mut writer, key, with_ttl);
-        match result {
-            Ok(_) => ok_count += 1,
-            Err(_) => err_count += 1
-        };
-        // 通知导出进度
-        let event = ExportEvent {
-            ok_count,
-            err_count,
-            total_count,
-        };
-        let _ = &app_handle.emit(EVENT_EXPORT, event);
-        //info!("export keys progress: {}/{}, err: {}", ok_count, ok_count + err_count, err_count);
+        if running.load(Relaxed) {
+            let result = export_key(&mut conn, &mut writer, key, with_ttl);
+            match result {
+                Ok(_) => ok_count += 1,
+                Err(_) => err_count += 1
+            };
+            // 通知导出进度
+            let event = ExportEvent {
+                id: id.clone(),
+                ok_count,
+                err_count,
+                total_count,
+            };
+            let _ = &app_handle.emit(EVENT_EXPORT, event);
+        }
     }
     writer.flush()?;
     Ok(())

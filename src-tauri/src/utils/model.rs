@@ -411,6 +411,7 @@ api_model!(MonitorEvent {
 });
 
 api_model!(ExportEvent {
+    id: String,
     ok_count: u64,
     err_count: u64,
     total_count: u64,
