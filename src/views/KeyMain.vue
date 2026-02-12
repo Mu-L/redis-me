@@ -18,6 +18,8 @@ import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
 import {useI18n} from 'vue-i18n'
+import {ElMessage} from 'element-plus'
+import {listen} from '@tauri-apps/api/event'
 
 const { t } = useI18n()
 // 共享数据
@@ -205,8 +207,47 @@ function exportFolder(folder) {
 function batchKeyOk(mode) {
   if (mode === 'delete') {
     scanKey(false, false)
+  } else {
+    tauriListen()
+    ElMessage.primary({
+      message: h('span', null, exportTip.value),
+      duration: 0,
+      showClose: true,
+      placement: 'bottom'
+    })
   }
 }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+const exportEvent = ref({
+  okCount: 0,
+  errCount: 0,
+  totalCount: 0,
+})
+const exportTip = computed(() => `导出键: ${exportEvent.value.okCount}/${exportEvent.value.totalCount}, 失败数: ${exportEvent.value.errCount}`)
+
+// 监听消息
+let unlisten = null
+async function tauriListen() {
+  unlisten = await listen('export', (event) => {
+    const payload = event.payload
+    if (payload.id !== share.conn.id) return
+    exportEvent.value = event.payload
+    console.log( payload)
+    if (payload.okCount + payload.errCount >= payload.totalCount) {
+      tauriUnlisten()
+    }
+  })
+}
+
+async function tauriUnlisten() {
+  if (unlisten) {
+    unlisten()
+  }
+}
+onUnmounted(() => tauriUnlisten())
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 
 // 内存分析
 const keyMemoryRef = useTemplateRef('keyMemoryRef')
