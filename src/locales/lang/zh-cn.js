@@ -152,6 +152,9 @@ export default {
     refreshConn: '刷新连接',
     closeConn: '关闭连接',
     mockData: '模拟数据',
+    exportData: '导出数据',
+    importData: '导入数据',
+
     setting: '设置',
     about: '关于',
   },
@@ -453,10 +456,10 @@ export default {
     loadAll: '加载剩余所有键',
     exporting: '导出中...',
     exportDone: '导出完成',
-    exportResult: '成功{okCount}个，失败{errCount}个',
+    exportResult: '成功{okCount}个，失败{errCount}个！',
     importing: '导入中...',
     importDone: '导入完成',
-    importResult: '成功{okCount}个，失败{errCount}个',
+    importResult: '成功{okCount}个，失败{errCount}个！',
   },
 
   ttlSet: {

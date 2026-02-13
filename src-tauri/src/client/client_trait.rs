@@ -1,8 +1,9 @@
-use Ordering::Relaxed;
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
 use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, EVENT_EXPORT, EVENT_IMPORT, EVENT_MONITOR, EVENT_SUBSCRIBE, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE};
 use anyhow::bail;
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 use chrono::{Local, Utc};
 use log::{info, warn};
 use parking_lot::MutexGuard;
@@ -14,10 +15,8 @@ use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::thread::JoinHandle;
-use base64::Engine;
-use base64::prelude::BASE64_STANDARD;
-use serde_json::json;
 use tauri::{AppHandle, Emitter};
+use Ordering::Relaxed;
 
 // 抽取公共属性
 pub struct RedisMeBase {
@@ -639,7 +638,15 @@ fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, wit
             let _ = &app_handle.emit(EVENT_EXPORT, event);
         }
     }
-    let _ = &app_handle.emit(EVENT_EXPORT, json!({"id": id.clone(), "finished": true}));
+
+    let event = ExportImportEvent {
+        id: id.clone(),
+        ok_count,
+        err_count,
+        total_count,
+        finished: true,
+    };
+    let _ = &app_handle.emit(EVENT_EXPORT, event);
     writer.flush()?;
     Ok(())
 }
@@ -701,7 +708,15 @@ fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<Ato
             let _ = &app_handle.emit(EVENT_IMPORT, event);
         }
     }
-    let _ = &app_handle.emit(EVENT_EXPORT, json!({"id": id.clone(), "finished": true}));
+
+    let event = ExportImportEvent {
+        id: id.clone(),
+        ok_count,
+        err_count,
+        total_count,
+        finished: true,
+    };
+    let _ = &app_handle.emit(EVENT_EXPORT, event);
     Ok(())
 }
 

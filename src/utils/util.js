@@ -16,6 +16,8 @@ export const bus = mitt()
 export const KEY_DELETE = 'DELETE_KEY'
 export const KEY_REFRESH = 'REFRESH_KEY'
 export const CONN_REFRESH = 'CONN_REFRESH'
+export const EXPORT_DATA = 'exportData'
+export const IMPORT_DATA = 'importData'
 
 // 预设颜色
 export const PREDEFINE_COLORS = [

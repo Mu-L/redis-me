@@ -151,6 +151,9 @@ export default {
     refreshConn: 'Refresh Conn',
     closeConn: 'Close Conn',
     mockData: 'Mock Data',
+    exportData: 'Export Data',
+    importData: 'Import Data',
+
     setting: 'Setting',
     about: 'About',
   },

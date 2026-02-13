@@ -4,7 +4,7 @@ import KeyTree from './key/KeyTree.vue'
 import {computed, ref} from 'vue'
 import {
   bus,
-  CONN_REFRESH,
+  CONN_REFRESH, EXPORT_DATA, IMPORT_DATA,
   KEY_DELETE,
   KEY_REFRESH,
   KEY_TYPE_LIST,
@@ -101,10 +101,19 @@ async function scanKey(useCursor = false, loadAll = false) {
   }
 }
 
-onMounted(() => bus.on(KEY_DELETE, deleteKey))
-onMounted(() => bus.on(CONN_REFRESH, refresh))
-onUnmounted(() => bus.off(KEY_DELETE, deleteKey))
-onUnmounted(() => bus.off(CONN_REFRESH, refresh))
+onMounted(() => {
+  bus.on(KEY_DELETE, deleteKey)
+  bus.on(CONN_REFRESH, refresh)
+  bus.on(EXPORT_DATA, exportFolder)
+  bus.on(IMPORT_DATA, importData)
+})
+onUnmounted(() => {
+  bus.off(KEY_DELETE, deleteKey)
+  bus.off(CONN_REFRESH, refresh)
+  bus.off(EXPORT_DATA, exportFolder)
+  bus.off(IMPORT_DATA, importData)
+})
+
 function deleteKey(redisKey) {
   keyList.value = keyList.value.filter(rk => rk.bytes !== redisKey.bytes)
   share.redisKey = null
@@ -201,7 +210,11 @@ function deleteFolder(folder) {
   keyBatchRef.value?.open({match: folder + ':*', keyList: []}, 'delete')
 }
 function exportFolder(folder) {
-  keyBatchRef.value?.open({match: folder + ':*', keyList: []}, 'export')
+  keyBatchRef.value?.open({match: folder ? folder + ':*' : '*', keyList: []}, 'export')
+}
+
+function importData() {
+  meOk('TODO importData')
 }
 
 function batchKeyOk(mode) {
@@ -228,7 +241,7 @@ async function tauriListen(eventName) {
       tauriUnlisten()
       share.exportImportingPercentage = 100
       share.exportImporting = false
-      meOk(t(`keyMain.${eventName}Result`, payload), true, t('keyMain.${eventName}Done'))
+      meOk(t(`keyMain.${eventName}Result`, payload), true, t(`keyMain.${eventName}Done`))
     }
   })
 }
