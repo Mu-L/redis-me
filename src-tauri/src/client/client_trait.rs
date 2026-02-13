@@ -646,14 +646,14 @@ fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, wit
 }
 
 fn export_key(conn: &mut impl Commands, writer: &mut BufWriter<File>, key: RedisKey, with_ttl: bool) -> AnyResult<()> {
-    let bytes: Vec<u8> = redis::cmd("dump").arg(&key).query(conn)?;
-    let key = BASE64_STANDARD.encode(key.to_bytes());
-    let value = BASE64_STANDARD.encode(&bytes);
     let ttl = if with_ttl {
         conn.ttl(&key)?
     } else {
         -1
     };
+    let bytes: Vec<u8> = redis::cmd("dump").arg(&key).query(conn)?;
+    let key = BASE64_STANDARD.encode(key.to_bytes());
+    let value = BASE64_STANDARD.encode(&bytes);
     // 文件写入一行
     writeln!(writer, "{key},{value},{ttl}")?;
     Ok(())
