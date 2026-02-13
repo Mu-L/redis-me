@@ -195,7 +195,7 @@ function changeReadonly() {
   // 版本升级过程中显示下载进度
   .exportImporting {
     position: absolute;
-    right: 20px ;
+    right: 20px;
     bottom: 0;
     z-index: 100;
 
