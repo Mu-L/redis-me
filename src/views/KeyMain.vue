@@ -227,7 +227,7 @@ async function tauriListen() {
       tauriUnlisten()
       share.exportImportingPercentage = 100
       share.exportImporting = false
-      meOk(t('keyMain.exportResult', {okCount: payload.okCount, errCount: payload.errCount}), true)
+      meOk(t('keyMain.exportResult', payload), true, t('keyMain.exportDone'))
     }
   })
 }

@@ -98,10 +98,10 @@ export async function meInvoke(command, params, alert = true) {
 // ~~~~~~~~~~~~~确认、提示、错误
 export const DoNothing = () => {}
 
-export function meOk(message, isAlert = false) {
+export function meOk(message, isAlert = false, title = '') {
   if (isAlert) {
     // 提示后不消失（适用于长时间运行的任务）
-    ElMessageBox.alert(message, t('info'), {type: 'success'}).then(DoNothing)
+    ElMessageBox.alert(message, title || t('info'), {type: 'success'}).then(DoNothing)
   } else {
     // 提示后自动消失
     ElMessage.success(message)

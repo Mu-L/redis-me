@@ -452,9 +452,11 @@ export default {
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
     exporting: '导出中...',
-    exportResult: '导出完成。成功: {okCount} 个，失败: {errCount} 个',
+    exportDone: '导出完成',
+    exportResult: '成功{okCount}个，失败{errCount}个',
     importing: '导入中...',
-    importResult: '导入完成。成功: {okCount} 个，失败: {errCount} 个',
+    importDone: '导入完成',
+    importResult: '成功{okCount}个，失败{errCount}个',
   },
 
   ttlSet: {
