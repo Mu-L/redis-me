@@ -410,7 +410,7 @@ api_model!(MonitorEvent {
     command: String,
 });
 
-api_model!(ExportEvent {
+api_model!(ExportImportEvent {
     id: String,
     ok_count: u64,
     err_count: u64,

@@ -1,7 +1,7 @@
 use Ordering::Relaxed;
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, EVENT_EXPORT, EVENT_MONITOR, EVENT_SUBSCRIBE, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE};
+use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, EVENT_EXPORT, EVENT_IMPORT, EVENT_MONITOR, EVENT_SUBSCRIBE, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE};
 use anyhow::bail;
 use chrono::{Local, Utc};
 use log::{info, warn};
@@ -9,7 +9,7 @@ use parking_lot::MutexGuard;
 use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, Msg, SetExpiry, SetOptions, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
-use std::io::{BufWriter, Write};
+use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
 use std::sync::Arc;
 use std::thread;
@@ -615,10 +615,8 @@ pub fn export_csv_1_thread(conn: &mut impl Commands, key_list: Vec<RedisKey>, fi
 
 fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, with_ttl: bool,
                running: Arc<AtomicBool>, app_handle: AppHandle, id: String) -> AnyResult<()> {
-    let f = File::create(file)?;
-    info!("export keys create file ok: {}", file);
-    let mut writer = BufWriter::new(f);
-
+    info!("export keys file: {}", file);
+    let mut writer = BufWriter::new(File::create(file)?);
     let mut ok_count = 0;
     let mut err_count = 0;
     let total_count = key_list.len() as u64;
@@ -630,7 +628,7 @@ fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, wit
                 Err(_) => err_count += 1
             };
             // 通知导出进度
-            let event = ExportEvent {
+            let event = ExportImportEvent {
                 id: id.clone(),
                 ok_count,
                 err_count,
@@ -649,6 +647,9 @@ fn export_key(conn: &mut impl Commands, writer: &mut BufWriter<File>, key: Redis
     } else {
         -1
     };
+
+    // https://redis.ac.cn/docs/latest/commands/dump/
+    // DUMP key
     let bytes: Vec<u8> = redis::cmd("dump").arg(&key).query(conn)?;
     let key = BASE64_STANDARD.encode(key.to_bytes());
     let value = BASE64_STANDARD.encode(&bytes);
@@ -656,6 +657,87 @@ fn export_key(conn: &mut impl Commands, writer: &mut BufWriter<File>, key: Redis
     writeln!(writer, "{key},{value},{ttl}")?;
     Ok(())
 }
+
+pub fn import_csv_1_thread(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<AtomicBool>, app_handle: AppHandle, id: String) {
+    info!("import file: {}", &param.file);
+    let result = import_keys(conn, param, running.clone(), app_handle, id);
+    match result {
+        Ok(_) => info!("import file ok"),
+        Err(e) => warn!("import file err: {e}")
+    }
+    running.store(false, Relaxed);
+}
+
+fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<AtomicBool>, app_handle: AppHandle, id: String) -> AnyResult<()> {
+    let reader = BufReader::new(File::open(&param.file)?);
+    let total_count = reader.lines().count() as u64;
+    let mut ok_count = 0;
+    let mut err_count = 0;
+
+    let reader = BufReader::new(File::open(&param.file)?);
+    for line in reader.lines() {
+        if running.load(Relaxed) {
+            let result = import_key(conn, &line?, param.ttl, &param.handle_ttl, &param.handle_conflict);
+            match result {
+                Ok(_) => ok_count += 1,
+                Err(_) => err_count += 1
+            };
+            // 通知导入进度
+            let event = ExportImportEvent {
+                id: id.clone(),
+                ok_count,
+                err_count,
+                total_count,
+            };
+            let _ = &app_handle.emit(EVENT_IMPORT, event);
+        }
+    }
+    Ok(())
+}
+
+fn import_key(conn: &mut impl Commands, line: &str, ttl: i64, handle_ttl: &str, handle_conflict: &str) -> AnyResult<()> {
+    if line.trim().is_empty() {
+        bail!("empty line: {}", line)
+    }
+
+    let parts: Vec<&str> = line.split(',').collect();
+    if parts.len() != 3 {
+        bail!("invalid line: {}", line)
+    }
+
+    // https://redis.ac.cn/docs/latest/commands/restore/
+    // RESTORE key ttl serialized-value [REPLACE] [ABSTTL] [IDLETIME seconds] [FREQ frequency]
+    // 如果 ttl 为 0，则创建键时不设置过期时间；否则，设置指定的过期时间（以毫秒为单位）。
+    // 除非使用 REPLACE 修饰符，否则当 key 已存在时，RESTORE 将返回“Target key name is busy”错误。
+    let key = BASE64_STANDARD.decode(parts[0])?;
+    let value = BASE64_STANDARD.decode(parts[1])?;
+    let ttl = import_restore_ttl(parts[2], ttl, handle_ttl);
+
+    let mut cmd = redis::cmd("restore");
+    cmd.arg(&key).arg(ttl).arg(value);
+    if handle_conflict == "replace" {
+        cmd.arg("REPLACE");
+    }
+    let _: () = cmd.query(conn)?;
+    Ok(())
+}
+
+fn import_restore_ttl(part_ttl: &str, ttl: i64, handle_ttl: &str) -> i64 {
+    let ttl = match handle_ttl {
+        "custom" => ttl,
+        "parse" => part_ttl.parse::<i64>().unwrap_or(-1),
+        _ => -1
+    };
+
+    // 注意: 导出时TTL命令返回的单位是秒, restore的ttl参数是毫秒
+    if ttl <= 0 {
+        0
+    } else {
+        ttl * 1000
+    }
+}
+
+
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)
 #[macro_export]

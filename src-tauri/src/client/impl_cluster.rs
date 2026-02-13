@@ -476,7 +476,11 @@ impl RedisMeClient for RedisMeCluster {
     }
 
     fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()> {
-        todo!()
+        let mut conn = self.get_new_conn()?;
+        let running = self.export_import_running.clone();
+        let id = self.id.clone();
+        thread::spawn(move || import_csv_1_thread(&mut conn, param, running, app_handle, id));
+        Ok(())
     }
 
     implement_pipeline_commands!(ClusterPipeline);
