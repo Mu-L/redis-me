@@ -6,6 +6,7 @@ import {useI18n} from 'vue-i18n'
 
 // 共享数据
 const share = inject('share')
+const canEdit = computed(() => !share.readonly)
 const { t } = useI18n()
 
 // 新增模拟数据
@@ -37,11 +38,11 @@ async function handleCommand(command) {
   if (command === 'refreshConn') {
     await meInvoke('connect', {id: share.conn.id})
     bus.emit(CONN_REFRESH)
-  } else if (command === 'closeConn') {
+  } else if ('closeConn' === command) {
     share.conn = null
-  } else if (command === 'setting') {
+  } else if ('setting' === command) {
     dialog.setting = true
-  } else if (command === 'info') {
+  } else if ('info' === command) {
     dialog.info = true
   } else if ('mockData' === command) {
     await mockData()
@@ -83,13 +84,13 @@ async function handleCommand(command) {
               <me-icon :name="t('keyHeader.closeConn')" icon="el-icon-circle-close"/>
             </el-dropdown-item>
 
-            <el-dropdown-item command="mockData" divided>
+            <el-dropdown-item command="mockData" divided v-if="canEdit">
               <me-icon :name="t('keyHeader.mockData')" icon="el-icon-coffee-cup"/>
             </el-dropdown-item>
             <el-dropdown-item command="exportData">
               <me-icon :name="t('keyHeader.exportData')" icon="el-icon-upload"/>
             </el-dropdown-item>
-            <el-dropdown-item command="importData">
+            <el-dropdown-item command="importData" v-if="canEdit">
               <me-icon :name="t('keyHeader.importData')" icon="el-icon-download"/>
             </el-dropdown-item>
           </template>

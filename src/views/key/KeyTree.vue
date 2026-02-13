@@ -176,8 +176,8 @@ function countLeaves(node) {
           <el-dropdown-item command="addKey"    v-if="canEdit"><me-icon icon="el-icon-circle-plus"   :name="t('keyTree.addKey')"/></el-dropdown-item>
           <el-dropdown-item command="copyFolder"><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyFolder')"/></el-dropdown-item>
           <el-dropdown-item command="loadFolder" divided><me-icon icon="el-icon-search" :name="t('keyTree.loadFolder')"/></el-dropdown-item>
-          <el-dropdown-item command="memoryUsage" v-if="canEdit"><me-icon icon="me-icon-memory" :name="t('keyTree.memoryUsage')"/></el-dropdown-item>
-          <el-dropdown-item command="exportFolder" divided v-if="canEdit" :disabled="share.exportImporting"><me-icon icon="el-icon-upload" :name="t('keyTree.exportFolder')"/></el-dropdown-item>
+          <el-dropdown-item command="memoryUsage"><me-icon icon="me-icon-memory" :name="t('keyTree.memoryUsage')"/></el-dropdown-item>
+          <el-dropdown-item command="exportFolder" divided :disabled="share.exportImporting"><me-icon icon="el-icon-upload" :name="t('keyTree.exportFolder')"/></el-dropdown-item>
           <el-dropdown-item command="deleteFolder"  v-if="canEdit" :disabled="share.exportImporting"><me-icon icon="el-icon-delete" :name="t('keyTree.deleteFolder')"/></el-dropdown-item>
         </template>
       </me-context>
