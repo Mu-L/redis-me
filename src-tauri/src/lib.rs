@@ -47,7 +47,6 @@ pub fn run() {
             set,
             del,
             rename,
-            batch_del,
             field_add,
             field_set,
             field_del,
@@ -62,6 +61,9 @@ pub fn run() {
             subscribe_stop,
             monitor,
             monitor_stop,
+            batch_del,
+            export_csv,
+            import_csv,
             mock_data,
             check_import_conn_list,
         ])

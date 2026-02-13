@@ -103,7 +103,7 @@ function handleCommand(command) {
 
 // 导出连接
 async function exportConn() {
-  const fileName = 'redis-me-connections-' + dayjs().format('YYYYMMDDHHmmss')
+  const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss')
   const path = await save({multiple: false, directory: true, filters, defaultPath: fileName})
   if (path) {
     try {
@@ -296,7 +296,7 @@ function clickNew() {
   // 版本升级过程中显示下载进度
   .downloading {
     position: absolute;
-    right: 0 ;
+    right: 20px;
     bottom: 0;
     z-index: 100;
 

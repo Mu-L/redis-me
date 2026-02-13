@@ -172,7 +172,7 @@ api_model!(RedisKey {
     key: String,    // 显示
 
     #[serde(with = "v8_base64")]
-    bytes: Vec<u8>, // 修改、删除等依据 ==>
+    bytes: Vec<u8>, // 修改、删除等依据 ==> 查询出来的二进制键
 });
 
 impl RedisKey {
@@ -231,10 +231,36 @@ api_model!(RedisValue {
 });
 
 // 批量删除
-api_model!(RedisBatchDelete {
+api_model!(RedisBatchKey {
     #[serde(rename = "match")]
     pattern: String,
     key_list: Vec<RedisKey>,
+});
+
+// 导出
+api_model!(RedisExportCsv {
+    #[serde(rename = "match")]
+    pattern: String,
+    key_list: Vec<RedisKey>,
+    file: String,
+    with_ttl: bool,
+});
+
+impl Into<RedisBatchKey> for RedisExportCsv {
+    fn into(self) -> RedisBatchKey {
+        RedisBatchKey {
+            pattern: self.pattern,
+            key_list: self.key_list,
+        }
+    }
+}
+
+// 导入
+api_model!(RedisImportCsv {
+    file: String,
+    ttl: i64,
+    handle_ttl: String,      // TTL处理: 尝试读取 parse, 自定义 custom, 永久 forever
+    handle_conflict: String, // 冲突处理: 覆盖 replace, 忽略 ignore
 });
 
 // Zset条目
@@ -382,6 +408,15 @@ api_model!(MonitorEvent {
     id: String,
     datetime: String,
     command: String,
+});
+
+api_model!(ExportImportEvent {
+    id: String,
+    ok_count: u64,
+    err_count: u64,
+    total_count: u64,
+    ignore_count: u64,
+    finished: bool
 });
 
 //~~~~~ 自定义Vec<u8>序列化为Base64字符串

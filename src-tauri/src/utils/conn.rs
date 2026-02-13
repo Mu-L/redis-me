@@ -152,10 +152,10 @@ fn get_tls_certs(ssl_option: Option<SslOption>) -> AnyResult<Option<TlsCertifica
 
 // 设置客户端名称
 pub fn set_client_name(conn: &mut dyn ConnectionLike) -> AnyResult<()> {
-    let _: () = redis::cmd("CLIENT")
-        .arg("SETNAME")
+    let _: () = redis::cmd("client")
+        .arg("setname")
         .arg("RedisME")
         .query(conn)?;
-    info!("Client SETNAME RedisME");
+    info!("client setname RedisME");
     Ok(())
 }

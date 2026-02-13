@@ -51,3 +51,31 @@ macro_rules! api_commands {
         )*
     };
 }
+
+#[macro_export]
+macro_rules! api_commands2 {
+    // 匹配多个函数定义的语法：用分号分隔每个定义
+    (
+        $(
+            $name:ident(
+                $($param:ident: $param_type:ty),*
+            ) -> $return_type:ty
+        );*
+        $(;)?
+    ) => {
+        $(
+            #[command]
+            pub fn $name(
+                app_handle: AppHandle,
+                id: &str,
+                $($param: $param_type),*
+            ) -> ApiResult<$return_type> {
+                to_api_result(
+                    app_handle
+                        .get_client(id)
+                        .and_then(|client| client.$name(app_handle, $($param),*))
+                )
+            }
+        )*
+    };
+}

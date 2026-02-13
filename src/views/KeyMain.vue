@@ -4,20 +4,23 @@ import KeyTree from './key/KeyTree.vue'
 import {computed, ref} from 'vue'
 import {
   bus,
-  CONN_REFRESH,
+  CONN_REFRESH, EXPORT_DATA, IMPORT_DATA,
   KEY_DELETE,
   KEY_REFRESH,
   KEY_TYPE_LIST,
   meCopy,
   meDeleteKey,
   meInvoke,
-  meType,
-  meOk, meRenameKey
+  meOk,
+  meRenameKey,
+  meType
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
-import KeyBatchDel from './key/KeyBatchDel.vue'
+import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
 import {useI18n} from 'vue-i18n'
+import {listen} from '@tauri-apps/api/event'
+import KeyImport from '@/views/key/KeyImport.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -99,10 +102,19 @@ async function scanKey(useCursor = false, loadAll = false) {
   }
 }
 
-onMounted(() => bus.on(KEY_DELETE, deleteKey))
-onMounted(() => bus.on(CONN_REFRESH, refresh))
-onUnmounted(() => bus.off(KEY_DELETE, deleteKey))
-onUnmounted(() => bus.off(CONN_REFRESH, refresh))
+onMounted(() => {
+  bus.on(KEY_DELETE, deleteKey)
+  bus.on(CONN_REFRESH, refresh)
+  bus.on(EXPORT_DATA, exportFolder)
+  bus.on(IMPORT_DATA, importData)
+})
+onUnmounted(() => {
+  bus.off(KEY_DELETE, deleteKey)
+  bus.off(CONN_REFRESH, refresh)
+  bus.off(EXPORT_DATA, exportFolder)
+  bus.off(IMPORT_DATA, importData)
+})
+
 function deleteKey(redisKey) {
   keyList.value = keyList.value.filter(rk => rk.bytes !== redisKey.bytes)
   share.redisKey = null
@@ -173,6 +185,8 @@ function contextFolder(command, folder){
     keyMemory(folder)
   } else if (command === 'deleteFolder') {
     deleteFolder(folder)
+  } else if (command === 'exportFolder') {
+    exportFolder(folder)
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -191,11 +205,68 @@ function addKeyOk(redisKey) {
   chooseKey(redisKey)
 }
 
-// 批量删除键
-const keyBatchDelRef = useTemplateRef('keyBatchDelRef')
+// 批量导出键 和 批量删除键
+const keyBatchRef = useTemplateRef('keyBatchRef')
 function deleteFolder(folder) {
-  keyBatchDelRef.value?.open({match: folder + ':*', keyList: []})
+  keyBatchRef.value?.open({match: folder + ':*', keyList: []}, 'delete')
 }
+function exportFolder(folder) {
+  keyBatchRef.value?.open({match: folder ? folder + ':*' : '*', keyList: []}, 'export')
+}
+
+function batchKeyOk(mode) {
+  if (mode === 'delete') {
+    scanKey(false, false)
+  } else {
+    share.exportImportingPercentage = 0
+    share.exportImporting = true
+    share.exportImportingTip = t('keyMain.exporting')
+    tauriListen('export')
+  }
+}
+
+// 导入数据
+const keyImportRef = useTemplateRef('keyImportRef')
+function importData() {
+  keyImportRef.value.open()
+}
+function importStart() {
+  share.exportImportingPercentage = 0
+  share.exportImporting = true
+  share.exportImportingTip = t('keyMain.importing')
+  tauriListen('import')
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// 监听消息
+let unlisten = null
+async function tauriListen(eventName) {
+  unlisten = await listen(eventName, (event) => {
+    const payload = event.payload
+    if (payload.id !== share.conn.id) return
+    share.exportImportingPercentage = Math.round(((payload.okCount  + payload.errCount + payload.ignoreCount) / payload.totalCount) * 100)
+
+    if (payload.finished) {
+      tauriUnlisten()
+      share.exportImportingPercentage = 100
+      share.exportImporting = false
+      meOk(t(`keyMain.${eventName}Result`, payload), true, t(`keyMain.${eventName}Done`))
+
+      // 导入完成后刷新连接
+      if (eventName === 'import') {
+        bus.emit(CONN_REFRESH) // 让info信息一并刷新(dbMap)
+      }
+    }
+  })
+}
+
+async function tauriUnlisten() {
+  if (unlisten) {
+    unlisten()
+  }
+}
+onUnmounted(() => tauriUnlisten())
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // 内存分析
 const keyMemoryRef = useTemplateRef('keyMemoryRef')
@@ -291,7 +362,8 @@ function keyMemory(folder) {
 
     <!-- 字段新增、批量删除键、目录内存分析 -->
     <FieldAdd    ref="fieldAddRef"    @success="addKeyOk"/>
-    <KeyBatchDel ref="keyBatchDelRef" @success="scanKey(false, false)"/>
+    <KeyBatch    ref="keyBatchRef"    @success="batchKeyOk"/>
+    <KeyImport   ref="keyImportRef"   @success="importStart"/>
     <KeyMemory   ref="keyMemoryRef" />
   </div>
 </template>

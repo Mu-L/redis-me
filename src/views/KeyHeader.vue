@@ -1,29 +1,30 @@
 <script setup>
-import {bus, CONN_REFRESH, meInvoke, meOk, mePrompt} from '@/utils/util.js'
+import {bus, CONN_REFRESH, EXPORT_DATA, IMPORT_DATA, meInvoke, meOk, mePrompt} from '@/utils/util.js'
 import Setting from '@/views/ext/Setting.vue'
 import About from '@/views/ext/About.vue'
 import {useI18n} from 'vue-i18n'
 
 // 共享数据
 const share = inject('share')
+const canEdit = computed(() => !share.readonly)
 const { t } = useI18n()
 
 // 新增模拟数据
 async function mockData() {
   mePrompt(t('keyHeader.mockHint'), {
-        inputValue: 10,
-        inputType: 'number'
-      },
-      async ({value}) => {
-        share.loading = true
-        try {
-          await meInvoke('mock_data', {id: share.conn.id, count: parseInt(value)})
-          meOk(t('keyHeader.mockOk'))
-          bus.emit(CONN_REFRESH)
-        } finally {
-          share.loading = false
-        }
-      })
+      inputValue: 10,
+      inputType: 'number'
+    },
+    async ({value}) => {
+      share.loading = true
+      try {
+        await meInvoke('mock_data', {id: share.conn.id, count: parseInt(value)})
+        meOk(t('keyHeader.mockOk'))
+        bus.emit(CONN_REFRESH)
+      } finally {
+        share.loading = false
+      }
+    })
 }
 
 // 弹出框
@@ -37,14 +38,20 @@ async function handleCommand(command) {
   if (command === 'refreshConn') {
     await meInvoke('connect', {id: share.conn.id})
     bus.emit(CONN_REFRESH)
-  } else if (command === 'closeConn') {
+  } else if ('closeConn' === command) {
     share.conn = null
-  } else if (command === 'setting') {
+  } else if ('setting' === command) {
     dialog.setting = true
-  } else if (command === 'info') {
+  } else if ('info' === command) {
     dialog.info = true
   } else if ('mockData' === command) {
     await mockData()
+  } else if ('exportData' === command) {
+    bus.emit(EXPORT_DATA)
+  } else if ('importData' === command) {
+    bus.emit(IMPORT_DATA)
+  } else {
+    meOk(`TODO: ${command}`)
   }
 }
 </script>
@@ -52,7 +59,7 @@ async function handleCommand(command) {
 <template>
   <div class="key-header">
     <el-select v-model="share.conn" :placeholder="t('keyHeader.connHint')" class="conn" clearable
-               filterable :disabled="share.connList.length == 0" value-key="id">
+               filterable :disabled="share.connList.length === 0" value-key="id">
       <el-option v-for="item in share.connList" :label="item.name" :value="item" :key="item.id">
         <div :style="{color: item?.color}">{{ item.name }}</div>
       </el-option>
@@ -69,16 +76,26 @@ async function handleCommand(command) {
       <el-button type="success" icon="el-icon-operation"/>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item command="refreshConn" :disabled="!share.conn">
-            <me-icon :name="t('keyHeader.refreshConn')" icon="el-icon-refresh"/>
-          </el-dropdown-item>
-          <el-dropdown-item command="closeConn" :disabled="!share.conn">
-            <me-icon :name="t('keyHeader.closeConn')" icon="el-icon-circle-close"/>
-          </el-dropdown-item>
-          <el-dropdown-item command="mockData" :disabled="!share.conn">
-            <me-icon :name="t('keyHeader.mockData')" icon="el-icon-coffee-cup"/>
-          </el-dropdown-item>
-          <el-dropdown-item command="setting" divided>
+          <template v-if="share.conn">
+            <el-dropdown-item command="refreshConn">
+              <me-icon :name="t('keyHeader.refreshConn')" icon="el-icon-refresh"/>
+            </el-dropdown-item>
+            <el-dropdown-item command="closeConn">
+              <me-icon :name="t('keyHeader.closeConn')" icon="el-icon-circle-close"/>
+            </el-dropdown-item>
+
+            <el-dropdown-item command="mockData" divided v-if="canEdit">
+              <me-icon :name="t('keyHeader.mockData')" icon="el-icon-coffee-cup"/>
+            </el-dropdown-item>
+            <el-dropdown-item command="exportData">
+              <me-icon :name="t('keyHeader.exportData')" icon="el-icon-upload"/>
+            </el-dropdown-item>
+            <el-dropdown-item command="importData" v-if="canEdit">
+              <me-icon :name="t('keyHeader.importData')" icon="el-icon-download"/>
+            </el-dropdown-item>
+          </template>
+
+          <el-dropdown-item command="setting" :divided="!!share.conn">
             <me-icon :name="t('keyHeader.setting')" icon="el-icon-setting"/>
           </el-dropdown-item>
           <el-dropdown-item command="info">

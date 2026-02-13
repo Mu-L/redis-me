@@ -39,6 +39,7 @@ impl Drop for RedisMeCluster {
     fn drop(&mut self) {
         self.subscribe_stop().unwrap_or(());
         self.monitor_stop().unwrap_or(());
+        self.export_import_running.store(false, Relaxed);
     }
 }
 
@@ -423,9 +424,8 @@ impl RedisMeClient for RedisMeCluster {
 
     fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
         let conn = get_client_single(&self.conf)?.get_connection()?;
-        let id = self.id.clone();
         let running = self.subscribe_running.clone();
-        subscribe0(conn, running, app_handle, channel, id)
+        subscribe0(conn, running, app_handle, channel, self.id.clone())
     }
 
     fn subscribe_stop(&self) -> AnyResult<()> {
@@ -440,13 +440,48 @@ impl RedisMeClient for RedisMeCluster {
             conf.port = port.parse::<u16>()?;
         }
         let conn = get_client_single(&conf)?.get_connection()?;
-        let id = self.id.clone();
         let running = self.monitor_running.clone();
-        monitor0(conn, running, app_handle, id)
+        monitor0(conn, running, app_handle, self.id.clone())
     }
 
     fn monitor_stop(&self) -> AnyResult<()> {
         monitor_stop0(self.monitor_running.clone())
+    }
+
+    fn batch_del(&self, param: RedisBatchKey) -> AnyResult<()> {
+        let key_list = batch_key0(self, param, false)?;
+        if key_list.is_empty() {
+            return Ok(());
+        }
+
+        let size = key_list.len();
+        let mut pipe = ClusterPipeline::with_capacity(size);
+        for key in key_list {
+            pipe.del(&key).ignore();
+        }
+        let mut conn = self.get_conn()?;
+        let _: () = pipe.query(&mut conn)?;
+        info!("batch delete finished: {}", size);
+        Ok(())
+    }
+
+    fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()> {
+        let key_list = batch_key0(self, param.clone().into(), true)?;
+        let mut conn = self.get_new_conn()?;
+        let running = self.export_import_running.clone();
+        let id = self.id.clone();
+        export_import_check_running(running.clone())?;
+        thread::spawn(move || export_csv_0_thread(&mut conn, key_list, param.file, param.with_ttl, running, app_handle, id));
+        Ok(())
+    }
+
+    fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()> {
+        let mut conn = self.get_new_conn()?;
+        let running = self.export_import_running.clone();
+        let id = self.id.clone();
+        export_import_check_running(running.clone())?;
+        thread::spawn(move || import_csv_0_thread(&mut conn, param, running, app_handle, id));
+        Ok(())
     }
 
     implement_pipeline_commands!(ClusterPipeline);
@@ -526,6 +561,11 @@ impl RedisMeCluster {
             warn!("检查Redis集群连接异常: {}", self.conf.name);
             Ok(false)
         }
+    }
+
+    // 获取一个新的连接
+    fn get_new_conn(&self) -> AnyResult<ClusterConnection> {
+        Self::new_conn(&self.client)
     }
 
     // 获取节点路由

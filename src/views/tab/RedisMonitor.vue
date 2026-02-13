@@ -50,7 +50,7 @@ let unlisten = null
 async function tauriListen() {
   unlisten = await listen('monitor', (event) => {
     const payload = event.payload
-    if (payload.id != share.conn.id) return
+    if (payload.id !== share.conn.id) return
     dataList.value.push(event.payload)
   })
 }

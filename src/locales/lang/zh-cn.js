@@ -152,6 +152,9 @@ export default {
     refreshConn: '刷新连接',
     closeConn: '关闭连接',
     mockData: '模拟数据',
+    exportData: '导出数据',
+    importData: '导入数据',
+
     setting: '设置',
     about: '关于',
   },
@@ -202,15 +205,39 @@ export default {
     slave: '从'
   },
 
-  keyBatchDel: {
+  keyBatch: {
     matchRequired: '键名表达式不能为空',
-    title: '批量删除键',
     match: '键名表达式',
-    deleteDirect: '直接匹配删除',
-    impactKeys: '受影响的键名({size})',
-    confirmDelete: '确认删除',
+    impactKeys: '受影响的键名({count})',
     showImpactKeys: '查看受影响的键名',
-    confirmDeleteSize: '确认删除{size}个键'
+
+    delete: '批量删除键',
+    deleteDirect: '直接匹配删除',
+    confirmDelete: '确认删除',
+    confirmDeleteSize: '确认删除{count}个键',
+
+    export: '导出数据',
+    exportDirect: '直接匹配导出',
+    confirmExport: '确认导出',
+    confirmExportSize: '确认导出{count}个键',
+    exportFile: '导出路径',
+    exportFileRequired: '请选择文件导出路径',
+    exportFileTip: '请选择文件导出路径',
+    expireTip: '同时导出过期时间'
+  },
+
+  keyImport: {
+    title: '导入数据',
+    file: '导入文件',
+    fileTip: '请选择需要导入的文件',
+    fileRequired: '导入文件不能为空',
+    handleConflict: '键冲突处理',
+    replace: '覆盖',
+    ignore: '忽略',
+    handleTtl: '过期时间',
+    parse: '解析文件',
+    forever: '永久',
+    confirm: '确认导入'
   },
 
   keyMemory: {
@@ -236,7 +263,8 @@ export default {
     copyFolder: '复制路径',
     loadFolder: '只加载该目录',
     memoryUsage: '目录内存分析',
-    deleteFolder: '批量删除键'
+    deleteFolder: '批量删除键',
+    exportFolder: '批量导出键',
   },
 
   redisClient: {
@@ -440,6 +468,12 @@ export default {
     treeView: '键树形展示',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
+    exporting: '导出中...',
+    exportDone: '导出完成',
+    exportResult: '成功{okCount}个，失败{errCount}个！',
+    importing: '导入中...',
+    importDone: '导入完成',
+    importResult: '成功{okCount}个，失败{errCount}个，忽略{ignoreCount}个！',
   },
 
   ttlSet: {

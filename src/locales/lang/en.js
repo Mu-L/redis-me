@@ -151,6 +151,9 @@ export default {
     refreshConn: 'Refresh Conn',
     closeConn: 'Close Conn',
     mockData: 'Mock Data',
+    exportData: 'Export Data',
+    importData: 'Import Data',
+
     setting: 'Setting',
     about: 'About',
   },
@@ -201,15 +204,39 @@ export default {
     slave: 'S'
   },
 
-  keyBatchDel: {
+  keyBatch: {
     matchRequired: 'Key match expression required',
-    title: 'Batch Delete Keys',
     match: 'Key match expression',
-    deleteDirect: 'Delete Direct',
     impactKeys: 'Impact Key ({count}) | Impact Keys ({count})',
-    confirmDelete: 'Confirm Delete',
     showImpactKeys: 'Show Impact Keys',
-    confirmDeleteSize: 'Delete 1 Key | Delete {count} Keys'
+
+    delete: 'Batch Delete Keys',
+    deleteDirect: 'Delete Direct',
+    confirmDelete: 'Confirm Delete',
+    confirmDeleteSize: 'Delete 1 Key | Delete {count} Keys',
+
+    export: 'Export Data',
+    exportDirect: 'Export Direct',
+    confirmExport: 'Confirm Export',
+    confirmExportSize: 'Export 1 Key | Export {count} Keys',
+    exportFile: 'Export Path',
+    exportFileRequired: 'Please Select export path',
+    exportFileTip: 'Select export path',
+    expireTip: 'Include Expiration'
+  },
+
+  keyImport: {
+    title: 'Import Data',
+    file: 'Import File',
+    fileTip: 'Select file to import',
+    fileRequired: 'import file required',
+    handleConflict: 'On Key Conflict',
+    replace: 'Replace',
+    ignore: 'Ignore',
+    handleTtl: 'Expiration',
+    parse: 'Parse File',
+    forever: 'Forever',
+    confirm: 'Confirm Import'
   },
 
   keyMemory: {
@@ -235,7 +262,8 @@ export default {
     copyFolder: 'Copy Folder',
     loadFolder: 'Load Folder',
     memoryUsage: 'Memory Usage',
-    deleteFolder: 'Batch Delete Keys'
+    deleteFolder: 'Delete Keys',
+    exportFolder: 'Export Keys',
   },
 
   redisClient: {
@@ -438,6 +466,12 @@ export default {
     treeView: 'Tree View',
     loadMore: 'Load More',
     loadAll: 'Load All',
+    exporting: 'Exporting',
+    exportDone: 'Export Done',
+    exportResult: 'Success: {okCount}, Fail: {errCount}',
+    importing: 'Importing',
+    importDone: 'Import Done',
+    importResult: 'Success: {okCount}, Fail: {errCount}, Ignore: {ignoreCount}',
   },
 
   ttlSet: {

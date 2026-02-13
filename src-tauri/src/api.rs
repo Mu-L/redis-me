@@ -1,4 +1,4 @@
-use crate::api_commands;
+use crate::{api_commands, api_commands2};
 use crate::client::state::ClientAccess;
 use crate::utils::model::*;
 use crate::utils::util::*;
@@ -30,6 +30,24 @@ pub fn conn_list(app_handle: AppHandle, conn_list: Vec<RedisConf>) -> ApiResult<
     to_api_result(app_handle.conn_list(conn_list))
 }
 
+// 连接
+#[command]
+pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
+    to_api_result(app_handle.connect(id)).map(|_| ())
+}
+
+// 断开
+#[command]
+pub fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
+    to_api_result(app_handle.disconnect(id))
+}
+
+// 导入连接（检查导入的JSON属性是否满足及去除多余属性）
+#[command]
+pub fn check_import_conn_list(conn_list: Vec<RedisConf>) -> Vec<RedisConf> {
+    conn_list
+}
+
 // 使用宏简化代码
 // to_api_result(app_handle.get_client(id).and_then(|client| client.$name($($param),*)))
 api_commands!(
@@ -47,7 +65,6 @@ api_commands!(
     set(key: RedisKey, value: String, ttl: i64) -> ();  // 设置值
     del(key: RedisKey) -> ();                           // 删除键
     rename(key: RedisKey, new_key: RedisKey) -> ();     // 重命名键
-    batch_del(param: RedisBatchDelete) -> ();           // 批量删除
     field_add(param: RedisFieldAdd) -> ();              // 新增字段
     field_set(param: RedisFieldSet) -> ();              // 编辑字段
     field_del(param: RedisFieldDel) -> ();              // 删除字段
@@ -60,44 +77,14 @@ api_commands!(
     publish(channel: &str, message: &str) -> (); // 发布消息
     subscribe_stop() -> ();                      // 订阅消息停止
     monitor_stop()   -> ();                      // 监控命令停止
+    batch_del(param: RedisBatchKey) -> ();       // 批量删除
     mock_data(count: u64) -> ();                 // 模拟数据
 );
 
-// 连接
-#[command]
-pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
-    to_api_result(app_handle.connect(id)).map(|_| ())
-}
-
-// 断开
-#[command]
-pub fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
-    to_api_result(app_handle.disconnect(id))
-}
-
-//~~~~~~~~~这两个命令需要将app_handle传递过去，因此需要单独编写~~~~~~~~~
-// 监控命令
-#[command]
-pub fn monitor(app_handle: AppHandle, id: &str, node: &str) -> ApiResult<()> {
-    to_api_result(
-        app_handle
-            .get_client(id)
-            .and_then(|client| client.monitor(app_handle, node)),
-    )
-}
-
-// 订阅消息
-#[command]
-pub fn subscribe(app_handle: AppHandle, id: &str, channel: Option<String>) -> ApiResult<()> {
-    to_api_result(
-        app_handle
-            .get_client(id)
-            .and_then(|client| client.subscribe(app_handle, channel)),
-    )
-}
-
-// 导入连接（检查导入的JSON属性是否满足及去除多余属性）
-#[command]
-pub fn check_import_conn_list(conn_list: Vec<RedisConf>) -> Vec<RedisConf> {
-    conn_list
-}
+// 需要将app_handle传递过去的命令
+api_commands2!(
+    monitor(node: &str) -> ();                   // 监控命令
+    subscribe(channel: Option<String>)-> ();     // 订阅消息
+    export_csv(param: RedisExportCsv) -> ();     // 导出CSV
+    import_csv(param: RedisImportCsv) -> ();     // 导入CSV
+);
