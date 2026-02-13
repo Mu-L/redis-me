@@ -577,7 +577,7 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
     }
 }
 
-pub fn batch_key0(rmc: &impl RedisMeClient, param: RedisBatchKey) -> AnyResult<Vec<RedisKey>> {
+pub fn batch_key0(rmc: &impl RedisMeClient, param: RedisBatchKey, assert_not_empty: bool) -> AnyResult<Vec<RedisKey>> {
     let key_list = if param.key_list.is_empty() {
         if param.pattern.is_empty() {
             bail!("key list and pattern parameters cannot both be empty")
@@ -588,26 +588,31 @@ pub fn batch_key0(rmc: &impl RedisMeClient, param: RedisBatchKey) -> AnyResult<V
     } else {
         param.key_list
     };
+
+    if assert_not_empty && key_list.is_empty() {
+        bail!("key list is empty")
+    }
+
     Ok(key_list)
 }
 
-pub fn export_csv0(mut conn: Connection, key_list: Vec<RedisKey>, file: String, with_ttl: bool,
-                   running: Arc<AtomicBool>, app_handle: AppHandle, id: String) -> AnyResult<()> {
+pub fn export_csv_0_check_running(running: Arc<AtomicBool>) -> AnyResult<()> {
     if running.load(Relaxed) {
         bail!("export is running");
     }
-
     running.store(true, Relaxed);
-    thread::spawn(move || {
-        info!("export keys count: {}", key_list.len());
-        let result = export_keys(&mut conn, key_list, &file, with_ttl, running.clone(), app_handle, id);
-        match result {
-            Ok(_) => info!("export keys ok"),
-            Err(e) => warn!("export keys err: {e}")
-        }
-        running.store(false, Relaxed);
-    });
     Ok(())
+}
+
+pub fn export_csv_1_thread(conn: &mut impl Commands, key_list: Vec<RedisKey>, file: String, with_ttl: bool,
+                           running: Arc<AtomicBool>, app_handle: AppHandle, id: String) {
+    info!("export keys count: {}", key_list.len());
+    let result = export_keys(conn, key_list, &file, with_ttl, running.clone(), app_handle, id);
+    match result {
+        Ok(_) => info!("export keys ok"),
+        Err(e) => warn!("export keys err: {e}")
+    }
+    running.store(false, Relaxed);
 }
 
 fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, with_ttl: bool,

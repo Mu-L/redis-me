@@ -327,9 +327,8 @@ impl RedisMeClient for RedisMeSingle {
 
     fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
         let conn = self.client.get_connection()?;
-        let id = self.id.clone();
         let running = self.subscribe_running.clone();
-        subscribe0(conn, running, app_handle, channel, id)
+        subscribe0(conn, running, app_handle, channel, self.id.clone())
     }
 
     fn subscribe_stop(&self) -> AnyResult<()> {
@@ -338,9 +337,8 @@ impl RedisMeClient for RedisMeSingle {
 
     fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {
         let conn = self.client.get_connection()?;
-        let id = self.id.clone();
         let running = self.monitor_running.clone();
-        monitor0(conn, running, app_handle, id)
+        monitor0(conn, running, app_handle, self.id.clone())
     }
 
     fn monitor_stop(&self) -> AnyResult<()> {
@@ -348,8 +346,7 @@ impl RedisMeClient for RedisMeSingle {
     }
 
     fn batch_del(&self, param: RedisBatchKey) -> AnyResult<()> {
-        let key_list = batch_key0(self, param)?;
-
+        let key_list = batch_key0(self, param, false)?;
         if key_list.is_empty() {
             return Ok(());
         }
@@ -366,14 +363,12 @@ impl RedisMeClient for RedisMeSingle {
     }
 
     fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()> {
-        let key_list = batch_key0(self, param.clone().into())?;
-        if key_list.is_empty() {
-            bail!("export key_list is empty")
-        }
-        let conn = self.get_new_conn()?;
+        let key_list = batch_key0(self, param.clone().into(), true)?;
+        let mut conn = self.get_new_conn()?;
+        let running = self.export_running.clone();
         let id = self.id.clone();
-        let running = self.subscribe_running.clone();
-        export_csv0(conn, key_list, param.file, param.with_ttl, running, app_handle, id)?;
+        export_csv_0_check_running(running.clone())?;
+        thread::spawn(move || export_csv_1_thread(&mut conn, key_list, param.file, param.with_ttl, running, app_handle, id));
         Ok(())
     }
 
