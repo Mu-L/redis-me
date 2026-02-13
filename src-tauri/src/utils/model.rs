@@ -415,6 +415,7 @@ api_model!(ExportImportEvent {
     ok_count: u64,
     err_count: u64,
     total_count: u64,
+    ignore_count: u64,
     finished: bool
 });
 

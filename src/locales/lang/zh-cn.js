@@ -473,7 +473,7 @@ export default {
     exportResult: '成功{okCount}个，失败{errCount}个！',
     importing: '导入中...',
     importDone: '导入完成',
-    importResult: '成功{okCount}个，失败{errCount}个！',
+    importResult: '成功{okCount}个，失败{errCount}个，忽略{ignoreCount}个！',
   },
 
   ttlSet: {

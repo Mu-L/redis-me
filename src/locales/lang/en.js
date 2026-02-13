@@ -468,10 +468,10 @@ export default {
     loadAll: 'Load All',
     exporting: 'Exporting',
     exportDone: 'Export Done',
-    exportResult: 'Success: {okCount} , Fail: {errCount}',
+    exportResult: 'Success: {okCount}, Fail: {errCount}',
     importing: 'Importing',
     importDone: 'Import Done',
-    importResult: 'Success: {okCount} , Fail: {errCount}',
+    importResult: 'Success: {okCount}, Fail: {errCount}, Ignore: {ignoreCount}',
   },
 
   ttlSet: {

@@ -625,7 +625,10 @@ fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, wit
             let result = export_key(&mut conn, &mut writer, key, with_ttl);
             match result {
                 Ok(_) => ok_count += 1,
-                Err(_) => err_count += 1
+                Err(e) => {
+                    warn!("export key err: {e}");
+                    err_count += 1;
+                }
             };
             // 通知导出进度
             let event = ExportImportEvent {
@@ -633,6 +636,7 @@ fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, wit
                 ok_count,
                 err_count,
                 total_count,
+                ignore_count: 0,
                 finished: false,
             };
             let _ = &app_handle.emit(EVENT_EXPORT, event);
@@ -644,6 +648,7 @@ fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, wit
         ok_count,
         err_count,
         total_count,
+        ignore_count: 0,
         finished: true,
     };
     let _ = &app_handle.emit(EVENT_EXPORT, event);
@@ -685,6 +690,7 @@ fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<Ato
 
     let mut ok_count = 0;
     let mut err_count = 0;
+    let mut ignore_count = 0;
 
     let reader = BufReader::new(File::open(&param.file)?);
     for line in reader.lines() {
@@ -697,7 +703,16 @@ fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<Ato
             let result = import_key(conn, line, param.ttl, &param.handle_ttl, &param.handle_conflict);
             match result {
                 Ok(_) => ok_count += 1,
-                Err(_) => err_count += 1
+                Err(e) => {
+                    // 文档说明: RESTORE will return a "Target key name is busy" error when key already exists unless you use the REPLACE modifier.
+                    // 实际测试: Redis 8.4.0返回的错误: "BUSYKEY": Target key name already exists.
+                    if e.to_string().contains("Target key name") {
+                        ignore_count += 1;
+                    } else {
+                        warn!("import key err: {e}");
+                        err_count += 1
+                    }
+                }
             };
             // 通知导入进度
             let event = ExportImportEvent {
@@ -705,6 +720,7 @@ fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<Ato
                 ok_count,
                 err_count,
                 total_count,
+                ignore_count,
                 finished: false,
             };
             let _ = &app_handle.emit(EVENT_IMPORT, event);
@@ -716,6 +732,7 @@ fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<Ato
         ok_count,
         err_count,
         total_count,
+        ignore_count,
         finished: true,
     };
     let _ = &app_handle.emit(EVENT_IMPORT, event);

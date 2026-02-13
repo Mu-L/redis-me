@@ -244,7 +244,7 @@ async function tauriListen(eventName) {
   unlisten = await listen(eventName, (event) => {
     const payload = event.payload
     if (payload.id !== share.conn.id) return
-    share.exportImportingPercentage = Math.round(((payload.okCount  + payload.errCount) / payload.totalCount) * 100)
+    share.exportImportingPercentage = Math.round(((payload.okCount  + payload.errCount + payload.ignoreCount) / payload.totalCount) * 100)
 
     if (payload.finished) {
       tauriUnlisten()
