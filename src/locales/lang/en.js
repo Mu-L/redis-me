@@ -449,6 +449,10 @@ export default {
     treeView: 'Tree View',
     loadMore: 'Load More',
     loadAll: 'Load All',
+    exporting: 'Exporting',
+    exportResult: 'Export Done. Success: {okCount} , Fail: {errCount}',
+    importing: 'Importing',
+    importResult: 'Import Done. Success: {okCount} , Fail: {errCount}',
   },
 
   ttlSet: {

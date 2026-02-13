@@ -208,22 +208,13 @@ function batchKeyOk(mode) {
   if (mode === 'delete') {
     scanKey(false, false)
   } else {
+    share.exportImportingPercentage = 0
+    share.exportImporting = true
+    share.exportImportingTip = t('keyMain.exporting')
     tauriListen()
-    ElMessage.primary({
-      message: h('span', null, exportTip.value),
-      duration: 0,
-      showClose: true,
-      placement: 'bottom'
-    })
   }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-const exportEvent = ref({
-  okCount: 0,
-  errCount: 0,
-  totalCount: 0,
-})
-const exportTip = computed(() => `导出键: ${exportEvent.value.okCount}/${exportEvent.value.totalCount}, 失败数: ${exportEvent.value.errCount}`)
 
 // 监听消息
 let unlisten = null
@@ -231,10 +222,12 @@ async function tauriListen() {
   unlisten = await listen('export', (event) => {
     const payload = event.payload
     if (payload.id !== share.conn.id) return
-    exportEvent.value = event.payload
-    console.log( payload)
+    share.exportImportingPercentage = Math.round(((payload.okCount  + payload.errCount) / payload.totalCount) * 100)
     if (payload.okCount + payload.errCount >= payload.totalCount) {
       tauriUnlisten()
+      share.exportImportingPercentage = 100
+      share.exportImporting = false
+      meOk(t('keyMain.exportResult', {okCount: payload.okCount, errCount: payload.errCount}), true)
     }
   })
 }

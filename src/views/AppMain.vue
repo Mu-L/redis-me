@@ -19,9 +19,14 @@ const share = reactive({
   loading: false,                     // 整个主体界面loading（其他地方也会使用到）
   color: 'var(--el-color-primary)',   // 即 share.conn.color（便于使用和移植）
   readonly: false,                    // 即 share.conn.readonly 当前连接是否只读(此处另外存储1份，避免影响连接默认的只读设置)
-  redisKey: null,
-  tabName: 'info',
-  dbSizeMap: {}, // 数据库大小显示
+  redisKey: null,                     // Redis键
+  tabName: 'info',                    // 标签页名
+  dbSizeMap: {},                      // 数据库大小显示
+
+  // 导入导出
+  exportImporting: false,             // 导入导出中
+  exportImportingTip: '',             // 导入导出提示
+  exportImportingPercentage: 0        // 导入导出进度
 })
 provide('share', share)
 
@@ -117,14 +122,24 @@ function changeReadonly() {
         <TabConn     v-if="!share.conn"/>
         <template v-else-if="connPrepared">
           <TabMain/>
+
+          <!-- 只读/可写 -->
           <me-icon class="readonly-icon" plain
                      :icon="share.readonly ? 'me-icon-lock' : 'me-icon-unlock'"
                      :name="share.readonly ? t('appMain.readonly') : t('appMain.writable')"
                      :hint="true" :show-after="0"
                      @click="changeReadonly"
           />
-        </template>
 
+          <!-- 导入导出 -->
+          <el-progress class="exportImporting" type="dashboard" status="success"
+                       :percentage="share.exportImportingPercentage" v-if="share.exportImporting">
+            <template #default="{ percentage }">
+              <div class="percentage-value">{{ percentage }}%</div>
+              <div class="percentage-label">{{ share.exportImportingTip }}</div>
+            </template>
+          </el-progress>
+        </template>
       </el-splitter-panel>
     </el-splitter>
   </div>
@@ -174,6 +189,24 @@ function changeReadonly() {
     cursor: pointer;
     &:hover {
       color: var(--el-color-primary);
+    }
+  }
+
+  // 版本升级过程中显示下载进度
+  .exportImporting {
+    position: absolute;
+    right: 20px ;
+    bottom: 0;
+    z-index: 100;
+
+    .percentage-value {
+      font-size: 28px;
+      color: var(--el-color-success);
+    }
+
+    .percentage-label {
+      margin-top: 10px;
+      font-size: 14px;
     }
   }
 }
