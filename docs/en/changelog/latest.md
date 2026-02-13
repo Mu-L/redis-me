@@ -4,6 +4,11 @@
 
 - Key: Import and export support
 
+## v2.0.0(2026-02-13)
+
+- New Feature: Support exporting data and importing data
+- Fix: Display of Chinese numbers in batch deletion keys
+
 ## v1.9.0 (2026-02-08)
 
 - Terminal: Upgraded to [VueWebTerminal](https://tzfun.github.io/vue-web-terminal/)
