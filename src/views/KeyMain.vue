@@ -223,11 +223,12 @@ async function tauriListen(eventName) {
     const payload = event.payload
     if (payload.id !== share.conn.id) return
     share.exportImportingPercentage = Math.round(((payload.okCount  + payload.errCount) / payload.totalCount) * 100)
-    if (payload.okCount + payload.errCount >= payload.totalCount) {
+
+    if (payload.finished) {
       tauriUnlisten()
       share.exportImportingPercentage = 100
       share.exportImporting = false
-      meOk(t('keyMain.exportResult', payload), true, t('keyMain.exportDone'))
+      meOk(t(`keyMain.${eventName}Result`, payload), true, t('keyMain.${eventName}Done'))
     }
   })
 }
@@ -239,8 +240,6 @@ async function tauriUnlisten() {
 }
 onUnmounted(() => tauriUnlisten())
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 
 // 内存分析
 const keyMemoryRef = useTemplateRef('keyMemoryRef')
