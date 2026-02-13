@@ -16,6 +16,7 @@ use std::thread;
 use std::thread::JoinHandle;
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
+use serde_json::json;
 use tauri::{AppHandle, Emitter};
 
 // 抽取公共属性
@@ -633,10 +634,12 @@ fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, wit
                 ok_count,
                 err_count,
                 total_count,
+                finished: false,
             };
             let _ = &app_handle.emit(EVENT_EXPORT, event);
         }
     }
+    let _ = &app_handle.emit(EVENT_EXPORT, json!({"id": id.clone(), "finished": true}));
     writer.flush()?;
     Ok(())
 }
@@ -676,8 +679,13 @@ fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<Ato
 
     let reader = BufReader::new(File::open(&param.file)?);
     for line in reader.lines() {
+        let line = line?;
+        let line = line.trim();
+        if line.is_empty() {
+            continue
+        }
         if running.load(Relaxed) {
-            let result = import_key(conn, &line?, param.ttl, &param.handle_ttl, &param.handle_conflict);
+            let result = import_key(conn, line, param.ttl, &param.handle_ttl, &param.handle_conflict);
             match result {
                 Ok(_) => ok_count += 1,
                 Err(_) => err_count += 1
@@ -688,22 +696,26 @@ fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<Ato
                 ok_count,
                 err_count,
                 total_count,
+                finished: false,
             };
             let _ = &app_handle.emit(EVENT_IMPORT, event);
         }
     }
+    let _ = &app_handle.emit(EVENT_EXPORT, json!({"id": id.clone(), "finished": true}));
     Ok(())
 }
 
 fn import_key(conn: &mut impl Commands, line: &str, ttl: i64, handle_ttl: &str, handle_conflict: &str) -> AnyResult<()> {
-    if line.trim().is_empty() {
-        bail!("empty line: {}", line)
-    }
-
     let parts: Vec<&str> = line.split(',').collect();
-    if parts.len() != 3 {
+    if parts.len() != 2 && parts.len() != 3 {
         bail!("invalid line: {}", line)
     }
+
+    let ttl_part = if parts.len() == 3 {
+        parts[2]
+    } else {
+        "-1"
+    };
 
     // https://redis.ac.cn/docs/latest/commands/restore/
     // RESTORE key ttl serialized-value [REPLACE] [ABSTTL] [IDLETIME seconds] [FREQ frequency]
@@ -711,7 +723,7 @@ fn import_key(conn: &mut impl Commands, line: &str, ttl: i64, handle_ttl: &str, 
     // 除非使用 REPLACE 修饰符，否则当 key 已存在时，RESTORE 将返回“Target key name is busy”错误。
     let key = BASE64_STANDARD.decode(parts[0])?;
     let value = BASE64_STANDARD.decode(parts[1])?;
-    let ttl = import_restore_ttl(parts[2], ttl, handle_ttl);
+    let ttl = import_restore_ttl(ttl_part, ttl, handle_ttl);
 
     let mut cmd = redis::cmd("restore");
     cmd.arg(&key).arg(ttl).arg(value);
