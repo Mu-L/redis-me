@@ -10,15 +10,14 @@ const { filePrefix, fileSuffix} = defineProps({
 const model = defineModel({type: String})
 
 async function openDialog() {
+  const filters = fileSuffix ? [{name: '', extensions: [fileSuffix]}] : []
   let file
   if (filePrefix) {
     const fileName = `${filePrefix}_${dayjs().format('YYYYMMDDHHmmss')}.${fileSuffix}`
-    const filters = [{name: '', extensions: [fileSuffix]}]
     file = await save({multiple: false, directory: true, filters, defaultPath: fileName})
   } else {
-    file = await open({multiple: false, directory: false,})
+    file = await open({multiple: false, directory: false, filters})
   }
-
   if (file) {
     model.value = file
   }

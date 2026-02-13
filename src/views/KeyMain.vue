@@ -20,6 +20,7 @@ import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
 import {useI18n} from 'vue-i18n'
 import {listen} from '@tauri-apps/api/event'
+import KeyImport from '@/views/key/KeyImport.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -204,17 +205,13 @@ function addKeyOk(redisKey) {
   chooseKey(redisKey)
 }
 
-// 批量删除键
+// 批量导出键 和 批量删除键
 const keyBatchRef = useTemplateRef('keyBatchRef')
 function deleteFolder(folder) {
   keyBatchRef.value?.open({match: folder + ':*', keyList: []}, 'delete')
 }
 function exportFolder(folder) {
   keyBatchRef.value?.open({match: folder ? folder + ':*' : '*', keyList: []}, 'export')
-}
-
-function importData() {
-  meOk('TODO importData')
 }
 
 function batchKeyOk(mode) {
@@ -226,6 +223,18 @@ function batchKeyOk(mode) {
     share.exportImportingTip = t('keyMain.exporting')
     tauriListen('export')
   }
+}
+
+// 导入数据
+const keyImportRef = useTemplateRef('keyImportRef')
+function importData() {
+  keyImportRef.value.open()
+}
+function importStart() {
+  share.exportImportingPercentage = 0
+  share.exportImporting = true
+  share.exportImportingTip = t('keyMain.importing')
+  tauriListen('import')
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -242,6 +251,11 @@ async function tauriListen(eventName) {
       share.exportImportingPercentage = 100
       share.exportImporting = false
       meOk(t(`keyMain.${eventName}Result`, payload), true, t(`keyMain.${eventName}Done`))
+
+      // 导入完成后刷新连接
+      if (eventName === 'import') {
+        bus.emit(CONN_REFRESH) // 让info信息一并刷新(dbMap)
+      }
     }
   })
 }
@@ -349,6 +363,7 @@ function keyMemory(folder) {
     <!-- 字段新增、批量删除键、目录内存分析 -->
     <FieldAdd    ref="fieldAddRef"    @success="addKeyOk"/>
     <KeyBatch    ref="keyBatchRef"    @success="batchKeyOk"/>
+    <KeyImport   ref="keyImportRef"   @success="importStart"/>
     <KeyMemory   ref="keyMemoryRef" />
   </div>
 </template>

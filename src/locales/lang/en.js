@@ -225,6 +225,20 @@ export default {
     expireTip: 'Include Expiration'
   },
 
+  keyImport: {
+    title: 'Import Data',
+    file: 'Import File',
+    fileTip: 'Select file to import',
+    fileRequired: 'import file required',
+    handleConflict: 'On Key Conflict',
+    replace: 'Replace',
+    ignore: 'Ignore',
+    handleTtl: 'Expiration',
+    parse: 'Parse File',
+    forever: 'Forever',
+    confirm: 'Confirm Import'
+  },
+
   keyMemory: {
     title: 'Folder Memory Usage',
     match: 'Key match expression',

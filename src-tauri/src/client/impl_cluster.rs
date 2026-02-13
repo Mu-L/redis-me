@@ -470,8 +470,8 @@ impl RedisMeClient for RedisMeCluster {
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
-        export_csv_0_check_running(running.clone())?;
-        thread::spawn(move || export_csv_1_thread(&mut conn, key_list, param.file, param.with_ttl, running, app_handle, id));
+        export_import_check_running(running.clone())?;
+        thread::spawn(move || export_csv_0_thread(&mut conn, key_list, param.file, param.with_ttl, running, app_handle, id));
         Ok(())
     }
 
@@ -479,7 +479,8 @@ impl RedisMeClient for RedisMeCluster {
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
-        thread::spawn(move || import_csv_1_thread(&mut conn, param, running, app_handle, id));
+        export_import_check_running(running.clone())?;
+        thread::spawn(move || import_csv_0_thread(&mut conn, param, running, app_handle, id));
         Ok(())
     }
 

@@ -259,8 +259,8 @@ impl Into<RedisBatchKey> for RedisExportCsv {
 api_model!(RedisImportCsv {
     file: String,
     ttl: i64,
-    handle_ttl: String,      // TTL处理: 尝试读取, 自定义
-    handle_conflict: String, // 冲突处理: 覆盖, 忽略
+    handle_ttl: String,      // TTL处理: 尝试读取 parse, 自定义 custom, 永久 forever
+    handle_conflict: String, // 冲突处理: 覆盖 replace, 忽略 ignore
 });
 
 // Zset条目

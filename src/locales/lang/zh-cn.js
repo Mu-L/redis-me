@@ -226,6 +226,20 @@ export default {
     expireTip: '同时导出过期时间'
   },
 
+  keyImport: {
+    title: '导入数据',
+    file: '导入文件',
+    fileTip: '请选择需要导入的文件',
+    fileRequired: '导入文件不能为空',
+    handleConflict: '键冲突处理',
+    replace: '覆盖',
+    ignore: '忽略',
+    handleTtl: '过期时间',
+    parse: '解析文件',
+    forever: '永久',
+    confirm: '确认导入'
+  },
+
   keyMemory: {
     title: '目录内存分析',
     match: '键名表达式',

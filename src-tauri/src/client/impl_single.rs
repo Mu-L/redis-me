@@ -68,7 +68,7 @@ impl RedisMeClient for RedisMeSingle {
 
         self.db.store(db, Relaxed);
         let mut conn = self.get_conn()?;
-        let _: () = redis::cmd("SELECT").arg(db).query(&mut conn)?;
+        let _: () = redis::cmd("select").arg(db).query(&mut conn)?;
         info!("select db: {}", db);
         Ok(())
     }
@@ -366,8 +366,8 @@ impl RedisMeClient for RedisMeSingle {
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
-        export_csv_0_check_running(running.clone())?;
-        thread::spawn(move || export_csv_1_thread(&mut conn, key_list, param.file, param.with_ttl, running, app_handle, id));
+        export_import_check_running(running.clone())?;
+        thread::spawn(move || export_csv_0_thread(&mut conn, key_list, param.file, param.with_ttl, running, app_handle, id));
         Ok(())
     }
 
@@ -375,7 +375,8 @@ impl RedisMeClient for RedisMeSingle {
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
-        thread::spawn(move || import_csv_1_thread(&mut conn, param, running, app_handle, id));
+        export_import_check_running(running.clone())?;
+        thread::spawn(move || import_csv_0_thread(&mut conn, param, running, app_handle, id));
         Ok(())
     }
 
@@ -403,8 +404,8 @@ impl RedisMeSingle {
 
         // 切换到当前的数据库
         if db != 0 {
-            let _: () = redis::cmd("SELECT").arg(db).query(&mut conn)?;
-            info!("SELECT {db}");
+            let _: () = redis::cmd("select").arg(db).query(&mut conn)?;
+            info!("select {db}");
         }
         Ok(conn)
     }

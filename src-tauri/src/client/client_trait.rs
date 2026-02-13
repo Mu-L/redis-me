@@ -594,7 +594,7 @@ pub fn batch_key0(rmc: &impl RedisMeClient, param: RedisBatchKey, assert_not_emp
     Ok(key_list)
 }
 
-pub fn export_csv_0_check_running(running: Arc<AtomicBool>) -> AnyResult<()> {
+pub fn export_import_check_running(running: Arc<AtomicBool>) -> AnyResult<()> {
     if running.load(Relaxed) {
         bail!("export/import is running");
     }
@@ -602,7 +602,7 @@ pub fn export_csv_0_check_running(running: Arc<AtomicBool>) -> AnyResult<()> {
     Ok(())
 }
 
-pub fn export_csv_1_thread(conn: &mut impl Commands, key_list: Vec<RedisKey>, file: String, with_ttl: bool,
+pub fn export_csv_0_thread(conn: &mut impl Commands, key_list: Vec<RedisKey>, file: String, with_ttl: bool,
                            running: Arc<AtomicBool>, app_handle: AppHandle, id: String) {
     info!("export keys count: {}", key_list.len());
     let result = export_keys(conn, key_list, &file, with_ttl, running.clone(), app_handle, id);
@@ -668,7 +668,7 @@ fn export_key(conn: &mut impl Commands, writer: &mut BufWriter<File>, key: Redis
     Ok(())
 }
 
-pub fn import_csv_1_thread(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<AtomicBool>, app_handle: AppHandle, id: String) {
+pub fn import_csv_0_thread(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<AtomicBool>, app_handle: AppHandle, id: String) {
     info!("import file: {}", &param.file);
     let result = import_keys(conn, param, running.clone(), app_handle, id);
     match result {
@@ -681,6 +681,8 @@ pub fn import_csv_1_thread(conn: &mut impl Commands, param: RedisImportCsv, runn
 fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<AtomicBool>, app_handle: AppHandle, id: String) -> AnyResult<()> {
     let reader = BufReader::new(File::open(&param.file)?);
     let total_count = reader.lines().count() as u64;
+    info!("import keys count: {}", total_count);
+
     let mut ok_count = 0;
     let mut err_count = 0;
 
@@ -716,7 +718,7 @@ fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<Ato
         total_count,
         finished: true,
     };
-    let _ = &app_handle.emit(EVENT_EXPORT, event);
+    let _ = &app_handle.emit(EVENT_IMPORT, event);
     Ok(())
 }
 
@@ -743,7 +745,7 @@ fn import_key(conn: &mut impl Commands, line: &str, ttl: i64, handle_ttl: &str, 
     let mut cmd = redis::cmd("restore");
     cmd.arg(&key).arg(ttl).arg(value);
     if handle_conflict == "replace" {
-        cmd.arg("REPLACE");
+        cmd.arg("replace");
     }
     let _: () = cmd.query(conn)?;
     Ok(())
