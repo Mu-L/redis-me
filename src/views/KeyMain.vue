@@ -11,14 +11,14 @@ import {
   meCopy,
   meDeleteKey,
   meInvoke,
-  meType,
-  meOk, meRenameKey
+  meOk,
+  meRenameKey,
+  meType
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
 import {useI18n} from 'vue-i18n'
-import {ElMessage} from 'element-plus'
 import {listen} from '@tauri-apps/api/event'
 
 const { t } = useI18n()
@@ -211,15 +211,15 @@ function batchKeyOk(mode) {
     share.exportImportingPercentage = 0
     share.exportImporting = true
     share.exportImportingTip = t('keyMain.exporting')
-    tauriListen()
+    tauriListen('export')
   }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // 监听消息
 let unlisten = null
-async function tauriListen() {
-  unlisten = await listen('export', (event) => {
+async function tauriListen(eventName) {
+  unlisten = await listen(eventName, (event) => {
     const payload = event.payload
     if (payload.id !== share.conn.id) return
     share.exportImportingPercentage = Math.round(((payload.okCount  + payload.errCount) / payload.totalCount) * 100)

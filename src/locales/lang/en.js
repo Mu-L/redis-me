@@ -245,8 +245,8 @@ export default {
     copyFolder: 'Copy Folder',
     loadFolder: 'Load Folder',
     memoryUsage: 'Memory Usage',
-    deleteFolder: 'Batch Delete Keys',
-    exportFolder: 'Batch Export Keys',
+    deleteFolder: 'Delete Keys',
+    exportFolder: 'Export Keys',
   },
 
   redisClient: {

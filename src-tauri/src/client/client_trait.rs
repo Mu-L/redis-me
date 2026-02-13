@@ -25,8 +25,7 @@ pub struct RedisMeBase {
     pub db: Arc<AtomicU8>,
     pub subscribe_running: Arc<AtomicBool>,
     pub monitor_running: Arc<AtomicBool>,
-    pub export_running: Arc<AtomicBool>,
-    pub import_running: Arc<AtomicBool>,
+    pub export_import_running: Arc<AtomicBool>,
     pub last_check_time: Arc<AtomicI64>,
 }
 
@@ -38,8 +37,7 @@ impl From<&RedisConf> for RedisMeBase {
             db: Arc::new(AtomicU8::new(conf.db)),
             subscribe_running: Arc::new(AtomicBool::new(false)),
             monitor_running: Arc::new(AtomicBool::new(false)),
-            export_running: Arc::new(AtomicBool::new(false)),
-            import_running: Arc::new(AtomicBool::new(false)),
+            export_import_running: Arc::new(AtomicBool::new(false)),
             last_check_time: Arc::new(AtomicI64::new(Utc::now().timestamp())),
         }
     }
@@ -598,7 +596,7 @@ pub fn batch_key0(rmc: &impl RedisMeClient, param: RedisBatchKey, assert_not_emp
 
 pub fn export_csv_0_check_running(running: Arc<AtomicBool>) -> AnyResult<()> {
     if running.load(Relaxed) {
-        bail!("export is running");
+        bail!("export/import is running");
     }
     running.store(true, Relaxed);
     Ok(())

@@ -33,8 +33,7 @@ impl Drop for RedisMeSingle {
     fn drop(&mut self) {
         self.subscribe_stop().unwrap_or(());
         self.monitor_stop().unwrap_or(());
-        self.export_running.store(false, Relaxed);
-        self.import_running.store(false, Relaxed);
+        self.export_import_running.store(false, Relaxed);
     }
 }
 
@@ -365,7 +364,7 @@ impl RedisMeClient for RedisMeSingle {
     fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()> {
         let key_list = batch_key0(self, param.clone().into(), true)?;
         let mut conn = self.get_new_conn()?;
-        let running = self.export_running.clone();
+        let running = self.export_import_running.clone();
         let id = self.id.clone();
         export_csv_0_check_running(running.clone())?;
         thread::spawn(move || export_csv_1_thread(&mut conn, key_list, param.file, param.with_ttl, running, app_handle, id));
