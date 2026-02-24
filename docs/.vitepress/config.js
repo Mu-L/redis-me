@@ -51,6 +51,5 @@ export default defineConfig({
 
   // 显示最后更新时间
   lastUpdated: false,
-
-  srcExclude: ['latest.json', '/zz/**'],
+  // srcExclude: ['latest.json', '/zz/**'],
 })
