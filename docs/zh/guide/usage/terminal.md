@@ -1,7 +1,8 @@
 # 终端
 
-RedisME图形界面支持大部分场景，但终端直接执行命令仍是不可或缺的。
-![demo.png](terminal/demo.png)
+[RedisME](https://www.hepengju.com) 界面支持大部分场景，但终端执行命令仍是不可或缺的。
+![light.png](terminal/light.png)
+![dark.png](terminal/dark.png)
 
 ## 功能简述
 - 执行回显: `输入命令Enter执行`
