@@ -418,6 +418,7 @@ export default {
     usage: 'Usage',
     summary: 'Summary',
     since: 'Since',
+    total: 'Total',
   },
 
   redisValue: {

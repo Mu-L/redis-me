@@ -73,6 +73,11 @@ function openCommandDialog() {
   group.value = ''
   visible.value = true
 }
+
+// 合计列
+function getSummaries() {
+  return [t('redisTerminal.total'), filterDataList.value.length + ' / ' + commandHelp.value.length, '']
+}
 </script>
 
 <template>
@@ -108,7 +113,8 @@ function openCommandDialog() {
         </div>
 
         <div style="margin-top: 10px; flex-grow: 1; height: 0">
-          <el-table ref="table" :data="filterDataList" border stripe height="100%" :default-sort="{ prop: 'key', order: 'ascending' }">
+          <el-table ref="table" :data="filterDataList" border stripe height="100%"
+                    show-summary :summary-method="getSummaries" :default-sort="{ prop: 'key', order: 'ascending' }">
             <el-table-column :label="t('redisTerminal.group')" prop="group" width="120" show-overflow-tooltip sortable/>
             <el-table-column :label="t('redisTerminal.command')" prop="key" width="150" show-overflow-tooltip sortable/>
             <el-table-column :label="t('redisTerminal.usage')" prop="usage" show-overflow-tooltip/>
