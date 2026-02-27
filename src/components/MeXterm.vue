@@ -93,7 +93,7 @@ function onKeydown(e){
 
 /* help命令表格默认15px改为5px */
 .t-table, .t-table tr, .t-table td, .t-table tbody, .t-table thead {
-  padding: 5px;
+  padding: 5px !important;
 }
 
 /* 帮助手册 */

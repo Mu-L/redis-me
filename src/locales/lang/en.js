@@ -402,15 +402,22 @@ export default {
   },
 
   redisTerminal: {
-    help: 'View Command Manual',
-    hint: `
+    broadcastHint: `
 ① When automatic broadcasting is enabled and no node is selected, commands such as CONFIG SET will be executed on all nodes<br>
 ② Usually there is no need to specify a node. Manual node specification is only required in special scenarios such as viewing the configuration of a specific node
     `,
     welcome: 'Welcome to {RedisME} Terminal',
     autoBroadcast: 'Auto Broadcast',
     readonlyHint: 'Executing commands is temporarily not supported in read-only mode',
-    autoCopyHint: 'Auto Copy Command Result'
+    autoCopyHint: 'Auto Copy Command Result',
+    commandHint: 'View Command Manual',
+    commandTitle: 'Commands',
+    keywordHint: 'Filter (Command)',
+    group: 'Group',
+    command: 'Command',
+    usage: 'Usage',
+    summary: 'Summary',
+    since: 'Since',
   },
 
   redisValue: {

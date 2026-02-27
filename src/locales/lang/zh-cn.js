@@ -404,15 +404,22 @@ export default {
   },
 
   redisTerminal: {
-    help: '查看命令手册',
-    hint: `
+    broadcastHint: `
 ① 自动广播开启且没有选择节点时 CONFIG SET 和 SLOWLOG RESET 等命令会在所有节点执行<br>
 ② 正常情况下无需指定节点，仅在查看特定节点配置等特殊场景可手动指定节点
     `,
     welcome: '欢迎使用 {RedisME} Terminal',
     autoBroadcast: '自动广播',
     readonlyHint: '只读模式下暂不支持执行命令',
-    autoCopyHint: '自动复制命令结果'
+    autoCopyHint: '自动复制命令结果',
+    commandHint: '查看命令手册',
+    commandTitle: '命令列表',
+    keywordHint: '命令模糊筛选',
+    group: '分组',
+    command: '命令',
+    usage: '使用',
+    summary: '概述',
+    since: '版本',
   },
 
   redisValue: {

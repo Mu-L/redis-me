@@ -2,8 +2,8 @@
 
 ## v2.1.0 (2026-03-01)
 
+- Terminal: Added command help table dialog, optimized the table style of the help command
 - Value: Optimized color display of JSON booleans and numbers in CodeMirror under dark theme
-- Terminal: Added utility class for full-screen, viewing tables, command lists, etc.
 - Mock Data: submit in batches, and display progress
 
 ## v2.0.0(2026-02-13)
