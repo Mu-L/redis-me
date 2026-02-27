@@ -23,8 +23,8 @@ const dataList = ref([])
 
 // 文件格式的配置文件
 // const configVersionList = Object.keys(redisConfText).reverse()
-const configVersionList = ['Redis8.4', 'Redis7.4', 'Redis6.2', 'Redis5.0', 'Redis4.0']
-const configVersion = ref('Redis8.4')  // 版本
+const configVersionList = ['Redis8.6', 'Redis8.4', 'Redis8.2', 'Redis8.0', 'Redis7.4', 'Redis7.2', 'Redis7.0','Redis6.2', 'Redis5.0', 'Redis4.0']
+const configVersion = ref('Redis8.6')  // 版本
 const configRaw = ref('')
 
 watchEffect(async () => {
