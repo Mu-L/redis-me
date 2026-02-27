@@ -24,7 +24,7 @@ async function mockData() {
       let total = value
       share.exportImportingPercentage = 0
       share.exportImporting = true
-      share.exportImportingTip = t('keyMain.importing')
+      share.exportImportingTip = t('keyHeader.mocking')
 
       try {
         while (value > 0) {
@@ -32,7 +32,7 @@ async function mockData() {
           await meInvoke('mock_data', {id: share.conn.id, count})
           value = value - count
           share.exportImportingPercentage = Math.round((total - value) / total * 100)
-          await sleep(100)
+          await sleep(50)
         }
         meOk(t('keyHeader.mockOk'))
       } finally {
