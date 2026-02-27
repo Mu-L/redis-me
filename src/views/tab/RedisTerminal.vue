@@ -82,7 +82,7 @@ function openCommandDialog() {
 
     <!-- 集群节点 -->
     <div class="node me-flex" v-if="share.conn?.cluster">
-      <el-tooltip raw-content :content="t('redisTerminal.hint')" placement="top">
+      <el-tooltip raw-content :content="t('redisTerminal.broadcastHint')" placement="top">
         <el-checkbox v-model="autoBroadcast" :label="t('redisTerminal.autoBroadcast')" style="margin-left: 10px"/>
       </el-tooltip>
       <node-list v-model="node" clearable style="margin-left: 10px"/>
