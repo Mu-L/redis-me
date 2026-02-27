@@ -7,6 +7,7 @@
 - 执行回显: `输入命令Enter执行`
 - 历史记录: `↑ / ↓`
 - 提示补全: `命令用法提示与Tab键补全`
+- 命令列表: `点击图标查看命令的分组、语法、概述等`
 - 快捷键: `Ctrl + L/C/A/E 清屏/停止当前命令/光标到行首/行尾, F11全屏`
 - 扩展功能: `命令折叠、选中复制、右键粘贴、结果自动复制等`
 - 内置命令: `clear 清屏, help 帮助, open 打开网址`
@@ -16,6 +17,7 @@
 
 ![light.png](terminal/light.png)
 ![dark.png](terminal/dark.png)
+![command-table.png](terminal/command-table.png)
 
 ## 设计历史
 
