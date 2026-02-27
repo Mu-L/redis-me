@@ -1,5 +1,5 @@
 <script setup>
-import {bus, CONN_REFRESH, EXPORT_DATA, IMPORT_DATA, meInvoke, meOk, mePrompt} from '@/utils/util.js'
+import {bus, CONN_REFRESH, EXPORT_DATA, IMPORT_DATA, meInvoke, meOk, mePrompt, sleep} from '@/utils/util.js'
 import Setting from '@/views/ext/Setting.vue'
 import About from '@/views/ext/About.vue'
 import {useI18n} from 'vue-i18n'
@@ -32,6 +32,7 @@ async function mockData() {
           await meInvoke('mock_data', {id: share.conn.id, count})
           value = value - count
           share.exportImportingPercentage = Math.round((total - value) / total * 100)
+          await sleep(100)
         }
         meOk(t('keyHeader.mockOk'))
       } finally {

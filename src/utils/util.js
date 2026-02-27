@@ -349,3 +349,8 @@ export async function meDownloadUpdate(quiet = true, update, app) {
     }
     , {...manualCloseOptions, message})
 }
+
+// 休眠
+export function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
