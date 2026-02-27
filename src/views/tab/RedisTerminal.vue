@@ -108,12 +108,12 @@ function openCommandDialog() {
         </div>
 
         <div style="margin-top: 10px; flex-grow: 1; height: 0">
-          <el-table ref="table" :data="filterDataList" border stripe height="100%">
-            <el-table-column :label="t('redisTerminal.group')" prop="group" width="120" show-overflow-tooltip/>
-            <el-table-column :label="t('redisTerminal.command')" prop="key" width="150" show-overflow-tooltip/>
+          <el-table ref="table" :data="filterDataList" border stripe height="100%" :default-sort="{ prop: 'key', order: 'ascending' }">
+            <el-table-column :label="t('redisTerminal.group')" prop="group" width="120" show-overflow-tooltip sortable/>
+            <el-table-column :label="t('redisTerminal.command')" prop="key" width="150" show-overflow-tooltip sortable/>
             <el-table-column :label="t('redisTerminal.usage')" prop="usage" show-overflow-tooltip/>
             <el-table-column :label="t('redisTerminal.summary')" prop="summary" show-overflow-tooltip/>
-            <el-table-column :label="t('redisTerminal.since')" prop="since" width="80" show-overflow-tooltip/>
+            <el-table-column :label="t('redisTerminal.since')" prop="since" width="100" show-overflow-tooltip sortable/>
           </el-table>
         </div>
       </div>
