@@ -12,20 +12,44 @@ const { t } = useI18n()
 // 新增模拟数据
 async function mockData() {
   mePrompt(t('keyHeader.mockHint'), {
-      inputValue: 10,
-      inputType: 'number'
+      inputValue: 100,
+      inputType: 'number',
+      inputValidator: (value) => {
+        if (value < 1 || value > 1000) {
+          return t('keyHeader.mockValidator')
+        }
+       }
     },
     async ({value}) => {
-      share.loading = true
+      let total = value
+      share.exportImportingPercentage = 0
+      share.exportImporting = true
+      share.exportImportingTip = t('keyMain.importing')
+
       try {
-        await meInvoke('mock_data', {id: share.conn.id, count: parseInt(value)})
+        while (value > 0) {
+          const count = Math.min(value, 10)
+          await meInvoke('mock_data', {id: share.conn.id, count})
+          value = value - count
+          share.exportImportingPercentage = Math.round((total - value) / total * 100)
+        }
         meOk(t('keyHeader.mockOk'))
-        bus.emit(CONN_REFRESH)
       } finally {
-        share.loading = false
+        share.exportImporting = false
       }
+
+      //share.loading = true
+      //try {
+      //  await meInvoke('mock_data', {id: share.conn.id, count: parseInt(value)})
+      //  meOk(t('keyHeader.mockOk'))
+      //  bus.emit(CONN_REFRESH)
+      //} finally {
+      //  share.loading = false
+      //}
     })
 }
+
+
 
 // 弹出框
 const dialog = reactive({

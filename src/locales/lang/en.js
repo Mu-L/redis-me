@@ -144,7 +144,8 @@ export default {
   },
 
   keyHeader: {
-    mockHint: 'Please enter the number of entries for each data type（N×5）',
+    mockHint: 'Please enter each data type number（N×5）',
+    mockValidator: 'Min 1，Max 1000',
     mockOk: 'Mock Data Insert Done',
     connHint: 'Select Connection',
 
