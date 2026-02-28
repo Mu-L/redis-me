@@ -1,6 +1,6 @@
 # 2.x Changelog
 
-## v2.1.0 (2026-03-01)
+## v2.1.0 (2026-02-28)
 
 - Terminal: Added command help table dialog, optimized the table style of the help command
 - Config: Add the default configuration files and configuration values for the latest 8.6 and main versions
