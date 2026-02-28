@@ -2,7 +2,7 @@
 ![conn.png](../../../public/images/detail/conn.png)
 ![info.png](../../../public/images/detail/info.png)
 ![value.png](../../../public/images/detail/value.png)
-![console.png](../../../public/images/detail/console.png)
+![terminal.png](../../../public/images/detail/terminal.png)
 ![memory.png](../../../public/images/detail/memory.png)
 ![slowlog.png](../../../public/images/detail/slowlog.png)
 ![monitor.png](../../../public/images/detail/monitor.png)
