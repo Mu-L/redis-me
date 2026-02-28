@@ -12,8 +12,9 @@ const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
-const {initNode} = defineProps({
-  initNode: {type: String, default: ''}
+const {initNode, initVersion} = defineProps({
+  initNode: {type: String, default: ''},
+  initVersion: {type: String, default: ''},
 })
 
 const node = ref(initNode)
@@ -24,7 +25,7 @@ const dataList = ref([])
 // 文件格式的配置文件
 // const configVersionList = Object.keys(redisConfText).reverse()
 const configVersionList = ['Redis8.6', 'Redis8.4', 'Redis8.2', 'Redis8.0', 'Redis7.4', 'Redis7.2', 'Redis7.0','Redis6.2', 'Redis5.0', 'Redis4.0']
-const configVersion = ref('Redis8.6')  // 版本
+const configVersion = ref('')  // 版本
 const configRaw = ref('')
 
 watchEffect(async () => {
@@ -43,7 +44,15 @@ function handleCommand(command){
 
 // Json格式的默认配置
 const dictVersionList = Object.keys(redisConfDict).reverse()
-const dictVersion = ref(dictVersionList[0])
+function getDefaultVersion() {
+  for (const version of dictVersionList) {
+    if ('Redis' + initVersion > version) {
+      return version
+    }
+  }
+  return configVersionList[0]
+}
+const dictVersion = ref(getDefaultVersion())
 const dictRaw = computed(() => redisConfDict[dictVersion.value])
 const showTypeOptions = [
   {label: t('redisConfig.all'), value: 'All'},
