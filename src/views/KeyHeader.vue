@@ -32,7 +32,7 @@ async function mockData() {
           await meInvoke('mock_data', {id: share.conn.id, count})
           value = value - count
           share.exportImportingPercentage = Math.round((total - value) / total * 100)
-          await sleep(50)
+          await sleep(10) // 睡眠10ms以便其他动作可以获取到锁, 同时避免UI界面卡顿
         }
         meOk(t('keyHeader.mockOk'))
       } finally {
