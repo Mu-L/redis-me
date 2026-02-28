@@ -223,7 +223,7 @@ function goMemory() {
           <div>
             <el-text size="large">{{ t('redisInfo.infoDetail') }}</el-text>
             <el-link type="success" target="_blank" style="margin-left: 10px"
-                     :href="t('redisInfo.redisWebsite')">
+                     :href="t('redisInfo.redisWebsite')" underline="never">
               <me-icon :info="t('redisInfo.jumpWebsite')" icon="me-icon-link"/>
             </el-link>
           </div>

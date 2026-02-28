@@ -3,8 +3,8 @@
 ## v2.1.0 (2026-03-01)
 
 - Terminal: Added command help table dialog, optimized the table style of the help command
+- Config: Add the default configuration files and configuration values for the latest 8.6 and key versions, and include jump links
 - Value: Optimized color display of JSON booleans and numbers in CodeMirror under dark theme
-- Configuration: Add the latest default configuration files and values for 8.6, 8.0, 7.2, and 7.0
 - Mock Data: submit in batches, and display progress
 
 ## v2.0.0(2026-02-13)

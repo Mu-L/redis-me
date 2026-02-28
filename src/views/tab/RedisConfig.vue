@@ -148,7 +148,7 @@ const rules = computed(() => ({
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <el-link type="success" target="_blank" style="margin-left: 10px" href="https://redis.io/docs/latest/operate/oss_and_stack/management/config/">
+          <el-link type="success" target="_blank" style="margin-left: 10px" href="https://redis.io/docs/latest/operate/oss_and_stack/management/config/" underline="never">
             <me-icon icon="me-icon-link"/>
           </el-link>
         </div>
