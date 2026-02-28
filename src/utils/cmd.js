@@ -8,7 +8,7 @@ const enCommands =
       "key": "ACL CAT",
       "title": "ACL CAT",
       "group": "server",
-      "description": "Lists the ACL categories, or the commands inside a category.",
+      "summary": "Lists the ACL categories, or the commands inside a category.",
       "since": "6.0.0",
       "usage": "ACL CAT [category]"
     },
@@ -16,7 +16,7 @@ const enCommands =
       "key": "ACL DELUSER",
       "title": "ACL DELUSER",
       "group": "server",
-      "description": "Deletes ACL users, and terminates their connections.",
+      "summary": "Deletes ACL users, and terminates their connections.",
       "since": "6.0.0",
       "usage": "ACL DELUSER username [username ...]"
     },
@@ -24,7 +24,7 @@ const enCommands =
       "key": "ACL DRYRUN",
       "title": "ACL DRYRUN",
       "group": "server",
-      "description": "Simulates the execution of a command by a user, without executing the command.",
+      "summary": "Simulates the execution of a command by a user, without executing the command.",
       "since": "7.0.0",
       "usage": "ACL DRYRUN username command [arg [arg ...]]"
     },
@@ -32,7 +32,7 @@ const enCommands =
       "key": "ACL GENPASS",
       "title": "ACL GENPASS",
       "group": "server",
-      "description": "Generates a pseudorandom, secure password that can be used to identify ACL users.",
+      "summary": "Generates a pseudorandom, secure password that can be used to identify ACL users.",
       "since": "6.0.0",
       "usage": "ACL GENPASS [bits]"
     },
@@ -40,7 +40,7 @@ const enCommands =
       "key": "ACL GETUSER",
       "title": "ACL GETUSER",
       "group": "server",
-      "description": "Lists the ACL rules of a user.",
+      "summary": "Lists the ACL rules of a user.",
       "since": "6.0.0",
       "usage": "ACL GETUSER username"
     },
@@ -48,7 +48,7 @@ const enCommands =
       "key": "ACL HELP",
       "title": "ACL HELP",
       "group": "server",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "6.0.0",
       "usage": "ACL HELP"
     },
@@ -56,7 +56,7 @@ const enCommands =
       "key": "ACL LIST",
       "title": "ACL LIST",
       "group": "server",
-      "description": "Dumps the effective rules in ACL file format.",
+      "summary": "Dumps the effective rules in ACL file format.",
       "since": "6.0.0",
       "usage": "ACL LIST"
     },
@@ -64,7 +64,7 @@ const enCommands =
       "key": "ACL LOAD",
       "title": "ACL LOAD",
       "group": "server",
-      "description": "Reloads the rules from the configured ACL file.",
+      "summary": "Reloads the rules from the configured ACL file.",
       "since": "6.0.0",
       "usage": "ACL LOAD"
     },
@@ -72,7 +72,7 @@ const enCommands =
       "key": "ACL LOG",
       "title": "ACL LOG",
       "group": "server",
-      "description": "Lists recent security events generated due to ACL rules.",
+      "summary": "Lists recent security events generated due to ACL rules.",
       "since": "6.0.0",
       "usage": "ACL LOG [count | RESET]"
     },
@@ -80,7 +80,7 @@ const enCommands =
       "key": "ACL SAVE",
       "title": "ACL SAVE",
       "group": "server",
-      "description": "Saves the effective ACL rules in the configured ACL file.",
+      "summary": "Saves the effective ACL rules in the configured ACL file.",
       "since": "6.0.0",
       "usage": "ACL SAVE"
     },
@@ -88,7 +88,7 @@ const enCommands =
       "key": "ACL SETUSER",
       "title": "ACL SETUSER",
       "group": "server",
-      "description": "Creates and modifies an ACL user and its rules.",
+      "summary": "Creates and modifies an ACL user and its rules.",
       "since": "6.0.0",
       "usage": "ACL SETUSER username [rule [rule ...]]"
     },
@@ -96,7 +96,7 @@ const enCommands =
       "key": "ACL USERS",
       "title": "ACL USERS",
       "group": "server",
-      "description": "Lists all ACL users.",
+      "summary": "Lists all ACL users.",
       "since": "6.0.0",
       "usage": "ACL USERS"
     },
@@ -104,7 +104,7 @@ const enCommands =
       "key": "ACL WHOAMI",
       "title": "ACL WHOAMI",
       "group": "server",
-      "description": "Returns the authenticated username of the current connection.",
+      "summary": "Returns the authenticated username of the current connection.",
       "since": "6.0.0",
       "usage": "ACL WHOAMI"
     },
@@ -112,7 +112,7 @@ const enCommands =
       "key": "ACL",
       "title": "ACL",
       "group": "server",
-      "description": "A container for Access List Control commands.",
+      "summary": "A container for Access List Control commands.",
       "since": "6.0.0",
       "usage": "ACL"
     },
@@ -120,7 +120,7 @@ const enCommands =
       "key": "APPEND",
       "title": "APPEND",
       "group": "string",
-      "description": "Appends a string to the value of a key. Creates the key if it doesn't exist.",
+      "summary": "Appends a string to the value of a key. Creates the key if it doesn't exist.",
       "since": "2.0.0",
       "usage": "APPEND key value"
     },
@@ -128,7 +128,7 @@ const enCommands =
       "key": "ASKING",
       "title": "ASKING",
       "group": "cluster",
-      "description": "Signals that a cluster client is following an -ASK redirect.",
+      "summary": "Signals that a cluster client is following an -ASK redirect.",
       "since": "3.0.0",
       "usage": "ASKING"
     },
@@ -136,7 +136,7 @@ const enCommands =
       "key": "AUTH",
       "title": "AUTH",
       "group": "connection",
-      "description": "Authenticates the connection.",
+      "summary": "Authenticates the connection.",
       "since": "1.0.0",
       "usage": "AUTH [username] password"
     },
@@ -144,7 +144,7 @@ const enCommands =
       "key": "BF.ADD",
       "title": "BF.ADD",
       "group": "bf",
-      "description": "Adds an item to a Bloom Filter",
+      "summary": "Adds an item to a Bloom Filter",
       "since": "1.0.0",
       "usage": "BF.ADD key item"
     },
@@ -152,7 +152,7 @@ const enCommands =
       "key": "BF.CARD",
       "title": "BF.CARD",
       "group": "bf",
-      "description": "Returns the cardinality of a Bloom filter",
+      "summary": "Returns the cardinality of a Bloom filter",
       "since": "2.4.4",
       "usage": "BF.CARD key"
     },
@@ -160,7 +160,7 @@ const enCommands =
       "key": "BF.EXISTS",
       "title": "BF.EXISTS",
       "group": "bf",
-      "description": "Checks whether an item exists in a Bloom Filter",
+      "summary": "Checks whether an item exists in a Bloom Filter",
       "since": "1.0.0",
       "usage": "BF.EXISTS key item"
     },
@@ -168,7 +168,7 @@ const enCommands =
       "key": "BF.INFO",
       "title": "BF.INFO",
       "group": "bf",
-      "description": "Returns information about a Bloom Filter",
+      "summary": "Returns information about a Bloom Filter",
       "since": "1.0.0",
       "usage": "BF.INFO key [CAPACITY | SIZE | FILTERS | ITEMS | EXPANSION]"
     },
@@ -176,7 +176,7 @@ const enCommands =
       "key": "BF.INSERT",
       "title": "BF.INSERT",
       "group": "bf",
-      "description": "Adds one or more items to a Bloom Filter. A filter will be created if it does not exist",
+      "summary": "Adds one or more items to a Bloom Filter. A filter will be created if it does not exist",
       "since": "1.0.0",
       "usage": "BF.INSERT key [CAPACITY capacity] [ERROR error]\n  [EXPANSION expansion] [NOCREATE] [NONSCALING] ITEMS item [item\n  ...]"
     },
@@ -184,7 +184,7 @@ const enCommands =
       "key": "BF.LOADCHUNK",
       "title": "BF.LOADCHUNK",
       "group": "bf",
-      "description": "Restores a filter previously saved using SCANDUMP",
+      "summary": "Restores a filter previously saved using SCANDUMP",
       "since": "1.0.0",
       "usage": "BF.LOADCHUNK key iterator data"
     },
@@ -192,7 +192,7 @@ const enCommands =
       "key": "BF.MADD",
       "title": "BF.MADD",
       "group": "bf",
-      "description": "Adds one or more items to a Bloom Filter. A filter will be created if it does not exist",
+      "summary": "Adds one or more items to a Bloom Filter. A filter will be created if it does not exist",
       "since": "1.0.0",
       "usage": "BF.MADD key item [item ...]"
     },
@@ -200,7 +200,7 @@ const enCommands =
       "key": "BF.MEXISTS",
       "title": "BF.MEXISTS",
       "group": "bf",
-      "description": "Checks whether one or more items exist in a Bloom Filter",
+      "summary": "Checks whether one or more items exist in a Bloom Filter",
       "since": "1.0.0",
       "usage": "BF.MEXISTS key item [item ...]"
     },
@@ -208,7 +208,7 @@ const enCommands =
       "key": "BF.RESERVE",
       "title": "BF.RESERVE",
       "group": "bf",
-      "description": "Creates a new Bloom Filter",
+      "summary": "Creates a new Bloom Filter",
       "since": "1.0.0",
       "usage": "BF.RESERVE key error_rate capacity [EXPANSION expansion]\n  [NONSCALING]"
     },
@@ -216,7 +216,7 @@ const enCommands =
       "key": "BF.SCANDUMP",
       "title": "BF.SCANDUMP",
       "group": "bf",
-      "description": "Begins an incremental save of the bloom filter",
+      "summary": "Begins an incremental save of the bloom filter",
       "since": "1.0.0",
       "usage": "BF.SCANDUMP key iterator"
     },
@@ -224,7 +224,7 @@ const enCommands =
       "key": "BGREWRITEAOF",
       "title": "BGREWRITEAOF",
       "group": "server",
-      "description": "Asynchronously rewrites the append-only file to disk.",
+      "summary": "Asynchronously rewrites the append-only file to disk.",
       "since": "1.0.0",
       "usage": "BGREWRITEAOF"
     },
@@ -232,7 +232,7 @@ const enCommands =
       "key": "BGSAVE",
       "title": "BGSAVE",
       "group": "server",
-      "description": "Asynchronously saves the database(s) to disk.",
+      "summary": "Asynchronously saves the database(s) to disk.",
       "since": "1.0.0",
       "usage": "BGSAVE [SCHEDULE]"
     },
@@ -240,7 +240,7 @@ const enCommands =
       "key": "BITCOUNT",
       "title": "BITCOUNT",
       "group": "bitmap",
-      "description": "Counts the number of set bits (population counting) in a string.",
+      "summary": "Counts the number of set bits (population counting) in a string.",
       "since": "2.6.0",
       "usage": "BITCOUNT key [start end [BYTE | BIT]]"
     },
@@ -248,7 +248,7 @@ const enCommands =
       "key": "BITFIELD",
       "title": "BITFIELD",
       "group": "bitmap",
-      "description": "Performs arbitrary bitfield integer operations on strings.",
+      "summary": "Performs arbitrary bitfield integer operations on strings.",
       "since": "3.2.0",
       "usage": "BITFIELD key [GET encoding offset | [OVERFLOW <WRAP | SAT | FAIL>]\n  <SET encoding offset value | INCRBY encoding offset increment>\n  [GET encoding offset | [OVERFLOW <WRAP | SAT | FAIL>]\n  <SET encoding offset value | INCRBY encoding offset increment>\n  ...]]"
     },
@@ -256,7 +256,7 @@ const enCommands =
       "key": "BITFIELD_RO",
       "title": "BITFIELD_RO",
       "group": "bitmap",
-      "description": "Performs arbitrary read-only bitfield integer operations on strings.",
+      "summary": "Performs arbitrary read-only bitfield integer operations on strings.",
       "since": "6.0.0",
       "usage": "BITFIELD_RO key [GET encoding offset [GET encoding offset ...]]"
     },
@@ -264,7 +264,7 @@ const enCommands =
       "key": "BITOP",
       "title": "BITOP",
       "group": "bitmap",
-      "description": "Performs bitwise operations on multiple strings, and stores the result.",
+      "summary": "Performs bitwise operations on multiple strings, and stores the result.",
       "since": "2.6.0",
       "usage": "BITOP <AND | OR | XOR | NOT | DIFF | DIFF1 | ANDOR | ONE> destkey key [key ...]"
     },
@@ -272,7 +272,7 @@ const enCommands =
       "key": "BITPOS",
       "title": "BITPOS",
       "group": "bitmap",
-      "description": "Finds the first set (1) or clear (0) bit in a string.",
+      "summary": "Finds the first set (1) or clear (0) bit in a string.",
       "since": "2.8.7",
       "usage": "BITPOS key bit [start [end [BYTE | BIT]]]"
     },
@@ -280,7 +280,7 @@ const enCommands =
       "key": "BLMOVE",
       "title": "BLMOVE",
       "group": "list",
-      "description": "Pops an element from a list, pushes it to another list and returns it. Blocks until an element is available otherwise. Deletes the list if the last element was moved.",
+      "summary": "Pops an element from a list, pushes it to another list and returns it. Blocks until an element is available otherwise. Deletes the list if the last element was moved.",
       "since": "6.2.0",
       "usage": "BLMOVE source destination <LEFT | RIGHT> <LEFT | RIGHT> timeout"
     },
@@ -288,7 +288,7 @@ const enCommands =
       "key": "BLMPOP",
       "title": "BLMPOP",
       "group": "list",
-      "description": "Pops the first element from one of multiple lists. Blocks until an element is available otherwise. Deletes the list if the last element was popped.",
+      "summary": "Pops the first element from one of multiple lists. Blocks until an element is available otherwise. Deletes the list if the last element was popped.",
       "since": "7.0.0",
       "usage": "BLMPOP timeout numkeys key [key ...] <LEFT | RIGHT> [COUNT count]"
     },
@@ -296,7 +296,7 @@ const enCommands =
       "key": "BLPOP",
       "title": "BLPOP",
       "group": "list",
-      "description": "Removes and returns the first element in a list. Blocks until an element is available otherwise. Deletes the list if the last element was popped.",
+      "summary": "Removes and returns the first element in a list. Blocks until an element is available otherwise. Deletes the list if the last element was popped.",
       "since": "2.0.0",
       "usage": "BLPOP key [key ...] timeout"
     },
@@ -304,7 +304,7 @@ const enCommands =
       "key": "BRPOP",
       "title": "BRPOP",
       "group": "list",
-      "description": "Removes and returns the last element in a list. Blocks until an element is available otherwise. Deletes the list if the last element was popped.",
+      "summary": "Removes and returns the last element in a list. Blocks until an element is available otherwise. Deletes the list if the last element was popped.",
       "since": "2.0.0",
       "usage": "BRPOP key [key ...] timeout"
     },
@@ -312,7 +312,7 @@ const enCommands =
       "key": "BRPOPLPUSH",
       "title": "BRPOPLPUSH",
       "group": "list",
-      "description": "Pops an element from a list, pushes it to another list and returns it. Block until an element is available otherwise. Deletes the list if the last element was popped.",
+      "summary": "Pops an element from a list, pushes it to another list and returns it. Block until an element is available otherwise. Deletes the list if the last element was popped.",
       "since": "2.2.0",
       "usage": "BRPOPLPUSH source destination timeout"
     },
@@ -320,7 +320,7 @@ const enCommands =
       "key": "BZMPOP",
       "title": "BZMPOP",
       "group": "sorted-set",
-      "description": "Removes and returns a member by score from one or more sorted sets. Blocks until a member is available otherwise. Deletes the sorted set if the last element was popped.",
+      "summary": "Removes and returns a member by score from one or more sorted sets. Blocks until a member is available otherwise. Deletes the sorted set if the last element was popped.",
       "since": "7.0.0",
       "usage": "BZMPOP timeout numkeys key [key ...] <MIN | MAX> [COUNT count]"
     },
@@ -328,7 +328,7 @@ const enCommands =
       "key": "BZPOPMAX",
       "title": "BZPOPMAX",
       "group": "sorted-set",
-      "description": "Removes and returns the member with the highest score from one or more sorted sets. Blocks until a member available otherwise.  Deletes the sorted set if the last element was popped.",
+      "summary": "Removes and returns the member with the highest score from one or more sorted sets. Blocks until a member available otherwise.  Deletes the sorted set if the last element was popped.",
       "since": "5.0.0",
       "usage": "BZPOPMAX key [key ...] timeout"
     },
@@ -336,7 +336,7 @@ const enCommands =
       "key": "BZPOPMIN",
       "title": "BZPOPMIN",
       "group": "sorted-set",
-      "description": "Removes and returns the member with the lowest score from one or more sorted sets. Blocks until a member is available otherwise. Deletes the sorted set if the last element was popped.",
+      "summary": "Removes and returns the member with the lowest score from one or more sorted sets. Blocks until a member is available otherwise. Deletes the sorted set if the last element was popped.",
       "since": "5.0.0",
       "usage": "BZPOPMIN key [key ...] timeout"
     },
@@ -344,7 +344,7 @@ const enCommands =
       "key": "CF.ADD",
       "title": "CF.ADD",
       "group": "cf",
-      "description": "Adds an item to a Cuckoo Filter",
+      "summary": "Adds an item to a Cuckoo Filter",
       "since": "1.0.0",
       "usage": "CF.ADD key item"
     },
@@ -352,7 +352,7 @@ const enCommands =
       "key": "CF.ADDNX",
       "title": "CF.ADDNX",
       "group": "cf",
-      "description": "Adds an item to a Cuckoo Filter if the item did not exist previously.",
+      "summary": "Adds an item to a Cuckoo Filter if the item did not exist previously.",
       "since": "1.0.0",
       "usage": "CF.ADDNX key item"
     },
@@ -360,7 +360,7 @@ const enCommands =
       "key": "CF.COUNT",
       "title": "CF.COUNT",
       "group": "cf",
-      "description": "Return the number of times an item might be in a Cuckoo Filter",
+      "summary": "Return the number of times an item might be in a Cuckoo Filter",
       "since": "1.0.0",
       "usage": "CF.COUNT key item"
     },
@@ -368,7 +368,7 @@ const enCommands =
       "key": "CF.DEL",
       "title": "CF.DEL",
       "group": "cf",
-      "description": "Deletes an item from a Cuckoo Filter",
+      "summary": "Deletes an item from a Cuckoo Filter",
       "since": "1.0.0",
       "usage": "CF.DEL key item"
     },
@@ -376,7 +376,7 @@ const enCommands =
       "key": "CF.EXISTS",
       "title": "CF.EXISTS",
       "group": "cf",
-      "description": "Checks whether one or more items exist in a Cuckoo Filter",
+      "summary": "Checks whether one or more items exist in a Cuckoo Filter",
       "since": "1.0.0",
       "usage": "CF.EXISTS key item"
     },
@@ -384,7 +384,7 @@ const enCommands =
       "key": "CF.INFO",
       "title": "CF.INFO",
       "group": "cf",
-      "description": "Returns information about a Cuckoo Filter",
+      "summary": "Returns information about a Cuckoo Filter",
       "since": "1.0.0",
       "usage": "CF.INFO key"
     },
@@ -392,7 +392,7 @@ const enCommands =
       "key": "CF.INSERT",
       "title": "CF.INSERT",
       "group": "cf",
-      "description": "Adds one or more items to a Cuckoo Filter. A filter will be created if it does not exist",
+      "summary": "Adds one or more items to a Cuckoo Filter. A filter will be created if it does not exist",
       "since": "1.0.0",
       "usage": "CF.INSERT key [CAPACITY capacity] [NOCREATE] ITEMS item [item ...]"
     },
@@ -400,7 +400,7 @@ const enCommands =
       "key": "CF.INSERTNX",
       "title": "CF.INSERTNX",
       "group": "cf",
-      "description": "Adds one or more items to a Cuckoo Filter if the items did not exist previously. A filter will be created if it does not exist",
+      "summary": "Adds one or more items to a Cuckoo Filter if the items did not exist previously. A filter will be created if it does not exist",
       "since": "1.0.0",
       "usage": "CF.INSERTNX key [CAPACITY capacity] [NOCREATE] ITEMS item [item ...]"
     },
@@ -408,7 +408,7 @@ const enCommands =
       "key": "CF.LOADCHUNK",
       "title": "CF.LOADCHUNK",
       "group": "cf",
-      "description": "Restores a filter previously saved using SCANDUMP",
+      "summary": "Restores a filter previously saved using SCANDUMP",
       "since": "1.0.0",
       "usage": "CF.LOADCHUNK key iterator data"
     },
@@ -416,7 +416,7 @@ const enCommands =
       "key": "CF.MEXISTS",
       "title": "CF.MEXISTS",
       "group": "cf",
-      "description": "Checks whether one or more items exist in a Cuckoo Filter",
+      "summary": "Checks whether one or more items exist in a Cuckoo Filter",
       "since": "1.0.0",
       "usage": "CF.MEXISTS key item [item ...]"
     },
@@ -424,7 +424,7 @@ const enCommands =
       "key": "CF.RESERVE",
       "title": "CF.RESERVE",
       "group": "cf",
-      "description": "Creates a new Cuckoo Filter",
+      "summary": "Creates a new Cuckoo Filter",
       "since": "1.0.0",
       "usage": "CF.RESERVE key capacity [BUCKETSIZE bucketsize]\n  [MAXITERATIONS maxiterations] [EXPANSION expansion]"
     },
@@ -432,7 +432,7 @@ const enCommands =
       "key": "CF.SCANDUMP",
       "title": "CF.SCANDUMP",
       "group": "cf",
-      "description": "Begins an incremental save of the bloom filter",
+      "summary": "Begins an incremental save of the bloom filter",
       "since": "1.0.0",
       "usage": "CF.SCANDUMP key iterator"
     },
@@ -440,7 +440,7 @@ const enCommands =
       "key": "CLIENT CACHING",
       "title": "CLIENT CACHING",
       "group": "connection",
-      "description": "Instructs the server whether to track the keys in the next request.",
+      "summary": "Instructs the server whether to track the keys in the next request.",
       "since": "6.0.0",
       "usage": "CLIENT CACHING <YES | NO>"
     },
@@ -448,7 +448,7 @@ const enCommands =
       "key": "CLIENT GETNAME",
       "title": "CLIENT GETNAME",
       "group": "connection",
-      "description": "Returns the name of the connection.",
+      "summary": "Returns the name of the connection.",
       "since": "2.6.9",
       "usage": "CLIENT GETNAME"
     },
@@ -456,7 +456,7 @@ const enCommands =
       "key": "CLIENT GETREDIR",
       "title": "CLIENT GETREDIR",
       "group": "connection",
-      "description": "Returns the client ID to which the connection's tracking notifications are redirected.",
+      "summary": "Returns the client ID to which the connection's tracking notifications are redirected.",
       "since": "6.0.0",
       "usage": "CLIENT GETREDIR"
     },
@@ -464,7 +464,7 @@ const enCommands =
       "key": "CLIENT HELP",
       "title": "CLIENT HELP",
       "group": "connection",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "5.0.0",
       "usage": "CLIENT HELP"
     },
@@ -472,7 +472,7 @@ const enCommands =
       "key": "CLIENT ID",
       "title": "CLIENT ID",
       "group": "connection",
-      "description": "Returns the unique client ID of the connection.",
+      "summary": "Returns the unique client ID of the connection.",
       "since": "5.0.0",
       "usage": "CLIENT ID"
     },
@@ -480,7 +480,7 @@ const enCommands =
       "key": "CLIENT INFO",
       "title": "CLIENT INFO",
       "group": "connection",
-      "description": "Returns information about the connection.",
+      "summary": "Returns information about the connection.",
       "since": "6.2.0",
       "usage": "CLIENT INFO"
     },
@@ -488,7 +488,7 @@ const enCommands =
       "key": "CLIENT KILL",
       "title": "CLIENT KILL",
       "group": "connection",
-      "description": "Terminates open connections.",
+      "summary": "Terminates open connections.",
       "since": "2.4.0",
       "usage": "CLIENT KILL <ip:port | <[ID client-id] | [TYPE <NORMAL | MASTER |\n  SLAVE | REPLICA | PUBSUB>] | [USER username] | [ADDR ip:port] |\n  [LADDR ip:port] | [SKIPME <YES | NO>] | [MAXAGE maxage]\n  [[ID client-id] | [TYPE <NORMAL | MASTER | SLAVE | REPLICA |\n  PUBSUB>] | [USER username] | [ADDR ip:port] | [LADDR ip:port] |\n  [SKIPME <YES | NO>] | [MAXAGE maxage] ...]>>"
     },
@@ -496,7 +496,7 @@ const enCommands =
       "key": "CLIENT LIST",
       "title": "CLIENT LIST",
       "group": "connection",
-      "description": "Lists open connections.",
+      "summary": "Lists open connections.",
       "since": "2.4.0",
       "usage": "CLIENT LIST [TYPE <NORMAL | MASTER | REPLICA | PUBSUB>]\n  [ID client-id [client-id ...]]"
     },
@@ -504,7 +504,7 @@ const enCommands =
       "key": "CLIENT NO-EVICT",
       "title": "CLIENT NO-EVICT",
       "group": "connection",
-      "description": "Sets the client eviction mode of the connection.",
+      "summary": "Sets the client eviction mode of the connection.",
       "since": "7.0.0",
       "usage": "CLIENT NO-EVICT <ON | OFF>"
     },
@@ -512,7 +512,7 @@ const enCommands =
       "key": "CLIENT NO-TOUCH",
       "title": "CLIENT NO-TOUCH",
       "group": "connection",
-      "description": "Controls whether commands sent by the client affect the LRU/LFU of accessed keys.",
+      "summary": "Controls whether commands sent by the client affect the LRU/LFU of accessed keys.",
       "since": "7.2.0",
       "usage": "CLIENT NO-TOUCH <ON | OFF>"
     },
@@ -520,7 +520,7 @@ const enCommands =
       "key": "CLIENT PAUSE",
       "title": "CLIENT PAUSE",
       "group": "connection",
-      "description": "Suspends commands processing.",
+      "summary": "Suspends commands processing.",
       "since": "3.0.0",
       "usage": "CLIENT PAUSE timeout [WRITE | ALL]"
     },
@@ -528,7 +528,7 @@ const enCommands =
       "key": "CLIENT REPLY",
       "title": "CLIENT REPLY",
       "group": "connection",
-      "description": "Instructs the server whether to reply to commands.",
+      "summary": "Instructs the server whether to reply to commands.",
       "since": "3.2.0",
       "usage": "CLIENT REPLY <ON | OFF | SKIP>"
     },
@@ -536,7 +536,7 @@ const enCommands =
       "key": "CLIENT SETINFO",
       "title": "CLIENT SETINFO",
       "group": "connection",
-      "description": "Sets information specific to the client or connection.",
+      "summary": "Sets information specific to the client or connection.",
       "since": "7.2.0",
       "usage": "CLIENT SETINFO <LIB-NAME libname | LIB-VER libver>"
     },
@@ -544,7 +544,7 @@ const enCommands =
       "key": "CLIENT SETNAME",
       "title": "CLIENT SETNAME",
       "group": "connection",
-      "description": "Sets the connection name.",
+      "summary": "Sets the connection name.",
       "since": "2.6.9",
       "usage": "CLIENT SETNAME connection-name"
     },
@@ -552,7 +552,7 @@ const enCommands =
       "key": "CLIENT TRACKING",
       "title": "CLIENT TRACKING",
       "group": "connection",
-      "description": "Controls server-assisted client-side caching for the connection.",
+      "summary": "Controls server-assisted client-side caching for the connection.",
       "since": "6.0.0",
       "usage": "CLIENT TRACKING <ON | OFF> [REDIRECT client-id] [PREFIX prefix\n  [PREFIX prefix ...]] [BCAST] [OPTIN] [OPTOUT] [NOLOOP]"
     },
@@ -560,7 +560,7 @@ const enCommands =
       "key": "CLIENT TRACKINGINFO",
       "title": "CLIENT TRACKINGINFO",
       "group": "connection",
-      "description": "Returns information about server-assisted client-side caching for the connection.",
+      "summary": "Returns information about server-assisted client-side caching for the connection.",
       "since": "6.2.0",
       "usage": "CLIENT TRACKINGINFO"
     },
@@ -568,7 +568,7 @@ const enCommands =
       "key": "CLIENT UNBLOCK",
       "title": "CLIENT UNBLOCK",
       "group": "connection",
-      "description": "Unblocks a client blocked by a blocking command from a different connection.",
+      "summary": "Unblocks a client blocked by a blocking command from a different connection.",
       "since": "5.0.0",
       "usage": "CLIENT UNBLOCK client-id [TIMEOUT | ERROR]"
     },
@@ -576,7 +576,7 @@ const enCommands =
       "key": "CLIENT UNPAUSE",
       "title": "CLIENT UNPAUSE",
       "group": "connection",
-      "description": "Resumes processing commands from paused clients.",
+      "summary": "Resumes processing commands from paused clients.",
       "since": "6.2.0",
       "usage": "CLIENT UNPAUSE"
     },
@@ -584,7 +584,7 @@ const enCommands =
       "key": "CLIENT",
       "title": "CLIENT",
       "group": "connection",
-      "description": "A container for client connection commands.",
+      "summary": "A container for client connection commands.",
       "since": "2.4.0",
       "usage": "CLIENT"
     },
@@ -592,7 +592,7 @@ const enCommands =
       "key": "CLUSTER ADDSLOTS",
       "title": "CLUSTER ADDSLOTS",
       "group": "cluster",
-      "description": "Assigns new hash slots to a node.",
+      "summary": "Assigns new hash slots to a node.",
       "since": "3.0.0",
       "usage": "CLUSTER ADDSLOTS slot [slot ...]"
     },
@@ -600,7 +600,7 @@ const enCommands =
       "key": "CLUSTER ADDSLOTSRANGE",
       "title": "CLUSTER ADDSLOTSRANGE",
       "group": "cluster",
-      "description": "Assigns new hash slot ranges to a node.",
+      "summary": "Assigns new hash slot ranges to a node.",
       "since": "7.0.0",
       "usage": "CLUSTER ADDSLOTSRANGE start-slot end-slot [start-slot end-slot ...]"
     },
@@ -608,7 +608,7 @@ const enCommands =
       "key": "CLUSTER BUMPEPOCH",
       "title": "CLUSTER BUMPEPOCH",
       "group": "cluster",
-      "description": "Advances the cluster config epoch.",
+      "summary": "Advances the cluster config epoch.",
       "since": "3.0.0",
       "usage": "CLUSTER BUMPEPOCH"
     },
@@ -616,7 +616,7 @@ const enCommands =
       "key": "CLUSTER COUNT-FAILURE-REPORTS",
       "title": "CLUSTER COUNT-FAILURE-REPORTS",
       "group": "cluster",
-      "description": "Returns the number of active failure reports active for a node.",
+      "summary": "Returns the number of active failure reports active for a node.",
       "since": "3.0.0",
       "usage": "CLUSTER COUNT-FAILURE-REPORTS node-id"
     },
@@ -624,7 +624,7 @@ const enCommands =
       "key": "CLUSTER COUNTKEYSINSLOT",
       "title": "CLUSTER COUNTKEYSINSLOT",
       "group": "cluster",
-      "description": "Returns the number of keys in a hash slot.",
+      "summary": "Returns the number of keys in a hash slot.",
       "since": "3.0.0",
       "usage": "CLUSTER COUNTKEYSINSLOT slot"
     },
@@ -632,7 +632,7 @@ const enCommands =
       "key": "CLUSTER DELSLOTS",
       "title": "CLUSTER DELSLOTS",
       "group": "cluster",
-      "description": "Sets hash slots as unbound for a node.",
+      "summary": "Sets hash slots as unbound for a node.",
       "since": "3.0.0",
       "usage": "CLUSTER DELSLOTS slot [slot ...]"
     },
@@ -640,7 +640,7 @@ const enCommands =
       "key": "CLUSTER DELSLOTSRANGE",
       "title": "CLUSTER DELSLOTSRANGE",
       "group": "cluster",
-      "description": "Sets hash slot ranges as unbound for a node.",
+      "summary": "Sets hash slot ranges as unbound for a node.",
       "since": "7.0.0",
       "usage": "CLUSTER DELSLOTSRANGE start-slot end-slot [start-slot end-slot ...]"
     },
@@ -648,7 +648,7 @@ const enCommands =
       "key": "CLUSTER FAILOVER",
       "title": "CLUSTER FAILOVER",
       "group": "cluster",
-      "description": "Forces a replica to perform a manual failover of its master.",
+      "summary": "Forces a replica to perform a manual failover of its master.",
       "since": "3.0.0",
       "usage": "CLUSTER FAILOVER [FORCE | TAKEOVER]"
     },
@@ -656,7 +656,7 @@ const enCommands =
       "key": "CLUSTER FLUSHSLOTS",
       "title": "CLUSTER FLUSHSLOTS",
       "group": "cluster",
-      "description": "Deletes all slots information from a node.",
+      "summary": "Deletes all slots information from a node.",
       "since": "3.0.0",
       "usage": "CLUSTER FLUSHSLOTS"
     },
@@ -664,7 +664,7 @@ const enCommands =
       "key": "CLUSTER FORGET",
       "title": "CLUSTER FORGET",
       "group": "cluster",
-      "description": "Removes a node from the nodes table.",
+      "summary": "Removes a node from the nodes table.",
       "since": "3.0.0",
       "usage": "CLUSTER FORGET node-id"
     },
@@ -672,7 +672,7 @@ const enCommands =
       "key": "CLUSTER GETKEYSINSLOT",
       "title": "CLUSTER GETKEYSINSLOT",
       "group": "cluster",
-      "description": "Returns the key names in a hash slot.",
+      "summary": "Returns the key names in a hash slot.",
       "since": "3.0.0",
       "usage": "CLUSTER GETKEYSINSLOT slot count"
     },
@@ -680,7 +680,7 @@ const enCommands =
       "key": "CLUSTER HELP",
       "title": "CLUSTER HELP",
       "group": "cluster",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "5.0.0",
       "usage": "CLUSTER HELP"
     },
@@ -688,7 +688,7 @@ const enCommands =
       "key": "CLUSTER INFO",
       "title": "CLUSTER INFO",
       "group": "cluster",
-      "description": "Returns information about the state of a node.",
+      "summary": "Returns information about the state of a node.",
       "since": "3.0.0",
       "usage": "CLUSTER INFO"
     },
@@ -696,7 +696,7 @@ const enCommands =
       "key": "CLUSTER KEYSLOT",
       "title": "CLUSTER KEYSLOT",
       "group": "cluster",
-      "description": "Returns the hash slot for a key.",
+      "summary": "Returns the hash slot for a key.",
       "since": "3.0.0",
       "usage": "CLUSTER KEYSLOT key"
     },
@@ -704,7 +704,7 @@ const enCommands =
       "key": "CLUSTER LINKS",
       "title": "CLUSTER LINKS",
       "group": "cluster",
-      "description": "Returns a list of all TCP links to and from peer nodes.",
+      "summary": "Returns a list of all TCP links to and from peer nodes.",
       "since": "7.0.0",
       "usage": "CLUSTER LINKS"
     },
@@ -712,7 +712,7 @@ const enCommands =
       "key": "CLUSTER MEET",
       "title": "CLUSTER MEET",
       "group": "cluster",
-      "description": "Forces a node to handshake with another node.",
+      "summary": "Forces a node to handshake with another node.",
       "since": "3.0.0",
       "usage": "CLUSTER MEET ip port [cluster-bus-port]"
     },
@@ -720,7 +720,7 @@ const enCommands =
       "key": "CLUSTER MIGRATION",
       "title": "CLUSTER MIGRATION",
       "group": "cluster",
-      "description": "Start, monitor, and cancel atomic slot migration tasks.",
+      "summary": "Start, monitor, and cancel atomic slot migration tasks.",
       "since": "8.4.0",
       "usage": "CLUSTER MIGRATION <IMPORT start-slot end-slot\n  [start-slot end-slot ...] | CANCEL <ID task-id | ALL> |\n  STATUS <[ID task-id] | [ALL]>>"
     },
@@ -728,7 +728,7 @@ const enCommands =
       "key": "CLUSTER MYID",
       "title": "CLUSTER MYID",
       "group": "cluster",
-      "description": "Returns the ID of a node.",
+      "summary": "Returns the ID of a node.",
       "since": "3.0.0",
       "usage": "CLUSTER MYID"
     },
@@ -736,7 +736,7 @@ const enCommands =
       "key": "CLUSTER MYSHARDID",
       "title": "CLUSTER MYSHARDID",
       "group": "cluster",
-      "description": "Returns the shard ID of a node.",
+      "summary": "Returns the shard ID of a node.",
       "since": "7.2.0",
       "usage": "CLUSTER MYSHARDID"
     },
@@ -744,7 +744,7 @@ const enCommands =
       "key": "CLUSTER NODES",
       "title": "CLUSTER NODES",
       "group": "cluster",
-      "description": "Returns the cluster configuration for a node.",
+      "summary": "Returns the cluster configuration for a node.",
       "since": "3.0.0",
       "usage": "CLUSTER NODES"
     },
@@ -752,7 +752,7 @@ const enCommands =
       "key": "CLUSTER REPLICAS",
       "title": "CLUSTER REPLICAS",
       "group": "cluster",
-      "description": "Lists the replica nodes of a master node.",
+      "summary": "Lists the replica nodes of a master node.",
       "since": "5.0.0",
       "usage": "CLUSTER REPLICAS node-id"
     },
@@ -760,7 +760,7 @@ const enCommands =
       "key": "CLUSTER REPLICATE",
       "title": "CLUSTER REPLICATE",
       "group": "cluster",
-      "description": "Configure a node as replica of a master node.",
+      "summary": "Configure a node as replica of a master node.",
       "since": "3.0.0",
       "usage": "CLUSTER REPLICATE node-id"
     },
@@ -768,7 +768,7 @@ const enCommands =
       "key": "CLUSTER RESET",
       "title": "CLUSTER RESET",
       "group": "cluster",
-      "description": "Resets a node.",
+      "summary": "Resets a node.",
       "since": "3.0.0",
       "usage": "CLUSTER RESET [HARD | SOFT]"
     },
@@ -776,7 +776,7 @@ const enCommands =
       "key": "CLUSTER SAVECONFIG",
       "title": "CLUSTER SAVECONFIG",
       "group": "cluster",
-      "description": "Forces a node to save the cluster configuration to disk.",
+      "summary": "Forces a node to save the cluster configuration to disk.",
       "since": "3.0.0",
       "usage": "CLUSTER SAVECONFIG"
     },
@@ -784,7 +784,7 @@ const enCommands =
       "key": "CLUSTER SET-CONFIG-EPOCH",
       "title": "CLUSTER SET-CONFIG-EPOCH",
       "group": "cluster",
-      "description": "Sets the configuration epoch for a new node.",
+      "summary": "Sets the configuration epoch for a new node.",
       "since": "3.0.0",
       "usage": "CLUSTER SET-CONFIG-EPOCH config-epoch"
     },
@@ -792,7 +792,7 @@ const enCommands =
       "key": "CLUSTER SETSLOT",
       "title": "CLUSTER SETSLOT",
       "group": "cluster",
-      "description": "Binds a hash slot to a node.",
+      "summary": "Binds a hash slot to a node.",
       "since": "3.0.0",
       "usage": "CLUSTER SETSLOT slot <IMPORTING node-id | MIGRATING node-id |\n  NODE node-id | STABLE>"
     },
@@ -800,7 +800,7 @@ const enCommands =
       "key": "CLUSTER SHARDS",
       "title": "CLUSTER SHARDS",
       "group": "cluster",
-      "description": "Returns the mapping of cluster slots to shards.",
+      "summary": "Returns the mapping of cluster slots to shards.",
       "since": "7.0.0",
       "usage": "CLUSTER SHARDS"
     },
@@ -808,7 +808,7 @@ const enCommands =
       "key": "CLUSTER SLAVES",
       "title": "CLUSTER SLAVES",
       "group": "cluster",
-      "description": "Lists the replica nodes of a master node.",
+      "summary": "Lists the replica nodes of a master node.",
       "since": "3.0.0",
       "usage": "CLUSTER SLAVES node-id"
     },
@@ -816,7 +816,7 @@ const enCommands =
       "key": "CLUSTER SLOT-STATS",
       "title": "CLUSTER SLOT-STATS",
       "group": "cluster",
-      "description": "Return an array of slot usage statistics for slots assigned to the current node.",
+      "summary": "Return an array of slot usage statistics for slots assigned to the current node.",
       "since": "8.2.0",
       "usage": "CLUSTER SLOT-STATS <SLOTSRANGE start-slot end-slot | ORDERBY metric\n  [LIMIT limit] [ASC | DESC]>"
     },
@@ -824,7 +824,7 @@ const enCommands =
       "key": "CLUSTER SLOTS",
       "title": "CLUSTER SLOTS",
       "group": "cluster",
-      "description": "Returns the mapping of cluster slots to nodes.",
+      "summary": "Returns the mapping of cluster slots to nodes.",
       "since": "3.0.0",
       "usage": "CLUSTER SLOTS"
     },
@@ -832,7 +832,7 @@ const enCommands =
       "key": "CLUSTER",
       "title": "CLUSTER",
       "group": "cluster",
-      "description": "A container for Redis Cluster commands.",
+      "summary": "A container for Redis Cluster commands.",
       "since": "3.0.0",
       "usage": "CLUSTER"
     },
@@ -840,7 +840,7 @@ const enCommands =
       "key": "CMS.INCRBY",
       "title": "CMS.INCRBY",
       "group": "cms",
-      "description": "Increases the count of one or more items by increment",
+      "summary": "Increases the count of one or more items by increment",
       "since": "2.0.0",
       "usage": "CMS.INCRBY key item increment [item increment ...]"
     },
@@ -848,7 +848,7 @@ const enCommands =
       "key": "CMS.INFO",
       "title": "CMS.INFO",
       "group": "cms",
-      "description": "Returns information about a sketch",
+      "summary": "Returns information about a sketch",
       "since": "2.0.0",
       "usage": "CMS.INFO key"
     },
@@ -856,7 +856,7 @@ const enCommands =
       "key": "CMS.INITBYDIM",
       "title": "CMS.INITBYDIM",
       "group": "cms",
-      "description": "Initializes a Count-Min Sketch to dimensions specified by user",
+      "summary": "Initializes a Count-Min Sketch to dimensions specified by user",
       "since": "2.0.0",
       "usage": "CMS.INITBYDIM key width depth"
     },
@@ -864,7 +864,7 @@ const enCommands =
       "key": "CMS.INITBYPROB",
       "title": "CMS.INITBYPROB",
       "group": "cms",
-      "description": "Initializes a Count-Min Sketch to accommodate requested tolerances.",
+      "summary": "Initializes a Count-Min Sketch to accommodate requested tolerances.",
       "since": "2.0.0",
       "usage": "CMS.INITBYPROB key error probability"
     },
@@ -872,7 +872,7 @@ const enCommands =
       "key": "CMS.MERGE",
       "title": "CMS.MERGE",
       "group": "cms",
-      "description": "Merges several sketches into one sketch",
+      "summary": "Merges several sketches into one sketch",
       "since": "2.0.0",
       "usage": "CMS.MERGE destination numKeys source [source ...] [WEIGHTS weight\n  [weight ...]]"
     },
@@ -880,7 +880,7 @@ const enCommands =
       "key": "CMS.QUERY",
       "title": "CMS.QUERY",
       "group": "cms",
-      "description": "Returns the count for one or more items in a sketch",
+      "summary": "Returns the count for one or more items in a sketch",
       "since": "2.0.0",
       "usage": "CMS.QUERY key item [item ...]"
     },
@@ -888,7 +888,7 @@ const enCommands =
       "key": "COMMAND COUNT",
       "title": "COMMAND COUNT",
       "group": "server",
-      "description": "Returns a count of commands.",
+      "summary": "Returns a count of commands.",
       "since": "2.8.13",
       "usage": "COMMAND COUNT"
     },
@@ -896,7 +896,7 @@ const enCommands =
       "key": "COMMAND DOCS",
       "title": "COMMAND DOCS",
       "group": "server",
-      "description": "Returns documentary information about one, multiple or all commands.",
+      "summary": "Returns documentary information about one, multiple or all commands.",
       "since": "7.0.0",
       "usage": "COMMAND DOCS [command-name [command-name ...]]"
     },
@@ -904,7 +904,7 @@ const enCommands =
       "key": "COMMAND GETKEYS",
       "title": "COMMAND GETKEYS",
       "group": "server",
-      "description": "Extracts the key names from an arbitrary command.",
+      "summary": "Extracts the key names from an arbitrary command.",
       "since": "2.8.13",
       "usage": "COMMAND GETKEYS command [arg [arg ...]]"
     },
@@ -912,7 +912,7 @@ const enCommands =
       "key": "COMMAND GETKEYSANDFLAGS",
       "title": "COMMAND GETKEYSANDFLAGS",
       "group": "server",
-      "description": "Extracts the key names and access flags for an arbitrary command.",
+      "summary": "Extracts the key names and access flags for an arbitrary command.",
       "since": "7.0.0",
       "usage": "COMMAND GETKEYSANDFLAGS command [arg [arg ...]]"
     },
@@ -920,7 +920,7 @@ const enCommands =
       "key": "COMMAND HELP",
       "title": "COMMAND HELP",
       "group": "server",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "5.0.0",
       "usage": "COMMAND HELP"
     },
@@ -928,7 +928,7 @@ const enCommands =
       "key": "COMMAND INFO",
       "title": "COMMAND INFO",
       "group": "server",
-      "description": "Returns information about one, multiple or all commands.",
+      "summary": "Returns information about one, multiple or all commands.",
       "since": "2.8.13",
       "usage": "COMMAND INFO [command-name [command-name ...]]"
     },
@@ -936,7 +936,7 @@ const enCommands =
       "key": "COMMAND LIST",
       "title": "COMMAND LIST",
       "group": "server",
-      "description": "Returns a list of command names.",
+      "summary": "Returns a list of command names.",
       "since": "7.0.0",
       "usage": "COMMAND LIST [FILTERBY <MODULE module-name | ACLCAT category |\n  PATTERN pattern>]"
     },
@@ -944,7 +944,7 @@ const enCommands =
       "key": "COMMAND",
       "title": "COMMAND",
       "group": "server",
-      "description": "Returns detailed information about all commands.",
+      "summary": "Returns detailed information about all commands.",
       "since": "2.8.13",
       "usage": "COMMAND"
     },
@@ -952,7 +952,7 @@ const enCommands =
       "key": "CONFIG GET",
       "title": "CONFIG GET",
       "group": "server",
-      "description": "Returns the effective values of configuration parameters.",
+      "summary": "Returns the effective values of configuration parameters.",
       "since": "2.0.0",
       "usage": "CONFIG GET parameter [parameter ...]"
     },
@@ -960,7 +960,7 @@ const enCommands =
       "key": "CONFIG HELP",
       "title": "CONFIG HELP",
       "group": "server",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "5.0.0",
       "usage": "CONFIG HELP"
     },
@@ -968,7 +968,7 @@ const enCommands =
       "key": "CONFIG RESETSTAT",
       "title": "CONFIG RESETSTAT",
       "group": "server",
-      "description": "Resets the server's statistics.",
+      "summary": "Resets the server's statistics.",
       "since": "2.0.0",
       "usage": "CONFIG RESETSTAT"
     },
@@ -976,7 +976,7 @@ const enCommands =
       "key": "CONFIG REWRITE",
       "title": "CONFIG REWRITE",
       "group": "server",
-      "description": "Persists the effective configuration to file.",
+      "summary": "Persists the effective configuration to file.",
       "since": "2.8.0",
       "usage": "CONFIG REWRITE"
     },
@@ -984,7 +984,7 @@ const enCommands =
       "key": "CONFIG SET",
       "title": "CONFIG SET",
       "group": "server",
-      "description": "Sets configuration parameters in-flight.",
+      "summary": "Sets configuration parameters in-flight.",
       "since": "2.0.0",
       "usage": "CONFIG SET parameter value [parameter value ...]"
     },
@@ -992,7 +992,7 @@ const enCommands =
       "key": "CONFIG",
       "title": "CONFIG",
       "group": "server",
-      "description": "A container for server configuration commands.",
+      "summary": "A container for server configuration commands.",
       "since": "2.0.0",
       "usage": "CONFIG"
     },
@@ -1000,7 +1000,7 @@ const enCommands =
       "key": "COPY",
       "title": "COPY",
       "group": "generic",
-      "description": "Copies the value of a key to a new key.",
+      "summary": "Copies the value of a key to a new key.",
       "since": "6.2.0",
       "usage": "COPY source destination [DB destination-db] [REPLACE]"
     },
@@ -1008,7 +1008,7 @@ const enCommands =
       "key": "DBSIZE",
       "title": "DBSIZE",
       "group": "server",
-      "description": "Returns the number of keys in the database.",
+      "summary": "Returns the number of keys in the database.",
       "since": "1.0.0",
       "usage": "DBSIZE"
     },
@@ -1016,7 +1016,7 @@ const enCommands =
       "key": "DEBUG",
       "title": "DEBUG",
       "group": "server",
-      "description": "A container for debugging commands.",
+      "summary": "A container for debugging commands.",
       "since": "1.0.0",
       "usage": "DEBUG"
     },
@@ -1024,7 +1024,7 @@ const enCommands =
       "key": "DECR",
       "title": "DECR",
       "group": "string",
-      "description": "Decrements the integer value of a key by one. Uses 0 as initial value if the key doesn't exist.",
+      "summary": "Decrements the integer value of a key by one. Uses 0 as initial value if the key doesn't exist.",
       "since": "1.0.0",
       "usage": "DECR key"
     },
@@ -1032,7 +1032,7 @@ const enCommands =
       "key": "DECRBY",
       "title": "DECRBY",
       "group": "string",
-      "description": "Decrements a number from the integer value of a key. Uses 0 as initial value if the key doesn't exist.",
+      "summary": "Decrements a number from the integer value of a key. Uses 0 as initial value if the key doesn't exist.",
       "since": "1.0.0",
       "usage": "DECRBY key decrement"
     },
@@ -1040,7 +1040,7 @@ const enCommands =
       "key": "DEL",
       "title": "DEL",
       "group": "generic",
-      "description": "Deletes one or more keys.",
+      "summary": "Deletes one or more keys.",
       "since": "1.0.0",
       "usage": "DEL key [key ...]"
     },
@@ -1048,7 +1048,7 @@ const enCommands =
       "key": "DELEX",
       "title": "DELEX",
       "group": "string",
-      "description": "Conditionally removes the specified key based on value or hash digest comparison.",
+      "summary": "Conditionally removes the specified key based on value or hash digest comparison.",
       "since": "8.4.0",
       "usage": "DELEX key [IFEQ ifeq-value | IFNE ifne-value | IFDEQ ifdeq-digest |\n  IFDNE ifdne-digest]"
     },
@@ -1056,7 +1056,7 @@ const enCommands =
       "key": "DIGEST",
       "title": "DIGEST",
       "group": "string",
-      "description": "Returns the hash digest of a string value as a hexadecimal string.",
+      "summary": "Returns the hash digest of a string value as a hexadecimal string.",
       "since": "8.4.0",
       "usage": "DIGEST key"
     },
@@ -1064,7 +1064,7 @@ const enCommands =
       "key": "DISCARD",
       "title": "DISCARD",
       "group": "transactions",
-      "description": "Discards a transaction.",
+      "summary": "Discards a transaction.",
       "since": "2.0.0",
       "usage": "DISCARD"
     },
@@ -1072,7 +1072,7 @@ const enCommands =
       "key": "DUMP",
       "title": "DUMP",
       "group": "generic",
-      "description": "Returns a serialized representation of the value stored at a key.",
+      "summary": "Returns a serialized representation of the value stored at a key.",
       "since": "2.6.0",
       "usage": "DUMP key"
     },
@@ -1080,7 +1080,7 @@ const enCommands =
       "key": "ECHO",
       "title": "ECHO",
       "group": "connection",
-      "description": "Returns the given string.",
+      "summary": "Returns the given string.",
       "since": "1.0.0",
       "usage": "ECHO message"
     },
@@ -1088,7 +1088,7 @@ const enCommands =
       "key": "EVAL",
       "title": "EVAL",
       "group": "scripting",
-      "description": "Executes a server-side Lua script.",
+      "summary": "Executes a server-side Lua script.",
       "since": "2.6.0",
       "usage": "EVAL script numkeys [key [key ...]] [arg [arg ...]]"
     },
@@ -1096,7 +1096,7 @@ const enCommands =
       "key": "EVALSHA",
       "title": "EVALSHA",
       "group": "scripting",
-      "description": "Executes a server-side Lua script by SHA1 digest.",
+      "summary": "Executes a server-side Lua script by SHA1 digest.",
       "since": "2.6.0",
       "usage": "EVALSHA sha1 numkeys [key [key ...]] [arg [arg ...]]"
     },
@@ -1104,7 +1104,7 @@ const enCommands =
       "key": "EVALSHA_RO",
       "title": "EVALSHA_RO",
       "group": "scripting",
-      "description": "Executes a read-only server-side Lua script by SHA1 digest.",
+      "summary": "Executes a read-only server-side Lua script by SHA1 digest.",
       "since": "7.0.0",
       "usage": "EVALSHA_RO sha1 numkeys [key [key ...]] [arg [arg ...]]"
     },
@@ -1112,7 +1112,7 @@ const enCommands =
       "key": "EVAL_RO",
       "title": "EVAL_RO",
       "group": "scripting",
-      "description": "Executes a read-only server-side Lua script.",
+      "summary": "Executes a read-only server-side Lua script.",
       "since": "7.0.0",
       "usage": "EVAL_RO script numkeys [key [key ...]] [arg [arg ...]]"
     },
@@ -1120,7 +1120,7 @@ const enCommands =
       "key": "EXEC",
       "title": "EXEC",
       "group": "transactions",
-      "description": "Executes all commands in a transaction.",
+      "summary": "Executes all commands in a transaction.",
       "since": "1.2.0",
       "usage": "EXEC"
     },
@@ -1128,7 +1128,7 @@ const enCommands =
       "key": "EXISTS",
       "title": "EXISTS",
       "group": "generic",
-      "description": "Determines whether one or more keys exist.",
+      "summary": "Determines whether one or more keys exist.",
       "since": "1.0.0",
       "usage": "EXISTS key [key ...]"
     },
@@ -1136,7 +1136,7 @@ const enCommands =
       "key": "EXPIRE",
       "title": "EXPIRE",
       "group": "generic",
-      "description": "Sets the expiration time of a key in seconds.",
+      "summary": "Sets the expiration time of a key in seconds.",
       "since": "1.0.0",
       "usage": "EXPIRE key seconds [NX | XX | GT | LT]"
     },
@@ -1144,7 +1144,7 @@ const enCommands =
       "key": "EXPIREAT",
       "title": "EXPIREAT",
       "group": "generic",
-      "description": "Sets the expiration time of a key to a Unix timestamp.",
+      "summary": "Sets the expiration time of a key to a Unix timestamp.",
       "since": "1.2.0",
       "usage": "EXPIREAT key unix-time-seconds [NX | XX | GT | LT]"
     },
@@ -1152,7 +1152,7 @@ const enCommands =
       "key": "EXPIRETIME",
       "title": "EXPIRETIME",
       "group": "generic",
-      "description": "Returns the expiration time of a key as a Unix timestamp.",
+      "summary": "Returns the expiration time of a key as a Unix timestamp.",
       "since": "7.0.0",
       "usage": "EXPIRETIME key"
     },
@@ -1160,7 +1160,7 @@ const enCommands =
       "key": "FAILOVER",
       "title": "FAILOVER",
       "group": "server",
-      "description": "Starts a coordinated failover from a server to one of its replicas.",
+      "summary": "Starts a coordinated failover from a server to one of its replicas.",
       "since": "6.2.0",
       "usage": "FAILOVER [TO host port [FORCE]] [ABORT] [TIMEOUT milliseconds]"
     },
@@ -1168,7 +1168,7 @@ const enCommands =
       "key": "FCALL",
       "title": "FCALL",
       "group": "scripting",
-      "description": "Invokes a function.",
+      "summary": "Invokes a function.",
       "since": "7.0.0",
       "usage": "FCALL function numkeys [key [key ...]] [arg [arg ...]]"
     },
@@ -1176,7 +1176,7 @@ const enCommands =
       "key": "FCALL_RO",
       "title": "FCALL_RO",
       "group": "scripting",
-      "description": "Invokes a read-only function.",
+      "summary": "Invokes a read-only function.",
       "since": "7.0.0",
       "usage": "FCALL_RO function numkeys [key [key ...]] [arg [arg ...]]"
     },
@@ -1184,7 +1184,7 @@ const enCommands =
       "key": "FLUSHALL",
       "title": "FLUSHALL",
       "group": "server",
-      "description": "Removes all keys from all databases.",
+      "summary": "Removes all keys from all databases.",
       "since": "1.0.0",
       "usage": "FLUSHALL [ASYNC | SYNC]"
     },
@@ -1192,7 +1192,7 @@ const enCommands =
       "key": "FLUSHDB",
       "title": "FLUSHDB",
       "group": "server",
-      "description": "Remove all keys from the current database.",
+      "summary": "Remove all keys from the current database.",
       "since": "1.0.0",
       "usage": "FLUSHDB [ASYNC | SYNC]"
     },
@@ -1200,7 +1200,7 @@ const enCommands =
       "key": "FT.AGGREGATE",
       "title": "FT.AGGREGATE",
       "group": "search",
-      "description": "Run a search query on an index and perform aggregate transformations on the results",
+      "summary": "Run a search query on an index and perform aggregate transformations on the results",
       "since": "1.1.0",
       "usage": "FT.AGGREGATE index query [VERBATIM] [LOAD count field [field ...]]\n  [TIMEOUT timeout] [LOAD *] [GROUPBY nargs property [property ...]\n  [REDUCE function nargs arg [arg ...] [AS name] [REDUCE function\n  nargs arg [arg ...] [AS name] ...]] [GROUPBY nargs property\n  [property ...] [REDUCE function nargs arg [arg ...] [AS name]\n  [REDUCE function nargs arg [arg ...] [AS name] ...]] ...]]\n  [SORTBY nargs [property <ASC | DESC> [property <ASC | DESC> ...]]\n  [MAX num]] [APPLY expression AS name [APPLY expression AS name\n  ...]] [LIMIT offset num] [FILTER filter] [WITHCURSOR\n  [COUNT read_size] [MAXIDLE idle_time]] [PARAMS nargs name value\n  [name value ...]] [DIALECT dialect]"
     },
@@ -1208,7 +1208,7 @@ const enCommands =
       "key": "FT.ALIASADD",
       "title": "FT.ALIASADD",
       "group": "search",
-      "description": "Adds an alias to the index",
+      "summary": "Adds an alias to the index",
       "since": "1.0.0",
       "usage": "FT.ALIASADD alias index"
     },
@@ -1216,7 +1216,7 @@ const enCommands =
       "key": "FT.ALIASDEL",
       "title": "FT.ALIASDEL",
       "group": "search",
-      "description": "Deletes an alias from the index",
+      "summary": "Deletes an alias from the index",
       "since": "1.0.0",
       "usage": "FT.ALIASDEL alias"
     },
@@ -1224,7 +1224,7 @@ const enCommands =
       "key": "FT.ALIASUPDATE",
       "title": "FT.ALIASUPDATE",
       "group": "search",
-      "description": "Adds or updates an alias to the index",
+      "summary": "Adds or updates an alias to the index",
       "since": "1.0.0",
       "usage": "FT.ALIASUPDATE alias index"
     },
@@ -1232,7 +1232,7 @@ const enCommands =
       "key": "FT.ALTER",
       "title": "FT.ALTER",
       "group": "search",
-      "description": "Adds a new field to the index",
+      "summary": "Adds a new field to the index",
       "since": "1.0.0",
       "usage": "FT.ALTER index [SKIPINITIALSCAN] SCHEMA ADD field options"
     },
@@ -1240,7 +1240,7 @@ const enCommands =
       "key": "FT.CONFIG GET",
       "title": "FT.CONFIG GET",
       "group": "search",
-      "description": "Retrieves runtime configuration options",
+      "summary": "Retrieves runtime configuration options",
       "since": "1.0.0",
       "usage": "FT.CONFIG GET option"
     },
@@ -1248,7 +1248,7 @@ const enCommands =
       "key": "FT.CONFIG HELP",
       "title": "FT.CONFIG HELP",
       "group": "search",
-      "description": "Help description of runtime configuration options",
+      "summary": "Help description of runtime configuration options",
       "since": "1.0.0",
       "usage": "FT.CONFIG HELP option"
     },
@@ -1256,7 +1256,7 @@ const enCommands =
       "key": "FT.CONFIG SET",
       "title": "FT.CONFIG SET",
       "group": "search",
-      "description": "Sets runtime configuration options",
+      "summary": "Sets runtime configuration options",
       "since": "1.0.0",
       "usage": "FT.CONFIG SET option value"
     },
@@ -1264,7 +1264,7 @@ const enCommands =
       "key": "FT.CREATE",
       "title": "FT.CREATE",
       "group": "search",
-      "description": "Creates an index with the given spec",
+      "summary": "Creates an index with the given spec",
       "since": "1.0.0",
       "usage": "FT.CREATE index [ON <HASH | JSON>] [PREFIX count prefix [prefix\n  ...]] [FILTER filter] [LANGUAGE default_lang]\n  [LANGUAGE_FIELD lang_attribute] [SCORE default_score]\n  [SCORE_FIELD score_attribute] [PAYLOAD_FIELD payload_attribute]\n  [MAXTEXTFIELDS] [TEMPORARY seconds] [NOOFFSETS] [NOHL] [NOFIELDS]\n  [NOFREQS] [STOPWORDS count [stopword [stopword ...]]]\n  [SKIPINITIALSCAN] [INDEXALL <ENABLE | DISABLE>] SCHEMA field_name [AS alias] <TEXT | TAG |\n  NUMERIC | GEO | VECTOR> [WITHSUFFIXTRIE] [INDEXEMPTY]\n  [INDEXMISSING] [SORTABLE [UNF]] [NOINDEX] [field_name [AS alias]\n  <TEXT | TAG | NUMERIC | GEO | VECTOR> [WITHSUFFIXTRIE]\n  [INDEXEMPTY] [INDEXMISSING] [SORTABLE [UNF]] [NOINDEX] ...]"
     },
@@ -1272,7 +1272,7 @@ const enCommands =
       "key": "FT.CURSOR DEL",
       "title": "FT.CURSOR DEL",
       "group": "search",
-      "description": "Deletes a cursor",
+      "summary": "Deletes a cursor",
       "since": "1.1.0",
       "usage": "FT.CURSOR DEL index cursor_id"
     },
@@ -1280,7 +1280,7 @@ const enCommands =
       "key": "FT.CURSOR READ",
       "title": "FT.CURSOR READ",
       "group": "search",
-      "description": "Reads from a cursor",
+      "summary": "Reads from a cursor",
       "since": "1.1.0",
       "usage": "FT.CURSOR READ index cursor_id [COUNT read size]"
     },
@@ -1288,7 +1288,7 @@ const enCommands =
       "key": "FT.DICTADD",
       "title": "FT.DICTADD",
       "group": "search",
-      "description": "Adds terms to a dictionary",
+      "summary": "Adds terms to a dictionary",
       "since": "1.4.0",
       "usage": "FT.DICTADD dict term [term ...]"
     },
@@ -1296,7 +1296,7 @@ const enCommands =
       "key": "FT.DICTDEL",
       "title": "FT.DICTDEL",
       "group": "search",
-      "description": "Deletes terms from a dictionary",
+      "summary": "Deletes terms from a dictionary",
       "since": "1.4.0",
       "usage": "FT.DICTDEL dict term [term ...]"
     },
@@ -1304,7 +1304,7 @@ const enCommands =
       "key": "FT.DICTDUMP",
       "title": "FT.DICTDUMP",
       "group": "search",
-      "description": "Dumps all terms in the given dictionary",
+      "summary": "Dumps all terms in the given dictionary",
       "since": "1.4.0",
       "usage": "FT.DICTDUMP dict"
     },
@@ -1312,7 +1312,7 @@ const enCommands =
       "key": "FT.DROPINDEX",
       "title": "FT.DROPINDEX",
       "group": "search",
-      "description": "Deletes the index",
+      "summary": "Deletes the index",
       "since": "2.0.0",
       "usage": "FT.DROPINDEX index [DD]"
     },
@@ -1320,7 +1320,7 @@ const enCommands =
       "key": "FT.EXPLAIN",
       "title": "FT.EXPLAIN",
       "group": "search",
-      "description": "Returns the execution plan for a complex query",
+      "summary": "Returns the execution plan for a complex query",
       "since": "1.0.0",
       "usage": "FT.EXPLAIN index query [DIALECT dialect]"
     },
@@ -1328,7 +1328,7 @@ const enCommands =
       "key": "FT.EXPLAINCLI",
       "title": "FT.EXPLAINCLI",
       "group": "search",
-      "description": "Returns the execution plan for a complex query",
+      "summary": "Returns the execution plan for a complex query",
       "since": "1.0.0",
       "usage": "FT.EXPLAINCLI index query [DIALECT dialect]"
     },
@@ -1336,7 +1336,7 @@ const enCommands =
       "key": "FT.HYBRID",
       "title": "FT.HYBRID",
       "group": "search",
-      "description": "Performs hybrid search combining text search and vector similarity search",
+      "summary": "Performs hybrid search combining text search and vector similarity search",
       "since": "8.4.0",
       "usage": "FT.HYBRID index\n  SEARCH query\n    [SCORER scorer]\n    [YIELD_SCORE_AS name]\n  VSIM vector_field $vector_param\n    [KNN count K k [EF_RUNTIME ef_runtime]]\n    [RANGE count RADIUS radius [EPSILON epsilon]]\n    [YIELD_SCORE_AS name]\n    [FILTER filter]\n  [COMBINE RRF count [CONSTANT constant] [WINDOW window] [YIELD_SCORE_AS name]]\n  [COMBINE LINEAR count [[ALPHA alpha] [BETA beta]] [WINDOW window] [YIELD_SCORE_AS name]]\n  [LIMIT offset num]\n  [SORTBY count sortby [ASC | DESC]]\n  [NOSORT]\n  [LOAD count field [field ...]]\n  [LOAD *]\n  [GROUPBY nargs property [property ...]\n  [GROUPBY nargs property [property ...]\n    [REDUCE function nargs arg [arg ...] [AS name]\n    [REDUCE function nargs arg [arg ...] [AS name] ...]] ...]]\n  [APPLY expression AS name [APPLY expression AS name ...]]\n  [FILTER filter]\n  PARAMS nargs vector_param vector_blob [name value ...]\n  [TIMEOUT timeout]"
     },
@@ -1344,7 +1344,7 @@ const enCommands =
       "key": "FT.INFO",
       "title": "FT.INFO",
       "group": "search",
-      "description": "Returns information and statistics on the index",
+      "summary": "Returns information and statistics on the index",
       "since": "1.0.0",
       "usage": "FT.INFO index"
     },
@@ -1352,7 +1352,7 @@ const enCommands =
       "key": "FT.PROFILE",
       "title": "FT.PROFILE",
       "group": "search",
-      "description": "Performs a `FT.SEARCH` or `FT.AGGREGATE` command and collects performance information",
+      "summary": "Performs a `FT.SEARCH` or `FT.AGGREGATE` command and collects performance information",
       "since": "2.2.0",
       "usage": "FT.PROFILE index <SEARCH | AGGREGATE> [LIMITED] QUERY query"
     },
@@ -1360,7 +1360,7 @@ const enCommands =
       "key": "FT.SEARCH",
       "title": "FT.SEARCH",
       "group": "search",
-      "description": "Searches the index with a textual query, returning either documents or just ids",
+      "summary": "Searches the index with a textual query, returning either documents or just ids",
       "since": "1.0.0",
       "usage": "FT.SEARCH index query [NOCONTENT] [VERBATIM] [NOSTOPWORDS]\n  [WITHSCORES] [WITHPAYLOADS] [WITHSORTKEYS] [FILTER numeric_field\n  min max [FILTER numeric_field min max ...]] [GEOFILTER geo_field\n  lon lat radius <m | km | mi | ft> [GEOFILTER geo_field lon lat\n  radius <m | km | mi | ft> ...]] [INKEYS count key [key ...]]\n  [INFIELDS count field [field ...]] [RETURN count identifier\n  [AS property] [identifier [AS property] ...]] [SUMMARIZE\n  [FIELDS count field [field ...]] [FRAGS num] [LEN fragsize]\n  [SEPARATOR separator]] [HIGHLIGHT [FIELDS count field [field ...]]\n  [TAGS open close]] [SLOP slop] [TIMEOUT timeout] [INORDER]\n  [LANGUAGE language] [EXPANDER expander] [SCORER scorer]\n  [EXPLAINSCORE] [PAYLOAD payload] [SORTBY sortby [ASC | DESC]]\n  [LIMIT offset num] [PARAMS nargs name value [name value ...]]\n  [DIALECT dialect]"
     },
@@ -1368,7 +1368,7 @@ const enCommands =
       "key": "FT.SPELLCHECK",
       "title": "FT.SPELLCHECK",
       "group": "search",
-      "description": "Performs spelling correction on a query, returning suggestions for misspelled terms",
+      "summary": "Performs spelling correction on a query, returning suggestions for misspelled terms",
       "since": "1.4.0",
       "usage": "FT.SPELLCHECK index query [DISTANCE distance] [TERMS <INCLUDE |\n  EXCLUDE> dictionary [terms [terms ...]]] [DIALECT dialect]"
     },
@@ -1376,7 +1376,7 @@ const enCommands =
       "key": "FT.SUGADD",
       "title": "FT.SUGADD",
       "group": "suggestion",
-      "description": "Adds a suggestion string to an auto-complete suggestion dictionary",
+      "summary": "Adds a suggestion string to an auto-complete suggestion dictionary",
       "since": "1.0.0",
       "usage": "FT.SUGADD key string score [INCR] [PAYLOAD payload]"
     },
@@ -1384,7 +1384,7 @@ const enCommands =
       "key": "FT.SUGDEL",
       "title": "FT.SUGDEL",
       "group": "suggestion",
-      "description": "Deletes a string from a suggestion index",
+      "summary": "Deletes a string from a suggestion index",
       "since": "1.0.0",
       "usage": "FT.SUGDEL key string"
     },
@@ -1392,7 +1392,7 @@ const enCommands =
       "key": "FT.SUGGET",
       "title": "FT.SUGGET",
       "group": "suggestion",
-      "description": "Gets completion suggestions for a prefix",
+      "summary": "Gets completion suggestions for a prefix",
       "since": "1.0.0",
       "usage": "FT.SUGGET key prefix [FUZZY] [WITHSCORES] [WITHPAYLOADS] [MAX max]"
     },
@@ -1400,7 +1400,7 @@ const enCommands =
       "key": "FT.SUGLEN",
       "title": "FT.SUGLEN",
       "group": "suggestion",
-      "description": "Gets the size of an auto-complete suggestion dictionary",
+      "summary": "Gets the size of an auto-complete suggestion dictionary",
       "since": "1.0.0",
       "usage": "FT.SUGLEN key"
     },
@@ -1408,7 +1408,7 @@ const enCommands =
       "key": "FT.SYNDUMP",
       "title": "FT.SYNDUMP",
       "group": "search",
-      "description": "Dumps the contents of a synonym group",
+      "summary": "Dumps the contents of a synonym group",
       "since": "1.2.0",
       "usage": "FT.SYNDUMP index"
     },
@@ -1416,7 +1416,7 @@ const enCommands =
       "key": "FT.SYNUPDATE",
       "title": "FT.SYNUPDATE",
       "group": "search",
-      "description": "Creates or updates a synonym group with additional terms",
+      "summary": "Creates or updates a synonym group with additional terms",
       "since": "1.2.0",
       "usage": "FT.SYNUPDATE index synonym_group_id [SKIPINITIALSCAN] term [term\n  ...]"
     },
@@ -1424,7 +1424,7 @@ const enCommands =
       "key": "FT.TAGVALS",
       "title": "FT.TAGVALS",
       "group": "search",
-      "description": "Returns the distinct tags indexed in a Tag field",
+      "summary": "Returns the distinct tags indexed in a Tag field",
       "since": "1.0.0",
       "usage": "FT.TAGVALS index field_name"
     },
@@ -1432,7 +1432,7 @@ const enCommands =
       "key": "FT._LIST",
       "title": "FT._LIST",
       "group": "search",
-      "description": "Returns a list of all existing indexes",
+      "summary": "Returns a list of all existing indexes",
       "since": "2.0.0",
       "usage": "FT._LIST"
     },
@@ -1440,7 +1440,7 @@ const enCommands =
       "key": "FUNCTION DELETE",
       "title": "FUNCTION DELETE",
       "group": "scripting",
-      "description": "Deletes a library and its functions.",
+      "summary": "Deletes a library and its functions.",
       "since": "7.0.0",
       "usage": "FUNCTION DELETE library-name"
     },
@@ -1448,7 +1448,7 @@ const enCommands =
       "key": "FUNCTION DUMP",
       "title": "FUNCTION DUMP",
       "group": "scripting",
-      "description": "Dumps all libraries into a serialized binary payload.",
+      "summary": "Dumps all libraries into a serialized binary payload.",
       "since": "7.0.0",
       "usage": "FUNCTION DUMP"
     },
@@ -1456,7 +1456,7 @@ const enCommands =
       "key": "FUNCTION FLUSH",
       "title": "FUNCTION FLUSH",
       "group": "scripting",
-      "description": "Deletes all libraries and functions.",
+      "summary": "Deletes all libraries and functions.",
       "since": "7.0.0",
       "usage": "FUNCTION FLUSH [ASYNC | SYNC]"
     },
@@ -1464,7 +1464,7 @@ const enCommands =
       "key": "FUNCTION HELP",
       "title": "FUNCTION HELP",
       "group": "scripting",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "7.0.0",
       "usage": "FUNCTION HELP"
     },
@@ -1472,7 +1472,7 @@ const enCommands =
       "key": "FUNCTION KILL",
       "title": "FUNCTION KILL",
       "group": "scripting",
-      "description": "Terminates a function during execution.",
+      "summary": "Terminates a function during execution.",
       "since": "7.0.0",
       "usage": "FUNCTION KILL"
     },
@@ -1480,7 +1480,7 @@ const enCommands =
       "key": "FUNCTION LIST",
       "title": "FUNCTION LIST",
       "group": "scripting",
-      "description": "Returns information about all libraries.",
+      "summary": "Returns information about all libraries.",
       "since": "7.0.0",
       "usage": "FUNCTION LIST [LIBRARYNAME library-name-pattern] [WITHCODE]"
     },
@@ -1488,7 +1488,7 @@ const enCommands =
       "key": "FUNCTION LOAD",
       "title": "FUNCTION LOAD",
       "group": "scripting",
-      "description": "Creates a library.",
+      "summary": "Creates a library.",
       "since": "7.0.0",
       "usage": "FUNCTION LOAD [REPLACE] function-code"
     },
@@ -1496,7 +1496,7 @@ const enCommands =
       "key": "FUNCTION RESTORE",
       "title": "FUNCTION RESTORE",
       "group": "scripting",
-      "description": "Restores all libraries from a payload.",
+      "summary": "Restores all libraries from a payload.",
       "since": "7.0.0",
       "usage": "FUNCTION RESTORE serialized-value [FLUSH | APPEND | REPLACE]"
     },
@@ -1504,7 +1504,7 @@ const enCommands =
       "key": "FUNCTION STATS",
       "title": "FUNCTION STATS",
       "group": "scripting",
-      "description": "Returns information about a function during execution.",
+      "summary": "Returns information about a function during execution.",
       "since": "7.0.0",
       "usage": "FUNCTION STATS"
     },
@@ -1512,7 +1512,7 @@ const enCommands =
       "key": "FUNCTION",
       "title": "FUNCTION",
       "group": "scripting",
-      "description": "A container for function commands.",
+      "summary": "A container for function commands.",
       "since": "7.0.0",
       "usage": "FUNCTION"
     },
@@ -1520,7 +1520,7 @@ const enCommands =
       "key": "GEOADD",
       "title": "GEOADD",
       "group": "geo",
-      "description": "Adds one or more members to a geospatial index. The key is created if it doesn't exist.",
+      "summary": "Adds one or more members to a geospatial index. The key is created if it doesn't exist.",
       "since": "3.2.0",
       "usage": "GEOADD key [NX | XX] [CH] longitude latitude member [longitude\n  latitude member ...]"
     },
@@ -1528,7 +1528,7 @@ const enCommands =
       "key": "GEODIST",
       "title": "GEODIST",
       "group": "geo",
-      "description": "Returns the distance between two members of a geospatial index.",
+      "summary": "Returns the distance between two members of a geospatial index.",
       "since": "3.2.0",
       "usage": "GEODIST key member1 member2 [M | KM | FT | MI]"
     },
@@ -1536,7 +1536,7 @@ const enCommands =
       "key": "GEOHASH",
       "title": "GEOHASH",
       "group": "geo",
-      "description": "Returns members from a geospatial index as geohash strings.",
+      "summary": "Returns members from a geospatial index as geohash strings.",
       "since": "3.2.0",
       "usage": "GEOHASH key [member [member ...]]"
     },
@@ -1544,7 +1544,7 @@ const enCommands =
       "key": "GEOPOS",
       "title": "GEOPOS",
       "group": "geo",
-      "description": "Returns the longitude and latitude of members from a geospatial index.",
+      "summary": "Returns the longitude and latitude of members from a geospatial index.",
       "since": "3.2.0",
       "usage": "GEOPOS key [member [member ...]]"
     },
@@ -1552,7 +1552,7 @@ const enCommands =
       "key": "GEORADIUS",
       "title": "GEORADIUS",
       "group": "geo",
-      "description": "Queries a geospatial index for members within a distance from a coordinate, optionally stores the result.",
+      "summary": "Queries a geospatial index for members within a distance from a coordinate, optionally stores the result.",
       "since": "3.2.0",
       "usage": "GEORADIUS key longitude latitude radius <M | KM | FT | MI>\n  [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count [ANY]] [ASC | DESC]\n  [STORE key | STOREDIST key]"
     },
@@ -1560,7 +1560,7 @@ const enCommands =
       "key": "GEORADIUSBYMEMBER",
       "title": "GEORADIUSBYMEMBER",
       "group": "geo",
-      "description": "Queries a geospatial index for members within a distance from a member, optionally stores the result.",
+      "summary": "Queries a geospatial index for members within a distance from a member, optionally stores the result.",
       "since": "3.2.0",
       "usage": "GEORADIUSBYMEMBER key member radius <M | KM | FT | MI> [WITHCOORD]\n  [WITHDIST] [WITHHASH] [COUNT count [ANY]] [ASC | DESC] [STORE key\n  | STOREDIST key]"
     },
@@ -1568,7 +1568,7 @@ const enCommands =
       "key": "GEORADIUSBYMEMBER_RO",
       "title": "GEORADIUSBYMEMBER_RO",
       "group": "geo",
-      "description": "Returns members from a geospatial index that are within a distance from a member.",
+      "summary": "Returns members from a geospatial index that are within a distance from a member.",
       "since": "3.2.10",
       "usage": "GEORADIUSBYMEMBER_RO key member radius <M | KM | FT | MI>\n  [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count [ANY]] [ASC | DESC]"
     },
@@ -1576,7 +1576,7 @@ const enCommands =
       "key": "GEORADIUS_RO",
       "title": "GEORADIUS_RO",
       "group": "geo",
-      "description": "Returns members from a geospatial index that are within a distance from a coordinate.",
+      "summary": "Returns members from a geospatial index that are within a distance from a coordinate.",
       "since": "3.2.10",
       "usage": "GEORADIUS_RO key longitude latitude radius <M | KM | FT | MI>\n  [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count [ANY]] [ASC | DESC]"
     },
@@ -1584,7 +1584,7 @@ const enCommands =
       "key": "GEOSEARCH",
       "title": "GEOSEARCH",
       "group": "geo",
-      "description": "Queries a geospatial index for members inside an area of a box or a circle.",
+      "summary": "Queries a geospatial index for members inside an area of a box or a circle.",
       "since": "6.2.0",
       "usage": "GEOSEARCH key <FROMMEMBER member | FROMLONLAT longitude latitude>\n  <BYRADIUS radius <M | KM | FT | MI> | BYBOX width height <M | KM |\n  FT | MI>> [ASC | DESC] [COUNT count [ANY]] [WITHCOORD] [WITHDIST]\n  [WITHHASH]"
     },
@@ -1592,7 +1592,7 @@ const enCommands =
       "key": "GEOSEARCHSTORE",
       "title": "GEOSEARCHSTORE",
       "group": "geo",
-      "description": "Queries a geospatial index for members inside an area of a box or a circle, optionally stores the result.",
+      "summary": "Queries a geospatial index for members inside an area of a box or a circle, optionally stores the result.",
       "since": "6.2.0",
       "usage": "GEOSEARCHSTORE destination source <FROMMEMBER member |\n  FROMLONLAT longitude latitude> <BYRADIUS radius <M | KM | FT | MI>\n  | BYBOX width height <M | KM | FT | MI>> [ASC | DESC] [COUNT count\n  [ANY]] [STOREDIST]"
     },
@@ -1600,7 +1600,7 @@ const enCommands =
       "key": "GET",
       "title": "GET",
       "group": "string",
-      "description": "Returns the string value of a key.",
+      "summary": "Returns the string value of a key.",
       "since": "1.0.0",
       "usage": "GET key"
     },
@@ -1608,7 +1608,7 @@ const enCommands =
       "key": "GETBIT",
       "title": "GETBIT",
       "group": "bitmap",
-      "description": "Returns a bit value by offset.",
+      "summary": "Returns a bit value by offset.",
       "since": "2.2.0",
       "usage": "GETBIT key offset"
     },
@@ -1616,7 +1616,7 @@ const enCommands =
       "key": "GETDEL",
       "title": "GETDEL",
       "group": "string",
-      "description": "Returns the string value of a key after deleting the key.",
+      "summary": "Returns the string value of a key after deleting the key.",
       "since": "6.2.0",
       "usage": "GETDEL key"
     },
@@ -1624,7 +1624,7 @@ const enCommands =
       "key": "GETEX",
       "title": "GETEX",
       "group": "string",
-      "description": "Returns the string value of a key after setting its expiration time.",
+      "summary": "Returns the string value of a key after setting its expiration time.",
       "since": "6.2.0",
       "usage": "GETEX key [EX seconds | PX milliseconds | EXAT unix-time-seconds |\n  PXAT unix-time-milliseconds | PERSIST]"
     },
@@ -1632,7 +1632,7 @@ const enCommands =
       "key": "GETRANGE",
       "title": "GETRANGE",
       "group": "string",
-      "description": "Returns a substring of the string stored at a key.",
+      "summary": "Returns a substring of the string stored at a key.",
       "since": "2.4.0",
       "usage": "GETRANGE key start end"
     },
@@ -1640,7 +1640,7 @@ const enCommands =
       "key": "GETSET",
       "title": "GETSET",
       "group": "string",
-      "description": "Returns the previous string value of a key after setting it to a new value.",
+      "summary": "Returns the previous string value of a key after setting it to a new value.",
       "since": "1.0.0",
       "usage": "GETSET key value"
     },
@@ -1648,7 +1648,7 @@ const enCommands =
       "key": "HDEL",
       "title": "HDEL",
       "group": "hash",
-      "description": "Deletes one or more fields and their values from a hash. Deletes the hash if no fields remain.",
+      "summary": "Deletes one or more fields and their values from a hash. Deletes the hash if no fields remain.",
       "since": "2.0.0",
       "usage": "HDEL key field [field ...]"
     },
@@ -1656,7 +1656,7 @@ const enCommands =
       "key": "HELLO",
       "title": "HELLO",
       "group": "connection",
-      "description": "Handshakes with the Redis server.",
+      "summary": "Handshakes with the Redis server.",
       "since": "6.0.0",
       "usage": "HELLO [protover [AUTH username password] [SETNAME clientname]]"
     },
@@ -1664,7 +1664,7 @@ const enCommands =
       "key": "HEXISTS",
       "title": "HEXISTS",
       "group": "hash",
-      "description": "Determines whether a field exists in a hash.",
+      "summary": "Determines whether a field exists in a hash.",
       "since": "2.0.0",
       "usage": "HEXISTS key field"
     },
@@ -1672,7 +1672,7 @@ const enCommands =
       "key": "HEXPIRE",
       "title": "HEXPIRE",
       "group": "hash",
-      "description": "Set expiry for hash field using relative time to expire (seconds)",
+      "summary": "Set expiry for hash field using relative time to expire (seconds)",
       "since": "7.4.0",
       "usage": "HEXPIRE key seconds [NX | XX | GT | LT] FIELDS numfields field\n  [field ...]"
     },
@@ -1680,7 +1680,7 @@ const enCommands =
       "key": "HEXPIREAT",
       "title": "HEXPIREAT",
       "group": "hash",
-      "description": "Set expiry for hash field using an absolute Unix timestamp (seconds)",
+      "summary": "Set expiry for hash field using an absolute Unix timestamp (seconds)",
       "since": "7.4.0",
       "usage": "HEXPIREAT key unix-time-seconds [NX | XX | GT | LT] FIELDS numfields\n  field [field ...]"
     },
@@ -1688,7 +1688,7 @@ const enCommands =
       "key": "HEXPIRETIME",
       "title": "HEXPIRETIME",
       "group": "hash",
-      "description": "Returns the expiration time of a hash field as a Unix timestamp, in seconds.",
+      "summary": "Returns the expiration time of a hash field as a Unix timestamp, in seconds.",
       "since": "7.4.0",
       "usage": "HEXPIRETIME key FIELDS numfields field [field ...]"
     },
@@ -1696,7 +1696,7 @@ const enCommands =
       "key": "HGET",
       "title": "HGET",
       "group": "hash",
-      "description": "Returns the value of a field in a hash.",
+      "summary": "Returns the value of a field in a hash.",
       "since": "2.0.0",
       "usage": "HGET key field"
     },
@@ -1704,7 +1704,7 @@ const enCommands =
       "key": "HGETALL",
       "title": "HGETALL",
       "group": "hash",
-      "description": "Returns all fields and values in a hash.",
+      "summary": "Returns all fields and values in a hash.",
       "since": "2.0.0",
       "usage": "HGETALL key"
     },
@@ -1712,7 +1712,7 @@ const enCommands =
       "key": "HGETDEL",
       "title": "HGETDEL",
       "group": "hash",
-      "description": "Returns the value of a field and deletes it from the hash.",
+      "summary": "Returns the value of a field and deletes it from the hash.",
       "since": "8.0.0",
       "usage": "HGETDEL key FIELDS numfields field [field ...]"
     },
@@ -1720,7 +1720,7 @@ const enCommands =
       "key": "HGETEX",
       "title": "HGETEX",
       "group": "hash",
-      "description": "Get the value of one or more fields of a given hash key, and optionally set their expiration.",
+      "summary": "Get the value of one or more fields of a given hash key, and optionally set their expiration.",
       "since": "8.0.0",
       "usage": "HGETEX key [EX seconds | PX milliseconds | EXAT unix-time-seconds |\n  PXAT unix-time-milliseconds | PERSIST] FIELDS numfields field\n  [field ...]"
     },
@@ -1728,7 +1728,7 @@ const enCommands =
       "key": "HINCRBY",
       "title": "HINCRBY",
       "group": "hash",
-      "description": "Increments the integer value of a field in a hash by a number. Uses 0 as initial value if the field doesn't exist.",
+      "summary": "Increments the integer value of a field in a hash by a number. Uses 0 as initial value if the field doesn't exist.",
       "since": "2.0.0",
       "usage": "HINCRBY key field increment"
     },
@@ -1736,7 +1736,7 @@ const enCommands =
       "key": "HINCRBYFLOAT",
       "title": "HINCRBYFLOAT",
       "group": "hash",
-      "description": "Increments the floating point value of a field by a number. Uses 0 as initial value if the field doesn't exist.",
+      "summary": "Increments the floating point value of a field by a number. Uses 0 as initial value if the field doesn't exist.",
       "since": "2.6.0",
       "usage": "HINCRBYFLOAT key field increment"
     },
@@ -1744,7 +1744,7 @@ const enCommands =
       "key": "HKEYS",
       "title": "HKEYS",
       "group": "hash",
-      "description": "Returns all fields in a hash.",
+      "summary": "Returns all fields in a hash.",
       "since": "2.0.0",
       "usage": "HKEYS key"
     },
@@ -1752,7 +1752,7 @@ const enCommands =
       "key": "HLEN",
       "title": "HLEN",
       "group": "hash",
-      "description": "Returns the number of fields in a hash.",
+      "summary": "Returns the number of fields in a hash.",
       "since": "2.0.0",
       "usage": "HLEN key"
     },
@@ -1760,7 +1760,7 @@ const enCommands =
       "key": "HMGET",
       "title": "HMGET",
       "group": "hash",
-      "description": "Returns the values of all fields in a hash.",
+      "summary": "Returns the values of all fields in a hash.",
       "since": "2.0.0",
       "usage": "HMGET key field [field ...]"
     },
@@ -1768,7 +1768,7 @@ const enCommands =
       "key": "HMSET",
       "title": "HMSET",
       "group": "hash",
-      "description": "Sets the values of multiple fields.",
+      "summary": "Sets the values of multiple fields.",
       "since": "2.0.0",
       "usage": "HMSET key field value [field value ...]"
     },
@@ -1776,7 +1776,7 @@ const enCommands =
       "key": "HPERSIST",
       "title": "HPERSIST",
       "group": "hash",
-      "description": "Removes the expiration time for each specified field",
+      "summary": "Removes the expiration time for each specified field",
       "since": "7.4.0",
       "usage": "HPERSIST key FIELDS numfields field [field ...]"
     },
@@ -1784,7 +1784,7 @@ const enCommands =
       "key": "HPEXPIRE",
       "title": "HPEXPIRE",
       "group": "hash",
-      "description": "Set expiry for hash field using relative time to expire (milliseconds)",
+      "summary": "Set expiry for hash field using relative time to expire (milliseconds)",
       "since": "7.4.0",
       "usage": "HPEXPIRE key milliseconds [NX | XX | GT | LT] FIELDS numfields field\n  [field ...]"
     },
@@ -1792,7 +1792,7 @@ const enCommands =
       "key": "HPEXPIREAT",
       "title": "HPEXPIREAT",
       "group": "hash",
-      "description": "Set expiry for hash field using an absolute Unix timestamp (milliseconds)",
+      "summary": "Set expiry for hash field using an absolute Unix timestamp (milliseconds)",
       "since": "7.4.0",
       "usage": "HPEXPIREAT key unix-time-milliseconds [NX | XX | GT | LT]\n  FIELDS numfields field [field ...]"
     },
@@ -1800,7 +1800,7 @@ const enCommands =
       "key": "HPEXPIRETIME",
       "title": "HPEXPIRETIME",
       "group": "hash",
-      "description": "Returns the expiration time of a hash field as a Unix timestamp, in msec.",
+      "summary": "Returns the expiration time of a hash field as a Unix timestamp, in msec.",
       "since": "7.4.0",
       "usage": "HPEXPIRETIME key FIELDS numfields field [field ...]"
     },
@@ -1808,7 +1808,7 @@ const enCommands =
       "key": "HPTTL",
       "title": "HPTTL",
       "group": "hash",
-      "description": "Returns the TTL in milliseconds of a hash field.",
+      "summary": "Returns the TTL in milliseconds of a hash field.",
       "since": "7.4.0",
       "usage": "HPTTL key FIELDS numfields field [field ...]"
     },
@@ -1816,7 +1816,7 @@ const enCommands =
       "key": "HRANDFIELD",
       "title": "HRANDFIELD",
       "group": "hash",
-      "description": "Returns one or more random fields from a hash.",
+      "summary": "Returns one or more random fields from a hash.",
       "since": "6.2.0",
       "usage": "HRANDFIELD key [count [WITHVALUES]]"
     },
@@ -1824,7 +1824,7 @@ const enCommands =
       "key": "HSCAN",
       "title": "HSCAN",
       "group": "hash",
-      "description": "Iterates over fields and values of a hash.",
+      "summary": "Iterates over fields and values of a hash.",
       "since": "2.8.0",
       "usage": "HSCAN key cursor [MATCH pattern] [COUNT count] [NOVALUES]"
     },
@@ -1832,7 +1832,7 @@ const enCommands =
       "key": "HSET",
       "title": "HSET",
       "group": "hash",
-      "description": "Creates or modifies the value of a field in a hash.",
+      "summary": "Creates or modifies the value of a field in a hash.",
       "since": "2.0.0",
       "usage": "HSET key field value [field value ...]"
     },
@@ -1840,7 +1840,7 @@ const enCommands =
       "key": "HSETEX",
       "title": "HSETEX",
       "group": "hash",
-      "description": "Set the value of one or more fields of a given hash key, and optionally set their expiration.",
+      "summary": "Set the value of one or more fields of a given hash key, and optionally set their expiration.",
       "since": "8.0.0",
       "usage": "HSETEX key [FNX | FXX] [EX seconds | PX milliseconds |\n  EXAT unix-time-seconds | PXAT unix-time-milliseconds | KEEPTTL]\n  FIELDS numfields field value [field value ...]"
     },
@@ -1848,7 +1848,7 @@ const enCommands =
       "key": "HSETNX",
       "title": "HSETNX",
       "group": "hash",
-      "description": "Sets the value of a field in a hash only when the field doesn't exist.",
+      "summary": "Sets the value of a field in a hash only when the field doesn't exist.",
       "since": "2.0.0",
       "usage": "HSETNX key field value"
     },
@@ -1856,7 +1856,7 @@ const enCommands =
       "key": "HSTRLEN",
       "title": "HSTRLEN",
       "group": "hash",
-      "description": "Returns the length of the value of a field.",
+      "summary": "Returns the length of the value of a field.",
       "since": "3.2.0",
       "usage": "HSTRLEN key field"
     },
@@ -1864,7 +1864,7 @@ const enCommands =
       "key": "HTTL",
       "title": "HTTL",
       "group": "hash",
-      "description": "Returns the TTL in seconds of a hash field.",
+      "summary": "Returns the TTL in seconds of a hash field.",
       "since": "7.4.0",
       "usage": "HTTL key FIELDS numfields field [field ...]"
     },
@@ -1872,7 +1872,7 @@ const enCommands =
       "key": "HVALS",
       "title": "HVALS",
       "group": "hash",
-      "description": "Returns all values in a hash.",
+      "summary": "Returns all values in a hash.",
       "since": "2.0.0",
       "usage": "HVALS key"
     },
@@ -1880,7 +1880,7 @@ const enCommands =
       "key": "INCR",
       "title": "INCR",
       "group": "string",
-      "description": "Increments the integer value of a key by one. Uses 0 as initial value if the key doesn't exist.",
+      "summary": "Increments the integer value of a key by one. Uses 0 as initial value if the key doesn't exist.",
       "since": "1.0.0",
       "usage": "INCR key"
     },
@@ -1888,7 +1888,7 @@ const enCommands =
       "key": "INCRBY",
       "title": "INCRBY",
       "group": "string",
-      "description": "Increments the integer value of a key by a number. Uses 0 as initial value if the key doesn't exist.",
+      "summary": "Increments the integer value of a key by a number. Uses 0 as initial value if the key doesn't exist.",
       "since": "1.0.0",
       "usage": "INCRBY key increment"
     },
@@ -1896,7 +1896,7 @@ const enCommands =
       "key": "INCRBYFLOAT",
       "title": "INCRBYFLOAT",
       "group": "string",
-      "description": "Increment the floating point value of a key by a number. Uses 0 as initial value if the key doesn't exist.",
+      "summary": "Increment the floating point value of a key by a number. Uses 0 as initial value if the key doesn't exist.",
       "since": "2.6.0",
       "usage": "INCRBYFLOAT key increment"
     },
@@ -1904,7 +1904,7 @@ const enCommands =
       "key": "INFO",
       "title": "INFO",
       "group": "server",
-      "description": "Returns information and statistics about the server.",
+      "summary": "Returns information and statistics about the server.",
       "since": "1.0.0",
       "usage": "INFO [section [section ...]]"
     },
@@ -1912,7 +1912,7 @@ const enCommands =
       "key": "JSON.ARRAPPEND",
       "title": "JSON.ARRAPPEND",
       "group": "json",
-      "description": "Append one or more json values into the array at path after the last element in it.",
+      "summary": "Append one or more json values into the array at path after the last element in it.",
       "since": "1.0.0",
       "usage": "JSON.ARRAPPEND key [path] value [value ...]"
     },
@@ -1920,7 +1920,7 @@ const enCommands =
       "key": "JSON.ARRINDEX",
       "title": "JSON.ARRINDEX",
       "group": "json",
-      "description": "Returns the index of the first occurrence of a JSON scalar value in the array at path",
+      "summary": "Returns the index of the first occurrence of a JSON scalar value in the array at path",
       "since": "1.0.0",
       "usage": "JSON.ARRINDEX key path value [start [stop]]"
     },
@@ -1928,7 +1928,7 @@ const enCommands =
       "key": "JSON.ARRINSERT",
       "title": "JSON.ARRINSERT",
       "group": "json",
-      "description": "Inserts the JSON scalar(s) value at the specified index in the array at path",
+      "summary": "Inserts the JSON scalar(s) value at the specified index in the array at path",
       "since": "1.0.0",
       "usage": "JSON.ARRINSERT key path index value [value ...]"
     },
@@ -1936,7 +1936,7 @@ const enCommands =
       "key": "JSON.ARRLEN",
       "title": "JSON.ARRLEN",
       "group": "json",
-      "description": "Returns the length of the array at path",
+      "summary": "Returns the length of the array at path",
       "since": "1.0.0",
       "usage": "JSON.ARRLEN key [path]"
     },
@@ -1944,7 +1944,7 @@ const enCommands =
       "key": "JSON.ARRPOP",
       "title": "JSON.ARRPOP",
       "group": "json",
-      "description": "Removes and returns the element at the specified index in the array at path",
+      "summary": "Removes and returns the element at the specified index in the array at path",
       "since": "1.0.0",
       "usage": "JSON.ARRPOP key [path [index]]"
     },
@@ -1952,7 +1952,7 @@ const enCommands =
       "key": "JSON.ARRTRIM",
       "title": "JSON.ARRTRIM",
       "group": "json",
-      "description": "Trims the array at path to contain only the specified inclusive range of indices from start to stop",
+      "summary": "Trims the array at path to contain only the specified inclusive range of indices from start to stop",
       "since": "1.0.0",
       "usage": "JSON.ARRTRIM key path start stop"
     },
@@ -1960,7 +1960,7 @@ const enCommands =
       "key": "JSON.CLEAR",
       "title": "JSON.CLEAR",
       "group": "json",
-      "description": "Clears all values from an array or an object and sets numeric values to `0`",
+      "summary": "Clears all values from an array or an object and sets numeric values to `0`",
       "since": "2.0.0",
       "usage": "JSON.CLEAR key [path]"
     },
@@ -1968,7 +1968,7 @@ const enCommands =
       "key": "JSON.DEBUG HELP",
       "title": "JSON.DEBUG HELP",
       "group": "json",
-      "description": "Shows helpful information",
+      "summary": "Shows helpful information",
       "since": "1.0.0",
       "usage": "JSON.DEBUG HELP"
     },
@@ -1976,7 +1976,7 @@ const enCommands =
       "key": "JSON.DEBUG MEMORY",
       "title": "JSON.DEBUG MEMORY",
       "group": "json",
-      "description": "Reports the size in bytes of a key",
+      "summary": "Reports the size in bytes of a key",
       "since": "1.0.0",
       "usage": "JSON.DEBUG MEMORY key [path]"
     },
@@ -1984,7 +1984,7 @@ const enCommands =
       "key": "JSON.DEBUG",
       "title": "JSON.DEBUG",
       "group": "json",
-      "description": "Debugging container command",
+      "summary": "Debugging container command",
       "since": "1.0.0",
       "usage": "JSON.DEBUG"
     },
@@ -1992,7 +1992,7 @@ const enCommands =
       "key": "JSON.DEL",
       "title": "JSON.DEL",
       "group": "json",
-      "description": "Deletes a value",
+      "summary": "Deletes a value",
       "since": "1.0.0",
       "usage": "JSON.DEL key [path]"
     },
@@ -2000,7 +2000,7 @@ const enCommands =
       "key": "JSON.FORGET",
       "title": "JSON.FORGET",
       "group": "json",
-      "description": "Deletes a value",
+      "summary": "Deletes a value",
       "since": "1.0.0",
       "usage": "JSON.FORGET key [path]"
     },
@@ -2008,7 +2008,7 @@ const enCommands =
       "key": "JSON.GET",
       "title": "JSON.GET",
       "group": "json",
-      "description": "Gets the value at one or more paths in JSON serialized form",
+      "summary": "Gets the value at one or more paths in JSON serialized form",
       "since": "1.0.0",
       "usage": "JSON.GET key [INDENT indent] [NEWLINE newline] [SPACE space] [path\n  [path ...]]"
     },
@@ -2016,7 +2016,7 @@ const enCommands =
       "key": "JSON.MERGE",
       "title": "JSON.MERGE",
       "group": "json",
-      "description": "Merges a given JSON value into matching paths. Consequently, JSON values at matching paths are updated, deleted, or expanded with new children",
+      "summary": "Merges a given JSON value into matching paths. Consequently, JSON values at matching paths are updated, deleted, or expanded with new children",
       "since": "2.6.0",
       "usage": "JSON.MERGE key path value"
     },
@@ -2024,7 +2024,7 @@ const enCommands =
       "key": "JSON.MGET",
       "title": "JSON.MGET",
       "group": "json",
-      "description": "Returns the values at a path from one or more keys",
+      "summary": "Returns the values at a path from one or more keys",
       "since": "1.0.0",
       "usage": "JSON.MGET key [key ...] path"
     },
@@ -2032,7 +2032,7 @@ const enCommands =
       "key": "JSON.MSET",
       "title": "JSON.MSET",
       "group": "json",
-      "description": "Sets or updates the JSON value of one or more keys",
+      "summary": "Sets or updates the JSON value of one or more keys",
       "since": "2.6.0",
       "usage": "JSON.MSET key path value [key path value ...]"
     },
@@ -2040,7 +2040,7 @@ const enCommands =
       "key": "JSON.NUMINCRBY",
       "title": "JSON.NUMINCRBY",
       "group": "json",
-      "description": "Increments the numeric value at path by a value",
+      "summary": "Increments the numeric value at path by a value",
       "since": "1.0.0",
       "usage": "JSON.NUMINCRBY key path value"
     },
@@ -2048,7 +2048,7 @@ const enCommands =
       "key": "JSON.NUMMULTBY",
       "title": "JSON.NUMMULTBY",
       "group": "json",
-      "description": "Multiplies the numeric value at path by a value",
+      "summary": "Multiplies the numeric value at path by a value",
       "since": "1.0.0",
       "usage": "JSON.NUMMULTBY key path value"
     },
@@ -2056,7 +2056,7 @@ const enCommands =
       "key": "JSON.OBJKEYS",
       "title": "JSON.OBJKEYS",
       "group": "json",
-      "description": "Returns the JSON keys of the object at path",
+      "summary": "Returns the JSON keys of the object at path",
       "since": "1.0.0",
       "usage": "JSON.OBJKEYS key [path]"
     },
@@ -2064,7 +2064,7 @@ const enCommands =
       "key": "JSON.OBJLEN",
       "title": "JSON.OBJLEN",
       "group": "json",
-      "description": "Returns the number of keys of the object at path",
+      "summary": "Returns the number of keys of the object at path",
       "since": "1.0.0",
       "usage": "JSON.OBJLEN key [path]"
     },
@@ -2072,7 +2072,7 @@ const enCommands =
       "key": "JSON.RESP",
       "title": "JSON.RESP",
       "group": "json",
-      "description": "Returns the JSON value at path in Redis Serialization Protocol (RESP)",
+      "summary": "Returns the JSON value at path in Redis Serialization Protocol (RESP)",
       "since": "1.0.0",
       "usage": "JSON.RESP key [path]"
     },
@@ -2080,7 +2080,7 @@ const enCommands =
       "key": "JSON.SET",
       "title": "JSON.SET",
       "group": "json",
-      "description": "Sets or updates the JSON value at a path",
+      "summary": "Sets or updates the JSON value at a path",
       "since": "1.0.0",
       "usage": "JSON.SET key path value [NX | XX]"
     },
@@ -2088,7 +2088,7 @@ const enCommands =
       "key": "JSON.STRAPPEND",
       "title": "JSON.STRAPPEND",
       "group": "json",
-      "description": "Appends a string to a JSON string value at path",
+      "summary": "Appends a string to a JSON string value at path",
       "since": "1.0.0",
       "usage": "JSON.STRAPPEND key [path] value"
     },
@@ -2096,7 +2096,7 @@ const enCommands =
       "key": "JSON.STRLEN",
       "title": "JSON.STRLEN",
       "group": "json",
-      "description": "Returns the length of the JSON String at path in key",
+      "summary": "Returns the length of the JSON String at path in key",
       "since": "1.0.0",
       "usage": "JSON.STRLEN key [path]"
     },
@@ -2104,7 +2104,7 @@ const enCommands =
       "key": "JSON.TOGGLE",
       "title": "JSON.TOGGLE",
       "group": "json",
-      "description": "Toggles a boolean value",
+      "summary": "Toggles a boolean value",
       "since": "2.0.0",
       "usage": "JSON.TOGGLE key path"
     },
@@ -2112,7 +2112,7 @@ const enCommands =
       "key": "JSON.TYPE",
       "title": "JSON.TYPE",
       "group": "json",
-      "description": "Returns the type of the JSON value at path",
+      "summary": "Returns the type of the JSON value at path",
       "since": "1.0.0",
       "usage": "JSON.TYPE key [path]"
     },
@@ -2120,7 +2120,7 @@ const enCommands =
       "key": "KEYS",
       "title": "KEYS",
       "group": "generic",
-      "description": "Returns all key names that match a pattern.",
+      "summary": "Returns all key names that match a pattern.",
       "since": "1.0.0",
       "usage": "KEYS pattern"
     },
@@ -2128,7 +2128,7 @@ const enCommands =
       "key": "LASTSAVE",
       "title": "LASTSAVE",
       "group": "server",
-      "description": "Returns the Unix timestamp of the last successful save to disk.",
+      "summary": "Returns the Unix timestamp of the last successful save to disk.",
       "since": "1.0.0",
       "usage": "LASTSAVE"
     },
@@ -2136,7 +2136,7 @@ const enCommands =
       "key": "LATENCY DOCTOR",
       "title": "LATENCY DOCTOR",
       "group": "server",
-      "description": "Returns a human-readable latency analysis report.",
+      "summary": "Returns a human-readable latency analysis report.",
       "since": "2.8.13",
       "usage": "LATENCY DOCTOR"
     },
@@ -2144,7 +2144,7 @@ const enCommands =
       "key": "LATENCY GRAPH",
       "title": "LATENCY GRAPH",
       "group": "server",
-      "description": "Returns a latency graph for an event.",
+      "summary": "Returns a latency graph for an event.",
       "since": "2.8.13",
       "usage": "LATENCY GRAPH event"
     },
@@ -2152,7 +2152,7 @@ const enCommands =
       "key": "LATENCY HELP",
       "title": "LATENCY HELP",
       "group": "server",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "2.8.13",
       "usage": "LATENCY HELP"
     },
@@ -2160,7 +2160,7 @@ const enCommands =
       "key": "LATENCY HISTOGRAM",
       "title": "LATENCY HISTOGRAM",
       "group": "server",
-      "description": "Returns the cumulative distribution of latencies of a subset or all commands.",
+      "summary": "Returns the cumulative distribution of latencies of a subset or all commands.",
       "since": "7.0.0",
       "usage": "LATENCY HISTOGRAM [command [command ...]]"
     },
@@ -2168,7 +2168,7 @@ const enCommands =
       "key": "LATENCY HISTORY",
       "title": "LATENCY HISTORY",
       "group": "server",
-      "description": "Returns timestamp-latency samples for an event.",
+      "summary": "Returns timestamp-latency samples for an event.",
       "since": "2.8.13",
       "usage": "LATENCY HISTORY event"
     },
@@ -2176,7 +2176,7 @@ const enCommands =
       "key": "LATENCY LATEST",
       "title": "LATENCY LATEST",
       "group": "server",
-      "description": "Returns the latest latency samples for all events.",
+      "summary": "Returns the latest latency samples for all events.",
       "since": "2.8.13",
       "usage": "LATENCY LATEST"
     },
@@ -2184,7 +2184,7 @@ const enCommands =
       "key": "LATENCY RESET",
       "title": "LATENCY RESET",
       "group": "server",
-      "description": "Resets the latency data for one or more events.",
+      "summary": "Resets the latency data for one or more events.",
       "since": "2.8.13",
       "usage": "LATENCY RESET [event [event ...]]"
     },
@@ -2192,7 +2192,7 @@ const enCommands =
       "key": "LATENCY",
       "title": "LATENCY",
       "group": "server",
-      "description": "A container for latency diagnostics commands.",
+      "summary": "A container for latency diagnostics commands.",
       "since": "2.8.13",
       "usage": "LATENCY"
     },
@@ -2200,7 +2200,7 @@ const enCommands =
       "key": "LCS",
       "title": "LCS",
       "group": "string",
-      "description": "Finds the longest common substring.",
+      "summary": "Finds the longest common substring.",
       "since": "7.0.0",
       "usage": "LCS key1 key2 [LEN] [IDX] [MINMATCHLEN min-match-len] [WITHMATCHLEN]"
     },
@@ -2208,7 +2208,7 @@ const enCommands =
       "key": "LINDEX",
       "title": "LINDEX",
       "group": "list",
-      "description": "Returns an element from a list by its index.",
+      "summary": "Returns an element from a list by its index.",
       "since": "1.0.0",
       "usage": "LINDEX key index"
     },
@@ -2216,7 +2216,7 @@ const enCommands =
       "key": "LINSERT",
       "title": "LINSERT",
       "group": "list",
-      "description": "Inserts an element before or after another element in a list.",
+      "summary": "Inserts an element before or after another element in a list.",
       "since": "2.2.0",
       "usage": "LINSERT key <BEFORE | AFTER> pivot element"
     },
@@ -2224,7 +2224,7 @@ const enCommands =
       "key": "LLEN",
       "title": "LLEN",
       "group": "list",
-      "description": "Returns the length of a list.",
+      "summary": "Returns the length of a list.",
       "since": "1.0.0",
       "usage": "LLEN key"
     },
@@ -2232,7 +2232,7 @@ const enCommands =
       "key": "LMOVE",
       "title": "LMOVE",
       "group": "list",
-      "description": "Returns an element after popping it from one list and pushing it to another. Deletes the list if the last element was moved.",
+      "summary": "Returns an element after popping it from one list and pushing it to another. Deletes the list if the last element was moved.",
       "since": "6.2.0",
       "usage": "LMOVE source destination <LEFT | RIGHT> <LEFT | RIGHT>"
     },
@@ -2240,7 +2240,7 @@ const enCommands =
       "key": "LMPOP",
       "title": "LMPOP",
       "group": "list",
-      "description": "Returns multiple elements from a list after removing them. Deletes the list if the last element was popped.",
+      "summary": "Returns multiple elements from a list after removing them. Deletes the list if the last element was popped.",
       "since": "7.0.0",
       "usage": "LMPOP numkeys key [key ...] <LEFT | RIGHT> [COUNT count]"
     },
@@ -2248,7 +2248,7 @@ const enCommands =
       "key": "LOLWUT",
       "title": "LOLWUT",
       "group": "server",
-      "description": "Displays computer art and the Redis version",
+      "summary": "Displays computer art and the Redis version",
       "since": "5.0.0",
       "usage": "LOLWUT [VERSION version]"
     },
@@ -2256,7 +2256,7 @@ const enCommands =
       "key": "LPOP",
       "title": "LPOP",
       "group": "list",
-      "description": "Returns the first elements in a list after removing it. Deletes the list if the last element was popped.",
+      "summary": "Returns the first elements in a list after removing it. Deletes the list if the last element was popped.",
       "since": "1.0.0",
       "usage": "LPOP key [count]"
     },
@@ -2264,7 +2264,7 @@ const enCommands =
       "key": "LPOS",
       "title": "LPOS",
       "group": "list",
-      "description": "Returns the index of matching elements in a list.",
+      "summary": "Returns the index of matching elements in a list.",
       "since": "6.0.6",
       "usage": "LPOS key element [RANK rank] [COUNT num-matches] [MAXLEN len]"
     },
@@ -2272,7 +2272,7 @@ const enCommands =
       "key": "LPUSH",
       "title": "LPUSH",
       "group": "list",
-      "description": "Prepends one or more elements to a list. Creates the key if it doesn't exist.",
+      "summary": "Prepends one or more elements to a list. Creates the key if it doesn't exist.",
       "since": "1.0.0",
       "usage": "LPUSH key element [element ...]"
     },
@@ -2280,7 +2280,7 @@ const enCommands =
       "key": "LPUSHX",
       "title": "LPUSHX",
       "group": "list",
-      "description": "Prepends one or more elements to a list only when the list exists.",
+      "summary": "Prepends one or more elements to a list only when the list exists.",
       "since": "2.2.0",
       "usage": "LPUSHX key element [element ...]"
     },
@@ -2288,7 +2288,7 @@ const enCommands =
       "key": "LRANGE",
       "title": "LRANGE",
       "group": "list",
-      "description": "Returns a range of elements from a list.",
+      "summary": "Returns a range of elements from a list.",
       "since": "1.0.0",
       "usage": "LRANGE key start stop"
     },
@@ -2296,7 +2296,7 @@ const enCommands =
       "key": "LREM",
       "title": "LREM",
       "group": "list",
-      "description": "Removes elements from a list. Deletes the list if the last element was removed.",
+      "summary": "Removes elements from a list. Deletes the list if the last element was removed.",
       "since": "1.0.0",
       "usage": "LREM key count element"
     },
@@ -2304,7 +2304,7 @@ const enCommands =
       "key": "LSET",
       "title": "LSET",
       "group": "list",
-      "description": "Sets the value of an element in a list by its index.",
+      "summary": "Sets the value of an element in a list by its index.",
       "since": "1.0.0",
       "usage": "LSET key index element"
     },
@@ -2312,7 +2312,7 @@ const enCommands =
       "key": "LTRIM",
       "title": "LTRIM",
       "group": "list",
-      "description": "Removes elements from both ends a list. Deletes the list if all elements were trimmed.",
+      "summary": "Removes elements from both ends a list. Deletes the list if all elements were trimmed.",
       "since": "1.0.0",
       "usage": "LTRIM key start stop"
     },
@@ -2320,7 +2320,7 @@ const enCommands =
       "key": "MEMORY DOCTOR",
       "title": "MEMORY DOCTOR",
       "group": "server",
-      "description": "Outputs a memory problems report.",
+      "summary": "Outputs a memory problems report.",
       "since": "4.0.0",
       "usage": "MEMORY DOCTOR"
     },
@@ -2328,7 +2328,7 @@ const enCommands =
       "key": "MEMORY HELP",
       "title": "MEMORY HELP",
       "group": "server",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "4.0.0",
       "usage": "MEMORY HELP"
     },
@@ -2336,7 +2336,7 @@ const enCommands =
       "key": "MEMORY MALLOC-STATS",
       "title": "MEMORY MALLOC-STATS",
       "group": "server",
-      "description": "Returns the allocator statistics.",
+      "summary": "Returns the allocator statistics.",
       "since": "4.0.0",
       "usage": "MEMORY MALLOC-STATS"
     },
@@ -2344,7 +2344,7 @@ const enCommands =
       "key": "MEMORY PURGE",
       "title": "MEMORY PURGE",
       "group": "server",
-      "description": "Asks the allocator to release memory.",
+      "summary": "Asks the allocator to release memory.",
       "since": "4.0.0",
       "usage": "MEMORY PURGE"
     },
@@ -2352,7 +2352,7 @@ const enCommands =
       "key": "MEMORY STATS",
       "title": "MEMORY STATS",
       "group": "server",
-      "description": "Returns details about memory usage.",
+      "summary": "Returns details about memory usage.",
       "since": "4.0.0",
       "usage": "MEMORY STATS"
     },
@@ -2360,7 +2360,7 @@ const enCommands =
       "key": "MEMORY USAGE",
       "title": "MEMORY USAGE",
       "group": "server",
-      "description": "Estimates the memory usage of a key.",
+      "summary": "Estimates the memory usage of a key.",
       "since": "4.0.0",
       "usage": "MEMORY USAGE key [SAMPLES count]"
     },
@@ -2368,7 +2368,7 @@ const enCommands =
       "key": "MEMORY",
       "title": "MEMORY",
       "group": "server",
-      "description": "A container for memory diagnostics commands.",
+      "summary": "A container for memory diagnostics commands.",
       "since": "4.0.0",
       "usage": "MEMORY"
     },
@@ -2376,7 +2376,7 @@ const enCommands =
       "key": "MGET",
       "title": "MGET",
       "group": "string",
-      "description": "Atomically returns the string values of one or more keys.",
+      "summary": "Atomically returns the string values of one or more keys.",
       "since": "1.0.0",
       "usage": "MGET key [key ...]"
     },
@@ -2384,7 +2384,7 @@ const enCommands =
       "key": "MIGRATE",
       "title": "MIGRATE",
       "group": "generic",
-      "description": "Atomically transfers a key from one Redis instance to another.",
+      "summary": "Atomically transfers a key from one Redis instance to another.",
       "since": "2.6.0",
       "usage": "MIGRATE host port <key | \"\"> destination-db timeout [COPY] [REPLACE]\n  [AUTH password | AUTH2 username password] [KEYS key [key ...]]"
     },
@@ -2392,7 +2392,7 @@ const enCommands =
       "key": "MODULE HELP",
       "title": "MODULE HELP",
       "group": "server",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "5.0.0",
       "usage": "MODULE HELP"
     },
@@ -2400,7 +2400,7 @@ const enCommands =
       "key": "MODULE LIST",
       "title": "MODULE LIST",
       "group": "server",
-      "description": "Returns all loaded modules.",
+      "summary": "Returns all loaded modules.",
       "since": "4.0.0",
       "usage": "MODULE LIST"
     },
@@ -2408,7 +2408,7 @@ const enCommands =
       "key": "MODULE LOAD",
       "title": "MODULE LOAD",
       "group": "server",
-      "description": "Loads a module.",
+      "summary": "Loads a module.",
       "since": "4.0.0",
       "usage": "MODULE LOAD path [arg [arg ...]]"
     },
@@ -2416,7 +2416,7 @@ const enCommands =
       "key": "MODULE LOADEX",
       "title": "MODULE LOADEX",
       "group": "server",
-      "description": "Loads a module using extended parameters.",
+      "summary": "Loads a module using extended parameters.",
       "since": "7.0.0",
       "usage": "MODULE LOADEX path [CONFIG name value [CONFIG name value ...]]\n  [ARGS args [args ...]]"
     },
@@ -2424,7 +2424,7 @@ const enCommands =
       "key": "MODULE UNLOAD",
       "title": "MODULE UNLOAD",
       "group": "server",
-      "description": "Unloads a module.",
+      "summary": "Unloads a module.",
       "since": "4.0.0",
       "usage": "MODULE UNLOAD name"
     },
@@ -2432,7 +2432,7 @@ const enCommands =
       "key": "MODULE",
       "title": "MODULE",
       "group": "server",
-      "description": "A container for module commands.",
+      "summary": "A container for module commands.",
       "since": "4.0.0",
       "usage": "MODULE"
     },
@@ -2440,7 +2440,7 @@ const enCommands =
       "key": "MONITOR",
       "title": "MONITOR",
       "group": "server",
-      "description": "Listens for all requests received by the server in real-time.",
+      "summary": "Listens for all requests received by the server in real-time.",
       "since": "1.0.0",
       "usage": "MONITOR"
     },
@@ -2448,7 +2448,7 @@ const enCommands =
       "key": "MOVE",
       "title": "MOVE",
       "group": "generic",
-      "description": "Moves a key to another database.",
+      "summary": "Moves a key to another database.",
       "since": "1.0.0",
       "usage": "MOVE key db"
     },
@@ -2456,7 +2456,7 @@ const enCommands =
       "key": "MSET",
       "title": "MSET",
       "group": "string",
-      "description": "Atomically creates or modifies the string values of one or more keys.",
+      "summary": "Atomically creates or modifies the string values of one or more keys.",
       "since": "1.0.1",
       "usage": "MSET key value [key value ...]"
     },
@@ -2464,7 +2464,7 @@ const enCommands =
       "key": "MSETEX",
       "title": "MSETEX",
       "group": "string",
-      "description": "Atomically sets multiple string keys with a shared expiration in a single operation.",
+      "summary": "Atomically sets multiple string keys with a shared expiration in a single operation.",
       "since": "8.4.0",
       "usage": "MSETEX numkeys key value [key value ...] [NX | XX] [EX seconds |\n  PX milliseconds | EXAT unix-time-seconds |\n  PXAT unix-time-milliseconds | KEEPTTL]"
     },
@@ -2472,7 +2472,7 @@ const enCommands =
       "key": "MSETNX",
       "title": "MSETNX",
       "group": "string",
-      "description": "Atomically modifies the string values of one or more keys only when all keys don't exist.",
+      "summary": "Atomically modifies the string values of one or more keys only when all keys don't exist.",
       "since": "1.0.1",
       "usage": "MSETNX key value [key value ...]"
     },
@@ -2480,7 +2480,7 @@ const enCommands =
       "key": "MULTI",
       "title": "MULTI",
       "group": "transactions",
-      "description": "Starts a transaction.",
+      "summary": "Starts a transaction.",
       "since": "1.2.0",
       "usage": "MULTI"
     },
@@ -2488,7 +2488,7 @@ const enCommands =
       "key": "OBJECT ENCODING",
       "title": "OBJECT ENCODING",
       "group": "generic",
-      "description": "Returns the internal encoding of a Redis object.",
+      "summary": "Returns the internal encoding of a Redis object.",
       "since": "2.2.3",
       "usage": "OBJECT ENCODING key"
     },
@@ -2496,7 +2496,7 @@ const enCommands =
       "key": "OBJECT FREQ",
       "title": "OBJECT FREQ",
       "group": "generic",
-      "description": "Returns the logarithmic access frequency counter of a Redis object.",
+      "summary": "Returns the logarithmic access frequency counter of a Redis object.",
       "since": "4.0.0",
       "usage": "OBJECT FREQ key"
     },
@@ -2504,7 +2504,7 @@ const enCommands =
       "key": "OBJECT HELP",
       "title": "OBJECT HELP",
       "group": "generic",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "6.2.0",
       "usage": "OBJECT HELP"
     },
@@ -2512,7 +2512,7 @@ const enCommands =
       "key": "OBJECT IDLETIME",
       "title": "OBJECT IDLETIME",
       "group": "generic",
-      "description": "Returns the time since the last access to a Redis object.",
+      "summary": "Returns the time since the last access to a Redis object.",
       "since": "2.2.3",
       "usage": "OBJECT IDLETIME key"
     },
@@ -2520,7 +2520,7 @@ const enCommands =
       "key": "OBJECT REFCOUNT",
       "title": "OBJECT REFCOUNT",
       "group": "generic",
-      "description": "Returns the reference count of a value of a key.",
+      "summary": "Returns the reference count of a value of a key.",
       "since": "2.2.3",
       "usage": "OBJECT REFCOUNT key"
     },
@@ -2528,7 +2528,7 @@ const enCommands =
       "key": "OBJECT",
       "title": "OBJECT",
       "group": "generic",
-      "description": "A container for object introspection commands.",
+      "summary": "A container for object introspection commands.",
       "since": "2.2.3",
       "usage": "OBJECT"
     },
@@ -2536,7 +2536,7 @@ const enCommands =
       "key": "PERSIST",
       "title": "PERSIST",
       "group": "generic",
-      "description": "Removes the expiration time of a key.",
+      "summary": "Removes the expiration time of a key.",
       "since": "2.2.0",
       "usage": "PERSIST key"
     },
@@ -2544,7 +2544,7 @@ const enCommands =
       "key": "PEXPIRE",
       "title": "PEXPIRE",
       "group": "generic",
-      "description": "Sets the expiration time of a key in milliseconds.",
+      "summary": "Sets the expiration time of a key in milliseconds.",
       "since": "2.6.0",
       "usage": "PEXPIRE key milliseconds [NX | XX | GT | LT]"
     },
@@ -2552,7 +2552,7 @@ const enCommands =
       "key": "PEXPIREAT",
       "title": "PEXPIREAT",
       "group": "generic",
-      "description": "Sets the expiration time of a key to a Unix milliseconds timestamp.",
+      "summary": "Sets the expiration time of a key to a Unix milliseconds timestamp.",
       "since": "2.6.0",
       "usage": "PEXPIREAT key unix-time-milliseconds [NX | XX | GT | LT]"
     },
@@ -2560,7 +2560,7 @@ const enCommands =
       "key": "PEXPIRETIME",
       "title": "PEXPIRETIME",
       "group": "generic",
-      "description": "Returns the expiration time of a key as a Unix milliseconds timestamp.",
+      "summary": "Returns the expiration time of a key as a Unix milliseconds timestamp.",
       "since": "7.0.0",
       "usage": "PEXPIRETIME key"
     },
@@ -2568,7 +2568,7 @@ const enCommands =
       "key": "PFADD",
       "title": "PFADD",
       "group": "hyperloglog",
-      "description": "Adds elements to a HyperLogLog key. Creates the key if it doesn't exist.",
+      "summary": "Adds elements to a HyperLogLog key. Creates the key if it doesn't exist.",
       "since": "2.8.9",
       "usage": "PFADD key [element [element ...]]"
     },
@@ -2576,7 +2576,7 @@ const enCommands =
       "key": "PFCOUNT",
       "title": "PFCOUNT",
       "group": "hyperloglog",
-      "description": "Returns the approximated cardinality of the set(s) observed by the HyperLogLog key(s).",
+      "summary": "Returns the approximated cardinality of the set(s) observed by the HyperLogLog key(s).",
       "since": "2.8.9",
       "usage": "PFCOUNT key [key ...]"
     },
@@ -2584,7 +2584,7 @@ const enCommands =
       "key": "PFDEBUG",
       "title": "PFDEBUG",
       "group": "hyperloglog",
-      "description": "Internal commands for debugging HyperLogLog values.",
+      "summary": "Internal commands for debugging HyperLogLog values.",
       "since": "2.8.9",
       "usage": "PFDEBUG subcommand key"
     },
@@ -2592,7 +2592,7 @@ const enCommands =
       "key": "PFMERGE",
       "title": "PFMERGE",
       "group": "hyperloglog",
-      "description": "Merges one or more HyperLogLog values into a single key.",
+      "summary": "Merges one or more HyperLogLog values into a single key.",
       "since": "2.8.9",
       "usage": "PFMERGE destkey [sourcekey [sourcekey ...]]"
     },
@@ -2600,7 +2600,7 @@ const enCommands =
       "key": "PFSELFTEST",
       "title": "PFSELFTEST",
       "group": "hyperloglog",
-      "description": "An internal command for testing HyperLogLog values.",
+      "summary": "An internal command for testing HyperLogLog values.",
       "since": "2.8.9",
       "usage": "PFSELFTEST"
     },
@@ -2608,7 +2608,7 @@ const enCommands =
       "key": "PING",
       "title": "PING",
       "group": "connection",
-      "description": "Returns the server's liveliness response.",
+      "summary": "Returns the server's liveliness response.",
       "since": "1.0.0",
       "usage": "PING [message]"
     },
@@ -2616,7 +2616,7 @@ const enCommands =
       "key": "PSETEX",
       "title": "PSETEX",
       "group": "string",
-      "description": "Sets both string value and expiration time in milliseconds of a key. The key is created if it doesn't exist.",
+      "summary": "Sets both string value and expiration time in milliseconds of a key. The key is created if it doesn't exist.",
       "since": "2.6.0",
       "usage": "PSETEX key milliseconds value"
     },
@@ -2624,7 +2624,7 @@ const enCommands =
       "key": "PSUBSCRIBE",
       "title": "PSUBSCRIBE",
       "group": "pubsub",
-      "description": "Listens for messages published to channels that match one or more patterns.",
+      "summary": "Listens for messages published to channels that match one or more patterns.",
       "since": "2.0.0",
       "usage": "PSUBSCRIBE pattern [pattern ...]"
     },
@@ -2632,7 +2632,7 @@ const enCommands =
       "key": "PSYNC",
       "title": "PSYNC",
       "group": "server",
-      "description": "An internal command used in replication.",
+      "summary": "An internal command used in replication.",
       "since": "2.8.0",
       "usage": "PSYNC replicationid offset"
     },
@@ -2640,7 +2640,7 @@ const enCommands =
       "key": "PTTL",
       "title": "PTTL",
       "group": "generic",
-      "description": "Returns the expiration time in milliseconds of a key.",
+      "summary": "Returns the expiration time in milliseconds of a key.",
       "since": "2.6.0",
       "usage": "PTTL key"
     },
@@ -2648,7 +2648,7 @@ const enCommands =
       "key": "PUBLISH",
       "title": "PUBLISH",
       "group": "pubsub",
-      "description": "Posts a message to a channel.",
+      "summary": "Posts a message to a channel.",
       "since": "2.0.0",
       "usage": "PUBLISH channel message"
     },
@@ -2656,7 +2656,7 @@ const enCommands =
       "key": "PUBSUB CHANNELS",
       "title": "PUBSUB CHANNELS",
       "group": "pubsub",
-      "description": "Returns the active channels.",
+      "summary": "Returns the active channels.",
       "since": "2.8.0",
       "usage": "PUBSUB CHANNELS [pattern]"
     },
@@ -2664,7 +2664,7 @@ const enCommands =
       "key": "PUBSUB HELP",
       "title": "PUBSUB HELP",
       "group": "pubsub",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "6.2.0",
       "usage": "PUBSUB HELP"
     },
@@ -2672,7 +2672,7 @@ const enCommands =
       "key": "PUBSUB NUMPAT",
       "title": "PUBSUB NUMPAT",
       "group": "pubsub",
-      "description": "Returns a count of unique pattern subscriptions.",
+      "summary": "Returns a count of unique pattern subscriptions.",
       "since": "2.8.0",
       "usage": "PUBSUB NUMPAT"
     },
@@ -2680,7 +2680,7 @@ const enCommands =
       "key": "PUBSUB NUMSUB",
       "title": "PUBSUB NUMSUB",
       "group": "pubsub",
-      "description": "Returns a count of subscribers to channels.",
+      "summary": "Returns a count of subscribers to channels.",
       "since": "2.8.0",
       "usage": "PUBSUB NUMSUB [channel [channel ...]]"
     },
@@ -2688,7 +2688,7 @@ const enCommands =
       "key": "PUBSUB SHARDCHANNELS",
       "title": "PUBSUB SHARDCHANNELS",
       "group": "pubsub",
-      "description": "Returns the active shard channels.",
+      "summary": "Returns the active shard channels.",
       "since": "7.0.0",
       "usage": "PUBSUB SHARDCHANNELS [pattern]"
     },
@@ -2696,7 +2696,7 @@ const enCommands =
       "key": "PUBSUB SHARDNUMSUB",
       "title": "PUBSUB SHARDNUMSUB",
       "group": "pubsub",
-      "description": "Returns the count of subscribers of shard channels.",
+      "summary": "Returns the count of subscribers of shard channels.",
       "since": "7.0.0",
       "usage": "PUBSUB SHARDNUMSUB [shardchannel [shardchannel ...]]"
     },
@@ -2704,7 +2704,7 @@ const enCommands =
       "key": "PUBSUB",
       "title": "PUBSUB",
       "group": "pubsub",
-      "description": "A container for Pub/Sub commands.",
+      "summary": "A container for Pub/Sub commands.",
       "since": "2.8.0",
       "usage": "PUBSUB"
     },
@@ -2712,7 +2712,7 @@ const enCommands =
       "key": "PUNSUBSCRIBE",
       "title": "PUNSUBSCRIBE",
       "group": "pubsub",
-      "description": "Stops listening to messages published to channels that match one or more patterns.",
+      "summary": "Stops listening to messages published to channels that match one or more patterns.",
       "since": "2.0.0",
       "usage": "PUNSUBSCRIBE [pattern [pattern ...]]"
     },
@@ -2720,7 +2720,7 @@ const enCommands =
       "key": "QUIT",
       "title": "QUIT",
       "group": "connection",
-      "description": "Closes the connection.",
+      "summary": "Closes the connection.",
       "since": "1.0.0",
       "usage": "QUIT"
     },
@@ -2728,7 +2728,7 @@ const enCommands =
       "key": "RANDOMKEY",
       "title": "RANDOMKEY",
       "group": "generic",
-      "description": "Returns a random key name from the database.",
+      "summary": "Returns a random key name from the database.",
       "since": "1.0.0",
       "usage": "RANDOMKEY"
     },
@@ -2736,7 +2736,7 @@ const enCommands =
       "key": "READONLY",
       "title": "READONLY",
       "group": "cluster",
-      "description": "Enables read-only queries for a connection to a Redis Cluster replica node.",
+      "summary": "Enables read-only queries for a connection to a Redis Cluster replica node.",
       "since": "3.0.0",
       "usage": "READONLY"
     },
@@ -2744,7 +2744,7 @@ const enCommands =
       "key": "READWRITE",
       "title": "READWRITE",
       "group": "cluster",
-      "description": "Enables read-write queries for a connection to a Reids Cluster replica node.",
+      "summary": "Enables read-write queries for a connection to a Reids Cluster replica node.",
       "since": "3.0.0",
       "usage": "READWRITE"
     },
@@ -2752,7 +2752,7 @@ const enCommands =
       "key": "RENAME",
       "title": "RENAME",
       "group": "generic",
-      "description": "Renames a key and overwrites the destination.",
+      "summary": "Renames a key and overwrites the destination.",
       "since": "1.0.0",
       "usage": "RENAME key newkey"
     },
@@ -2760,7 +2760,7 @@ const enCommands =
       "key": "RENAMENX",
       "title": "RENAMENX",
       "group": "generic",
-      "description": "Renames a key only when the target key name doesn't exist.",
+      "summary": "Renames a key only when the target key name doesn't exist.",
       "since": "1.0.0",
       "usage": "RENAMENX key newkey"
     },
@@ -2768,7 +2768,7 @@ const enCommands =
       "key": "REPLCONF",
       "title": "REPLCONF",
       "group": "server",
-      "description": "An internal command for configuring the replication stream.",
+      "summary": "An internal command for configuring the replication stream.",
       "since": "3.0.0",
       "usage": "REPLCONF"
     },
@@ -2776,7 +2776,7 @@ const enCommands =
       "key": "REPLICAOF",
       "title": "REPLICAOF",
       "group": "server",
-      "description": "Configures a server as replica of another, or promotes it to a master.",
+      "summary": "Configures a server as replica of another, or promotes it to a master.",
       "since": "5.0.0",
       "usage": "REPLICAOF <host port | NO ONE>"
     },
@@ -2784,7 +2784,7 @@ const enCommands =
       "key": "RESET",
       "title": "RESET",
       "group": "connection",
-      "description": "Resets the connection.",
+      "summary": "Resets the connection.",
       "since": "6.2.0",
       "usage": "RESET"
     },
@@ -2792,7 +2792,7 @@ const enCommands =
       "key": "RESTORE-ASKING",
       "title": "RESTORE-ASKING",
       "group": "server",
-      "description": "An internal command for migrating keys in a cluster.",
+      "summary": "An internal command for migrating keys in a cluster.",
       "since": "3.0.0",
       "usage": "RESTORE-ASKING key ttl serialized-value [REPLACE] [ABSTTL]\n  [IDLETIME seconds] [FREQ frequency]"
     },
@@ -2800,7 +2800,7 @@ const enCommands =
       "key": "RESTORE",
       "title": "RESTORE",
       "group": "generic",
-      "description": "Creates a key from the serialized representation of a value.",
+      "summary": "Creates a key from the serialized representation of a value.",
       "since": "2.6.0",
       "usage": "RESTORE key ttl serialized-value [REPLACE] [ABSTTL]\n  [IDLETIME seconds] [FREQ frequency]"
     },
@@ -2808,7 +2808,7 @@ const enCommands =
       "key": "ROLE",
       "title": "ROLE",
       "group": "server",
-      "description": "Returns the replication role.",
+      "summary": "Returns the replication role.",
       "since": "2.8.12",
       "usage": "ROLE"
     },
@@ -2816,7 +2816,7 @@ const enCommands =
       "key": "RPOP",
       "title": "RPOP",
       "group": "list",
-      "description": "Returns and removes the last elements of a list. Deletes the list if the last element was popped.",
+      "summary": "Returns and removes the last elements of a list. Deletes the list if the last element was popped.",
       "since": "1.0.0",
       "usage": "RPOP key [count]"
     },
@@ -2824,7 +2824,7 @@ const enCommands =
       "key": "RPOPLPUSH",
       "title": "RPOPLPUSH",
       "group": "list",
-      "description": "Returns the last element of a list after removing and pushing it to another list. Deletes the list if the last element was popped.",
+      "summary": "Returns the last element of a list after removing and pushing it to another list. Deletes the list if the last element was popped.",
       "since": "1.2.0",
       "usage": "RPOPLPUSH source destination"
     },
@@ -2832,7 +2832,7 @@ const enCommands =
       "key": "RPUSH",
       "title": "RPUSH",
       "group": "list",
-      "description": "Appends one or more elements to a list. Creates the key if it doesn't exist.",
+      "summary": "Appends one or more elements to a list. Creates the key if it doesn't exist.",
       "since": "1.0.0",
       "usage": "RPUSH key element [element ...]"
     },
@@ -2840,7 +2840,7 @@ const enCommands =
       "key": "RPUSHX",
       "title": "RPUSHX",
       "group": "list",
-      "description": "Appends an element to a list only when the list exists.",
+      "summary": "Appends an element to a list only when the list exists.",
       "since": "2.2.0",
       "usage": "RPUSHX key element [element ...]"
     },
@@ -2848,7 +2848,7 @@ const enCommands =
       "key": "SADD",
       "title": "SADD",
       "group": "set",
-      "description": "Adds one or more members to a set. Creates the key if it doesn't exist.",
+      "summary": "Adds one or more members to a set. Creates the key if it doesn't exist.",
       "since": "1.0.0",
       "usage": "SADD key member [member ...]"
     },
@@ -2856,7 +2856,7 @@ const enCommands =
       "key": "SAVE",
       "title": "SAVE",
       "group": "server",
-      "description": "Synchronously saves the database(s) to disk.",
+      "summary": "Synchronously saves the database(s) to disk.",
       "since": "1.0.0",
       "usage": "SAVE"
     },
@@ -2864,7 +2864,7 @@ const enCommands =
       "key": "SCAN",
       "title": "SCAN",
       "group": "generic",
-      "description": "Iterates over the key names in the database.",
+      "summary": "Iterates over the key names in the database.",
       "since": "2.8.0",
       "usage": "SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]"
     },
@@ -2872,7 +2872,7 @@ const enCommands =
       "key": "SCARD",
       "title": "SCARD",
       "group": "set",
-      "description": "Returns the number of members in a set.",
+      "summary": "Returns the number of members in a set.",
       "since": "1.0.0",
       "usage": "SCARD key"
     },
@@ -2880,7 +2880,7 @@ const enCommands =
       "key": "SCRIPT DEBUG",
       "title": "SCRIPT DEBUG",
       "group": "scripting",
-      "description": "Sets the debug mode of server-side Lua scripts.",
+      "summary": "Sets the debug mode of server-side Lua scripts.",
       "since": "3.2.0",
       "usage": "SCRIPT DEBUG <YES | SYNC | NO>"
     },
@@ -2888,7 +2888,7 @@ const enCommands =
       "key": "SCRIPT EXISTS",
       "title": "SCRIPT EXISTS",
       "group": "scripting",
-      "description": "Determines whether server-side Lua scripts exist in the script cache.",
+      "summary": "Determines whether server-side Lua scripts exist in the script cache.",
       "since": "2.6.0",
       "usage": "SCRIPT EXISTS sha1 [sha1 ...]"
     },
@@ -2896,7 +2896,7 @@ const enCommands =
       "key": "SCRIPT FLUSH",
       "title": "SCRIPT FLUSH",
       "group": "scripting",
-      "description": "Removes all server-side Lua scripts from the script cache.",
+      "summary": "Removes all server-side Lua scripts from the script cache.",
       "since": "2.6.0",
       "usage": "SCRIPT FLUSH [ASYNC | SYNC]"
     },
@@ -2904,7 +2904,7 @@ const enCommands =
       "key": "SCRIPT HELP",
       "title": "SCRIPT HELP",
       "group": "scripting",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "5.0.0",
       "usage": "SCRIPT HELP"
     },
@@ -2912,7 +2912,7 @@ const enCommands =
       "key": "SCRIPT KILL",
       "title": "SCRIPT KILL",
       "group": "scripting",
-      "description": "Terminates a server-side Lua script during execution.",
+      "summary": "Terminates a server-side Lua script during execution.",
       "since": "2.6.0",
       "usage": "SCRIPT KILL"
     },
@@ -2920,7 +2920,7 @@ const enCommands =
       "key": "SCRIPT LOAD",
       "title": "SCRIPT LOAD",
       "group": "scripting",
-      "description": "Loads a server-side Lua script to the script cache.",
+      "summary": "Loads a server-side Lua script to the script cache.",
       "since": "2.6.0",
       "usage": "SCRIPT LOAD script"
     },
@@ -2928,7 +2928,7 @@ const enCommands =
       "key": "SCRIPT",
       "title": "SCRIPT",
       "group": "scripting",
-      "description": "A container for Lua scripts management commands.",
+      "summary": "A container for Lua scripts management commands.",
       "since": "2.6.0",
       "usage": "SCRIPT"
     },
@@ -2936,7 +2936,7 @@ const enCommands =
       "key": "SDIFF",
       "title": "SDIFF",
       "group": "set",
-      "description": "Returns the difference of multiple sets.",
+      "summary": "Returns the difference of multiple sets.",
       "since": "1.0.0",
       "usage": "SDIFF key [key ...]"
     },
@@ -2944,7 +2944,7 @@ const enCommands =
       "key": "SDIFFSTORE",
       "title": "SDIFFSTORE",
       "group": "set",
-      "description": "Stores the difference of multiple sets in a key.",
+      "summary": "Stores the difference of multiple sets in a key.",
       "since": "1.0.0",
       "usage": "SDIFFSTORE destination key [key ...]"
     },
@@ -2952,7 +2952,7 @@ const enCommands =
       "key": "SELECT",
       "title": "SELECT",
       "group": "connection",
-      "description": "Changes the selected database.",
+      "summary": "Changes the selected database.",
       "since": "1.0.0",
       "usage": "SELECT index"
     },
@@ -2960,7 +2960,7 @@ const enCommands =
       "key": "SET",
       "title": "SET",
       "group": "string",
-      "description": "Sets the string value of a key, ignoring its type. The key is created if it doesn't exist.",
+      "summary": "Sets the string value of a key, ignoring its type. The key is created if it doesn't exist.",
       "since": "1.0.0",
       "usage": "SET key value [NX | XX | IFEQ ifeq-value | IFNE ifne-value |\n  IFDEQ ifdeq-digest | IFDNE ifdne-digest] [GET] [EX seconds |\n  PX milliseconds | EXAT unix-time-seconds |\n  PXAT unix-time-milliseconds | KEEPTTL]"
     },
@@ -2968,7 +2968,7 @@ const enCommands =
       "key": "SETBIT",
       "title": "SETBIT",
       "group": "bitmap",
-      "description": "Sets or clears the bit at offset of the string value. Creates the key if it doesn't exist.",
+      "summary": "Sets or clears the bit at offset of the string value. Creates the key if it doesn't exist.",
       "since": "2.2.0",
       "usage": "SETBIT key offset value"
     },
@@ -2976,7 +2976,7 @@ const enCommands =
       "key": "SETEX",
       "title": "SETEX",
       "group": "string",
-      "description": "Sets the string value and expiration time of a key. Creates the key if it doesn't exist.",
+      "summary": "Sets the string value and expiration time of a key. Creates the key if it doesn't exist.",
       "since": "2.0.0",
       "usage": "SETEX key seconds value"
     },
@@ -2984,7 +2984,7 @@ const enCommands =
       "key": "SETNX",
       "title": "SETNX",
       "group": "string",
-      "description": "Set the string value of a key only when the key doesn't exist.",
+      "summary": "Set the string value of a key only when the key doesn't exist.",
       "since": "1.0.0",
       "usage": "SETNX key value"
     },
@@ -2992,7 +2992,7 @@ const enCommands =
       "key": "SETRANGE",
       "title": "SETRANGE",
       "group": "string",
-      "description": "Overwrites a part of a string value with another by an offset. Creates the key if it doesn't exist.",
+      "summary": "Overwrites a part of a string value with another by an offset. Creates the key if it doesn't exist.",
       "since": "2.2.0",
       "usage": "SETRANGE key offset value"
     },
@@ -3000,7 +3000,7 @@ const enCommands =
       "key": "SHUTDOWN",
       "title": "SHUTDOWN",
       "group": "server",
-      "description": "Synchronously saves the database(s) to disk and shuts down the Redis server.",
+      "summary": "Synchronously saves the database(s) to disk and shuts down the Redis server.",
       "since": "1.0.0",
       "usage": "SHUTDOWN [NOSAVE | SAVE] [NOW] [FORCE] [ABORT]"
     },
@@ -3008,7 +3008,7 @@ const enCommands =
       "key": "SINTER",
       "title": "SINTER",
       "group": "set",
-      "description": "Returns the intersect of multiple sets.",
+      "summary": "Returns the intersect of multiple sets.",
       "since": "1.0.0",
       "usage": "SINTER key [key ...]"
     },
@@ -3016,7 +3016,7 @@ const enCommands =
       "key": "SINTERCARD",
       "title": "SINTERCARD",
       "group": "set",
-      "description": "Returns the number of members of the intersect of multiple sets.",
+      "summary": "Returns the number of members of the intersect of multiple sets.",
       "since": "7.0.0",
       "usage": "SINTERCARD numkeys key [key ...] [LIMIT limit]"
     },
@@ -3024,7 +3024,7 @@ const enCommands =
       "key": "SINTERSTORE",
       "title": "SINTERSTORE",
       "group": "set",
-      "description": "Stores the intersect of multiple sets in a key.",
+      "summary": "Stores the intersect of multiple sets in a key.",
       "since": "1.0.0",
       "usage": "SINTERSTORE destination key [key ...]"
     },
@@ -3032,7 +3032,7 @@ const enCommands =
       "key": "SISMEMBER",
       "title": "SISMEMBER",
       "group": "set",
-      "description": "Determines whether a member belongs to a set.",
+      "summary": "Determines whether a member belongs to a set.",
       "since": "1.0.0",
       "usage": "SISMEMBER key member"
     },
@@ -3040,7 +3040,7 @@ const enCommands =
       "key": "SLAVEOF",
       "title": "SLAVEOF",
       "group": "server",
-      "description": "Sets a Redis server as a replica of another, or promotes it to being a master.",
+      "summary": "Sets a Redis server as a replica of another, or promotes it to being a master.",
       "since": "1.0.0",
       "usage": "SLAVEOF <host port | NO ONE>"
     },
@@ -3048,7 +3048,7 @@ const enCommands =
       "key": "SLOWLOG GET",
       "title": "SLOWLOG GET",
       "group": "server",
-      "description": "Returns the slow log's entries.",
+      "summary": "Returns the slow log's entries.",
       "since": "2.2.12",
       "usage": "SLOWLOG GET [count]"
     },
@@ -3056,7 +3056,7 @@ const enCommands =
       "key": "SLOWLOG HELP",
       "title": "SLOWLOG HELP",
       "group": "server",
-      "description": "Show helpful text about the different subcommands",
+      "summary": "Show helpful text about the different subcommands",
       "since": "6.2.0",
       "usage": "SLOWLOG HELP"
     },
@@ -3064,7 +3064,7 @@ const enCommands =
       "key": "SLOWLOG LEN",
       "title": "SLOWLOG LEN",
       "group": "server",
-      "description": "Returns the number of entries in the slow log.",
+      "summary": "Returns the number of entries in the slow log.",
       "since": "2.2.12",
       "usage": "SLOWLOG LEN"
     },
@@ -3072,7 +3072,7 @@ const enCommands =
       "key": "SLOWLOG RESET",
       "title": "SLOWLOG RESET",
       "group": "server",
-      "description": "Clears all entries from the slow log.",
+      "summary": "Clears all entries from the slow log.",
       "since": "2.2.12",
       "usage": "SLOWLOG RESET"
     },
@@ -3080,7 +3080,7 @@ const enCommands =
       "key": "SLOWLOG",
       "title": "SLOWLOG",
       "group": "server",
-      "description": "A container for slow log commands.",
+      "summary": "A container for slow log commands.",
       "since": "2.2.12",
       "usage": "SLOWLOG"
     },
@@ -3088,7 +3088,7 @@ const enCommands =
       "key": "SMEMBERS",
       "title": "SMEMBERS",
       "group": "set",
-      "description": "Returns all members of a set.",
+      "summary": "Returns all members of a set.",
       "since": "1.0.0",
       "usage": "SMEMBERS key"
     },
@@ -3096,7 +3096,7 @@ const enCommands =
       "key": "SMISMEMBER",
       "title": "SMISMEMBER",
       "group": "set",
-      "description": "Determines whether multiple members belong to a set.",
+      "summary": "Determines whether multiple members belong to a set.",
       "since": "6.2.0",
       "usage": "SMISMEMBER key member [member ...]"
     },
@@ -3104,7 +3104,7 @@ const enCommands =
       "key": "SMOVE",
       "title": "SMOVE",
       "group": "set",
-      "description": "Moves a member from one set to another.",
+      "summary": "Moves a member from one set to another.",
       "since": "1.0.0",
       "usage": "SMOVE source destination member"
     },
@@ -3112,7 +3112,7 @@ const enCommands =
       "key": "SORT",
       "title": "SORT",
       "group": "generic",
-      "description": "Sorts the elements in a list, a set, or a sorted set, optionally storing the result.",
+      "summary": "Sorts the elements in a list, a set, or a sorted set, optionally storing the result.",
       "since": "1.0.0",
       "usage": "SORT key [BY pattern] [LIMIT offset count] [GET pattern [GET pattern\n  ...]] [ASC | DESC] [ALPHA] [STORE destination]"
     },
@@ -3120,7 +3120,7 @@ const enCommands =
       "key": "SORT_RO",
       "title": "SORT_RO",
       "group": "generic",
-      "description": "Returns the sorted elements of a list, a set, or a sorted set.",
+      "summary": "Returns the sorted elements of a list, a set, or a sorted set.",
       "since": "7.0.0",
       "usage": "SORT_RO key [BY pattern] [LIMIT offset count] [GET pattern [GET\n  pattern ...]] [ASC | DESC] [ALPHA]"
     },
@@ -3128,7 +3128,7 @@ const enCommands =
       "key": "SPOP",
       "title": "SPOP",
       "group": "set",
-      "description": "Returns one or more random members from a set after removing them. Deletes the set if the last member was popped.",
+      "summary": "Returns one or more random members from a set after removing them. Deletes the set if the last member was popped.",
       "since": "1.0.0",
       "usage": "SPOP key [count]"
     },
@@ -3136,7 +3136,7 @@ const enCommands =
       "key": "SPUBLISH",
       "title": "SPUBLISH",
       "group": "pubsub",
-      "description": "Post a message to a shard channel",
+      "summary": "Post a message to a shard channel",
       "since": "7.0.0",
       "usage": "SPUBLISH shardchannel message"
     },
@@ -3144,7 +3144,7 @@ const enCommands =
       "key": "SRANDMEMBER",
       "title": "SRANDMEMBER",
       "group": "set",
-      "description": "Get one or multiple random members from a set",
+      "summary": "Get one or multiple random members from a set",
       "since": "1.0.0",
       "usage": "SRANDMEMBER key [count]"
     },
@@ -3152,7 +3152,7 @@ const enCommands =
       "key": "SREM",
       "title": "SREM",
       "group": "set",
-      "description": "Removes one or more members from a set. Deletes the set if the last member was removed.",
+      "summary": "Removes one or more members from a set. Deletes the set if the last member was removed.",
       "since": "1.0.0",
       "usage": "SREM key member [member ...]"
     },
@@ -3160,7 +3160,7 @@ const enCommands =
       "key": "SSCAN",
       "title": "SSCAN",
       "group": "set",
-      "description": "Iterates over members of a set.",
+      "summary": "Iterates over members of a set.",
       "since": "2.8.0",
       "usage": "SSCAN key cursor [MATCH pattern] [COUNT count]"
     },
@@ -3168,7 +3168,7 @@ const enCommands =
       "key": "SSUBSCRIBE",
       "title": "SSUBSCRIBE",
       "group": "pubsub",
-      "description": "Listens for messages published to shard channels.",
+      "summary": "Listens for messages published to shard channels.",
       "since": "7.0.0",
       "usage": "SSUBSCRIBE shardchannel [shardchannel ...]"
     },
@@ -3176,7 +3176,7 @@ const enCommands =
       "key": "STRLEN",
       "title": "STRLEN",
       "group": "string",
-      "description": "Returns the length of a string value.",
+      "summary": "Returns the length of a string value.",
       "since": "2.2.0",
       "usage": "STRLEN key"
     },
@@ -3184,7 +3184,7 @@ const enCommands =
       "key": "SUBSCRIBE",
       "title": "SUBSCRIBE",
       "group": "pubsub",
-      "description": "Listens for messages published to channels.",
+      "summary": "Listens for messages published to channels.",
       "since": "2.0.0",
       "usage": "SUBSCRIBE channel [channel ...]"
     },
@@ -3192,7 +3192,7 @@ const enCommands =
       "key": "SUBSTR",
       "title": "SUBSTR",
       "group": "string",
-      "description": "Returns a substring from a string value.",
+      "summary": "Returns a substring from a string value.",
       "since": "1.0.0",
       "usage": "SUBSTR key start end"
     },
@@ -3200,7 +3200,7 @@ const enCommands =
       "key": "SUNION",
       "title": "SUNION",
       "group": "set",
-      "description": "Returns the union of multiple sets.",
+      "summary": "Returns the union of multiple sets.",
       "since": "1.0.0",
       "usage": "SUNION key [key ...]"
     },
@@ -3208,7 +3208,7 @@ const enCommands =
       "key": "SUNIONSTORE",
       "title": "SUNIONSTORE",
       "group": "set",
-      "description": "Stores the union of multiple sets in a key.",
+      "summary": "Stores the union of multiple sets in a key.",
       "since": "1.0.0",
       "usage": "SUNIONSTORE destination key [key ...]"
     },
@@ -3216,7 +3216,7 @@ const enCommands =
       "key": "SUNSUBSCRIBE",
       "title": "SUNSUBSCRIBE",
       "group": "pubsub",
-      "description": "Stops listening to messages posted to shard channels.",
+      "summary": "Stops listening to messages posted to shard channels.",
       "since": "7.0.0",
       "usage": "SUNSUBSCRIBE [shardchannel [shardchannel ...]]"
     },
@@ -3224,7 +3224,7 @@ const enCommands =
       "key": "SWAPDB",
       "title": "SWAPDB",
       "group": "server",
-      "description": "Swaps two Redis databases.",
+      "summary": "Swaps two Redis databases.",
       "since": "4.0.0",
       "usage": "SWAPDB index1 index2"
     },
@@ -3232,7 +3232,7 @@ const enCommands =
       "key": "SYNC",
       "title": "SYNC",
       "group": "server",
-      "description": "An internal command used in replication.",
+      "summary": "An internal command used in replication.",
       "since": "1.0.0",
       "usage": "SYNC"
     },
@@ -3240,7 +3240,7 @@ const enCommands =
       "key": "TDIGEST.ADD",
       "title": "TDIGEST.ADD",
       "group": "tdigest",
-      "description": "Adds one or more observations to a t-digest sketch",
+      "summary": "Adds one or more observations to a t-digest sketch",
       "since": "2.4.0",
       "usage": "TDIGEST.ADD key value [value ...]"
     },
@@ -3248,7 +3248,7 @@ const enCommands =
       "key": "TDIGEST.BYRANK",
       "title": "TDIGEST.BYRANK",
       "group": "tdigest",
-      "description": "Returns, for each input rank, an estimation of the value (floating-point) with that rank",
+      "summary": "Returns, for each input rank, an estimation of the value (floating-point) with that rank",
       "since": "2.4.0",
       "usage": "TDIGEST.BYRANK key rank [rank ...]"
     },
@@ -3256,7 +3256,7 @@ const enCommands =
       "key": "TDIGEST.BYREVRANK",
       "title": "TDIGEST.BYREVRANK",
       "group": "tdigest",
-      "description": "Returns, for each input reverse rank, an estimation of the value (floating-point) with that reverse rank",
+      "summary": "Returns, for each input reverse rank, an estimation of the value (floating-point) with that reverse rank",
       "since": "2.4.0",
       "usage": "TDIGEST.BYREVRANK key reverse_rank [reverse_rank ...]"
     },
@@ -3264,7 +3264,7 @@ const enCommands =
       "key": "TDIGEST.CDF",
       "title": "TDIGEST.CDF",
       "group": "tdigest",
-      "description": "Returns, for each input value, an estimation of the fraction (floating-point) of (observations smaller than the given value + half the observations equal to the given value)",
+      "summary": "Returns, for each input value, an estimation of the fraction (floating-point) of (observations smaller than the given value + half the observations equal to the given value)",
       "since": "2.4.0",
       "usage": "TDIGEST.CDF key value [value ...]"
     },
@@ -3272,7 +3272,7 @@ const enCommands =
       "key": "TDIGEST.CREATE",
       "title": "TDIGEST.CREATE",
       "group": "tdigest",
-      "description": "Allocates memory and initializes a new t-digest sketch",
+      "summary": "Allocates memory and initializes a new t-digest sketch",
       "since": "2.4.0",
       "usage": "TDIGEST.CREATE key [COMPRESSION compression]"
     },
@@ -3280,7 +3280,7 @@ const enCommands =
       "key": "TDIGEST.INFO",
       "title": "TDIGEST.INFO",
       "group": "tdigest",
-      "description": "Returns information and statistics about a t-digest sketch",
+      "summary": "Returns information and statistics about a t-digest sketch",
       "since": "2.4.0",
       "usage": "TDIGEST.INFO key"
     },
@@ -3288,7 +3288,7 @@ const enCommands =
       "key": "TDIGEST.MAX",
       "title": "TDIGEST.MAX",
       "group": "tdigest",
-      "description": "Returns the maximum observation value from a t-digest sketch",
+      "summary": "Returns the maximum observation value from a t-digest sketch",
       "since": "2.4.0",
       "usage": "TDIGEST.MAX key"
     },
@@ -3296,7 +3296,7 @@ const enCommands =
       "key": "TDIGEST.MERGE",
       "title": "TDIGEST.MERGE",
       "group": "tdigest",
-      "description": "Merges multiple t-digest sketches into a single sketch",
+      "summary": "Merges multiple t-digest sketches into a single sketch",
       "since": "2.4.0",
       "usage": "TDIGEST.MERGE destination-key numkeys source-key [source-key ...]\n  [COMPRESSION compression] [OVERRIDE]"
     },
@@ -3304,7 +3304,7 @@ const enCommands =
       "key": "TDIGEST.MIN",
       "title": "TDIGEST.MIN",
       "group": "tdigest",
-      "description": "Returns the minimum observation value from a t-digest sketch",
+      "summary": "Returns the minimum observation value from a t-digest sketch",
       "since": "2.4.0",
       "usage": "TDIGEST.MIN key"
     },
@@ -3312,7 +3312,7 @@ const enCommands =
       "key": "TDIGEST.QUANTILE",
       "title": "TDIGEST.QUANTILE",
       "group": "tdigest",
-      "description": "Returns, for each input fraction, an estimation of the value (floating point) that is smaller than the given fraction of observations",
+      "summary": "Returns, for each input fraction, an estimation of the value (floating point) that is smaller than the given fraction of observations",
       "since": "2.4.0",
       "usage": "TDIGEST.QUANTILE key quantile [quantile ...]"
     },
@@ -3320,7 +3320,7 @@ const enCommands =
       "key": "TDIGEST.RANK",
       "title": "TDIGEST.RANK",
       "group": "tdigest",
-      "description": "Returns, for each input value (floating-point), the estimated rank of the value (the number of observations in the sketch that are smaller than the value + half the number of observations that are equal to the value)",
+      "summary": "Returns, for each input value (floating-point), the estimated rank of the value (the number of observations in the sketch that are smaller than the value + half the number of observations that are equal to the value)",
       "since": "2.4.0",
       "usage": "TDIGEST.RANK key value [value ...]"
     },
@@ -3328,7 +3328,7 @@ const enCommands =
       "key": "TDIGEST.RESET",
       "title": "TDIGEST.RESET",
       "group": "tdigest",
-      "description": "Resets a t-digest sketch: empty the sketch and re-initializes it.",
+      "summary": "Resets a t-digest sketch: empty the sketch and re-initializes it.",
       "since": "2.4.0",
       "usage": "TDIGEST.RESET key"
     },
@@ -3336,7 +3336,7 @@ const enCommands =
       "key": "TDIGEST.REVRANK",
       "title": "TDIGEST.REVRANK",
       "group": "tdigest",
-      "description": "Returns, for each input value (floating-point), the estimated reverse rank of the value (the number of observations in the sketch that are larger than the value + half the number of observations that are equal to the value)",
+      "summary": "Returns, for each input value (floating-point), the estimated reverse rank of the value (the number of observations in the sketch that are larger than the value + half the number of observations that are equal to the value)",
       "since": "2.4.0",
       "usage": "TDIGEST.REVRANK key value [value ...]"
     },
@@ -3344,7 +3344,7 @@ const enCommands =
       "key": "TDIGEST.TRIMMED_MEAN",
       "title": "TDIGEST.TRIMMED_MEAN",
       "group": "tdigest",
-      "description": "Returns an estimation of the mean value from the sketch, excluding observation values outside the low and high cutoff quantiles",
+      "summary": "Returns an estimation of the mean value from the sketch, excluding observation values outside the low and high cutoff quantiles",
       "since": "2.4.0",
       "usage": "TDIGEST.TRIMMED_MEAN key low_cut_quantile high_cut_quantile"
     },
@@ -3352,7 +3352,7 @@ const enCommands =
       "key": "TIME",
       "title": "TIME",
       "group": "server",
-      "description": "Returns the server time.",
+      "summary": "Returns the server time.",
       "since": "2.6.0",
       "usage": "TIME"
     },
@@ -3360,7 +3360,7 @@ const enCommands =
       "key": "TOPK.ADD",
       "title": "TOPK.ADD",
       "group": "topk",
-      "description": "Adds an item to a Top-k sketch. Multiple items can be added at the same time.",
+      "summary": "Adds an item to a Top-k sketch. Multiple items can be added at the same time.",
       "since": "2.0.0",
       "usage": "TOPK.ADD key items [items ...]"
     },
@@ -3368,7 +3368,7 @@ const enCommands =
       "key": "TOPK.COUNT",
       "title": "TOPK.COUNT",
       "group": "topk",
-      "description": "Return the count for one or more items are in a sketch",
+      "summary": "Return the count for one or more items are in a sketch",
       "since": "2.0.0",
       "usage": "TOPK.COUNT key item [item ...]"
     },
@@ -3376,7 +3376,7 @@ const enCommands =
       "key": "TOPK.INCRBY",
       "title": "TOPK.INCRBY",
       "group": "topk",
-      "description": "Increases the count of one or more items by increment",
+      "summary": "Increases the count of one or more items by increment",
       "since": "2.0.0",
       "usage": "TOPK.INCRBY key item increment [item increment ...]"
     },
@@ -3384,7 +3384,7 @@ const enCommands =
       "key": "TOPK.INFO",
       "title": "TOPK.INFO",
       "group": "topk",
-      "description": "Returns information about a sketch",
+      "summary": "Returns information about a sketch",
       "since": "2.0.0",
       "usage": "TOPK.INFO key"
     },
@@ -3392,7 +3392,7 @@ const enCommands =
       "key": "TOPK.LIST",
       "title": "TOPK.LIST",
       "group": "topk",
-      "description": "Return full list of items in Top K list",
+      "summary": "Return full list of items in Top K list",
       "since": "2.0.0",
       "usage": "TOPK.LIST key [WITHCOUNT]"
     },
@@ -3400,7 +3400,7 @@ const enCommands =
       "key": "TOPK.QUERY",
       "title": "TOPK.QUERY",
       "group": "topk",
-      "description": "Checks whether one or more items are in a sketch",
+      "summary": "Checks whether one or more items are in a sketch",
       "since": "2.0.0",
       "usage": "TOPK.QUERY key item [item ...]"
     },
@@ -3408,7 +3408,7 @@ const enCommands =
       "key": "TOPK.RESERVE",
       "title": "TOPK.RESERVE",
       "group": "topk",
-      "description": "Initializes a TopK with specified parameters",
+      "summary": "Initializes a TopK with specified parameters",
       "since": "2.0.0",
       "usage": "TOPK.RESERVE key topk [width depth decay]"
     },
@@ -3416,7 +3416,7 @@ const enCommands =
       "key": "TOUCH",
       "title": "TOUCH",
       "group": "generic",
-      "description": "Returns the number of existing keys out of those specified after updating the time they were last accessed.",
+      "summary": "Returns the number of existing keys out of those specified after updating the time they were last accessed.",
       "since": "3.2.1",
       "usage": "TOUCH key [key ...]"
     },
@@ -3424,7 +3424,7 @@ const enCommands =
       "key": "TS.ADD",
       "title": "TS.ADD",
       "group": "timeseries",
-      "description": "Append a sample to a time series",
+      "summary": "Append a sample to a time series",
       "since": "1.0.0",
       "usage": "TS.ADD key timestamp value [RETENTION retentionPeriod]\n  [ENCODING <UNCOMPRESSED | COMPRESSED>] [CHUNK_SIZE size]\n  [ON_DUPLICATE <BLOCK | FIRST | LAST | MIN | MAX | SUM>]\n  [LABELS label value [label value ...]]"
     },
@@ -3432,7 +3432,7 @@ const enCommands =
       "key": "TS.ALTER",
       "title": "TS.ALTER",
       "group": "timeseries",
-      "description": "Update the retention, chunk size, duplicate policy, and labels of an existing time series",
+      "summary": "Update the retention, chunk size, duplicate policy, and labels of an existing time series",
       "since": "1.0.0",
       "usage": "TS.ALTER key [RETENTION retentionPeriod] [CHUNK_SIZE size]\n  [DUPLICATE_POLICY <BLOCK | FIRST | LAST | MIN | MAX | SUM>] [LABELS label value\n  [label value ...]]"
     },
@@ -3440,7 +3440,7 @@ const enCommands =
       "key": "TS.CREATE",
       "title": "TS.CREATE",
       "group": "timeseries",
-      "description": "Create a new time series",
+      "summary": "Create a new time series",
       "since": "1.0.0",
       "usage": "TS.CREATE key [RETENTION retentionPeriod] [ENCODING <UNCOMPRESSED |\n  COMPRESSED>] [CHUNK_SIZE size] [DUPLICATE_POLICY <BLOCK | FIRST |\n  LAST | MIN | MAX | SUM>] [LABELS label value [label value ...]]"
     },
@@ -3448,7 +3448,7 @@ const enCommands =
       "key": "TS.CREATERULE",
       "title": "TS.CREATERULE",
       "group": "timeseries",
-      "description": "Create a compaction rule",
+      "summary": "Create a compaction rule",
       "since": "1.0.0",
       "usage": "TS.CREATERULE sourceKey destKey AGGREGATION <AVG | FIRST | LAST |\n  MIN | MAX | SUM | RANGE | COUNT | STD.P | STD.S | VAR.P | VAR.S |\n  TWA> bucketDuration [alignTimestamp]"
     },
@@ -3456,7 +3456,7 @@ const enCommands =
       "key": "TS.DECRBY",
       "title": "TS.DECRBY",
       "group": "timeseries",
-      "description": "Decrease the value of the sample with the maximum existing timestamp, or create a new sample with a value equal to the value of the sample with the maximum existing timestamp with a given decrement",
+      "summary": "Decrease the value of the sample with the maximum existing timestamp, or create a new sample with a value equal to the value of the sample with the maximum existing timestamp with a given decrement",
       "since": "1.0.0",
       "usage": "TS.DECRBY key value [TIMESTAMP timestamp]\n  [RETENTION retentionPeriod] [UNCOMPRESSED] [CHUNK_SIZE size]\n  [LABELS label value [label value ...]]"
     },
@@ -3464,7 +3464,7 @@ const enCommands =
       "key": "TS.DEL",
       "title": "TS.DEL",
       "group": "timeseries",
-      "description": "Delete all samples between two timestamps for a given time series",
+      "summary": "Delete all samples between two timestamps for a given time series",
       "since": "1.6.0",
       "usage": "TS.DEL key from_timestamp to_timestamp"
     },
@@ -3472,7 +3472,7 @@ const enCommands =
       "key": "TS.DELETERULE",
       "title": "TS.DELETERULE",
       "group": "timeseries",
-      "description": "Delete a compaction rule",
+      "summary": "Delete a compaction rule",
       "since": "1.0.0",
       "usage": "TS.DELETERULE sourceKey destKey"
     },
@@ -3480,7 +3480,7 @@ const enCommands =
       "key": "TS.GET",
       "title": "TS.GET",
       "group": "timeseries",
-      "description": "Get the sample with the highest timestamp from a given time series",
+      "summary": "Get the sample with the highest timestamp from a given time series",
       "since": "1.0.0",
       "usage": "TS.GET key [LATEST]"
     },
@@ -3488,7 +3488,7 @@ const enCommands =
       "key": "TS.INCRBY",
       "title": "TS.INCRBY",
       "group": "timeseries",
-      "description": "Increase the value of the sample with the maximum existing timestamp, or create a new sample with a value equal to the value of the sample with the maximum existing timestamp with a given increment",
+      "summary": "Increase the value of the sample with the maximum existing timestamp, or create a new sample with a value equal to the value of the sample with the maximum existing timestamp with a given increment",
       "since": "1.0.0",
       "usage": "TS.INCRBY key value [TIMESTAMP timestamp]\n  [RETENTION retentionPeriod] [UNCOMPRESSED] [CHUNK_SIZE size]\n  [LABELS label value [label value ...]]"
     },
@@ -3496,7 +3496,7 @@ const enCommands =
       "key": "TS.INFO",
       "title": "TS.INFO",
       "group": "timeseries",
-      "description": "Returns information and statistics for a time series",
+      "summary": "Returns information and statistics for a time series",
       "since": "1.0.0",
       "usage": "TS.INFO key [DEBUG]"
     },
@@ -3504,7 +3504,7 @@ const enCommands =
       "key": "TS.MADD",
       "title": "TS.MADD",
       "group": "timeseries",
-      "description": "Append new samples to one or more time series",
+      "summary": "Append new samples to one or more time series",
       "since": "1.0.0",
       "usage": "TS.MADD key timestamp value [key timestamp value ...]"
     },
@@ -3512,7 +3512,7 @@ const enCommands =
       "key": "TS.MGET",
       "title": "TS.MGET",
       "group": "timeseries",
-      "description": "Get the sample with the highest timestamp from each time series matching a specific filter",
+      "summary": "Get the sample with the highest timestamp from each time series matching a specific filter",
       "since": "1.0.0",
       "usage": "TS.MGET [LATEST] [WITHLABELS | SELECTED_LABELS label1 [label1 ...]]\n  FILTER <l=v | l!=v | l= | l!= | l=(v1,v2,...) | l!=(v1,v2,...)\n  [l=v | l!=v | l= | l!= | l=(v1,v2,...) | l!=(v1,v2,...) ...]>"
     },
@@ -3520,7 +3520,7 @@ const enCommands =
       "key": "TS.MRANGE",
       "title": "TS.MRANGE",
       "group": "timeseries",
-      "description": "Query a range across multiple time series by filters in forward direction",
+      "summary": "Query a range across multiple time series by filters in forward direction",
       "since": "1.0.0",
       "usage": "TS.MRANGE fromTimestamp toTimestamp [LATEST] [FILTER_BY_TS Timestamp\n  [Timestamp ...]] [FILTER_BY_VALUE min max] [WITHLABELS |\n  SELECTED_LABELS label1 [label1 ...]] [COUNT count] [[ALIGN value]\n  AGGREGATION <AVG | FIRST | LAST | MIN | MAX | SUM | RANGE | COUNT\n  | STD.P | STD.S | VAR.P | VAR.S | TWA> bucketDuration\n  [BUCKETTIMESTAMP] [EMPTY]] FILTER <l=v | l!=v | l= | l!= |\n  l=(v1,v2,...) | l!=(v1,v2,...) [l=v | l!=v | l= | l!= |\n  l=(v1,v2,...) | l!=(v1,v2,...) ...]> [GROUPBY label REDUCE\n  reducer]"
     },
@@ -3528,7 +3528,7 @@ const enCommands =
       "key": "TS.MREVRANGE",
       "title": "TS.MREVRANGE",
       "group": "timeseries",
-      "description": "Query a range across multiple time-series by filters in reverse direction",
+      "summary": "Query a range across multiple time-series by filters in reverse direction",
       "since": "1.4.0",
       "usage": "TS.MREVRANGE fromTimestamp toTimestamp [LATEST]\n  [FILTER_BY_TS Timestamp [Timestamp ...]] [FILTER_BY_VALUE min max]\n  [WITHLABELS | SELECTED_LABELS label1 [label1 ...]] [COUNT count]\n  [[ALIGN value] AGGREGATION <AVG | FIRST | LAST | MIN | MAX | SUM |\n  RANGE | COUNT | STD.P | STD.S | VAR.P | VAR.S | TWA>\n  bucketDuration [BUCKETTIMESTAMP] [EMPTY]] FILTER <l=v | l!=v | l=\n  | l!= | l=(v1,v2,...) | l!=(v1,v2,...) [l=v | l!=v | l= | l!= |\n  l=(v1,v2,...) | l!=(v1,v2,...) ...]> [GROUPBY label REDUCE\n  reducer]"
     },
@@ -3536,7 +3536,7 @@ const enCommands =
       "key": "TS.QUERYINDEX",
       "title": "TS.QUERYINDEX",
       "group": "timeseries",
-      "description": "Get all time series keys matching a filter list",
+      "summary": "Get all time series keys matching a filter list",
       "since": "1.0.0",
       "usage": "TS.QUERYINDEX <l=v | l!=v | l= | l!= | l=(v1,v2,...) |\n  l!=(v1,v2,...) [l=v | l!=v | l= | l!= | l=(v1,v2,...) |\n  l!=(v1,v2,...) ...]>"
     },
@@ -3544,7 +3544,7 @@ const enCommands =
       "key": "TS.RANGE",
       "title": "TS.RANGE",
       "group": "timeseries",
-      "description": "Query a range in forward direction",
+      "summary": "Query a range in forward direction",
       "since": "1.0.0",
       "usage": "TS.RANGE key fromTimestamp toTimestamp [LATEST]\n  [FILTER_BY_TS Timestamp [Timestamp ...]] [FILTER_BY_VALUE min max]\n  [COUNT count] [[ALIGN value] AGGREGATION <AVG | FIRST | LAST | MIN\n  | MAX | SUM | RANGE | COUNT | STD.P | STD.S | VAR.P | VAR.S | TWA>\n  bucketDuration [BUCKETTIMESTAMP] [EMPTY]]"
     },
@@ -3552,7 +3552,7 @@ const enCommands =
       "key": "TS.REVRANGE",
       "title": "TS.REVRANGE",
       "group": "timeseries",
-      "description": "Query a range in reverse direction",
+      "summary": "Query a range in reverse direction",
       "since": "1.4.0",
       "usage": "TS.REVRANGE key fromTimestamp toTimestamp [LATEST]\n  [FILTER_BY_TS Timestamp [Timestamp ...]] [FILTER_BY_VALUE min max]\n  [COUNT count] [[ALIGN value] AGGREGATION <AVG | FIRST | LAST | MIN\n  | MAX | SUM | RANGE | COUNT | STD.P | STD.S | VAR.P | VAR.S | TWA>\n  bucketDuration [BUCKETTIMESTAMP] [EMPTY]]"
     },
@@ -3560,7 +3560,7 @@ const enCommands =
       "key": "TTL",
       "title": "TTL",
       "group": "generic",
-      "description": "Returns the expiration time in seconds of a key.",
+      "summary": "Returns the expiration time in seconds of a key.",
       "since": "1.0.0",
       "usage": "TTL key"
     },
@@ -3568,7 +3568,7 @@ const enCommands =
       "key": "TYPE",
       "title": "TYPE",
       "group": "generic",
-      "description": "Determines the type of value stored at a key.",
+      "summary": "Determines the type of value stored at a key.",
       "since": "1.0.0",
       "usage": "TYPE key"
     },
@@ -3576,7 +3576,7 @@ const enCommands =
       "key": "UNLINK",
       "title": "UNLINK",
       "group": "generic",
-      "description": "Asynchronously deletes one or more keys.",
+      "summary": "Asynchronously deletes one or more keys.",
       "since": "4.0.0",
       "usage": "UNLINK key [key ...]"
     },
@@ -3584,7 +3584,7 @@ const enCommands =
       "key": "UNSUBSCRIBE",
       "title": "UNSUBSCRIBE",
       "group": "pubsub",
-      "description": "Stops listening to messages posted to channels.",
+      "summary": "Stops listening to messages posted to channels.",
       "since": "2.0.0",
       "usage": "UNSUBSCRIBE [channel [channel ...]]"
     },
@@ -3592,7 +3592,7 @@ const enCommands =
       "key": "UNWATCH",
       "title": "UNWATCH",
       "group": "transactions",
-      "description": "Forgets about watched keys of a transaction.",
+      "summary": "Forgets about watched keys of a transaction.",
       "since": "2.2.0",
       "usage": "UNWATCH"
     },
@@ -3600,7 +3600,7 @@ const enCommands =
       "key": "VADD",
       "title": "VADD",
       "group": "vector_set",
-      "description": "Add a new element to a vector set, or update its vector if it already exists.",
+      "summary": "Add a new element to a vector set, or update its vector if it already exists.",
       "since": "8.0.0",
       "usage": "VADD key [REDUCE dim] (FP32 | VALUES num) vector element [CAS] [NOQUANT | Q8 | BIN]\n  [EF build-exploration-factor] [SETATTR attributes] [M numlinks]"
     },
@@ -3608,7 +3608,7 @@ const enCommands =
       "key": "VCARD",
       "title": "VCARD",
       "group": "vector_set",
-      "description": "Return the number of elements in a vector set.",
+      "summary": "Return the number of elements in a vector set.",
       "since": "8.0.0",
       "usage": "VCARD key"
     },
@@ -3616,7 +3616,7 @@ const enCommands =
       "key": "VDIM",
       "title": "VDIM",
       "group": "vector_set",
-      "description": "Return the dimension of vectors in the vector set.",
+      "summary": "Return the dimension of vectors in the vector set.",
       "since": "8.0.0",
       "usage": "VDIM key"
     },
@@ -3624,7 +3624,7 @@ const enCommands =
       "key": "VEMB",
       "title": "VEMB",
       "group": "vector_set",
-      "description": "Return the vector associated with an element.",
+      "summary": "Return the vector associated with an element.",
       "since": "8.0.0",
       "usage": "VEMB key element [RAW]"
     },
@@ -3632,7 +3632,7 @@ const enCommands =
       "key": "VGETATTR",
       "title": "VGETATTR",
       "group": "vector_set",
-      "description": "Retrieve the JSON attributes of elements.",
+      "summary": "Retrieve the JSON attributes of elements.",
       "since": "8.0.0",
       "usage": "VGETATTR key element"
     },
@@ -3640,7 +3640,7 @@ const enCommands =
       "key": "VINFO",
       "title": "VINFO",
       "group": "vector_set",
-      "description": "Return information about a vector set.",
+      "summary": "Return information about a vector set.",
       "since": "8.0.0",
       "usage": "VINFO key"
     },
@@ -3648,7 +3648,7 @@ const enCommands =
       "key": "VISMEMBER",
       "title": "VISMEMBER",
       "group": "vector_set",
-      "description": "Check if an element exists in a vector set.",
+      "summary": "Check if an element exists in a vector set.",
       "since": "8.0.0",
       "usage": "VISMEMBER key element"
     },
@@ -3656,7 +3656,7 @@ const enCommands =
       "key": "VLINKS",
       "title": "VLINKS",
       "group": "vector_set",
-      "description": "Return the neighbors of an element at each layer in the HNSW graph.",
+      "summary": "Return the neighbors of an element at each layer in the HNSW graph.",
       "since": "8.0.0",
       "usage": "VLINKS key element [WITHSCORES]"
     },
@@ -3664,7 +3664,7 @@ const enCommands =
       "key": "VRANDMEMBER",
       "title": "VRANDMEMBER",
       "group": "vector_set",
-      "description": "Return one or multiple random members from a vector set.",
+      "summary": "Return one or multiple random members from a vector set.",
       "since": "8.0.0",
       "usage": "VRANDMEMBER key [count]"
     },
@@ -3672,7 +3672,7 @@ const enCommands =
       "key": "VRANGE",
       "title": "VRANGE",
       "group": "vector_set",
-      "description": "Return elements in a lexicographical range",
+      "summary": "Return elements in a lexicographical range",
       "since": "8.4.0",
       "usage": "VRANGE key start end [count]"
     },
@@ -3680,7 +3680,7 @@ const enCommands =
       "key": "VREM",
       "title": "VREM",
       "group": "vector_set",
-      "description": "Remove an element from a vector set.",
+      "summary": "Remove an element from a vector set.",
       "since": "8.0.0",
       "usage": "VREM key element"
     },
@@ -3688,7 +3688,7 @@ const enCommands =
       "key": "VSETATTR",
       "title": "VSETATTR",
       "group": "vector_set",
-      "description": "Associate or remove the JSON attributes of elements.",
+      "summary": "Associate or remove the JSON attributes of elements.",
       "since": "8.0.0",
       "usage": "VSETATTR key element \"{ JSON obj }\""
     },
@@ -3696,7 +3696,7 @@ const enCommands =
       "key": "VSIM",
       "title": "VSIM",
       "group": "vector_set",
-      "description": "Return elements by vector similarity.",
+      "summary": "Return elements by vector similarity.",
       "since": "8.0.0",
       "usage": "VSIM key (ELE | FP32 | VALUES num) (vector | element) [WITHSCORES] [WITHATTRIBS] [COUNT num]\n  [EPSILON delta] [EF search-exploration-factor] [FILTER expression] [FILTER-EF max-filtering-effort]\n  [TRUTH] [NOTHREAD]"
     },
@@ -3704,7 +3704,7 @@ const enCommands =
       "key": "WAIT",
       "title": "WAIT",
       "group": "generic",
-      "description": "Blocks until the asynchronous replication of all preceding write commands sent by the connection is completed.",
+      "summary": "Blocks until the asynchronous replication of all preceding write commands sent by the connection is completed.",
       "since": "3.0.0",
       "usage": "WAIT numreplicas timeout"
     },
@@ -3712,7 +3712,7 @@ const enCommands =
       "key": "WAITAOF",
       "title": "WAITAOF",
       "group": "generic",
-      "description": "Blocks until all of the preceding write commands sent by the connection are written to the append-only file of the master and/or replicas.",
+      "summary": "Blocks until all of the preceding write commands sent by the connection are written to the append-only file of the master and/or replicas.",
       "since": "7.2.0",
       "usage": "WAITAOF numlocal numreplicas timeout"
     },
@@ -3720,7 +3720,7 @@ const enCommands =
       "key": "WATCH",
       "title": "WATCH",
       "group": "transactions",
-      "description": "Monitors changes to keys to determine the execution of a transaction.",
+      "summary": "Monitors changes to keys to determine the execution of a transaction.",
       "since": "2.2.0",
       "usage": "WATCH key [key ...]"
     },
@@ -3728,7 +3728,7 @@ const enCommands =
       "key": "XACK",
       "title": "XACK",
       "group": "stream",
-      "description": "Returns the number of messages that were successfully acknowledged by the consumer group member of a stream.",
+      "summary": "Returns the number of messages that were successfully acknowledged by the consumer group member of a stream.",
       "since": "5.0.0",
       "usage": "XACK key group id [id ...]"
     },
@@ -3736,7 +3736,7 @@ const enCommands =
       "key": "XACKDEL",
       "title": "XACKDEL",
       "group": "stream",
-      "description": "Acknowledges and conditionally deletes one or multiple entries for a stream consumer group.",
+      "summary": "Acknowledges and conditionally deletes one or multiple entries for a stream consumer group.",
       "since": "8.2.0",
       "usage": "XACKDEL key group [KEEPREF | DELREF | ACKED] IDS numids id [id ...]"
     },
@@ -3744,7 +3744,7 @@ const enCommands =
       "key": "XADD",
       "title": "XADD",
       "group": "stream",
-      "description": "Appends a new message to a stream. Creates the key if it doesn't exist.",
+      "summary": "Appends a new message to a stream. Creates the key if it doesn't exist.",
       "since": "5.0.0",
       "usage": "XADD key [NOMKSTREAM] [KEEPREF | DELREF | ACKED] [<MAXLEN | MINID> [= | ~] threshold\n  [LIMIT count]] <* | id> field value [field value ...]"
     },
@@ -3752,7 +3752,7 @@ const enCommands =
       "key": "XAUTOCLAIM",
       "title": "XAUTOCLAIM",
       "group": "stream",
-      "description": "Changes, or acquires, ownership of messages in a consumer group, as if the messages were delivered to as consumer group member.",
+      "summary": "Changes, or acquires, ownership of messages in a consumer group, as if the messages were delivered to as consumer group member.",
       "since": "6.2.0",
       "usage": "XAUTOCLAIM key group consumer min-idle-time start [COUNT count]\n  [JUSTID]"
     },
@@ -3760,7 +3760,7 @@ const enCommands =
       "key": "XCLAIM",
       "title": "XCLAIM",
       "group": "stream",
-      "description": "Changes, or acquires, ownership of a message in a consumer group, as if the message was delivered a consumer group member.",
+      "summary": "Changes, or acquires, ownership of a message in a consumer group, as if the message was delivered a consumer group member.",
       "since": "5.0.0",
       "usage": "XCLAIM key group consumer min-idle-time id [id ...] [IDLE ms]\n  [TIME unix-time-milliseconds] [RETRYCOUNT count] [FORCE] [JUSTID]\n  [LASTID lastid]"
     },
@@ -3768,7 +3768,7 @@ const enCommands =
       "key": "XDEL",
       "title": "XDEL",
       "group": "stream",
-      "description": "Returns the number of messages after removing them from a stream.",
+      "summary": "Returns the number of messages after removing them from a stream.",
       "since": "5.0.0",
       "usage": "XDEL key id [id ...]"
     },
@@ -3776,7 +3776,7 @@ const enCommands =
       "key": "XDELEX",
       "title": "XDELEX",
       "group": "stream",
-      "description": "Deletes one or multiple entries from the stream.",
+      "summary": "Deletes one or multiple entries from the stream.",
       "since": "8.2.0",
       "usage": "XDELEX key [KEEPREF | DELREF | ACKED] IDS numids id [id ...]"
     },
@@ -3784,7 +3784,7 @@ const enCommands =
       "key": "XGROUP CREATE",
       "title": "XGROUP CREATE",
       "group": "stream",
-      "description": "Creates a consumer group.",
+      "summary": "Creates a consumer group.",
       "since": "5.0.0",
       "usage": "XGROUP CREATE key group <id | $> [MKSTREAM]\n  [ENTRIESREAD entries-read]"
     },
@@ -3792,7 +3792,7 @@ const enCommands =
       "key": "XGROUP CREATECONSUMER",
       "title": "XGROUP CREATECONSUMER",
       "group": "stream",
-      "description": "Creates a consumer in a consumer group.",
+      "summary": "Creates a consumer in a consumer group.",
       "since": "6.2.0",
       "usage": "XGROUP CREATECONSUMER key group consumer"
     },
@@ -3800,7 +3800,7 @@ const enCommands =
       "key": "XGROUP DELCONSUMER",
       "title": "XGROUP DELCONSUMER",
       "group": "stream",
-      "description": "Deletes a consumer from a consumer group.",
+      "summary": "Deletes a consumer from a consumer group.",
       "since": "5.0.0",
       "usage": "XGROUP DELCONSUMER key group consumer"
     },
@@ -3808,7 +3808,7 @@ const enCommands =
       "key": "XGROUP DESTROY",
       "title": "XGROUP DESTROY",
       "group": "stream",
-      "description": "Destroys a consumer group.",
+      "summary": "Destroys a consumer group.",
       "since": "5.0.0",
       "usage": "XGROUP DESTROY key group"
     },
@@ -3816,7 +3816,7 @@ const enCommands =
       "key": "XGROUP HELP",
       "title": "XGROUP HELP",
       "group": "stream",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "5.0.0",
       "usage": "XGROUP HELP"
     },
@@ -3824,7 +3824,7 @@ const enCommands =
       "key": "XGROUP SETID",
       "title": "XGROUP SETID",
       "group": "stream",
-      "description": "Sets the last-delivered ID of a consumer group.",
+      "summary": "Sets the last-delivered ID of a consumer group.",
       "since": "5.0.0",
       "usage": "XGROUP SETID key group <id | $> [ENTRIESREAD entries-read]"
     },
@@ -3832,7 +3832,7 @@ const enCommands =
       "key": "XGROUP",
       "title": "XGROUP",
       "group": "stream",
-      "description": "A container for consumer groups commands.",
+      "summary": "A container for consumer groups commands.",
       "since": "5.0.0",
       "usage": "XGROUP"
     },
@@ -3840,7 +3840,7 @@ const enCommands =
       "key": "XINFO CONSUMERS",
       "title": "XINFO CONSUMERS",
       "group": "stream",
-      "description": "Returns a list of the consumers in a consumer group.",
+      "summary": "Returns a list of the consumers in a consumer group.",
       "since": "5.0.0",
       "usage": "XINFO CONSUMERS key group"
     },
@@ -3848,7 +3848,7 @@ const enCommands =
       "key": "XINFO GROUPS",
       "title": "XINFO GROUPS",
       "group": "stream",
-      "description": "Returns a list of the consumer groups of a stream.",
+      "summary": "Returns a list of the consumer groups of a stream.",
       "since": "5.0.0",
       "usage": "XINFO GROUPS key"
     },
@@ -3856,7 +3856,7 @@ const enCommands =
       "key": "XINFO HELP",
       "title": "XINFO HELP",
       "group": "stream",
-      "description": "Returns helpful text about the different subcommands.",
+      "summary": "Returns helpful text about the different subcommands.",
       "since": "5.0.0",
       "usage": "XINFO HELP"
     },
@@ -3864,7 +3864,7 @@ const enCommands =
       "key": "XINFO STREAM",
       "title": "XINFO STREAM",
       "group": "stream",
-      "description": "Returns information about a stream.",
+      "summary": "Returns information about a stream.",
       "since": "5.0.0",
       "usage": "XINFO STREAM key [FULL [COUNT count]]"
     },
@@ -3872,7 +3872,7 @@ const enCommands =
       "key": "XINFO",
       "title": "XINFO",
       "group": "stream",
-      "description": "A container for stream introspection commands.",
+      "summary": "A container for stream introspection commands.",
       "since": "5.0.0",
       "usage": "XINFO"
     },
@@ -3880,7 +3880,7 @@ const enCommands =
       "key": "XLEN",
       "title": "XLEN",
       "group": "stream",
-      "description": "Return the number of messages in a stream.",
+      "summary": "Return the number of messages in a stream.",
       "since": "5.0.0",
       "usage": "XLEN key"
     },
@@ -3888,7 +3888,7 @@ const enCommands =
       "key": "XPENDING",
       "title": "XPENDING",
       "group": "stream",
-      "description": "Returns the information and entries from a stream consumer group's pending entries list.",
+      "summary": "Returns the information and entries from a stream consumer group's pending entries list.",
       "since": "5.0.0",
       "usage": "XPENDING key group [[IDLE min-idle-time] start end count [consumer]]"
     },
@@ -3896,7 +3896,7 @@ const enCommands =
       "key": "XRANGE",
       "title": "XRANGE",
       "group": "stream",
-      "description": "Returns the messages from a stream within a range of IDs.",
+      "summary": "Returns the messages from a stream within a range of IDs.",
       "since": "5.0.0",
       "usage": "XRANGE key start end [COUNT count]"
     },
@@ -3904,7 +3904,7 @@ const enCommands =
       "key": "XREAD",
       "title": "XREAD",
       "group": "stream",
-      "description": "Returns messages from multiple streams with IDs greater than the ones requested. Blocks until a message is available otherwise.",
+      "summary": "Returns messages from multiple streams with IDs greater than the ones requested. Blocks until a message is available otherwise.",
       "since": "5.0.0",
       "usage": "XREAD [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] id\n  [id ...]"
     },
@@ -3912,7 +3912,7 @@ const enCommands =
       "key": "XREADGROUP",
       "title": "XREADGROUP",
       "group": "stream",
-      "description": "Returns new or historical messages from a stream for a consumer in a group. Blocks until a message is available otherwise.",
+      "summary": "Returns new or historical messages from a stream for a consumer in a group. Blocks until a message is available otherwise.",
       "since": "5.0.0",
       "usage": "XREADGROUP GROUP group consumer [COUNT count] [BLOCK milliseconds]\n  [CLAIM min-idle-time] [NOACK] STREAMS key [key ...] id [id ...]"
     },
@@ -3920,7 +3920,7 @@ const enCommands =
       "key": "XREVRANGE",
       "title": "XREVRANGE",
       "group": "stream",
-      "description": "Returns the messages from a stream within a range of IDs in reverse order.",
+      "summary": "Returns the messages from a stream within a range of IDs in reverse order.",
       "since": "5.0.0",
       "usage": "XREVRANGE key end start [COUNT count]"
     },
@@ -3928,7 +3928,7 @@ const enCommands =
       "key": "XSETID",
       "title": "XSETID",
       "group": "stream",
-      "description": "An internal command for replicating stream values.",
+      "summary": "An internal command for replicating stream values.",
       "since": "5.0.0",
       "usage": "XSETID key last-id [ENTRIESADDED entries-added]\n  [MAXDELETEDID max-deleted-id]"
     },
@@ -3936,7 +3936,7 @@ const enCommands =
       "key": "XTRIM",
       "title": "XTRIM",
       "group": "stream",
-      "description": "Deletes messages from the beginning of a stream.",
+      "summary": "Deletes messages from the beginning of a stream.",
       "since": "5.0.0",
       "usage": "XTRIM key <MAXLEN | MINID> [= | ~] threshold [LIMIT count] [KEEPREF | DELREF | ACKED]"
     },
@@ -3944,7 +3944,7 @@ const enCommands =
       "key": "ZADD",
       "title": "ZADD",
       "group": "sorted-set",
-      "description": "Adds one or more members to a sorted set, or updates their scores. Creates the key if it doesn't exist.",
+      "summary": "Adds one or more members to a sorted set, or updates their scores. Creates the key if it doesn't exist.",
       "since": "1.2.0",
       "usage": "ZADD key [NX | XX] [GT | LT] [CH] [INCR] score member [score member\n  ...]"
     },
@@ -3952,7 +3952,7 @@ const enCommands =
       "key": "ZCARD",
       "title": "ZCARD",
       "group": "sorted-set",
-      "description": "Returns the number of members in a sorted set.",
+      "summary": "Returns the number of members in a sorted set.",
       "since": "1.2.0",
       "usage": "ZCARD key"
     },
@@ -3960,7 +3960,7 @@ const enCommands =
       "key": "ZCOUNT",
       "title": "ZCOUNT",
       "group": "sorted-set",
-      "description": "Returns the count of members in a sorted set that have scores within a range.",
+      "summary": "Returns the count of members in a sorted set that have scores within a range.",
       "since": "2.0.0",
       "usage": "ZCOUNT key min max"
     },
@@ -3968,7 +3968,7 @@ const enCommands =
       "key": "ZDIFF",
       "title": "ZDIFF",
       "group": "sorted-set",
-      "description": "Returns the difference between multiple sorted sets.",
+      "summary": "Returns the difference between multiple sorted sets.",
       "since": "6.2.0",
       "usage": "ZDIFF numkeys key [key ...] [WITHSCORES]"
     },
@@ -3976,7 +3976,7 @@ const enCommands =
       "key": "ZDIFFSTORE",
       "title": "ZDIFFSTORE",
       "group": "sorted-set",
-      "description": "Stores the difference of multiple sorted sets in a key.",
+      "summary": "Stores the difference of multiple sorted sets in a key.",
       "since": "6.2.0",
       "usage": "ZDIFFSTORE destination numkeys key [key ...]"
     },
@@ -3984,7 +3984,7 @@ const enCommands =
       "key": "ZINCRBY",
       "title": "ZINCRBY",
       "group": "sorted-set",
-      "description": "Increments the score of a member in a sorted set.",
+      "summary": "Increments the score of a member in a sorted set.",
       "since": "1.2.0",
       "usage": "ZINCRBY key increment member"
     },
@@ -3992,7 +3992,7 @@ const enCommands =
       "key": "ZINTER",
       "title": "ZINTER",
       "group": "sorted-set",
-      "description": "Returns the intersect of multiple sorted sets.",
+      "summary": "Returns the intersect of multiple sorted sets.",
       "since": "6.2.0",
       "usage": "ZINTER numkeys key [key ...] [WEIGHTS weight [weight ...]]\n  [AGGREGATE <SUM | MIN | MAX>] [WITHSCORES]"
     },
@@ -4000,7 +4000,7 @@ const enCommands =
       "key": "ZINTERCARD",
       "title": "ZINTERCARD",
       "group": "sorted-set",
-      "description": "Returns the number of members of the intersect of multiple sorted sets.",
+      "summary": "Returns the number of members of the intersect of multiple sorted sets.",
       "since": "7.0.0",
       "usage": "ZINTERCARD numkeys key [key ...] [LIMIT limit]"
     },
@@ -4008,7 +4008,7 @@ const enCommands =
       "key": "ZINTERSTORE",
       "title": "ZINTERSTORE",
       "group": "sorted-set",
-      "description": "Stores the intersect of multiple sorted sets in a key.",
+      "summary": "Stores the intersect of multiple sorted sets in a key.",
       "since": "2.0.0",
       "usage": "ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight\n  [weight ...]] [AGGREGATE <SUM | MIN | MAX>]"
     },
@@ -4016,7 +4016,7 @@ const enCommands =
       "key": "ZLEXCOUNT",
       "title": "ZLEXCOUNT",
       "group": "sorted-set",
-      "description": "Returns the number of members in a sorted set within a lexicographical range.",
+      "summary": "Returns the number of members in a sorted set within a lexicographical range.",
       "since": "2.8.9",
       "usage": "ZLEXCOUNT key min max"
     },
@@ -4024,7 +4024,7 @@ const enCommands =
       "key": "ZMPOP",
       "title": "ZMPOP",
       "group": "sorted-set",
-      "description": "Returns the highest- or lowest-scoring members from one or more sorted sets after removing them. Deletes the sorted set if the last member was popped.",
+      "summary": "Returns the highest- or lowest-scoring members from one or more sorted sets after removing them. Deletes the sorted set if the last member was popped.",
       "since": "7.0.0",
       "usage": "ZMPOP numkeys key [key ...] <MIN | MAX> [COUNT count]"
     },
@@ -4032,7 +4032,7 @@ const enCommands =
       "key": "ZMSCORE",
       "title": "ZMSCORE",
       "group": "sorted-set",
-      "description": "Returns the score of one or more members in a sorted set.",
+      "summary": "Returns the score of one or more members in a sorted set.",
       "since": "6.2.0",
       "usage": "ZMSCORE key member [member ...]"
     },
@@ -4040,7 +4040,7 @@ const enCommands =
       "key": "ZPOPMAX",
       "title": "ZPOPMAX",
       "group": "sorted-set",
-      "description": "Returns the highest-scoring members from a sorted set after removing them. Deletes the sorted set if the last member was popped.",
+      "summary": "Returns the highest-scoring members from a sorted set after removing them. Deletes the sorted set if the last member was popped.",
       "since": "5.0.0",
       "usage": "ZPOPMAX key [count]"
     },
@@ -4048,7 +4048,7 @@ const enCommands =
       "key": "ZPOPMIN",
       "title": "ZPOPMIN",
       "group": "sorted-set",
-      "description": "Returns the lowest-scoring members from a sorted set after removing them. Deletes the sorted set if the last member was popped.",
+      "summary": "Returns the lowest-scoring members from a sorted set after removing them. Deletes the sorted set if the last member was popped.",
       "since": "5.0.0",
       "usage": "ZPOPMIN key [count]"
     },
@@ -4056,7 +4056,7 @@ const enCommands =
       "key": "ZRANDMEMBER",
       "title": "ZRANDMEMBER",
       "group": "sorted-set",
-      "description": "Returns one or more random members from a sorted set.",
+      "summary": "Returns one or more random members from a sorted set.",
       "since": "6.2.0",
       "usage": "ZRANDMEMBER key [count [WITHSCORES]]"
     },
@@ -4064,7 +4064,7 @@ const enCommands =
       "key": "ZRANGE",
       "title": "ZRANGE",
       "group": "sorted-set",
-      "description": "Returns members in a sorted set within a range of indexes.",
+      "summary": "Returns members in a sorted set within a range of indexes.",
       "since": "1.2.0",
       "usage": "ZRANGE key start stop [BYSCORE | BYLEX] [REV] [LIMIT offset count]\n  [WITHSCORES]"
     },
@@ -4072,7 +4072,7 @@ const enCommands =
       "key": "ZRANGEBYLEX",
       "title": "ZRANGEBYLEX",
       "group": "sorted-set",
-      "description": "Returns members in a sorted set within a lexicographical range.",
+      "summary": "Returns members in a sorted set within a lexicographical range.",
       "since": "2.8.9",
       "usage": "ZRANGEBYLEX key min max [LIMIT offset count]"
     },
@@ -4080,7 +4080,7 @@ const enCommands =
       "key": "ZRANGEBYSCORE",
       "title": "ZRANGEBYSCORE",
       "group": "sorted-set",
-      "description": "Returns members in a sorted set within a range of scores.",
+      "summary": "Returns members in a sorted set within a range of scores.",
       "since": "1.0.5",
       "usage": "ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]"
     },
@@ -4088,7 +4088,7 @@ const enCommands =
       "key": "ZRANGESTORE",
       "title": "ZRANGESTORE",
       "group": "sorted-set",
-      "description": "Stores a range of members from sorted set in a key.",
+      "summary": "Stores a range of members from sorted set in a key.",
       "since": "6.2.0",
       "usage": "ZRANGESTORE dst src min max [BYSCORE | BYLEX] [REV] [LIMIT offset\n  count]"
     },
@@ -4096,7 +4096,7 @@ const enCommands =
       "key": "ZRANK",
       "title": "ZRANK",
       "group": "sorted-set",
-      "description": "Returns the index of a member in a sorted set ordered by ascending scores.",
+      "summary": "Returns the index of a member in a sorted set ordered by ascending scores.",
       "since": "2.0.0",
       "usage": "ZRANK key member [WITHSCORE]"
     },
@@ -4104,7 +4104,7 @@ const enCommands =
       "key": "ZREM",
       "title": "ZREM",
       "group": "sorted-set",
-      "description": "Removes one or more members from a sorted set. Deletes the sorted set if all members were removed.",
+      "summary": "Removes one or more members from a sorted set. Deletes the sorted set if all members were removed.",
       "since": "1.2.0",
       "usage": "ZREM key member [member ...]"
     },
@@ -4112,7 +4112,7 @@ const enCommands =
       "key": "ZREMRANGEBYLEX",
       "title": "ZREMRANGEBYLEX",
       "group": "sorted-set",
-      "description": "Removes members in a sorted set within a lexicographical range. Deletes the sorted set if all members were removed.",
+      "summary": "Removes members in a sorted set within a lexicographical range. Deletes the sorted set if all members were removed.",
       "since": "2.8.9",
       "usage": "ZREMRANGEBYLEX key min max"
     },
@@ -4120,7 +4120,7 @@ const enCommands =
       "key": "ZREMRANGEBYRANK",
       "title": "ZREMRANGEBYRANK",
       "group": "sorted-set",
-      "description": "Removes members in a sorted set within a range of indexes. Deletes the sorted set if all members were removed.",
+      "summary": "Removes members in a sorted set within a range of indexes. Deletes the sorted set if all members were removed.",
       "since": "2.0.0",
       "usage": "ZREMRANGEBYRANK key start stop"
     },
@@ -4128,7 +4128,7 @@ const enCommands =
       "key": "ZREMRANGEBYSCORE",
       "title": "ZREMRANGEBYSCORE",
       "group": "sorted-set",
-      "description": "Removes members in a sorted set within a range of scores. Deletes the sorted set if all members were removed.",
+      "summary": "Removes members in a sorted set within a range of scores. Deletes the sorted set if all members were removed.",
       "since": "1.2.0",
       "usage": "ZREMRANGEBYSCORE key min max"
     },
@@ -4136,7 +4136,7 @@ const enCommands =
       "key": "ZREVRANGE",
       "title": "ZREVRANGE",
       "group": "sorted-set",
-      "description": "Returns members in a sorted set within a range of indexes in reverse order.",
+      "summary": "Returns members in a sorted set within a range of indexes in reverse order.",
       "since": "1.2.0",
       "usage": "ZREVRANGE key start stop [WITHSCORES]"
     },
@@ -4144,7 +4144,7 @@ const enCommands =
       "key": "ZREVRANGEBYLEX",
       "title": "ZREVRANGEBYLEX",
       "group": "sorted-set",
-      "description": "Returns members in a sorted set within a lexicographical range in reverse order.",
+      "summary": "Returns members in a sorted set within a lexicographical range in reverse order.",
       "since": "2.8.9",
       "usage": "ZREVRANGEBYLEX key max min [LIMIT offset count]"
     },
@@ -4152,7 +4152,7 @@ const enCommands =
       "key": "ZREVRANGEBYSCORE",
       "title": "ZREVRANGEBYSCORE",
       "group": "sorted-set",
-      "description": "Returns members in a sorted set within a range of scores in reverse order.",
+      "summary": "Returns members in a sorted set within a range of scores in reverse order.",
       "since": "2.2.0",
       "usage": "ZREVRANGEBYSCORE key max min [WITHSCORES] [LIMIT offset count]"
     },
@@ -4160,7 +4160,7 @@ const enCommands =
       "key": "ZREVRANK",
       "title": "ZREVRANK",
       "group": "sorted-set",
-      "description": "Returns the index of a member in a sorted set ordered by descending scores.",
+      "summary": "Returns the index of a member in a sorted set ordered by descending scores.",
       "since": "2.0.0",
       "usage": "ZREVRANK key member [WITHSCORE]"
     },
@@ -4168,7 +4168,7 @@ const enCommands =
       "key": "ZSCAN",
       "title": "ZSCAN",
       "group": "sorted-set",
-      "description": "Iterates over members and scores of a sorted set.",
+      "summary": "Iterates over members and scores of a sorted set.",
       "since": "2.8.0",
       "usage": "ZSCAN key cursor [MATCH pattern] [COUNT count]"
     },
@@ -4176,7 +4176,7 @@ const enCommands =
       "key": "ZSCORE",
       "title": "ZSCORE",
       "group": "sorted-set",
-      "description": "Returns the score of a member in a sorted set.",
+      "summary": "Returns the score of a member in a sorted set.",
       "since": "1.2.0",
       "usage": "ZSCORE key member"
     },
@@ -4184,7 +4184,7 @@ const enCommands =
       "key": "ZUNION",
       "title": "ZUNION",
       "group": "sorted-set",
-      "description": "Returns the union of multiple sorted sets.",
+      "summary": "Returns the union of multiple sorted sets.",
       "since": "6.2.0",
       "usage": "ZUNION numkeys key [key ...] [WEIGHTS weight [weight ...]]\n  [AGGREGATE <SUM | MIN | MAX>] [WITHSCORES]"
     },
@@ -4192,7 +4192,7 @@ const enCommands =
       "key": "ZUNIONSTORE",
       "title": "ZUNIONSTORE",
       "group": "sorted-set",
-      "description": "Stores the union of multiple sorted sets in a key.",
+      "summary": "Stores the union of multiple sorted sets in a key.",
       "since": "2.0.0",
       "usage": "ZUNIONSTORE destination numkeys key [key ...] [WEIGHTS weight\n  [weight ...]] [AGGREGATE <SUM | MIN | MAX>]"
     }
@@ -4727,15 +4727,15 @@ const zhDescription = [
   "将多个有序集合的并集存储到键"
 ]
 for (let i = 0; i < zhCommands.length; i++) {
-  zhCommands[i].description = zhDescription[i]
+  zhCommands[i].summary = zhDescription[i]
 }
 
-// 将since和group添加到description中
+// description: summary + since + group
 enCommands.forEach(command => {
-  command.description += ` @since ${command.since} [${command.group}]`
+  command.description = `${command.summary} @since ${command.since} [${command.group}]`
 })
 zhCommands.forEach(command => {
-  command.description += ` @since ${command.since} 【${command.group}】`
+  command.description = `${command.summary} @since ${command.since} 【${command.group}】`
 })
 
 export const commandHelp = computed(() => isZh.value ? zhCommands : enCommands)

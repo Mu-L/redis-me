@@ -42,7 +42,7 @@ fs.readdirSync(dir).forEach(file => {
       key: title,
       title,
       group,
-      description: summary,
+      summary,
       since,
       usage: syntax_fmt
     })

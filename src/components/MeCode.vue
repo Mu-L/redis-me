@@ -46,17 +46,24 @@ const extensions = [meBasicSetup] // 不使用默认的basicSetup，自己定义
 html.dark .vue-codemirror {
   background-color: #272822;
 
+  :deep(.ͼ3 .cm-gutters) {
+    background-color: #272822;
+  }
+
   /* JSON值在黑色模式下红色看着不舒服，因此改下 */
+  /* Json的字符串值 */
   :deep(.ͼe) {
     color: #e6db74;
   }
 
-  :deep(.ͼd) {
-    color: #e6db74;
+  /* Json的布尔值 */
+  :deep(.ͼc) {
+    color: var(--el-color-primary);
   }
 
-  :deep(.ͼ3 .cm-gutters) {
-    background-color: #272822;
+  /* Json的数字值 */
+  :deep(.ͼd) {
+    color: var(--el-color-success);
   }
 }
 </style>

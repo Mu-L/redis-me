@@ -91,6 +91,11 @@ function onKeydown(e){
 //  color: var(--el-color-primary);
 //}
 
+/* help命令表格默认15px改为5px */
+.t-table, .t-table tr, .t-table td, .t-table tbody, .t-table thead {
+  padding: 5px !important;
+}
+
 /* 帮助手册 */
 .t-cmd-help {
   top: 5px !important;
@@ -111,7 +116,7 @@ html.dark {
 }
 
 /* 字体设置 */
-.t-window, .t-ask-input, .t-window p, .t-window div, .t-crude-font {
+code, .t-window, .t-ask-input, .t-window p, .t-window div, .t-crude-font {
   font-family: var(--code-font) !important;
 }
 </style>

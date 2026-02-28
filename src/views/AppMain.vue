@@ -132,7 +132,7 @@ function changeReadonly() {
           />
 
           <!-- 导入导出 -->
-          <el-progress class="exportImporting" type="dashboard" status="success"
+          <el-progress class="export-importing" type="dashboard" status="success"
                        :percentage="share.exportImportingPercentage" v-if="share.exportImporting">
             <template #default="{ percentage }">
               <div class="percentage-value">{{ percentage }}%</div>
@@ -193,7 +193,7 @@ function changeReadonly() {
   }
 
   // 版本升级过程中显示下载进度
-  .exportImporting {
+  .export-importing {
     position: absolute;
     right: 20px;
     bottom: 0;

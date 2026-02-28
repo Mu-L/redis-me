@@ -81,6 +81,7 @@ function sidebarChangelog() {
       text: 'Changelog',
       items: [
         {text: 'latest', link: 'latest'},
+        {text: '1.x', link: '1.x'},
         {text: '0.x', link: '0.x'},
       ]
     }

@@ -17,7 +17,6 @@ function colorText(color, text, bold = false) {
 
 const autoBroadcast = ref(true)
 const node  = ref('')
-const hint = computed(() => t('redisTerminal.hint'))
 const prefix = computed(() => node.value ? node.value + '> ' : '$ ')
 const welcome = computed(() => t('redisTerminal.welcome', {RedisME: colorText('var(--el-color-primary)', 'RedisME', true)}))
 
@@ -56,21 +55,75 @@ watch(commandHelp, () => {
     showCode.value = true
   })
 })
+
+// 表格Redis命令的帮助手册显示
+const visible = ref(false)
+const keyword = ref('')
+const group = ref('')
+const groupList = computed(() => new Set(commandHelp.value.map(row => row.group)))
+const filterDataList = computed(() => {
+  const key = keyword.value.toLowerCase()
+  return commandHelp.value.filter(row =>
+       (!key || row.title.toLowerCase().indexOf(key) > -1)
+    && (!group.value || row.group === group.value)
+  )
+})
+function openCommandDialog() {
+  keyword.value = ''
+  group.value = ''
+  visible.value = true
+}
+
+// 合计列
+function getSummaries() {
+  return [t('redisTerminal.total'), filterDataList.value.length + ' / ' + commandHelp.value.length, '']
+}
 </script>
 
 <template>
   <div class="redis-terminal">
-    <me-xterm v-if="showCode" class="terminal" :exec-command="execCommand" :prefix :welcome :command-help="commandHelp"/>
+    <me-xterm v-if="showCode" class="terminal" :exec-command="execCommand"
+              :prefix :welcome :command-help="commandHelp"/>
+
+    <!-- 集群节点 -->
     <div class="node me-flex" v-if="share.conn?.cluster">
-      <me-icon icon="el-icon-question-filled" :info="hint" raw-content placement="top" :show-after="0"/>
-      <el-checkbox v-model="autoBroadcast" :label="t('redisTerminal.autoBroadcast')" style="margin-left: 10px"/>
+      <el-tooltip raw-content :content="t('redisTerminal.broadcastHint')" placement="top">
+        <el-checkbox v-model="autoBroadcast" :label="t('redisTerminal.autoBroadcast')" style="margin-left: 10px"/>
+      </el-tooltip>
       <node-list v-model="node" clearable style="margin-left: 10px"/>
     </div>
-    <div class="auto-copy">
-      <el-tooltip :content="t('redisTerminal.autoCopyHint')" placement="top-end">
+
+    <!-- 工具栏 -->
+    <div class="tool me-flex">
+      <el-tooltip :content="t('redisTerminal.autoCopyHint')" placement="left">
         <el-checkbox v-model="autoCopy"/>
       </el-tooltip>
+      <me-icon class="icon-btn" icon="el-icon-document" :info="t('redisTerminal.commandHint')" raw-content placement="top-end"
+               @click="openCommandDialog" :show-after="0" style="margin-left: 5px;font-size: 14px"/>
     </div>
+
+    <!-- 命令表格 -->
+    <me-dialog v-model="visible" icon="el-icon-document" :title="t('redisTerminal.commandTitle')" width="80vw">
+      <div style="height: 100%; display: flex; flex-direction: column">
+        <div class="me-flex">
+          <el-select v-model="group" style="width: 200px" :placeholder="t('redisTerminal.group')" clearable filterable>
+            <el-option v-for="item in groupList" :key="item" :value="item">{{ item }}</el-option>
+          </el-select>
+          <el-input v-model="keyword" :placeholder="t('redisTerminal.keywordHint')" style="width: 300px" clearable/>
+        </div>
+
+        <div style="margin-top: 10px; flex-grow: 1; height: 0">
+          <el-table ref="table" :data="filterDataList" border stripe height="100%"
+                    show-summary :summary-method="getSummaries" :default-sort="{ prop: 'key', order: 'ascending' }">
+            <el-table-column :label="t('redisTerminal.group')" prop="group" width="120" show-overflow-tooltip sortable/>
+            <el-table-column :label="t('redisTerminal.command')" prop="key" width="150" show-overflow-tooltip sortable/>
+            <el-table-column :label="t('redisTerminal.usage')" prop="usage" show-overflow-tooltip/>
+            <el-table-column :label="t('redisTerminal.summary')" prop="summary" show-overflow-tooltip/>
+            <el-table-column :label="t('redisTerminal.since')" prop="since" width="100" show-overflow-tooltip sortable/>
+          </el-table>
+        </div>
+      </div>
+    </me-dialog>
   </div>
 </template>
 
@@ -95,10 +148,11 @@ watch(commandHelp, () => {
     z-index: 10;
   }
 
-  .auto-copy {
+  .tool {
     position: absolute;
     right: 10px;
     bottom: 0;
+    z-index: 10;
   }
 }
 </style>

@@ -38,3 +38,8 @@ services:
       - ../redis.crt:/etc/redis/redis.crt
       - ../redis.key:/etc/redis/redis.key
 ```
+
+## Redis Quick
+```shell
+docker run -d --name redis-8 --network host --restart always -e TZ=Asia/Shanghai redis:8 redis-server --requirepass "hepengju" --port 6666
+```

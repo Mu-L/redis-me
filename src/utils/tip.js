@@ -3,7 +3,7 @@
 import {isZh} from '@/utils/util.js'
 
 const zhInfoTip = {
-  'monotonic_clock': '单调时钟',
+  'monotonic_clock': '单调时钟，保证时间值始终单调递增，不会因为系统时间调整（例如 NTP 同步、手动修改系统时间）而出现回退或跳跃',
 
   'server': 'Redis 服务器的一般信息',
   'clients': '客户端连接部分',
@@ -499,6 +499,8 @@ const zhClientTip = {
 
 // https://redis.io/docs/latest/commands/info/
 const enInfoTip = {
+  'monotonic_clock': 'Timer that only goes forward, never backward or jumps',
+
   server: 'General information about the Redis server',
   clients: 'Client connections section',
   memory: 'Memory consumption related information',
