@@ -6,6 +6,7 @@
 - Config: Add the default configuration files and configuration values for the latest 8.6 and main versions
 - Config: Added a jump link, the default version of the selection box is determined based on the current actual version
 - Value: Optimized color display of JSON booleans and numbers in CodeMirror under dark theme
+- Client: Added a jump link, Address/Name sortable
 - Mock Data: submit in batches, and display progress
 
 ## v2.0.0(2026-02-13)

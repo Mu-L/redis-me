@@ -93,6 +93,9 @@ function propWidth(item) {
           <el-option value="REPLICA"/>
           <el-option value="PUBSUB"/>
         </el-select>
+        <el-link type="success" target="_blank" style="margin-left: 10px" href="https://redis.io/docs/latest/commands/client-list/" underline="never">
+          <me-icon icon="me-icon-link"/>
+        </el-link>
       </div>
       <div>
         <el-input v-model="keyword" :placeholder="t('redisClient.keyword')" style="width: 280px; margin-right: 10px"
@@ -113,14 +116,14 @@ function propWidth(item) {
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="addr" show-overflow-tooltip width="180">
+        <el-table-column prop="addr" show-overflow-tooltip width="180" sortable>
           <template #header>
             <el-tooltip :content="tips['addr'] || 'addr'" placement="top">
               <span>{{ t('redisClient.addr') }}</span>
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="name" show-overflow-tooltip width="160">
+        <el-table-column prop="name" show-overflow-tooltip width="160" sortable>
           <template #header>
             <el-tooltip :content="tips['name'] || 'name'" placement="top">
               <span>{{ t('redisClient.name') }}</span>
