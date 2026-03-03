@@ -1,6 +1,6 @@
 <script setup>
 import {configTip as tips} from '@/utils/tip.js'
-import {redisConfDict} from '@/utils/redis.js'
+import {redisConfDict, valkeyConfDict} from '@/utils/redis.js'
 import NodeList from '../ext/NodeList.vue'
 import {meInvoke, meOk} from '@/utils/util.js'
 import {sortBy} from 'lodash'
@@ -43,17 +43,19 @@ function handleCommand(command){
 }
 
 // Json格式的默认配置
-const dictVersionList = Object.keys(redisConfDict).reverse()
+const confDict = computed(() => share.isValkey ? valkeyConfDict: redisConfDict)
+const prefix = computed(() => share.isValkey ? 'Valkey' : 'Redis')
+const dictVersionList = Object.keys(confDict.value).reverse()
 function getDefaultVersion() {
   for (const version of dictVersionList) {
-    if ('Redis' + initVersion > version) {
+    if (prefix.value + initVersion > version) {
       return version
     }
   }
   return configVersionList[0]
 }
 const dictVersion = ref(getDefaultVersion())
-const dictRaw = computed(() => redisConfDict[dictVersion.value])
+const dictRaw = computed(() => confDict.value[dictVersion.value])
 const showTypeOptions = [
   {label: t('redisConfig.all'), value: 'All'},
   {label: t('redisConfig.diff'), value: 'Diff'},

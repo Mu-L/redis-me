@@ -15,6 +15,7 @@
 
 - 关于: 添加小何包公众号/bilibili图片
 - 菜单: 打开新窗口，以便同时查看其他Redis连接; RedisME改为单实例
+- valkey兼容: 版本号获取及默认配置和文件的支持(7.2/8.0/8.1/9.0)
 
 ## [v2.1.0](https://mp.weixin.qq.com/s/WUJorR4rP3si5vFRD9qvWA) (2026-02-28)
 
