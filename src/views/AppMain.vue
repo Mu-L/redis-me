@@ -26,7 +26,10 @@ const share = reactive({
   // 导入导出
   exportImporting: false,             // 导入导出中
   exportImportingTip: '',             // 导入导出提示
-  exportImportingPercentage: 0        // 导入导出进度
+  exportImportingPercentage: 0,       // 导入导出进度
+
+  // 兼容valkey
+  isValkey: false,                    // 默认不是valkey, 如果info信息中有valkey_version则设置为true
 })
 provide('share', share)
 
