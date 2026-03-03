@@ -21,8 +21,9 @@
 
 ## 功能特性
 
-- 极度轻量：基于Webview2，无内嵌浏览器，安装包小于10M（感谢 [Tauri](https://tauri.app/zh-cn)） 
-- 界面美观：提供浅色/深色主题（感谢 [ElementPlus](https://cn.element-plus.org/zh-CN/), [CodeMirror](https://codemirror.net/), [VueWebTerminal](https://tzfun.github.io/vue-web-terminal/zh/)）
+- 极度轻量：基于Webview2，无内嵌浏览器，安装包小于10M（感谢 [Tauri](https://tauri.app/zh-cn)）
+-
+界面美观：提供浅色/深色主题（感谢 [ElementPlus](https://cn.element-plus.org/zh-CN/), [CodeMirror](https://codemirror.net/), [VueWebTerminal](https://tzfun.github.io/vue-web-terminal/zh/)）
 - 跨平台支持：支持Window/Mac/Linux
 - 多语言支持：英文、中文，敬请期待其他语言
 - 功能丰富：支持信息、键值、终端、内存分析、慢日志、命令监控、发布订阅等
@@ -63,3 +64,8 @@ git clone https://github.com/hepengju/redis-me.git --depth=1
 pnpm install
 pnpm tauri dev
 ```
+
+## 微信公众号
+
+定期分享RedisME的特色功能与图文更新日志，及其他的技术疑难问题域解决方案
+![wechat.png](src/assets/images/wechat.png)
