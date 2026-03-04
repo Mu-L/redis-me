@@ -26,6 +26,8 @@
       "allow": [{ "path": "$APPDATA/*" }]
     },
     "os:default",
-    "system-fonts:default"
+    "system-fonts:default",
+    "core:window:allow-create",
+    "core:webview:allow-create-webview"
   ]
 }

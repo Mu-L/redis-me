@@ -1,14 +1,51 @@
 <script setup>
-import {bus, CONN_REFRESH, EXPORT_DATA, IMPORT_DATA, meInvoke, meOk, mePrompt, sleep} from '@/utils/util.js'
+import {bus, CONN_REFRESH, EXPORT_DATA, IMPORT_DATA, meInvoke, meLog, meOk, mePrompt, sleep} from '@/utils/util.js'
 import Setting from '@/views/ext/Setting.vue'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
 import {useI18n} from 'vue-i18n'
+import {Window} from '@tauri-apps/api/window'
+import {Webview} from '@tauri-apps/api/webview'
+import {nanoid} from 'nanoid'
 
 // 共享数据
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 const { t } = useI18n()
+
+
+// 弹出框
+const dialog = reactive({
+  setting: false,      // 基础设置
+  info: false,         // 应用信息
+  social: false,       // 公众号
+})
+
+// 处理额外命令
+async function handleCommand(command) {
+  if (command === 'refreshConn') {
+    await meInvoke('connect', {id: share.conn.id})
+    bus.emit(CONN_REFRESH)
+  } else if ('closeConn' === command) {
+    share.conn = null
+  } else if ('setting' === command) {
+    dialog.setting = true
+  } else if ('window' === command) {
+    newWindow()
+  } else if ('info' === command) {
+    dialog.info = true
+  } else if ('social' === command) {
+    dialog.social = true
+  } else if ('mockData' === command) {
+    await mockData()
+  } else if ('exportData' === command) {
+    bus.emit(EXPORT_DATA)
+  } else if ('importData' === command) {
+    bus.emit(IMPORT_DATA)
+  } else {
+    meOk(`TODO: ${command}`)
+  }
+}
 
 // 新增模拟数据
 async function mockData() {
@@ -19,7 +56,7 @@ async function mockData() {
         if (value < 1 || value > 1000) {
           return t('keyHeader.mockValidator')
         }
-       }
+      }
     },
     async ({value}) => {
       let total = value
@@ -51,37 +88,31 @@ async function mockData() {
     })
 }
 
+// 新建窗口: 便于同时查看多个Redis实例数据
+// https://tauri.app/zh-cn/reference/javascript/api/namespacewebview/
+function newWindow() {
+  const appWindow = new Window('Window' + nanoid())
+  console.log(appWindow)
+  appWindow.once('tauri://created', async function () {
+    console.log('tauri://created')
+    const webview = new Webview(appWindow, 'WebView' + nanoid(), {
+      url: 'www.baidu.com',
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 600,
+    })
 
-
-// 弹出框
-const dialog = reactive({
-  setting: false,      // 基础设置
-  info: false,         // 应用信息
-  social: false,       // 公众号
-})
-
-// 处理额外命令
-async function handleCommand(command) {
-  if (command === 'refreshConn') {
-    await meInvoke('connect', {id: share.conn.id})
-    bus.emit(CONN_REFRESH)
-  } else if ('closeConn' === command) {
-    share.conn = null
-  } else if ('setting' === command) {
-    dialog.setting = true
-  } else if ('info' === command) {
-    dialog.info = true
-  } else if ('social' === command) {
-    dialog.social = true
-  } else if ('mockData' === command) {
-    await mockData()
-  } else if ('exportData' === command) {
-    bus.emit(EXPORT_DATA)
-  } else if ('importData' === command) {
-    bus.emit(IMPORT_DATA)
-  } else {
-    meOk(`TODO: ${command}`)
-  }
+    webview.once('tauri://created', function () {
+      meLog('New Window Created')
+    })
+    webview.once('tauri://error', function (e) {
+      console.log(e)
+    })
+  })
+  appWindow.once('tauri://error', async function (e) {
+    console.log(e)
+  })
 }
 </script>
 
@@ -124,7 +155,10 @@ async function handleCommand(command) {
             </el-dropdown-item>
           </template>
 
-          <el-dropdown-item command="setting" :divided="!!share.conn">
+          <el-dropdown-item command="window" :divided="!!share.conn">
+            <me-icon :name="t('keyHeader.newWindow')" icon="me-icon-window"/>
+          </el-dropdown-item>
+          <el-dropdown-item command="setting" divided>
             <me-icon :name="t('keyHeader.setting')" icon="el-icon-setting"/>
           </el-dropdown-item>
           <el-dropdown-item command="social">

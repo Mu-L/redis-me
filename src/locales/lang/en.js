@@ -156,6 +156,7 @@ export default {
     exportData: 'Export Data',
     importData: 'Import Data',
 
+    newWindow: 'New Window',
     setting: 'Setting',
     social: 'Social',
     about: 'About',

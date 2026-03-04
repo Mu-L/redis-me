@@ -318,7 +318,7 @@ export async function meDownloadUpdate(quiet = true, update, app) {
           switch (event.event) {
             case 'Started':
               contentLength = event.data.contentLength
-              console.log(`downloadAppSize: ${meHumanSize(event.data.contentLength)}`)
+              // console.log(`downloadAppSize: ${meHumanSize(event.data.contentLength)}`)
               break
             case 'Progress':
               downloaded += event.data.chunkLength

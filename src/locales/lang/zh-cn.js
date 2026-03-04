@@ -157,6 +157,7 @@ export default {
     exportData: '导出数据',
     importData: '导入数据',
 
+    newWindow: '新窗口',
     setting: '设置',
     social: '社交',
     about: '关于'
