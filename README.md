@@ -68,6 +68,6 @@ pnpm tauri dev
 
 ## WeChat Official Account
 
-Regularly share the unique features and graphic update logs of RedisME, as well as other technical issues and their solutions.
+Regularly share the special features and update logs of RedisME, as well as other technical issues and solutions.
 
-![wechat.png](src/assets/images/wechat.png)
+<img src="src/assets/images/wechat.png" alt="wechat" width="400" />

@@ -16,3 +16,9 @@ RedisME is a modern lightweight cross-platform Redis desktop manager
     * Fine-grained memory scan parameter configuration for quick memory issue troubleshooting
     * Terminal command execution with automatic broadcasting to multiple nodes in a cluster
     * Cluster operations can specify nodes
+
+## WeChat Official Account
+
+Regularly share the special features and update logs of RedisME, as well as other technical issues and solutions.
+
+<img src="../../../public/images/wechat.png" alt="wechat" width="400" />
