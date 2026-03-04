@@ -279,7 +279,7 @@ console.log('isValkey', share.isValkey)
 
   <me-dialog v-model="dialog.config" icon="el-icon-wallet" :title="t('redisInfo.runConfig')"
              width="80vw" :close-on-press-escape="false" :close-on-click-modal="false">
-    <RedisConfig :init-node="node || infoNode" :init-version="dic['redis_version']"/>
+    <RedisConfig :init-node="node || infoNode" :init-version="dic[share.isValkey ? 'valkey_version' : 'redis_version']"/>
   </me-dialog>
 </template>
 
