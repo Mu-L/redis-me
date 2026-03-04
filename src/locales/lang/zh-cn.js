@@ -158,7 +158,8 @@ export default {
     importData: '导入数据',
 
     setting: '设置',
-    about: '关于',
+    social: '社交',
+    about: '关于'
   },
 
   about: {

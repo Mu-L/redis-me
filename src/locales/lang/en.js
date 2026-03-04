@@ -157,6 +157,7 @@ export default {
     importData: 'Import Data',
 
     setting: 'Setting',
+    social: 'Social',
     about: 'About',
   },
 

@@ -2,6 +2,7 @@
 import {bus, CONN_REFRESH, EXPORT_DATA, IMPORT_DATA, meInvoke, meOk, mePrompt, sleep} from '@/utils/util.js'
 import Setting from '@/views/ext/Setting.vue'
 import About from '@/views/ext/About.vue'
+import Official from '@/views/ext/Official.vue'
 import {useI18n} from 'vue-i18n'
 
 // 共享数据
@@ -56,6 +57,7 @@ async function mockData() {
 const dialog = reactive({
   setting: false,      // 基础设置
   info: false,         // 应用信息
+  social: false,       // 公众号
 })
 
 // 处理额外命令
@@ -69,6 +71,8 @@ async function handleCommand(command) {
     dialog.setting = true
   } else if ('info' === command) {
     dialog.info = true
+  } else if ('social' === command) {
+    dialog.social = true
   } else if ('mockData' === command) {
     await mockData()
   } else if ('exportData' === command) {
@@ -123,6 +127,9 @@ async function handleCommand(command) {
           <el-dropdown-item command="setting" :divided="!!share.conn">
             <me-icon :name="t('keyHeader.setting')" icon="el-icon-setting"/>
           </el-dropdown-item>
+          <el-dropdown-item command="social">
+            <me-icon :name="t('keyHeader.social')" icon="me-icon-social"/>
+          </el-dropdown-item>
           <el-dropdown-item command="info">
             <me-icon :name="t('keyHeader.about')" icon="me-icon-info"/>
           </el-dropdown-item>
@@ -139,6 +146,10 @@ async function handleCommand(command) {
     </el-dialog>
     <el-dialog v-model="dialog.info" width="400" align-center draggable>
       <About/>
+    </el-dialog>
+    <el-dialog v-model="dialog.social" width="430" align-center draggable :show-close="false"
+      style="--el-dialog-bg-color: unset; box-shadow: unset">
+      <Official/>
     </el-dialog>
   </div>
 </template>
