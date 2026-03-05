@@ -157,6 +157,7 @@ export default {
     importData: 'Import Data',
 
     newWindow: 'New Window',
+    newWindowError: 'Open New Window Error',
     setting: 'Setting',
     social: 'Social',
     about: 'About',

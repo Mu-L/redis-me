@@ -158,6 +158,7 @@ export default {
     importData: '导入数据',
 
     newWindow: '新窗口',
+    newWindowError: '打开新窗口失败',
     setting: '设置',
     social: '社交',
     about: '关于'

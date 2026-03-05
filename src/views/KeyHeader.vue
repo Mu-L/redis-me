@@ -1,12 +1,12 @@
 <script setup>
-import {bus, CONN_REFRESH, EXPORT_DATA, IMPORT_DATA, meInvoke, meLog, meOk, mePrompt, sleep} from '@/utils/util.js'
+import {bus, CONN_REFRESH, EXPORT_DATA, IMPORT_DATA, meErr, meInvoke, meOk, mePrompt, sleep} from '@/utils/util.js'
 import Setting from '@/views/ext/Setting.vue'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
 import {useI18n} from 'vue-i18n'
-import {Window} from '@tauri-apps/api/window'
-import {Webview} from '@tauri-apps/api/webview'
 import {nanoid} from 'nanoid'
+import {type} from '@tauri-apps/plugin-os'
+import {WebviewWindow} from '@tauri-apps/api/webviewWindow'
 
 // 共享数据
 const share = inject('share')
@@ -91,27 +91,26 @@ async function mockData() {
 // 新建窗口: 便于同时查看多个Redis实例数据
 // https://tauri.app/zh-cn/reference/javascript/api/namespacewebview/
 function newWindow() {
-  const appWindow = new Window('Window' + nanoid())
-  console.log(appWindow)
-  appWindow.once('tauri://created', async function () {
-    console.log('tauri://created')
-    const webview = new Webview(appWindow, 'WebView' + nanoid(), {
-      url: 'www.baidu.com',
-      x: 0,
-      y: 0,
-      width: 800,
-      height: 600,
-    })
+  const isMacOS = type() === 'macos'
 
-    webview.once('tauri://created', function () {
-      meLog('New Window Created')
-    })
-    webview.once('tauri://error', function (e) {
-      console.log(e)
-    })
+  const label = 'Window' + nanoid()
+  const appWindow = new WebviewWindow(label, {
+    url: 'index.html',
+
+    // tauri.conf.json
+    title: 'RedisME',
+    hiddenTitle: true,
+    width: 1200,
+    height: 800,
+    dragDropEnabled: false,
+
+    // src-tauri/src/utils/setup.rs:45
+    titleBarStyle:'overlay',
+    decorations: isMacOS
   })
-  appWindow.once('tauri://error', async function (e) {
+  appWindow.once('tauri://error', function (e) {
     console.log(e)
+    meErr(t('keyHeader.newWindowError'))
   })
 }
 </script>
