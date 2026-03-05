@@ -8,7 +8,7 @@ use chrono::Utc;
 use log::{info, warn};
 use parking_lot::{Mutex, MutexGuard};
 use redis::{Client, Connection, ConnectionLike, Pipeline, Value};
-use std::collections::{HashMap};
+use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::atomic::Ordering::Relaxed;
 use std::thread;
@@ -16,7 +16,7 @@ use std::time::Duration;
 use tauri::AppHandle;
 
 pub struct RedisMeSingle {
-    base:  RedisMeBase,
+    base: RedisMeBase,
     client: Client,
     conn: Mutex<Connection>,
 }
@@ -38,7 +38,6 @@ impl Drop for RedisMeSingle {
 }
 
 impl RedisMeClient for RedisMeSingle {
-
     fn name(&self) -> String {
         self.conf.name.clone()
     }
@@ -99,7 +98,12 @@ impl RedisMeClient for RedisMeSingle {
         let mut keys: Vec<Vec<u8>> = vec![];
 
         loop {
-            let cmd = scan_1_cmd(cc.now_cursor, &param.pattern, batch_count, param.scan_type.clone());
+            let cmd = scan_1_cmd(
+                cc.now_cursor,
+                &param.pattern,
+                batch_count,
+                param.scan_type.clone(),
+            );
             let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = cmd.query(&mut conn)?;
             keys.extend(new_keys);
 
@@ -170,7 +174,7 @@ impl RedisMeClient for RedisMeSingle {
     fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<()> {
         rename0(self.get_conn()?, key, new_key)
     }
-    
+
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
         field_add0(self.get_conn()?, param)
     }
@@ -256,9 +260,11 @@ impl RedisMeClient for RedisMeSingle {
 
                 let sizes: Vec<Option<u64>> = pipe.query(&mut conn)?;
                 for (index, size) in sizes.into_iter().enumerate() {
-                    if let Some(size) = size && size >= param.size_limit {
-                            keys.push((new_keys[index].clone(), size, "unknown".into()));
-                        }
+                    if let Some(size) = size
+                        && size >= param.size_limit
+                    {
+                        keys.push((new_keys[index].clone(), size, "unknown".into()));
+                    }
                 }
             }
 
@@ -367,7 +373,17 @@ impl RedisMeClient for RedisMeSingle {
         let running = self.export_import_running.clone();
         let id = self.id.clone();
         export_import_check_running(running.clone())?;
-        thread::spawn(move || export_csv_0_thread(&mut conn, key_list, param.file, param.with_ttl, running, app_handle, id));
+        thread::spawn(move || {
+            export_csv_0_thread(
+                &mut conn,
+                key_list,
+                param.file,
+                param.with_ttl,
+                running,
+                app_handle,
+                id,
+            )
+        });
         Ok(())
     }
 
@@ -441,13 +457,13 @@ impl RedisMeSingle {
                     if self.check_connection_timeout(&mut conn).unwrap_or(false) {
                         conn
                     } else {
-                        drop(conn);  // 此处一定要释放锁
+                        drop(conn); // 此处一定要释放锁
                         self.reconnect()?;
                         self.get_conn()?
                     }
                 }
             }),
-            None => bail!("connection acquisition lock timeout")
+            None => bail!("connection acquisition lock timeout"),
         }
     }
 
@@ -470,4 +486,3 @@ impl RedisMeSingle {
         Self::new_conn(&self.client, self.db.load(Relaxed))
     }
 }
-

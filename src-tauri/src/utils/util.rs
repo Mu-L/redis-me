@@ -1,6 +1,8 @@
-use crate::utils::model::{RedisChart, RedisClientInfo, RedisInfo, RedisKey, RedisKeySize, RedisSlowLog, RedisZetItem};
+use crate::utils::model::{
+    RedisChart, RedisClientInfo, RedisInfo, RedisKey, RedisKeySize, RedisSlowLog, RedisZetItem,
+};
 use anyhow::bail;
-use chrono::{DateTime};
+use chrono::DateTime;
 use log::error;
 use rand::Rng;
 use rand::distr::{Alphanumeric, SampleString};
@@ -52,8 +54,7 @@ pub fn tuple_to_key_size(keys: Vec<(Vec<u8>, u64, String)>) -> Vec<RedisKeySize>
 }
 
 pub fn ui_key_list(keys: Vec<Vec<u8>>) -> Vec<RedisKey> {
-    keys
-        .into_iter()
+    keys.into_iter()
         .map(|key| RedisKey {
             key: vec8_to_display_string(&key),
             bytes: key,
@@ -62,11 +63,15 @@ pub fn ui_key_list(keys: Vec<Vec<u8>>) -> Vec<RedisKey> {
 }
 
 pub fn ui_list_value(value: &[Vec<u8>]) -> Vec<String> {
-    value.into_iter().map(|v| vec8_to_display_string(&v)).collect()
+    value
+        .into_iter()
+        .map(|v| vec8_to_display_string(&v))
+        .collect()
 }
 
 pub fn ui_hash_value(value: HashMap<Vec<u8>, Vec<u8>>) -> HashMap<String, String> {
-    value.into_iter()
+    value
+        .into_iter()
         .map(|(key, value)| {
             let key: String = vec8_to_display_string(&key);
             let value: String = vec8_to_display_string(&value);
@@ -80,7 +85,8 @@ pub fn ui_set_value(value: HashSet<Vec<u8>>) -> Vec<String> {
 }
 
 pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>) -> Vec<RedisZetItem> {
-    value.into_iter()
+    value
+        .into_iter()
         .map(|(value, score)| RedisZetItem {
             value: vec8_to_display_string(&value),
             score,
@@ -229,15 +235,25 @@ pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
 
         if let Some((key, value)) = line.split_once(":").map(|(k, v)| (k.trim(), v.trim())) {
             match key {
-                "connected_clients" => chart.connected_clients = value.parse::<>().unwrap_or_default(),
-                "instantaneous_ops_per_sec" => chart.instantaneous_ops_per_sec = value.parse::<>().unwrap_or_default(),
-                "used_memory" => chart.used_memory = value.parse::<>().unwrap_or_default(),
-                "instantaneous_input_kbps" => chart.instantaneous_input_kbps = value.parse::<>().unwrap_or_default(),
-                "instantaneous_output_kbps" => chart.instantaneous_output_kbps = value.parse::<>().unwrap_or_default(),
-                "total_connections_received" => chart.total_connections_received = value.parse::<>().unwrap_or_default(),
-                "total_commands_processed" => chart.total_commands_processed = value.parse::<>().unwrap_or_default(),
-                "keyspace_hits" => chart.keyspace_hits = value.parse::<>().unwrap_or_default(),
-                "keyspace_misses" => chart.keyspace_misses = value.parse::<>().unwrap_or_default(),
+                "connected_clients" => chart.connected_clients = value.parse().unwrap_or_default(),
+                "instantaneous_ops_per_sec" => {
+                    chart.instantaneous_ops_per_sec = value.parse().unwrap_or_default()
+                }
+                "used_memory" => chart.used_memory = value.parse().unwrap_or_default(),
+                "instantaneous_input_kbps" => {
+                    chart.instantaneous_input_kbps = value.parse().unwrap_or_default()
+                }
+                "instantaneous_output_kbps" => {
+                    chart.instantaneous_output_kbps = value.parse().unwrap_or_default()
+                }
+                "total_connections_received" => {
+                    chart.total_connections_received = value.parse().unwrap_or_default()
+                }
+                "total_commands_processed" => {
+                    chart.total_commands_processed = value.parse().unwrap_or_default()
+                }
+                "keyspace_hits" => chart.keyspace_hits = value.parse().unwrap_or_default(),
+                "keyspace_misses" => chart.keyspace_misses = value.parse().unwrap_or_default(),
                 _ => {
                     // db0:keys=14410,expires=3997,avg_ttl=736124073
                     // db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
@@ -246,7 +262,8 @@ pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
                         let num_part = &key[2..]; // 截取 db 后的数字部分
                         if num_part.chars().all(|c| c.is_ascii_digit()) && num_part.len() <= 2 {
                             // 解析 value 中的 keys 数值，包含完整的错误处理
-                            let size = value.split(',')
+                            let size = value
+                                .split(',')
                                 .next() // 取第一个逗号前的部分 (keys=14410)
                                 .and_then(|part| part.split_once('=')) // 分割 key=value
                                 .and_then(|(_, val)| val.parse::<u64>().ok()); // 解析数值

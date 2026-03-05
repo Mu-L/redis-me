@@ -1,11 +1,11 @@
 #![cfg_attr(test, allow(warnings))] // 整个文件在测试时禁用该警告
 
-use std::collections::HashMap;
 use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
 use crate::utils::util::{AnyResult, vec8_to_display_string};
 use redis::{RedisWrite, ToRedisArgs, ToSingleRedisArg};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 // 数据库信息
 api_model!(RedisDB {
@@ -51,7 +51,8 @@ impl RedisConf {
         conf.sentinel = false;
         let client = get_client_single(&conf)?;
         let mut conn = client.get_connection()?;
-        let masters: Vec<HashMap<String, String>> = redis::cmd("sentinel").arg("masters").query(&mut conn)?;
+        let masters: Vec<HashMap<String, String>> =
+            redis::cmd("sentinel").arg("masters").query(&mut conn)?;
         Ok(masters)
     }
 }
@@ -64,26 +65,27 @@ api_model!(SslOption {
 
 // 信息 图形
 api_model!(
-#[derive(Default)]
-RedisChart {
-    node: String,
+    #[derive(Default)]
+    RedisChart {
+        node: String,
 
-    // db0:keys=1558,expires=0,avg_ttl=0,subexpiry=0; db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
-    key_total: u64,                  // 键总数
-    connected_clients: u64,          // 客户端数量
-    instantaneous_ops_per_sec: f64,  // 命令执行数/秒
-    used_memory: u64,                // 内存使用量
-    instantaneous_input_kbps: f64,   // 网络输入
-    instantaneous_output_kbps: f64,  // 网络输出
+        // db0:keys=1558,expires=0,avg_ttl=0,subexpiry=0; db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
+        key_total: u64,                 // 键总数
+        connected_clients: u64,         // 客户端数量
+        instantaneous_ops_per_sec: f64, // 命令执行数/秒
+        used_memory: u64,               // 内存使用量
+        instantaneous_input_kbps: f64,  // 网络输入
+        instantaneous_output_kbps: f64, // 网络输出
 
-    total_connections_received: u64, // 服务器接受的总连接数
-    total_commands_processed: u64,   // 服务器处理的总命令数
+        total_connections_received: u64, // 服务器接受的总连接数
+        total_commands_processed: u64,   // 服务器处理的总命令数
 
-    // 计算缓存命中率: Cache Hit Ratio = keyspace_hits / (keyspace_hits + keyspace_misses)
-    keyspace_hits: u64,              // 在主字典中成功查找键的数量
-    keyspace_misses: u64,            // 在主字典中查找键失败的数量
-    cache_hit_ratio: f64,            // 缓存命中率
-});
+        // 计算缓存命中率: Cache Hit Ratio = keyspace_hits / (keyspace_hits + keyspace_misses)
+        keyspace_hits: u64,   // 在主字典中成功查找键的数量
+        keyspace_misses: u64, // 在主字典中查找键失败的数量
+        cache_hit_ratio: f64, // 缓存命中率
+    }
+);
 
 // 信息 info命令
 api_model!(RedisInfo {
@@ -259,7 +261,7 @@ impl Into<RedisBatchKey> for RedisExportCsv {
 api_model!(RedisImportCsv {
     file: String,
     ttl: i64,
-    handle_ttl: String,      // TTL处理: 尝试读取 parse, 自定义 custom, 永久 forever
+    handle_ttl: String, // TTL处理: 尝试读取 parse, 自定义 custom, 永久 forever
     handle_conflict: String, // 冲突处理: 覆盖 replace, 忽略 ignore
 });
 

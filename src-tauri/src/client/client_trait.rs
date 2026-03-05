@@ -1,22 +1,30 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{assert_is_true, info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value, vec8_to_display_string, AnyResult, EVENT_EXPORT, EVENT_IMPORT, EVENT_MONITOR, EVENT_SUBSCRIBE, REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE};
+use crate::utils::util::{
+    AnyResult, EVENT_EXPORT, EVENT_IMPORT, EVENT_MONITOR, EVENT_SUBSCRIBE,
+    REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE, assert_is_true,
+    info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value,
+    vec8_to_display_string,
+};
+use Ordering::Relaxed;
 use anyhow::bail;
-use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
 use chrono::{Local, Utc};
 use log::{info, warn};
 use parking_lot::MutexGuard;
-use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, Msg, SetExpiry, SetOptions, ValueType};
+use redis::{
+    Cmd, Commands, Connection, FromRedisValue, Msg, SetExpiry, SetOptions, ValueType,
+    from_redis_value,
+};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
-use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
 use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
-use Ordering::Relaxed;
 
 // 抽取公共属性
 pub struct RedisMeBase {
@@ -61,7 +69,10 @@ pub trait RedisMeClient: Send + Sync {
 
     fn chart_list(&self) -> AnyResult<Vec<RedisChart>> {
         let info_list = self.info_list()?;
-        info_list.into_iter().map(|info| info_to_chart(info)).collect()
+        info_list
+            .into_iter()
+            .map(|info| info_to_chart(info))
+            .collect()
     }
 
     fn node_list(&self) -> AnyResult<Vec<RedisNode>>;
@@ -138,7 +149,9 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
         .arg("count")
         .arg(batch_count);
 
-    if let Some(scan_type) = scan_type && !scan_type.is_empty() {
+    if let Some(scan_type) = scan_type
+        && !scan_type.is_empty()
+    {
         cmd.arg("type").arg(scan_type);
     }
     cmd
@@ -170,7 +183,9 @@ pub fn get0(
             serde_json::to_value(ui_zset_value(value))
         }
         ValueType::Hash => {
-            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+            if let Some(hash_key) = hash_key
+                && !hash_key.is_empty()
+            {
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 if let Some(str) = value {
                     let value: String = vec8_to_display_string(&str);
@@ -187,7 +202,10 @@ pub fn get0(
     }?;
 
     let ttl: i64 = conn.ttl(&key)?;
-    let size: u64 = redis::cmd("memory").arg("usage").arg(&key).query(&mut conn)?;
+    let size: u64 = redis::cmd("memory")
+        .arg("usage")
+        .arg(&key)
+        .query(&mut conn)?;
     Ok(RedisValue {
         key_type: key_type.into(),
         ttl,
@@ -196,7 +214,10 @@ pub fn get0(
     })
 }
 
-pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanParam) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor)> {
+pub fn field_scan_0_get(
+    conn: &mut MutexGuard<impl Commands>,
+    param: FieldScanParam,
+) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor)> {
     let key = param.key;
     let hash_key = param.hash_key;
 
@@ -212,7 +233,9 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
             Some(serde_json::to_value(value)?)
         }
         ValueType::Hash => {
-            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+            if let Some(hash_key) = hash_key
+                && !hash_key.is_empty()
+            {
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 if let Some(str) = value {
                     let value: String = vec8_to_display_string(&str);
@@ -224,11 +247,15 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
             } else {
                 None
             }
-        },
+        }
         ValueType::List => {
             // 如果你有一个从 0 到 100 的数字列表，LRANGE list 0 10 将返回 11 个元素，也就是说，最右边的项是包含在内的
             // 超出范围的索引不会产生错误。如果 start 大于列表的末尾，将返回一个空列表。如果 stop 大于列表的实际末尾，Redis 会将其视为列表的最后一个元素。
-            let end_index: isize = if param.load_all { -1 } else { (cc.now_cursor + param.count) as isize };
+            let end_index: isize = if param.load_all {
+                -1
+            } else {
+                (cc.now_cursor + param.count) as isize
+            };
             let value: Vec<Vec<u8>> = conn.lrange(&key, cc.now_cursor as isize, end_index)?;
 
             // 0 ~ 10 获取到11元素, 表示还没有获取到全部数据。序号为10的元素本次不取
@@ -241,19 +268,24 @@ pub fn field_scan_0_get(conn: &mut MutexGuard<impl Commands>, param: FieldScanPa
                 ui_list_value(&value)
             };
             Some(serde_json::to_value(value)?)
-        },
+        }
         // 注意此处SET/ZSET等是支持的，只是需要进行扫描，不能直接使用通用的: handle_other_value_type
         ValueType::Stream => bail!("Unsupport type: Stream"),
         ValueType::Unknown(_) => {
             handle_other_value_type(&key_type, &key)?;
             None
-        },
-        _ => None
+        }
+        _ => None,
     };
     Ok((value, key_type, cc))
 }
 
-pub fn field_scan_1_cmd(key_type: &ValueType, key: &RedisKey, cursor: u64, count: u64) -> AnyResult<Cmd> {
+pub fn field_scan_1_cmd(
+    key_type: &ValueType,
+    key: &RedisKey,
+    cursor: u64,
+    count: u64,
+) -> AnyResult<Cmd> {
     let scan_command = match key_type {
         ValueType::Hash => "hscan",
         ValueType::Set => "sscan",
@@ -266,56 +298,66 @@ pub fn field_scan_1_cmd(key_type: &ValueType, key: &RedisKey, cursor: u64, count
     // SSCAN key cursor [MATCH pattern] [COUNT count]
     // ZSCAN key cursor [MATCH pattern] [COUNT count]
     let mut cmd = redis::cmd(scan_command);
-    let count = if count == 0 {
-        10
-    } else {
-        count
-    };
+    let count = if count == 0 { 10 } else { count };
     cmd.arg(key).arg(cursor).arg("count").arg(count);
     Ok(cmd)
 }
 
-pub fn field_scan_2_value(key_type: &ValueType, scan_value: &mut FieldScanValue, new_value: redis::Value) -> AnyResult<usize>{
+pub fn field_scan_2_value(
+    key_type: &ValueType,
+    scan_value: &mut FieldScanValue,
+    new_value: redis::Value,
+) -> AnyResult<usize> {
     let new_count = match key_type {
         ValueType::Hash => {
             let value: HashMap<Vec<u8>, Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
             scan_value.hash.extend(ui_hash_value(value));
             new_count
-        },
+        }
         ValueType::Set => {
             let value: HashSet<Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
             scan_value.set.extend(ui_set_value(value));
             new_count
-        },
+        }
 
         ValueType::ZSet => {
             let value: Vec<(Vec<u8>, f64)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
             scan_value.zset.extend(ui_zset_value(value));
             new_count
-        },
+        }
         _ => bail!("field scan not support now"),
     };
     Ok(new_count)
 }
 
-pub fn field_scan_3_json(key_type: &ValueType, scan_value: &FieldScanValue) -> AnyResult<serde_json::value::Value>{
+pub fn field_scan_3_json(
+    key_type: &ValueType,
+    scan_value: &FieldScanValue,
+) -> AnyResult<serde_json::value::Value> {
     let value = match key_type {
         ValueType::Hash => serde_json::to_value(&scan_value.hash)?,
         ValueType::Set => serde_json::to_value(&scan_value.set)?,
         ValueType::ZSet => serde_json::to_value(&scan_value.zset)?,
-        _ => bail!("field scan not support now")
+        _ => bail!("field scan not support now"),
     };
     Ok(value)
 }
 
-pub fn field_scan_4_return(mut conn: MutexGuard<impl Commands>,
-                           key: RedisKey, key_type: ValueType,
-                           value: serde_json::Value, cursor: ScanCursor) -> AnyResult<FieldScanResult> {
+pub fn field_scan_4_return(
+    mut conn: MutexGuard<impl Commands>,
+    key: RedisKey,
+    key_type: ValueType,
+    value: serde_json::Value,
+    cursor: ScanCursor,
+) -> AnyResult<FieldScanResult> {
     let ttl: i64 = conn.ttl(&key)?;
-    let size: u64 = redis::cmd("memory").arg("usage").arg(&key).query(&mut conn)?;
+    let size: u64 = redis::cmd("memory")
+        .arg("usage")
+        .arg(&key)
+        .query(&mut conn)?;
     Ok(FieldScanResult {
         key_type: key_type.into(),
         ttl,
@@ -362,7 +404,11 @@ pub fn del0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<()>
     Ok(())
 }
 
-pub fn rename0(mut conn: MutexGuard<impl Commands>, key: RedisKey, new_key: RedisKey) -> AnyResult<()> {
+pub fn rename0(
+    mut conn: MutexGuard<impl Commands>,
+    key: RedisKey,
+    new_key: RedisKey,
+) -> AnyResult<()> {
     let _: () = conn.rename(&key, &new_key)?;
     Ok(())
 }
@@ -377,7 +423,10 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         let exists: bool = conn.exists(&key)?;
         assert_is_true(
             !exists,
-            format!("Key ready exits: {}", vec8_to_display_string(key.to_bytes())),
+            format!(
+                "Key ready exits: {}",
+                vec8_to_display_string(key.to_bytes())
+            ),
         )?
     } else if "field" == mode {
         // 新增字段
@@ -444,8 +493,7 @@ pub fn field_set0(mut conn: MutexGuard<impl Commands>, param: RedisFieldSet) -> 
         }
         _ => {
             handle_other_value_type(&key_type, &key)?;
-        },
-
+        }
     };
     Ok(())
 }
@@ -470,7 +518,7 @@ pub fn field_del0(mut conn: MutexGuard<impl Commands>, param: RedisFieldDel) -> 
         }
         _ => {
             handle_other_value_type(&key_type, &key)?;
-        },
+        }
     };
     Ok(())
 }
@@ -523,7 +571,11 @@ pub fn subscribe0(
 pub fn subscribe_stop0(conn: MutexGuard<impl Commands>, running: Arc<AtomicBool>) -> AnyResult<()> {
     running.store(false, Relaxed);
     // 停止订阅时必须发送一个消息，否则会阻塞
-    publish0(conn, REDIS_ME_SUBSCRIBE_STOP_MESSAGE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE)
+    publish0(
+        conn,
+        REDIS_ME_SUBSCRIBE_STOP_MESSAGE,
+        REDIS_ME_SUBSCRIBE_STOP_MESSAGE,
+    )
 }
 
 pub fn monitor0(
@@ -565,17 +617,24 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
     match value_type {
         ValueType::Unknown(other) => {
             if "none" == other {
-                bail!("Key Not Exists: 【{}】", vec8_to_display_string(key.to_bytes()))
+                bail!(
+                    "Key Not Exists: 【{}】",
+                    vec8_to_display_string(key.to_bytes())
+                )
             } else {
                 bail!("Unknown ValueType: {other}")
             }
-        },
+        }
         ValueType::Stream => bail!("Unsupported Type: Stream"),
         _ => bail!("Unsupported Type: {value_type:?}"),
     }
 }
 
-pub fn batch_key0(rmc: &impl RedisMeClient, param: RedisBatchKey, assert_not_empty: bool) -> AnyResult<Vec<RedisKey>> {
+pub fn batch_key0(
+    rmc: &impl RedisMeClient,
+    param: RedisBatchKey,
+    assert_not_empty: bool,
+) -> AnyResult<Vec<RedisKey>> {
     let key_list = if param.key_list.is_empty() {
         if param.pattern.is_empty() {
             bail!("key list and pattern parameters cannot both be empty")
@@ -602,19 +661,41 @@ pub fn export_import_check_running(running: Arc<AtomicBool>) -> AnyResult<()> {
     Ok(())
 }
 
-pub fn export_csv_0_thread(conn: &mut impl Commands, key_list: Vec<RedisKey>, file: String, with_ttl: bool,
-                           running: Arc<AtomicBool>, app_handle: AppHandle, id: String) {
+pub fn export_csv_0_thread(
+    conn: &mut impl Commands,
+    key_list: Vec<RedisKey>,
+    file: String,
+    with_ttl: bool,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) {
     info!("export keys count: {}", key_list.len());
-    let result = export_keys(conn, key_list, &file, with_ttl, running.clone(), app_handle, id);
+    let result = export_keys(
+        conn,
+        key_list,
+        &file,
+        with_ttl,
+        running.clone(),
+        app_handle,
+        id,
+    );
     match result {
         Ok(_) => info!("export keys ok"),
-        Err(e) => warn!("export keys err: {e}")
+        Err(e) => warn!("export keys err: {e}"),
     }
     running.store(false, Relaxed);
 }
 
-fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, with_ttl: bool,
-               running: Arc<AtomicBool>, app_handle: AppHandle, id: String) -> AnyResult<()> {
+fn export_keys(
+    mut conn: impl Commands,
+    key_list: Vec<RedisKey>,
+    file: &str,
+    with_ttl: bool,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) -> AnyResult<()> {
     info!("export keys file: {}", file);
     let mut writer = BufWriter::new(File::create(file)?);
     let mut ok_count = 0;
@@ -656,12 +737,13 @@ fn export_keys(mut conn: impl Commands, key_list: Vec<RedisKey>, file: &str, wit
     Ok(())
 }
 
-fn export_key(conn: &mut impl Commands, writer: &mut BufWriter<File>, key: RedisKey, with_ttl: bool) -> AnyResult<()> {
-    let ttl = if with_ttl {
-        conn.ttl(&key)?
-    } else {
-        -1
-    };
+fn export_key(
+    conn: &mut impl Commands,
+    writer: &mut BufWriter<File>,
+    key: RedisKey,
+    with_ttl: bool,
+) -> AnyResult<()> {
+    let ttl = if with_ttl { conn.ttl(&key)? } else { -1 };
 
     // https://redis.ac.cn/docs/latest/commands/dump/
     // DUMP key
@@ -673,17 +755,29 @@ fn export_key(conn: &mut impl Commands, writer: &mut BufWriter<File>, key: Redis
     Ok(())
 }
 
-pub fn import_csv_0_thread(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<AtomicBool>, app_handle: AppHandle, id: String) {
+pub fn import_csv_0_thread(
+    conn: &mut impl Commands,
+    param: RedisImportCsv,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) {
     info!("import file: {}", &param.file);
     let result = import_keys(conn, param, running.clone(), app_handle, id);
     match result {
         Ok(_) => info!("import file ok"),
-        Err(e) => warn!("import file err: {e}")
+        Err(e) => warn!("import file err: {e}"),
     }
     running.store(false, Relaxed);
 }
 
-fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<AtomicBool>, app_handle: AppHandle, id: String) -> AnyResult<()> {
+fn import_keys(
+    conn: &mut impl Commands,
+    param: RedisImportCsv,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) -> AnyResult<()> {
     let reader = BufReader::new(File::open(&param.file)?);
     let total_count = reader.lines().count() as u64;
     info!("import keys count: {}", total_count);
@@ -697,10 +791,16 @@ fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<Ato
         let line = line?;
         let line = line.trim();
         if line.is_empty() {
-            continue
+            continue;
         }
         if running.load(Relaxed) {
-            let result = import_key(conn, line, param.ttl, &param.handle_ttl, &param.handle_conflict);
+            let result = import_key(
+                conn,
+                line,
+                param.ttl,
+                &param.handle_ttl,
+                &param.handle_conflict,
+            );
             match result {
                 Ok(_) => ok_count += 1,
                 Err(e) => {
@@ -739,17 +839,19 @@ fn import_keys(conn: &mut impl Commands, param: RedisImportCsv, running: Arc<Ato
     Ok(())
 }
 
-fn import_key(conn: &mut impl Commands, line: &str, ttl: i64, handle_ttl: &str, handle_conflict: &str) -> AnyResult<()> {
+fn import_key(
+    conn: &mut impl Commands,
+    line: &str,
+    ttl: i64,
+    handle_ttl: &str,
+    handle_conflict: &str,
+) -> AnyResult<()> {
     let parts: Vec<&str> = line.split(',').collect();
     if parts.len() != 2 && parts.len() != 3 {
         bail!("invalid line: {}", line)
     }
 
-    let ttl_part = if parts.len() == 3 {
-        parts[2]
-    } else {
-        "-1"
-    };
+    let ttl_part = if parts.len() == 3 { parts[2] } else { "-1" };
 
     // https://redis.ac.cn/docs/latest/commands/restore/
     // RESTORE key ttl serialized-value [REPLACE] [ABSTTL] [IDLETIME seconds] [FREQ frequency]
@@ -772,18 +874,12 @@ fn import_restore_ttl(part_ttl: &str, ttl: i64, handle_ttl: &str) -> i64 {
     let ttl = match handle_ttl {
         "custom" => ttl,
         "parse" => part_ttl.parse::<i64>().unwrap_or(-1),
-        _ => -1
+        _ => -1,
     };
 
     // 注意: 导出时TTL命令返回的单位是秒, restore的ttl参数是毫秒
-    if ttl <= 0 {
-        0
-    } else {
-        ttl * 1000
-    }
+    if ttl <= 0 { 0 } else { ttl * 1000 }
 }
-
-
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)
 #[macro_export]

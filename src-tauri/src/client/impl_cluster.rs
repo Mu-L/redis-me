@@ -3,6 +3,7 @@ use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name};
 use crate::utils::model::*;
 use crate::utils::util::*;
+use Ordering::Relaxed;
 use anyhow::bail;
 use chrono::Utc;
 use log::{info, warn};
@@ -18,7 +19,6 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
-use Ordering::Relaxed;
 
 pub struct RedisMeCluster {
     base: RedisMeBase,
@@ -44,7 +44,6 @@ impl Drop for RedisMeCluster {
 }
 
 impl RedisMeClient for RedisMeCluster {
-
     fn name(&self) -> String {
         self.conf.name.clone()
     }
@@ -124,7 +123,8 @@ impl RedisMeClient for RedisMeCluster {
 
                 let cmd = scan_1_cmd(cursor, &param.pattern, batch_count, param.scan_type.clone());
                 let value = conn.route_command(&cmd, route.clone())?;
-                let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = FromRedisValue::from_redis_value(value)?;
+                let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) =
+                    FromRedisValue::from_redis_value(value)?;
                 keys.extend(new_keys);
 
                 cc.now_cursor = next_cursor;
@@ -183,7 +183,8 @@ impl RedisMeClient for RedisMeCluster {
                     let cmd = field_scan_1_cmd(&key_type, &key, cursor, param.count)?;
 
                     let value = conn.route_command(&cmd, route.clone())?;
-                    let (next_cursor, new_value): (u64, Value) = FromRedisValue::from_redis_value(value)?;
+                    let (next_cursor, new_value): (u64, Value) =
+                        FromRedisValue::from_redis_value(value)?;
                     let new_count = field_scan_2_value(&key_type, &mut scan_value, new_value)?;
 
                     ready_count += new_count;
@@ -211,7 +212,7 @@ impl RedisMeClient for RedisMeCluster {
 
         field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc)
     }
-    
+
     fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {
         get0(self.get_conn()?, key, hash_key)
     }
@@ -231,7 +232,7 @@ impl RedisMeClient for RedisMeCluster {
     fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<()> {
         rename0(self.get_conn()?, key, new_key)
     }
-    
+
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
         field_add0(self.get_conn()?, param)
     }
@@ -256,7 +257,8 @@ impl RedisMeClient for RedisMeCluster {
         cmd.arg(args);
 
         let value = if param.node.as_deref().unwrap_or("").is_empty()
-            && param.auto_broadcast.unwrap_or(false) {
+            && param.auto_broadcast.unwrap_or(false)
+        {
             conn.req_command(&cmd)?
         } else {
             let (route, _) = self.get_node_route(param.node)?;
@@ -289,9 +291,11 @@ impl RedisMeClient for RedisMeCluster {
         let mut logs = vec![];
         for redis_node in &self.node_list {
             // 如果参数中包含节点参数，则只返回指定节点的慢日志
-            if let Some(ref n) = node && n != &redis_node.node {
-                    continue;
-                }
+            if let Some(ref n) = node
+                && n != &redis_node.node
+            {
+                continue;
+            }
 
             let node = redis_node.node.clone();
             let (route, _) = self.get_node_route(Some(node.clone()))?;
@@ -341,9 +345,11 @@ impl RedisMeClient for RedisMeCluster {
                     // 此处用Option接收,避免键被删除或过期
                     let sizes: Vec<Option<u64>> = pipe.query(&mut conn)?;
                     for (index, size) in sizes.into_iter().enumerate() {
-                        if let Some(size) = size && size >= param.size_limit {
-                                keys.push((new_keys[index].clone(), size, "unknown".into()));
-                            }
+                        if let Some(size) = size
+                            && size >= param.size_limit
+                        {
+                            keys.push((new_keys[index].clone(), size, "unknown".into()));
+                        }
                     }
                 }
 
@@ -395,9 +401,10 @@ impl RedisMeClient for RedisMeCluster {
             // 如果参数中包含节点参数，则只返回指定节点的慢日志
             if let Some(ref node_limit) = node
                 && !node_limit.is_empty()
-                && *node_limit != redis_node.node {
-                    continue;
-                }
+                && *node_limit != redis_node.node
+            {
+                continue;
+            }
             let node = redis_node.node.clone();
             let (route, _) = self.get_node_route(Some(node.clone()))?;
 
@@ -471,7 +478,17 @@ impl RedisMeClient for RedisMeCluster {
         let running = self.export_import_running.clone();
         let id = self.id.clone();
         export_import_check_running(running.clone())?;
-        thread::spawn(move || export_csv_0_thread(&mut conn, key_list, param.file, param.with_ttl, running, app_handle, id));
+        thread::spawn(move || {
+            export_csv_0_thread(
+                &mut conn,
+                key_list,
+                param.file,
+                param.with_ttl,
+                running,
+                app_handle,
+                id,
+            )
+        });
         Ok(())
     }
 
@@ -539,13 +556,13 @@ impl RedisMeCluster {
                     if self.check_connection_timeout(&mut conn).unwrap_or(false) {
                         conn
                     } else {
-                        drop(conn);  // 此处一定要释放锁
+                        drop(conn); // 此处一定要释放锁
                         self.reconnect()?;
                         self.get_conn()?
                     }
                 }
             }),
-            None => bail!("connection acquisition lock timeout")
+            None => bail!("connection acquisition lock timeout"),
         }
     }
 

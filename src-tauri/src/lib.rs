@@ -2,18 +2,20 @@ mod api;
 mod client;
 mod utils;
 
-use rustls::crypto::ring::default_provider;
 use crate::utils::setup::{app_setup, init_logger};
 use api::*;
 use client::state::AppState;
+use rustls::crypto::ring::default_provider;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    default_provider().install_default()
+    default_provider()
+        .install_default()
         .expect("Failed to install rustls crypto provider");
 
     tauri::Builder::default()
-        // 窗口状态插件暂时注释
+        .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {})) // 单实例
+        // 窗口状态插件暂时注释，默认的1200×800很合适，避免手动调整后恢复原始比较麻烦
         // .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_system_fonts::init())
