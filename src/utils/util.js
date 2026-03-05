@@ -18,6 +18,7 @@ export const KEY_REFRESH = 'REFRESH_KEY'
 export const CONN_REFRESH = 'CONN_REFRESH'
 export const EXPORT_DATA = 'exportData'
 export const IMPORT_DATA = 'importData'
+export const CONN_LIST_WINDOWS_SYNC  = 'CONN_LIST_WINDOWS_SYNC'
 
 // 预设颜色
 export const PREDEFINE_COLORS = [

@@ -1,13 +1,14 @@
 <script setup>
 import TabMain from './TabMain.vue'
 import {sortBy} from 'lodash'
-import {bus, CONN_REFRESH, DoNothing, meInvoke, meOk} from '@/utils/util.js'
+import {bus, CONN_LIST_WINDOWS_SYNC, CONN_REFRESH, DoNothing, meInvoke, meOk} from '@/utils/util.js'
 import TabConn from '@/views/TabConn.vue'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
 import {onMounted, ref} from 'vue'
 import {check} from '@tauri-apps/plugin-updater'
 import {useI18n} from 'vue-i18n'
+import {getCurrentWindow} from '@tauri-apps/api/window'
 
 const {t} = useI18n()
 
@@ -79,12 +80,19 @@ watch(() => share.conn, async (newConn, oldConn) => {
 }, {deep: true})
 
 // 保存连接列表: 列表真实变化时才发送命令
+const window = getCurrentWindow()
 const connListToString = computed(() => JSON.stringify(share.connList))
 watch(connListToString, async (newConnList) => {
   const connList = JSON.parse(newConnList)
   meTauri.connList = connList // 保证导入导出连接时也进行持久化更新
+
+  // 后端同步 和 多窗口同步
   await meInvoke('conn_list', {connList})
+  await window.emit(CONN_LIST_WINDOWS_SYNC, {connList, label: window.label})
 }, {immediate: true})
+
+// 多窗口的连接列表实时同步（TODO 后端和持久化仅需要变化的窗口处理即可）
+onMounted(() => window.listen(CONN_LIST_WINDOWS_SYNC, e => share.connList = e.payload.connList))
 
 // 软件自动更新
 const app = reactive({
