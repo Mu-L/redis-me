@@ -6,7 +6,7 @@ import Official from '@/views/ext/Official.vue'
 import {useI18n} from 'vue-i18n'
 import {nanoid} from 'nanoid'
 import {type} from '@tauri-apps/plugin-os'
-import {WebviewWindow} from '@tauri-apps/api/webviewWindow'
+import {WebviewWindow, getAllWebviewWindows} from '@tauri-apps/api/webviewWindow'
 
 // 共享数据
 const share = inject('share')
@@ -90,10 +90,15 @@ async function mockData() {
 
 // 新建窗口: 便于同时查看多个Redis实例数据
 // https://tauri.app/zh-cn/reference/javascript/api/namespacewebview/
-function newWindow() {
+
+async function newWindow() {
   const isMacOS = type() === 'macos'
 
-  const label = 'Window' + nanoid()
+  // 获取所有窗口, 如果不包含main窗口则label设置为main (测试发现: 如果main窗口已关闭，创建新的窗口时, 会自动创建一个空白的main窗口)
+  const windows = await getAllWebviewWindows()
+  const hasMainWindow = !!windows.find(item => item.label === 'main')
+
+  const label = hasMainWindow ? 'Window' + nanoid() : 'main'
   const appWindow = new WebviewWindow(label, {
     url: 'index.html',
 
@@ -101,13 +106,18 @@ function newWindow() {
     title: 'RedisME',
     hiddenTitle: true,
     width: 1200,
-    height: 800,
+    height: 800 + 25,
     dragDropEnabled: false,
 
     // src-tauri/src/utils/setup.rs:45
-    titleBarStyle:'overlay',
+    titleBarStyle: 'overlay',
     decorations: isMacOS
   })
+
+  appWindow.once('tauri://created', function () {
+    // console.log(appWindow.)
+  })
+
   appWindow.once('tauri://error', function (e) {
     console.log(e)
     meErr(t('keyHeader.newWindowError'))
