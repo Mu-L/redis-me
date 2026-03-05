@@ -1,7 +1,6 @@
 <script setup>
 import {computed} from 'vue'
 import {isDark} from '@/utils/util.js'
-import 'xterminal/dist/xterminal.css'
 import {Terminal} from 'vue-web-terminal'
 
 const {welcome, prefix, execCommand, commandHelp} = defineProps({
