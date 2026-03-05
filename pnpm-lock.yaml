@@ -32,9 +32,6 @@ importers:
       '@element-plus/icons-vue':
         specifier: ^2.3.2
         version: 2.3.2(vue@3.5.29(typescript@5.8.3))
-      '@fsegurai/codemirror-theme-monokai':
-        specifier: ^6.2.3
-        version: 6.2.3(@codemirror/language@6.12.2)(@codemirror/state@6.5.4)(@codemirror/view@6.39.15)(@lezer/highlight@1.2.3)
       '@tauri-apps/api':
         specifier: ^2.10.1
         version: 2.10.1
@@ -113,9 +110,6 @@ importers:
       vue-web-terminal:
         specifier: ^3.4.1
         version: 3.4.1(typescript@5.8.3)
-      xterminal:
-        specifier: ^2.2.1
-        version: 2.2.1
     devDependencies:
       '@tauri-apps/cli':
         specifier: ^2.10.0
@@ -377,14 +371,6 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
-
-  '@fsegurai/codemirror-theme-monokai@6.2.3':
-    resolution: {integrity: sha512-kHiansKaONRuTU76zavJ9KRJnITbg6y6PXBVX0ZEUSf6WSdTAAgubYay+M6tVNMAirwAdkHnIjjZbh8GXeg01g==}
-    peerDependencies:
-      '@codemirror/language': ^6.0.0
-      '@codemirror/state': ^6.0.0
-      '@codemirror/view': ^6.0.0
-      '@lezer/highlight': ^1.0.0
 
   '@iconify-json/simple-icons@1.2.71':
     resolution: {integrity: sha512-rNoDFbq1fAYiEexBvrw613/xiUOPEu5MKVV/X8lI64AgdTzLQUUemr9f9fplxUMPoxCBP2rWzlhOEeTHk/Sf0Q==}
@@ -2226,10 +2212,6 @@ packages:
     resolution: {integrity: sha512-FxF6+rkr1rNSQrhUNYrAFJpRXNzlDoMxeXN5qI84939ylEv3qqPFKa85Oxr6tDaJKqwW6KKyo2v26TSv3k6LeA==}
     engines: {node: '>=0.6.0'}
 
-  xterminal@2.2.1:
-    resolution: {integrity: sha512-fuSoACfqoOMMACgg/kpeqIo+lDIeKTH4UafZdmiMFZLuG939jZVWNgy0UyVV2HvK6myqGsa/rH3DLVvlXiNy3Q==}
-    engines: {node: '>=22', pnpm: '>=10'}
-
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
@@ -2427,13 +2409,6 @@ snapshots:
       '@floating-ui/utils': 0.2.10
 
   '@floating-ui/utils@0.2.10': {}
-
-  '@fsegurai/codemirror-theme-monokai@6.2.3(@codemirror/language@6.12.2)(@codemirror/state@6.5.4)(@codemirror/view@6.39.15)(@lezer/highlight@1.2.3)':
-    dependencies:
-      '@codemirror/language': 6.12.2
-      '@codemirror/state': 6.5.4
-      '@codemirror/view': 6.39.15
-      '@lezer/highlight': 1.2.3
 
   '@iconify-json/simple-icons@1.2.71':
     dependencies:
@@ -4231,8 +4206,6 @@ snapshots:
   wrappy@1.0.2: {}
 
   xpath@0.0.34: {}
-
-  xterminal@2.2.1: {}
 
   y18n@5.0.8: {}
 
