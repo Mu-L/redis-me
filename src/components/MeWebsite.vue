@@ -37,15 +37,24 @@ const client = {
   'valkey-zh': '/commands/client-list/',
 }
 
-function handleCommand(command) {
+const command = {
+  'redis': '/docs/latest/commands/',
+  'redis-zh': '/docs/latest/commands/',
+  'valkey': '/commands/',
+  'valkey-zh': '/commands/',
+}
+
+function handleCommand(cmd) {
   if (to === 'info') {
-    openUrl(websize[command] + info[command])
+    openUrl(websize[cmd] + info[cmd])
   } else if (to === 'config') {
-    openUrl(websize[command] + config[command])
+    openUrl(websize[cmd] + config[cmd])
   } else if (to === 'client') {
-    openUrl(websize[command] + client[command])
+    openUrl(websize[cmd] + client[cmd])
+  } else if (to === 'command') {
+    openUrl(websize[cmd] + command[cmd])
   } {
-    meOk(`TODO: ${command}`)
+    meOk(`TODO: ${cmd}`)
   }
 }
 
