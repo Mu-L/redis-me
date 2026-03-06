@@ -8,6 +8,7 @@ import MeContext from '@/components/MeContext.vue'
 import MeTable from '@/components/MeTable.vue'
 import MeDialog from '@/components/MeDialog.vue'
 import MeTabPane from '@/components/MeTabPane.vue'
+import MeWebsite from '@/components/MeWebsite.vue'
 
 export default function (app) {
   app.component('me-icon', MeIcon)
@@ -19,4 +20,5 @@ export default function (app) {
   app.component('me-table', MeTable)
   app.component('me-dialog', MeDialog)
   app.component('me-tab-pane', MeTabPane)
+  app.component('me-website', MeWebsite)
 }

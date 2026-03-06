@@ -1,6 +1,5 @@
 <script setup>
 // 跳转到官网: Redis中英文/Valkey中英文
-import {useI18n} from 'vue-i18n'
 import {openUrl} from '@tauri-apps/plugin-opener'
 import {isZh, meOk} from '@/utils/util.js'
 
@@ -9,8 +8,6 @@ const {to} = defineProps({
   placement: {type: String, default: 'right'},
   marginLeft: {type: String, default: '10px'},
 })
-
-const { t } = useI18n()
 
 const websize = {
   'redis': 'https://redis.io',
@@ -26,10 +23,28 @@ const info = {
   'valkey-zh': '/commands/info/',
 }
 
+const config = {
+  'redis': '/docs/latest/operate/oss_and_stack/management/config/',
+  'redis-zh': '/docs/latest/operate/oss_and_stack/management/config/',
+  'valkey': '/topics/valkey.conf/',
+  'valkey-zh': '/topics/valkey.conf/',
+}
+
+const client = {
+  'redis': '/docs/latest/commands/client-list/',
+  'redis-zh': '/docs/latest/commands/client-list/',
+  'valkey': '/commands/client-list/',
+  'valkey-zh': '/commands/client-list/',
+}
+
 function handleCommand(command) {
   if (to === 'info') {
     openUrl(websize[command] + info[command])
-  } else {
+  } else if (to === 'config') {
+    openUrl(websize[command] + config[command])
+  } else if (to === 'client') {
+    openUrl(websize[command] + client[command])
+  } {
     meOk(`TODO: ${command}`)
   }
 }

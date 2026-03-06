@@ -82,9 +82,9 @@ function propWidth(item) {
 <template>
   <div class="redis-client">
     <div class="me-flex header">
-      <div>
+      <div class="me-flex">
         <node-list v-model="node" style="margin-right: 10px" @change="refresh"/>
-        <el-select v-model="clientType" style="width: 120px;margin-right: 10px;"
+        <el-select v-model="clientType" style="width: 120px;"
                    @change="refresh"
                    :placeholder="t('redisClient.clientType')" clearable>
           <el-option value="NORMAL"/>
@@ -93,9 +93,7 @@ function propWidth(item) {
           <el-option value="REPLICA"/>
           <el-option value="PUBSUB"/>
         </el-select>
-        <el-link type="success" target="_blank" style="margin-left: 10px" href="https://redis.io/docs/latest/commands/client-list/" underline="never">
-          <me-icon icon="me-icon-link"/>
-        </el-link>
+        <me-website to="client"/>
       </div>
       <div>
         <el-input v-model="keyword" :placeholder="t('redisClient.keyword')" style="width: 280px; margin-right: 10px"
