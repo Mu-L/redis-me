@@ -50,6 +50,8 @@ watchEffect(() => {
 
   const lines = raw.value.split('\n')
   let tagKey = ''
+
+  share.isValkey = false
   lines.forEach(line => {
     if (line.startsWith('#')) {
       tagKey = line.substring(1).trim()
@@ -62,6 +64,11 @@ watchEffect(() => {
       if (key !== '') {
         tagTable.value.push({key, value, tag: tagKey})
         dic.value[key] = value
+
+        // 如果info信息中有valkey_version则设置为true
+        if (key === 'valkey_version') {
+          share.isValkey = true
+        }
       }
 
       // db0:keys=14410,expires=3997,avg_ttl=736124073
@@ -129,6 +136,8 @@ function goMemory() {
   // dialog.memory = true
   share.tabName = 'memory'
 }
+
+console.log('isValkey', share.isValkey)
 </script>
 
 <template>
@@ -138,8 +147,8 @@ function goMemory() {
         <div class="me-flex" style="align-items: center">
           <div>
             <el-text size="large" style="margin-left: 5px">{{ infoNode }}</el-text>
-            <el-tag style="margin-left: 10px">v{{ dic['redis_version'] }}</el-tag>
-            <el-tag type="success" style="margin-left: 10px" v-if="dic['redis_mode']">{{ dic['redis_mode'] }}</el-tag>
+            <el-tag style="margin-left: 10px">{{share.isValkey ? 'Valkey' : 'Redis'}} {{ dic[share.isValkey ? 'valkey_version' : 'redis_version'] }}</el-tag>
+            <el-tag type="success" style="margin-left: 10px" v-if="dic[share.isValkey ? 'server_mode' : 'redis_mode']">{{ dic[share.isValkey ? 'server_mode' : 'redis_mode'] }}</el-tag>
             <el-tag type="success" style="margin-left: 10px" v-if="dic['role']">{{ dic['role'] }}</el-tag>
           </div>
           <div class="me-flex">
@@ -270,7 +279,7 @@ function goMemory() {
 
   <me-dialog v-model="dialog.config" icon="el-icon-wallet" :title="t('redisInfo.runConfig')"
              width="80vw" :close-on-press-escape="false" :close-on-click-modal="false">
-    <RedisConfig :init-node="node || infoNode" :init-version="dic['redis_version']"/>
+    <RedisConfig :init-node="node || infoNode" :init-version="dic[share.isValkey ? 'valkey_version' : 'redis_version']"/>
   </me-dialog>
 </template>
 

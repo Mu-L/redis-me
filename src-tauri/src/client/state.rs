@@ -76,7 +76,7 @@ impl ClientAccess for AppHandle {
                 info!("断开连接: {}", client.name());
                 clients.remove(id);
             }
-            None => info!("未找到连接, 断开忽略: {}", id)
+            None => info!("未找到连接, 断开忽略: {}", id),
         };
         Ok(())
     }

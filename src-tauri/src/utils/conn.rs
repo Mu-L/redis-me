@@ -4,7 +4,9 @@ use anyhow::Context;
 use log::info;
 use redis::cluster::{ClusterClient, ClusterConfig};
 use redis::sentinel::{SentinelClientBuilder, SentinelServerType};
-use redis::{Client, ClientTlsConfig, Commands, ConnectionAddr, ConnectionLike, TlsCertificates, TlsMode};
+use redis::{
+    Client, ClientTlsConfig, Commands, ConnectionAddr, ConnectionLike, TlsCertificates, TlsMode,
+};
 use std::fs;
 
 // 获取单机连接
@@ -24,7 +26,9 @@ pub fn get_client_single(conf: &RedisConf) -> AnyResult<Client> {
     info!("redis_url: {redis_url_log}");
 
     let certs = get_tls_certs(conf.ssl_option.clone())?;
-    let mut client = if conf.ssl && let Some(tls) = certs {
+    let mut client = if conf.ssl
+        && let Some(tls) = certs
+    {
         Client::build_with_tls(redis_url, tls)?
     } else {
         Client::open(redis_url)?
@@ -44,20 +48,22 @@ pub fn get_client_single(conf: &RedisConf) -> AnyResult<Client> {
 fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
     let certs = get_tls_certs(conf.ssl_option.clone())?;
     let conf = conf.clone();
-    let client = if conf.ssl && let Some(tls) = certs {
+    let client = if conf.ssl
+        && let Some(tls) = certs
+    {
         let addr = ConnectionAddr::TcpTls {
             host: conf.host,
             port: conf.port,
             insecure: true,
             tls_params: None,
         };
-        let mut builder = SentinelClientBuilder::new(
-            vec![addr], conf.master_name, SentinelServerType::Master)?
-            .set_client_to_redis_db(conf.db as i64)
-            .set_client_to_redis_tls_mode(TlsMode::Secure)
-            .set_client_to_redis_certificates(tls.clone())
-            .set_client_to_sentinel_tls_mode(TlsMode::Secure)
-            .set_client_to_sentinel_certificates(tls);
+        let mut builder =
+            SentinelClientBuilder::new(vec![addr], conf.master_name, SentinelServerType::Master)?
+                .set_client_to_redis_db(conf.db as i64)
+                .set_client_to_redis_tls_mode(TlsMode::Secure)
+                .set_client_to_redis_certificates(tls.clone())
+                .set_client_to_sentinel_tls_mode(TlsMode::Secure)
+                .set_client_to_sentinel_certificates(tls);
         // TODO ==> danger_accept_invalid_hostnames 改为 true（目前没有这个属性）
         // https://github.com/redis-rs/redis-rs/issues/1931
 
@@ -76,8 +82,9 @@ fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
         builder.build()?.get_client()?
     } else {
         let addr = ConnectionAddr::Tcp(conf.host, conf.port);
-        let mut builder = SentinelClientBuilder::new(vec![addr], conf.master_name, SentinelServerType::Master)?
-            .set_client_to_redis_db(conf.db as i64);
+        let mut builder =
+            SentinelClientBuilder::new(vec![addr], conf.master_name, SentinelServerType::Master)?
+                .set_client_to_redis_db(conf.db as i64);
         if !conf.username.is_empty() {
             builder = builder.set_client_to_sentinel_username(conf.username);
         };

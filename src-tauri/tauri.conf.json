@@ -13,10 +13,11 @@
     "windows": [
       {
         "title": "RedisME",
+        "hiddenTitle": true,
         "width": 1200,
         "height": 800,
         "dragDropEnabled": false,
-        "hiddenTitle": true
+        "center": true
       }
     ],
     "security": {

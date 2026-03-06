@@ -2,18 +2,27 @@ mod api;
 mod client;
 mod utils;
 
-use rustls::crypto::ring::default_provider;
 use crate::utils::setup::{app_setup, init_logger};
 use api::*;
 use client::state::AppState;
+use rustls::crypto::ring::default_provider;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    default_provider().install_default()
+    default_provider()
+        .install_default()
         .expect("Failed to install rustls crypto provider");
 
     tauri::Builder::default()
-        // 窗口状态插件暂时注释
+        // 单实例 https://tauri.app/zh-cn/plugin/single-instance/
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            // 默认情况下，当应用程序已经在运行时启动新实例时，不会采取任何操作。当用户尝试打开一个新实例时，为了聚焦正在运行实例的窗口，修改回调闭包如下
+            if let Some((_, webview_window)) = app.webview_windows().iter().next() {
+                let _ = webview_window.set_focus();
+            }
+        }))
+        // 窗口状态插件暂时注释，默认的1200×800很合适，避免手动调整后恢复原始比较麻烦
         // .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_system_fonts::init())

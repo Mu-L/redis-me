@@ -1,12 +1,12 @@
 <script setup>
 import {configTip as tips} from '@/utils/tip.js'
-import {redisConfDict} from '@/utils/redis.js'
+import {redisConfDict, valkeyConfDict} from '@/utils/redis.js'
 import NodeList from '../ext/NodeList.vue'
 import {meInvoke, meOk} from '@/utils/util.js'
 import {sortBy} from 'lodash'
 import {useI18n} from 'vue-i18n'
 import {BaseDirectory} from '@tauri-apps/api/path'
-import {readTextFile} from '@tauri-apps/plugin-fs'
+import {readDir, readTextFile} from '@tauri-apps/plugin-fs'
 
 const { t } = useI18n()
 // 共享数据
@@ -23,11 +23,26 @@ const loading = ref(false)
 const dataList = ref([])
 
 // 文件格式的配置文件
+// 读取配置文件目录，将所有文件存储起来
 // const configVersionList = Object.keys(redisConfText).reverse()
-const configVersionList = ['Redis8.6', 'Redis8.4', 'Redis8.2', 'Redis8.0', 'Redis7.4', 'Redis7.2', 'Redis7.0','Redis6.2', 'Redis5.0', 'Redis4.0']
+const serverType = computed(() => share.isValkey ? 'Valkey' : 'Redis')
+const dirConfigList = ref([])
+onMounted(() => readConfigDir())
+async function readConfigDir() {
+  const files = await readDir('resources/conf', {baseDir: BaseDirectory.Resource})
+  files.forEach(file => {
+    if (file.isFile && file.name.endsWith('.conf')) {
+      dirConfigList.value.push(file.name.substring(0, file.name.length - 5))
+    }
+  })
+  dirConfigList.value.sort().reverse()
+}
+
+const configVersionList = computed(() =>  dirConfigList.value.filter(d => d.startsWith(serverType.value)))
 const configVersion = ref('')  // 版本
 const configRaw = ref('')
 
+// 读取配置文件的值
 watchEffect(async () => {
   try {
     // configRaw.value = redisConfText[configVersion.value]
@@ -43,17 +58,19 @@ function handleCommand(command){
 }
 
 // Json格式的默认配置
-const dictVersionList = Object.keys(redisConfDict).reverse()
+const confDict = computed(() => share.isValkey ? valkeyConfDict: redisConfDict)
+
+const dictVersionList = Object.keys(confDict.value).reverse()
 function getDefaultVersion() {
   for (const version of dictVersionList) {
-    if ('Redis' + initVersion > version) {
+    if (serverType.value + initVersion > version) {
       return version
     }
   }
   return configVersionList[0]
 }
 const dictVersion = ref(getDefaultVersion())
-const dictRaw = computed(() => redisConfDict[dictVersion.value])
+const dictRaw = computed(() => confDict.value[dictVersion.value])
 const showTypeOptions = [
   {label: t('redisConfig.all'), value: 'All'},
   {label: t('redisConfig.diff'), value: 'Diff'},

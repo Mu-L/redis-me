@@ -8,12 +8,12 @@ pub mod state;
 mod tests {
     use crate::client::client_trait::RedisMeClient;
     use crate::client::impl_cluster::RedisMeCluster;
-    use crate::utils::model::*;
-    use redis::{TlsMode};
-    use redis::cluster::{ClusterClient, ClusterPipeline};
     use crate::client::impl_single::RedisMeSingle;
     use crate::utils::conn::{get_client_cluster, get_client_single};
+    use crate::utils::model::*;
     use crate::utils::util::AnyResult;
+    use redis::TlsMode;
+    use redis::cluster::{ClusterClient, ClusterPipeline};
 
     fn client() -> Box<dyn RedisMeClient> {
         // default_provider().install_default()
@@ -128,7 +128,7 @@ mod tests {
     }
 
     #[test]
-    fn test_field_scan_mock() -> AnyResult<()>{
+    fn test_field_scan_mock() -> AnyResult<()> {
         let conn_single = conf_single();
         let client = get_client_single(&conn_single)?;
         let mut conn = client.get_connection()?;
@@ -140,9 +140,12 @@ mod tests {
         pipe.del("field-scan:set").ignore();
         pipe.del("field-scan:zset").ignore();
 
-        pipe.set("field-scan:string", "字段扫描字符串类型 😄").ignore();
-        for i in 0..600 { // 大于512个
-            pipe.hset("field-scan:hash", format!("k{i}"), format!("v{i}")).ignore();
+        pipe.set("field-scan:string", "字段扫描字符串类型 😄")
+            .ignore();
+        for i in 0..600 {
+            // 大于512个
+            pipe.hset("field-scan:hash", format!("k{i}"), format!("v{i}"))
+                .ignore();
             pipe.rpush("field-scan:list", format!("v{i}")).ignore();
             pipe.sadd("field-scan:set", format!("v{i}")).ignore();
             pipe.zadd("field-scan:zset", format!("v{i}"), i).ignore();
@@ -160,9 +163,12 @@ mod tests {
         pipe.del("field-scan:set").ignore();
         pipe.del("field-scan:zset").ignore();
 
-        pipe.set("field-scan:string", "字段扫描字符串类型 😄").ignore();
-        for i in 0..555 { // 大于512个
-            pipe.hset("field-scan:hash", format!("k{i}"), format!("v{i}")).ignore();
+        pipe.set("field-scan:string", "字段扫描字符串类型 😄")
+            .ignore();
+        for i in 0..555 {
+            // 大于512个
+            pipe.hset("field-scan:hash", format!("k{i}"), format!("v{i}"))
+                .ignore();
             pipe.rpush("field-scan:list", format!("v{i}")).ignore();
             pipe.sadd("field-scan:set", format!("v{i}")).ignore();
             pipe.zadd("field-scan:zset", format!("v{i}"), i).ignore();
@@ -186,7 +192,7 @@ mod tests {
     }
 
     #[test]
-    fn test_field_scan(){
+    fn test_field_scan() {
         // let mut param = test_field_scan_param("field-scan:string");
         // let mut param = test_field_scan_param("field-scan:hash");
         // param.hash_key = Some("k0".into());

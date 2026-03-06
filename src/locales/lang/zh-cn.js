@@ -157,8 +157,11 @@ export default {
     exportData: '导出数据',
     importData: '导入数据',
 
+    newWindow: '新窗口',
+    newWindowError: '打开新窗口失败',
     setting: '设置',
-    about: '关于',
+    social: '社交',
+    about: '关于'
   },
 
   about: {

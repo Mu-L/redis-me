@@ -65,3 +65,9 @@ git clone https://github.com/hepengju/redis-me.git --depth=1
 pnpm install
 pnpm tauri dev
 ```
+
+## WeChat Official Account
+
+Regularly share the special features and update logs of RedisME, as well as other technical issues and solutions.
+
+<img src="src/assets/images/wechat.png" alt="wechat" width="400" />

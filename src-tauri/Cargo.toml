@@ -19,7 +19,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 # tauri默认依赖
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["unstable"] }
 tauri-plugin-log = "2"
 
 serde = { version = "1", features = ["derive"] }
@@ -49,4 +49,5 @@ tauri-plugin-system-fonts = "2"
 tauri-plugin-updater = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-single-instance = "2"
 tauri-plugin-window-state = "2"
