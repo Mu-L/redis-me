@@ -1,5 +1,18 @@
 # 2.x Changelog
 
+## [v2.2.0](https://mp.weixin.qq.com/s/GKM0wOIvPTl5Q_X_gme7Cg) (2026-03-08)
+
+- Multi Window: A new "New Window" function is added to view multiple Redis connections simultaneously. Meanwhile,
+  RedisME is changed to a single - instance application.
+- Social QR code: A new "Social" function is added, which displays the pictures of the WeChat official account (
+  Xiaohebao) and Bilibili (He Yileng). You can follow them to view the text and picture update logs and video tutorials.
+- Valkey compatibility: A judgment identifier. The info contains the valkey_version key.
+    * Info: Compatibility of server version and modes.
+    * Config: Support for default configuration files and default table values (Valkey 7.2/8.0/8.1/9.0).
+    * Prefix of the connection dropdown box: Icon display.
+- Official Website: The redirection to the official Redis website for info/config/client/commands fully supports four
+  URLs, including the Chinese and English versions of Redis and Valkey.
+
 ## [v2.1.0](https://mp.weixin.qq.com/s/WUJorR4rP3si5vFRD9qvWA) (2026-02-28)
 
 - Terminal: Added command help table dialog, optimized the table style of the help command

@@ -6,6 +6,7 @@ import {meInvoke} from '@/utils/util.js'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 import {useI18n} from 'vue-i18n'
+import MeWebsite from '@/components/MeWebsite.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -136,8 +137,6 @@ function goMemory() {
   // dialog.memory = true
   share.tabName = 'memory'
 }
-
-console.log('isValkey', share.isValkey)
 </script>
 
 <template>
@@ -229,12 +228,9 @@ console.log('isValkey', share.isValkey)
     <el-card class="detail-card">
       <template #header>
         <div class="me-flex detail-header">
-          <div>
+          <div class="me-flex">
             <el-text size="large">{{ t('redisInfo.infoDetail') }}</el-text>
-            <el-link type="success" target="_blank" style="margin-left: 10px"
-                     :href="t('redisInfo.redisWebsite')" underline="never">
-              <me-icon :info="t('redisInfo.jumpWebsite')" icon="me-icon-link"/>
-            </el-link>
+            <me-website to="info"/>
           </div>
 
           <div class="detail-header-right">

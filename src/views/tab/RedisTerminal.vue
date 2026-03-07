@@ -106,9 +106,12 @@ function getSummaries() {
     <me-dialog v-model="visible" icon="el-icon-document" :title="t('redisTerminal.commandTitle')" width="80vw">
       <div style="height: 100%; display: flex; flex-direction: column">
         <div class="me-flex">
-          <el-select v-model="group" style="width: 200px" :placeholder="t('redisTerminal.group')" clearable filterable>
-            <el-option v-for="item in groupList" :key="item" :value="item">{{ item }}</el-option>
-          </el-select>
+          <div class="me-flex">
+            <el-select v-model="group" style="width: 200px" :placeholder="t('redisTerminal.group')" clearable filterable>
+              <el-option v-for="item in groupList" :key="item" :value="item">{{ item }}</el-option>
+            </el-select>
+            <me-website to="command"/>
+          </div>
           <el-input v-model="keyword" :placeholder="t('redisTerminal.keywordHint')" style="width: 300px" clearable/>
         </div>
 

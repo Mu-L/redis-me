@@ -137,7 +137,7 @@ async function newWindow() {
         <div :style="{color: share.color}">{{ value.name }}</div>
       </template>
       <template #prefix>
-        <me-icon icon="me-icon-redis"/>
+        <me-icon :icon=" share.isValkey ? 'me-icon-valkey' : 'me-icon-redis'"/>
       </template>
     </el-select>
 
