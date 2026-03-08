@@ -214,3 +214,9 @@ watch(() => form.value.value, () => {
     </template>
   </el-dialog>
 </template>
+
+<style scoped lang="scss">
+:deep(.el-input-group__prepend) {
+  padding: 0 16px;
+}
+</style>
