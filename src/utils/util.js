@@ -31,7 +31,7 @@ export const PREDEFINE_COLORS = [
 
 // 键类型
 export const KEY_TYPE_LIST = [
-  { value: 'ALL'   , type: 'info'},
+  //{ value: 'ALL'   , type: 'info'},
   { value: 'STRING', type: 'primary'},
   { value: 'HASH'  , type: 'primary'},
   { value: 'LIST'  , type: 'danger'},

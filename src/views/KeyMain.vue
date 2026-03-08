@@ -36,7 +36,7 @@ onMounted(() => refresh())
 
 // 刷新时条件初始化
 function initReset() {
-  keyType.value = {value: 'ALL', type: meType('ALL')}
+  keyType.value = 'ALL'
   exact.value = false
   keyword.value = ''
   keyList.value = []
@@ -44,7 +44,7 @@ function initReset() {
 }
 
 // 键类型
-const keyType = ref({value: 'ALL', type: meType('ALL')})    // 键类型
+const keyType = ref('ALL')    // 键类型
 function chooseKeyType(keyTypeSelected) {
   keyType.value = keyTypeSelected
   keyword.value = ''
@@ -88,7 +88,7 @@ async function scanKey(useCursor = false, loadAll = false) {
     const params = {
       match: match.value,
       count: 1000,
-      type: keyType.value?.value === 'ALL' ? '' : keyType.value.value,
+      type: keyType.value === 'ALL' ? '' : keyType.value,
       loadAll: loadAll,
       cursor: cursor.value,
     }
@@ -285,12 +285,19 @@ function keyMemory(folder) {
       <template #prepend>
         <el-dropdown placement="bottom-start" @command="chooseKeyType">
           <el-tag :type="keyType.type" effect="plain" style="width: 32px; height: 32px; font-weight: bold; border-bottom-right-radius: 0; border-top-right-radius: 0;">
-            {{ keyType.value.slice(0, 1) }}
+            {{ keyType.slice(0, 1) }}
           </el-tag>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item">
-                <el-tag :type="item.type" :effect="item.value === keyType.value ? 'dark' : 'plain'"
+              <el-dropdown-item command="ALL">
+                <el-tag type="info" :effect="'ALL' === keyType ? 'dark' : 'plain'"
+                        style="font-weight: bold; width: 26px;">
+                  A
+                </el-tag>
+                <el-text style="margin-left: 6px" type="info">ALL</el-text>
+              </el-dropdown-item>
+              <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
+                <el-tag :type="item.type" :effect="item.value === keyType ? 'dark' : 'plain'"
                         style="font-weight: bold; width: 26px;">
                   {{ item.value.slice(0, 1) }}
                 </el-tag>

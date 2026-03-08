@@ -1,6 +1,6 @@
 <script setup>
 import {capitalize, cloneDeep} from 'lodash'
-import {meInvoke, meOk, meTtlSeconds} from '@/utils/util.js'
+import {KEY_TYPE_LIST, meInvoke, meOk, meTtlSeconds} from '@/utils/util.js'
 import {useI18n} from 'vue-i18n'
 
 const { t } = useI18n()
@@ -122,11 +122,9 @@ const hint = computed(() => {
         <el-col :span="12">
           <el-form-item :label="t('fieldAdd.type')" prop="type">
             <el-select v-model="form.type" style="width: 100%">
-              <el-option label="String" value="string"/>
-              <el-option label="Hash"   value="hash"/>
-              <el-option label="List"   value="list"/>
-              <el-option label="Set"    value="set"/>
-              <el-option label="ZSet"   value="zset"/>
+              <el-option v-for="item in KEY_TYPE_LIST" :label="item.value" :value="item.value.toLowerCase()">
+                <el-text :type="item.type">{{ item.value }}</el-text>
+              </el-option>
             </el-select>
           </el-form-item>
         </el-col>
