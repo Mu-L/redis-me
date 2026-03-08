@@ -53,7 +53,7 @@ function handleCommand(cmd) {
     openUrl(websize[cmd] + client[cmd])
   } else if (to === 'command') {
     openUrl(websize[cmd] + command[cmd])
-  } {
+  } else {
     meOk(`TODO: ${cmd}`)
   }
 }
