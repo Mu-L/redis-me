@@ -1,30 +1,23 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{
-    AnyResult, EVENT_EXPORT, EVENT_IMPORT, EVENT_MONITOR, EVENT_SUBSCRIBE,
-    REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE, assert_is_true,
-    info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value,
-    vec8_to_display_string,
-};
-use Ordering::Relaxed;
+use crate::utils::util::*;
 use anyhow::bail;
-use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 use chrono::{Local, Utc};
 use log::{info, warn};
 use parking_lot::MutexGuard;
-use redis::{
-    Cmd, Commands, Connection, FromRedisValue, Msg, SetExpiry, SetOptions, ValueType,
-    from_redis_value,
-};
+use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, ValueType};
+use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
+use Ordering::Relaxed;
 
 // 抽取公共属性
 pub struct RedisMeBase {
@@ -461,6 +454,14 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         ValueType::ZSet => fv_list
             .into_iter()
             .try_for_each(|f| conn.zadd(&key, f.field_value, f.field_score))?,
+        ValueType::Stream => {
+            let items: Vec<(String, String)> = fv_list.into_iter().map(|f| (f.field_key, f.field_value)).collect();
+            conn.xadd(&key, &param.id, &items)?
+        },
+        ValueType::Unknown(other) if other == "json" => {
+            let value: Value = serde_json::from_str(&param.value)?;
+            conn.json_set(&key, "$", &value)?
+        },
         _ => {
             handle_other_value_type(&key_type, &key)?;
         }

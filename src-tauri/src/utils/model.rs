@@ -283,6 +283,7 @@ api_model!(RedisFieldAdd {
 
     list_push_method: String, // lpush, rpush
     field_value_list: Vec<RedisFieldValue>,
+    id: String, // stream
 });
 
 // 字段修改
