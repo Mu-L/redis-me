@@ -179,6 +179,7 @@ export default {
     valueRequired: '值不允许为空',
     jsonValidator: '值必须为JSON格式',
     hashValidator: '哈希键和值不允许为空',
+    streamValidator: '字段和值不允许为空',
     hashHint: '(哈希键: 值)',
     zsetHint: '(值: 分数)',
     streamHint: '(字段: 值)',
@@ -194,7 +195,8 @@ export default {
     value: '值',
     element: '元素',
     hashKey: '哈希键',
-    id: 'ID (*表示服务器自动生成)'
+    id: 'ID (*表示服务器自动生成)',
+    idRequired: '请输入ID',
   },
 
   fieldSet: {

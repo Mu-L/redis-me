@@ -73,10 +73,10 @@ const rules = computed(() => ({
   fieldValueList: [
     {
       validator: (rule, value, callback) => {
-        if (form.value.type === 'hash') {
+        if (form.value.type === 'hash' || form.value.type === 'stream') {
           const count = form.value.fieldValueList.filter(d => d.fieldKey === '' || d.fieldValue === '').length
           if (count > 0) {
-            callback(new Error(t('fieldAdd.hashValidator')))
+            callback(new Error(form.value.type === 'hash' ? t('fieldAdd.hashValidator') : t('fieldAdd.streamValidator')))
           }
         } else {
           const count = form.value.fieldValueList.filter(d => d.fieldValue === '').length
@@ -86,7 +86,18 @@ const rules = computed(() => ({
         }
         callback()
       }
-    }]
+    }],
+  id: [
+    {
+      validator: (rule, value, callback) => {
+        if (form.value.type === 'stream') {
+          if (value) return callback()
+          callback(new Error(t('fieldAdd.idRequired')))
+        }
+        callback()
+      }
+    }
+  ],
 }))
 
 function deleteElement(index) {
@@ -131,7 +142,7 @@ const hint = computed(() => {
 
 // me-code的值发生变化时进行自动验证
 watch(() => form.value.value, () => {
-  formRef.value.validate()
+  formRef?.value?.validate()
 })
 </script>
 
