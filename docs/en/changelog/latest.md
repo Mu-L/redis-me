@@ -1,6 +1,6 @@
 # 2.x Changelog
 
-## [v2.2.0](https://mp.weixin.qq.com/s/GKM0wOIvPTl5Q_X_gme7Cg) (2026-03-08)
+## [v2.2.1](https://mp.weixin.qq.com/s/GKM0wOIvPTl5Q_X_gme7Cg) (2026-03-08)
 
 - Multi Window: A new "New Window" function is added to view multiple Redis connections simultaneously. Meanwhile,
   RedisME is changed to a single - instance application.

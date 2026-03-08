@@ -13,7 +13,7 @@
 - Valkey9.0支持集群模式下的多数据库: rust-rs暂不支持
 - 键复选框多个选中后的批量操作
 
-## [v2.2.0](https://mp.weixin.qq.com/s/GKM0wOIvPTl5Q_X_gme7Cg) (2026-03-08)
+## [v2.2.1](https://mp.weixin.qq.com/s/GKM0wOIvPTl5Q_X_gme7Cg) (2026-03-08)
 
 - 多窗口支持: 新增《新窗口》功能，以便同时查看多个Redis连接。同时RedisME改为单实例
 - 社交二维码: 新增《社交》功能，显示微信公众号(小何包)和哔哩哔哩(何亦冷)图片，关注可查看图文更新日志和视频教程
