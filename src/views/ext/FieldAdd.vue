@@ -1,6 +1,6 @@
 <script setup>
-import {capitalize, cloneDeep} from 'lodash'
-import {KEY_TYPE_LIST, meInvoke, meOk, meTtlSeconds} from '@/utils/util.js'
+import {cloneDeep} from 'lodash'
+import {KEY_TYPE_LIST, meInvoke, meOk, meTtlSeconds, meType} from '@/utils/util.js'
 import {useI18n} from 'vue-i18n'
 
 const { t } = useI18n()
@@ -25,6 +25,8 @@ const initForm = computed(() => ({
   ttl: -1,
   value: '',
 
+  id: '*', // stream格式的id, 默认为*，表示由redis生成
+
   listPushMethod: 'rpush',
   listPushOptions: [
     {label: t('fieldAdd.append'), value: 'rpush'},
@@ -39,6 +41,7 @@ const initForm = computed(() => ({
   ]
 }))
 const form = ref(cloneDeep(toRaw(initForm.value)))
+const stringOrJsonType = computed(() => form.value.type === 'string' || form.value.type === 'json')
 
 const rules = computed(() => ({
   key: [{required: true, message: t('fieldAdd.keyRequired')}],
@@ -53,7 +56,20 @@ const rules = computed(() => ({
       }
     }
   ],
-  value: [{required: true, message: t('fieldAdd.valueRequired')}],
+  value: [{required: true, message: t('fieldAdd.valueRequired')},
+    {
+      validator: (rule, value, callback) => {
+        if (form.value.type === 'json') {
+          try {
+            JSON.parse(value) // json合法性校验
+          } catch (e) {
+            callback(new Error(t('fieldAdd.jsonValidator')))
+          }
+        }
+        callback()
+      }
+    }
+  ],
   fieldValueList: [
     {
       validator: (rule, value, callback) => {
@@ -109,7 +125,13 @@ function submit(){
 const hint = computed(() => {
   if (form.value.type === 'hash') return t('fieldAdd.hashHint')
   if (form.value.type === 'zset') return t('fieldAdd.zsetHint')
+  if (form.value.type === 'stream') return t('fieldAdd.streamHint')
   return ''
+})
+
+// me-code的值发生变化时进行自动验证
+watch(() => form.value.value, () => {
+  formRef.value.validate()
 })
 </script>
 
@@ -118,6 +140,7 @@ const hint = computed(() => {
              v-model="visible" :width="600" @closed="emit('closed')"
              destroy-on-close close-on-press-escape close-on-click-modal draggable>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
+      <!-- 键类型和TTL: 仅新建键时显示 -->
       <el-row :gutter="40" v-if="form.mode === 'key'">
         <el-col :span="12">
           <el-form-item :label="t('fieldAdd.type')" prop="type">
@@ -125,6 +148,10 @@ const hint = computed(() => {
               <el-option v-for="item in KEY_TYPE_LIST" :label="item.value" :value="item.value.toLowerCase()">
                 <el-text :type="item.type">{{ item.value }}</el-text>
               </el-option>
+
+              <template #label="{ label, value }">
+                <el-text :type="meType(label)">{{ label }}</el-text>
+              </template>
             </el-select>
           </el-form-item>
         </el-col>
@@ -145,25 +172,35 @@ const hint = computed(() => {
         </el-col>
       </el-row>
 
+      <!-- 键: 新建键可编辑, 新增字段时禁止编辑且前缀补充类型 -->
       <el-form-item :label="t('fieldAdd.key')" prop="key">
         <el-input type="text" v-model="form.key" :disabled="form.mode === 'field'">
           <template #prepend v-if="form.mode === 'field'">
-            {{capitalize(form.type)}}
+            <el-text :type="meType(form.type)">{{ form.type.toUpperCase() }}</el-text>
           </template>
         </el-input>
       </el-form-item>
 
-      <el-form-item :label="t('fieldAdd.value')" prop="value" v-if="form.mode === 'key' && form.type === 'string'">
-        <el-input type="textarea" :rows="6" v-model="form.value" clearable/>
+      <!-- 值: 新建键且类型为string或json时显示 -->
+      <el-form-item :label="t('fieldAdd.value')" prop="value" v-if="form.mode === 'key' && stringOrJsonType">
+        <!-- <el-input type="textarea" :rows="6" v-model="form.value" clearable/>-->
+        <me-code v-model="form.value" style="height: 150px; width: 100%"/>
       </el-form-item>
 
+      <!-- list类型的添加方式: rpush、lpush -->
       <el-form-item :label="t('fieldAdd.type')" v-if="form.mode === 'field' && form.type === 'list'">
         <el-segmented v-model="form.listPushMethod" :options="form.listPushOptions"/>
       </el-form-item>
 
-      <el-form-item :label="t('fieldAdd.element') + ' ' + hint" prop="fieldValueList" v-if="form.type !== 'string'">
+      <!-- ID: 仅stream类型显示 -->
+      <el-form-item :label="t('fieldAdd.id')" prop="id" v-if="form.type === 'stream'">
+         <el-input v-model="form.id" clearable/>
+      </el-form-item>
+
+      <!-- key, value, score: 非string和json类型 -->
+      <el-form-item :label="t('fieldAdd.element') + ' ' + hint" prop="fieldValueList" v-if="!stringOrJsonType">
         <div v-for="(item, index) in form.fieldValueList" class="me-flex" style="margin-bottom: 10px; width: 100%" key="id">
-          <el-input type="text" v-model="item.fieldKey"   :placeholder="t('fieldAdd.hashKey')" style="margin-right: 10px" v-if="form.type === 'hash'" :validate-event="false"/>
+          <el-input type="text" v-model="item.fieldKey"   :placeholder=" form.type === 'hash' ? t('fieldAdd.hashKey') : t('fieldAdd.field')" style="margin-right: 10px" v-if="form.type === 'hash' || form.type === 'stream'" :validate-event="false"/>
           <el-input type="text" v-model="item.fieldValue" :placeholder="t('fieldAdd.value')"   style="margin-right: 10px" :validate-event="false"/>
           <el-input-number :controls="false" v-model="item.fieldScore"         style="margin-right: 10px" v-if="form.type === 'zset'" :validate-event="false"/>
           <el-button icon="el-icon-delete" circle @click="deleteElement(index)" v-if="form.fieldValueList.length > 1"/>

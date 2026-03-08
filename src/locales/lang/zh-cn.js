@@ -177,9 +177,11 @@ export default {
     ttlRequired: '请输入TTL',
     ttlValidator: '只允许-1(永久) 或 正整数',
     valueRequired: '值不允许为空',
+    jsonValidator: '值必须为JSON格式',
     hashValidator: '哈希键和值不允许为空',
     hashHint: '(哈希键: 值)',
     zsetHint: '(值: 分数)',
+    streamHint: '(字段: 值)',
     newKey: '新增键',
     newField: '新增字段',
     key: '键',
@@ -191,7 +193,8 @@ export default {
     second: '秒',
     value: '值',
     element: '元素',
-    hashKey: '哈希键'
+    hashKey: '哈希键',
+    id: 'ID (*表示服务器自动生成)'
   },
 
   fieldSet: {
