@@ -18,6 +18,7 @@ use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
 use Ordering::Relaxed;
+use redis::streams::StreamRangeReply;
 
 // 抽取公共属性
 pub struct RedisMeBase {
@@ -157,7 +158,7 @@ pub fn get0(
 ) -> AnyResult<RedisValue> {
     let key_type: ValueType = conn.key_type(&key)?;
 
-    let value: serde_json::Value = match key_type {
+    let value: serde_json::Value = match key_type.clone() {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             serde_json::to_value(vec8_to_display_string(&value))
@@ -190,7 +191,25 @@ pub fn get0(
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
                 serde_json::to_value(ui_hash_value(value))
             }
-        }
+        },
+        ValueType::Stream => {
+            let reply: StreamRangeReply = conn.xrange_all(&key)?;
+            let value: Vec<RedisStreamItem> = reply.ids.iter().map(|sid| {
+                let new_map: HashMap<String, String> = sid.map.iter()
+                    .map(|(k, v)| (k.clone(), redis_value_to_string(v.clone(), "\n"))).collect();
+
+                RedisStreamItem {
+                    id: sid.id.clone(),
+                    value: serde_json::to_string(&new_map).unwrap_or_default(),
+                }
+            }).collect();
+            serde_json::to_value(value)
+        },
+        ValueType::Unknown(other) if other == "ReJSON-RL" => {
+            let value : Vec<Vec<u8>> = conn.json_get(&key, "$")?;
+            let value  = value[0].clone();
+            serde_json::to_value(vec8_to_display_string(&value))
+        },
         _ => Ok(handle_other_value_type(&key_type, &key)?),
     }?;
 
