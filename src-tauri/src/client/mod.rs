@@ -18,8 +18,8 @@ mod tests {
     fn client() -> Box<dyn RedisMeClient> {
         // default_provider().install_default()
         //     .expect("Failed to install rustls crypto provider");
-        // client_single()
-        client_cluster()
+        client_single()
+        // client_cluster()
     }
 
     #[allow(unused)]
@@ -217,6 +217,15 @@ mod tests {
 
         let value = client().get("hepengju:string".into(), None).unwrap();
         println!("{}", serde_json::to_string(&value).unwrap());
+
+        let value = client().get("hepengju:stream".into(), None).unwrap();
+        println!("{}", serde_json::to_string(&value).unwrap());
+
+        let value = client().get("hepengju:json-obj".into(), None).unwrap();
+        println!("{}", serde_json::to_string(&value).unwrap());
+
+        let value = client().get("hepengju:json-array".into(), None).unwrap();
+        println!("{}", serde_json::to_string(&value).unwrap());
     }
 
     #[test]
@@ -232,6 +241,7 @@ mod tests {
                 value: "字符串值".into(),
                 list_push_method: "".into(),
                 field_value_list: vec![],
+                id: "".to_string(),
             })
             .unwrap();
 
@@ -255,6 +265,7 @@ mod tests {
                         field_score: 0.0,
                     },
                 ],
+                id: "".to_string(),
             })
             .unwrap();
     }

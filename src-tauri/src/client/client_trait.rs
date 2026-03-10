@@ -7,8 +7,7 @@ use base64::Engine;
 use chrono::{Local, Utc};
 use log::{info, warn};
 use parking_lot::MutexGuard;
-use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, ValueType};
-use serde_json::Value;
+use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -206,9 +205,8 @@ pub fn get0(
             serde_json::to_value(value)
         },
         ValueType::Unknown(other) if other == "ReJSON-RL" => {
-            let value : Vec<Vec<u8>> = conn.json_get(&key, "$")?;
-            let value  = value[0].clone();
-            serde_json::to_value(vec8_to_display_string(&value))
+            let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
+            serde_json::to_value(redis_value_to_string(value, "\n"))
         },
         _ => Ok(handle_other_value_type(&key_type, &key)?),
     }?;
@@ -218,12 +216,7 @@ pub fn get0(
         .arg("usage")
         .arg(&key)
         .query(&mut conn)?;
-    Ok(RedisValue {
-        key_type: key_type.into(),
-        ttl,
-        size,
-        value,
-    })
+    Ok(RedisValue::from(key_type.into(), ttl, size, value))
 }
 
 pub fn field_scan_0_get(
@@ -478,7 +471,7 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
             conn.xadd(&key, &param.id, &items)?
         },
         ValueType::Unknown(other) if other == "json" => {
-            let value: Value = serde_json::from_str(&param.value)?;
+            let value: serde_json::Value = serde_json::from_str(&param.value)?;
             conn.json_set(&key, "$", &value)?
         },
         _ => {

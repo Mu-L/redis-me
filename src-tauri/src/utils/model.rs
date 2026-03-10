@@ -234,6 +234,22 @@ api_model!(RedisValue {
     value: serde_json::Value,
 });
 
+impl RedisValue {
+    pub fn from(key_type: String, ttl: i64, size: u64, value: serde_json::Value) -> Self {
+        let key_type = if key_type == "ReJSON-RL" {
+            "json".to_string()
+        } else {
+            key_type
+        };
+        RedisValue {
+            key_type,
+            ttl,
+            size,
+            value,
+        }
+    }
+}
+
 // 批量删除
 api_model!(RedisBatchKey {
     #[serde(rename = "match")]
