@@ -2,12 +2,10 @@
 
 use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
-use crate::utils::util::{AnyResult, vec8_to_display_string, redis_value_to_string};
+use crate::utils::util::{AnyResult, vec8_to_display_string};
 use redis::{RedisWrite, ToRedisArgs, ToSingleRedisArg};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::iter::Map;
-use redis::streams::StreamId;
 
 // 数据库信息
 api_model!(RedisDB {

@@ -193,15 +193,7 @@ pub fn get0(
         },
         ValueType::Stream => {
             let reply: StreamRangeReply = conn.xrange_all(&key)?;
-            let value: Vec<RedisStreamItem> = reply.ids.iter().map(|sid| {
-                let new_map: HashMap<String, String> = sid.map.iter()
-                    .map(|(k, v)| (k.clone(), redis_value_to_string(v.clone(), "\n"))).collect();
-
-                RedisStreamItem {
-                    id: sid.id.clone(),
-                    value: serde_json::to_string(&new_map).unwrap_or_default(),
-                }
-            }).collect();
+            let value = stream_reply_to_items(reply);
             serde_json::to_value(value)
         },
         ValueType::Unknown(other) if other == "ReJSON-RL" => {
@@ -220,7 +212,7 @@ pub fn get0(
 }
 
 pub fn field_scan_0_get(
-    conn: &mut MutexGuard<impl Commands>,
+    mut conn: &mut MutexGuard<impl Commands>,
     param: FieldScanParam,
 ) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor)> {
     let key = param.key;
@@ -230,13 +222,18 @@ pub fn field_scan_0_get(
     let mut cc = param.cursor.unwrap_or_default();
 
     // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
-    let value: Option<serde_json::Value> = match key_type {
+    let value: Option<serde_json::Value> = match key_type.clone() {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             let value: String = vec8_to_display_string(&value);
             cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
+        ValueType::Unknown(other) if other == "ReJSON-RL" => {
+            let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
+            cc.finished = true;
+            Some(serde_json::to_value(redis_value_to_string(value, "\n"))?)
+        },
         ValueType::Hash => {
             if let Some(hash_key) = hash_key
                 && !hash_key.is_empty()
@@ -274,8 +271,13 @@ pub fn field_scan_0_get(
             };
             Some(serde_json::to_value(value)?)
         }
+        ValueType::Stream => {
+            // TODO 扫描的支持（参考List）
+            let reply: StreamRangeReply = conn.xrange_all(&key)?;
+            let value = stream_reply_to_items(reply);
+            Some(serde_json::to_value(value)?)
+        },
         // 注意此处SET/ZSET等是支持的，只是需要进行扫描，不能直接使用通用的: handle_other_value_type
-        ValueType::Stream => bail!("Unsupport type: Stream"),
         ValueType::Unknown(_) => {
             handle_other_value_type(&key_type, &key)?;
             None
@@ -311,7 +313,7 @@ pub fn field_scan_1_cmd(
 pub fn field_scan_2_value(
     key_type: &ValueType,
     scan_value: &mut FieldScanValue,
-    new_value: redis::Value,
+    new_value: Value,
 ) -> AnyResult<usize> {
     let new_count = match key_type {
         ValueType::Hash => {
@@ -638,7 +640,7 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
                 bail!("Unknown ValueType: {other}")
             }
         }
-        ValueType::Stream => bail!("Unsupported Type: Stream"),
+        //ValueType::Stream => bail!("Unsupported Type: Stream"),
         _ => bail!("Unsupported Type: {value_type:?}"),
     }
 }

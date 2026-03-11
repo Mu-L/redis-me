@@ -1,6 +1,4 @@
-use crate::utils::model::{
-    RedisChart, RedisClientInfo, RedisInfo, RedisKey, RedisKeySize, RedisSlowLog, RedisZetItem,
-};
+use crate::utils::model::*;
 use anyhow::bail;
 use chrono::DateTime;
 use log::error;
@@ -10,6 +8,7 @@ use rand::prelude::IteratorRandom;
 use redis::{FromRedisValue, Value};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
+use redis::streams::StreamRangeReply;
 
 // 统一应用返回值
 pub type AnyResult<T> = anyhow::Result<T>;
@@ -198,6 +197,19 @@ pub fn redis_value_to_log(value: Value, node: &str) -> AnyResult<RedisSlowLog> {
         client,
         client_name,
     })
+}
+
+// Stream类型转换
+pub fn stream_reply_to_items(reply: StreamRangeReply) -> Vec<RedisStreamItem> {
+    reply.ids.iter().map(|sid| {
+        let new_map: HashMap<String, String> = sid.map.iter()
+            .map(|(k, v)| (k.clone(), redis_value_to_string(v.clone(), "\n"))).collect();
+
+        RedisStreamItem {
+            id: sid.id.clone(),
+            value: serde_json::to_string(&new_map).unwrap_or_default(),
+        }
+    }).collect()
 }
 
 // 时间戳(秒)转字符串
