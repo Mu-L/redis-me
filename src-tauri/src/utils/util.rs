@@ -106,7 +106,7 @@ pub fn ui_stream_value(reply: StreamRangeReply) -> Vec<RedisStreamItem> {
 
         RedisStreamItem {
             id: sid.id.clone(),
-            value: serde_json::to_string(&new_map).unwrap_or_default(),
+            value: new_map,
         }
     }).collect()
 }

@@ -308,7 +308,7 @@ api_model!(RedisZetItem {
 // Stream条目
 api_model!(RedisStreamItem {
     id: String,
-    value: String, // map转化为的json字符串
+    value: HashMap<String, String>, // map转化为的json字符串
 });
 
 // 字段新增

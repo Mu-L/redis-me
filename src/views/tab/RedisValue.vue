@@ -42,6 +42,7 @@ const loading = ref(false)
 const hashType = computed(() => 'hash' === redisValue.value?.type)
 const stringType = computed(() => 'string' === redisValue.value?.type)
 const jsonType = computed(() => 'json' === redisValue.value?.type)
+const streamType = computed(() => 'stream' === redisValue.value?.type)
 const stringTypeOrWithHashKey = computed(() => 'string' === redisValue.value?.type || withHashKey.value)
 const showValue = computed(() => {
   const obj = redisValue.value?.value
@@ -191,17 +192,6 @@ async function setValue() {
   }
 
   // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
-  // let checked = true
-  // if (params.keyType === 'json') {
-  //   try {
-  //     JSON.parse(params.value)
-  //   } catch (e) {
-  //     checked = false
-  //     meErr(t('redisValue.jsonValidator'))
-  //   }
-  // }
-  //
-  // if (!checked) return
   await meInvoke('set', {id: share.conn.id, ...params});
   meOk(t('saveOk'))
 }
@@ -382,16 +372,20 @@ async function fieldDel(row) {
 
               <el-table-column :label="t('redisValue.id')"    prop="id"    show-overflow-tooltip v-if="redisValue.type === 'stream'"/>
               <el-table-column :label="t('redisValue.key')"   prop="key"   show-overflow-tooltip v-if="redisValue.type === 'hash'"/>
-              <el-table-column :label="t('redisValue.value')" prop="value" show-overflow-tooltip/>
+              <el-table-column :label="t('redisValue.value')" prop="value" show-overflow-tooltip>
+                <template #default="scope">
+                  {{streamType ? JSON.stringify(scope.row.value) : scope.row.value}}
+                </template>
+              </el-table-column>
               <el-table-column :label="t('redisValue.score')" prop="score" show-overflow-tooltip v-if="redisValue.type === 'zset'"/>
 
-              <el-table-column :label="t('action')" :width="canEdit ? 100 : 60" fixed="right" align="center">
+              <el-table-column :label="t('action')" :width="canEdit ? (streamType ? 66 : 100) : 60" fixed="right" align="center">
                 <template #default="scope">
                   <div class="me-flex" :style="{justifyContent: canEdit ? 'space-between' : 'center'}">
                     <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn"
                              @click.stop="meCopy(scope.row.value) "/>
                     <me-icon :info="t('edit')" icon="el-icon-edit" class="icon-btn"
-                             @click.stop="fieldSet(scope.row, scope.$index)" v-if="canEdit"/>
+                             @click.stop="fieldSet(scope.row, scope.$index)" v-if="canEdit && !streamType"/>
                     <el-popconfirm :hide-after="0" :title="t('redisValue.deleteConfirm')"
                                    @confirm.stop="fieldDel(scope.row)" v-if="canEdit">
                       <template #reference>
