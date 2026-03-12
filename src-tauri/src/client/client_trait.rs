@@ -145,8 +145,8 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
     if let Some(mut scan_type) = scan_type
         && !scan_type.is_empty()
     {
-        if scan_type.to_lowercase() == "json" {
-            scan_type = "ReJSON-RL".to_string();
+        if scan_type.to_lowercase() == ME_JSON_TYPE_NAME {
+            scan_type = REDIS_JSON_TYPE_NAME.to_string();
         }
         cmd.arg("type").arg(scan_type);
     }
@@ -198,7 +198,7 @@ pub fn get0(
             let reply: StreamRangeReply = conn.xrange_all(&key)?;
             serde_json::to_value(ui_stream_value(reply))
         },
-        ValueType::Unknown(other) if other == "ReJSON-RL" => {
+        ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
             let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
             serde_json::from_str(&redis_value_to_string(value, "\n"))
         },
@@ -231,7 +231,7 @@ pub fn field_scan_0_get(
             cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
-        ValueType::Unknown(other) if other == "ReJSON-RL" => {
+        ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
             let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
             cc.finished = true;
             //Some(serde_json::to_value(redis_value_to_string(value, "\n"))?)
@@ -415,7 +415,7 @@ pub fn set0(
     ttl: i64,
     key_type: Option<String>
 ) -> AnyResult<()> {
-    if key_type.unwrap_or_default() == "json" {
+    if key_type.unwrap_or_default() == ME_JSON_TYPE_NAME {
         // json类型
         let value: serde_json::Value = serde_json::from_str(&value).with_context(|| "json parse error")?;
         let _: () = conn.json_set(&key, "$", &value)?;
@@ -500,7 +500,7 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
             let items: Vec<(String, String)> = fv_list.into_iter().map(|f| (f.field_key, f.field_value)).collect();
             conn.xadd(&key, &param.stream_id, &items)?
         },
-        ValueType::Unknown(other) if other == "json" => {
+        ValueType::Unknown(other) if other == ME_JSON_TYPE_NAME => {
             let value: serde_json::Value = serde_json::from_str(&param.value).with_context(|| "json parse error")?;
             conn.json_set(&key, "$", &value)?
         },

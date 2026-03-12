@@ -2,7 +2,7 @@
 
 use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
-use crate::utils::util::{AnyResult, vec8_to_display_string};
+use crate::utils::util::{AnyResult, vec8_to_display_string, ME_JSON_TYPE_NAME, REDIS_JSON_TYPE_NAME};
 use redis::{RedisWrite, ToRedisArgs, ToSingleRedisArg};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -170,8 +170,8 @@ api_model!(FieldScanResult {
 
 impl FieldScanResult {
     pub fn new(key_type: String, ttl: i64, size: u64, value: serde_json::Value, cursor: ScanCursor) -> Self {
-        let key_type = if key_type == "ReJSON-RL" {
-            "json".to_string()
+        let key_type = if key_type == REDIS_JSON_TYPE_NAME {
+            ME_JSON_TYPE_NAME.to_string()
         } else {
             key_type
         };
@@ -252,8 +252,8 @@ api_model!(RedisValue {
 
 impl RedisValue {
     pub fn new(key_type: String, ttl: i64, size: u64, value: serde_json::Value) -> Self {
-        let key_type = if key_type == "ReJSON-RL" {
-            "json".to_string()
+        let key_type = if key_type == REDIS_JSON_TYPE_NAME {
+            ME_JSON_TYPE_NAME.to_string()
         } else {
             key_type
         };

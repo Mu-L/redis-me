@@ -26,6 +26,9 @@ pub const EVENT_MONITOR: &str = "monitor";
 pub const EVENT_EXPORT: &str = "export";
 pub const EVENT_IMPORT: &str = "import";
 
+pub const ME_JSON_TYPE_NAME: &str = "json";
+pub const REDIS_JSON_TYPE_NAME: &str = "ReJSON-RL";
+
 // tauri的错误处理中需要返回的错误实现序列化, anyhow的错误并没有实现，因此简单返回字符串错误
 pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
     match result {
