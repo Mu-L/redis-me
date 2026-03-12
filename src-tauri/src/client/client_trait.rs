@@ -1,7 +1,7 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
 use crate::utils::util::*;
-use anyhow::bail;
+use anyhow::{bail, Context};
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use chrono::{Local, Utc};
@@ -414,7 +414,7 @@ pub fn set0(
 ) -> AnyResult<()> {
     if key_type.unwrap_or_default() == "json" {
         // json类型
-        let value: serde_json::Value = serde_json::from_str(&value)?;
+        let value: serde_json::Value = serde_json::from_str(&value).with_context(|| "json parse error")?;
         let _: () = conn.json_set(&key, "$", &value)?;
         if ttl > 0 {
             let _: () = conn.expire(&key, ttl)?;
@@ -498,7 +498,7 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
             conn.xadd(&key, &param.id, &items)?
         },
         ValueType::Unknown(other) if other == "json" => {
-            let value: serde_json::Value = serde_json::from_str(&param.value)?;
+            let value: serde_json::Value = serde_json::from_str(&param.value).with_context(|| "json parse error")??;
             conn.json_set(&key, "$", &value)?
         },
         _ => {

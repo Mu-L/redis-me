@@ -33,7 +33,13 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
         Err(err) => {
             error!("错误: {}", err);
             //error!("{}", err.backtrace());
-            Err(err.to_string())
+            let source = err.source().map(|err| err.to_string()).unwrap_or_default();
+            let message = if source.is_empty() {
+                err.to_string()
+            } else {
+                format!("{}: {}", err.to_string(), source)
+            };
+            Err(message)
         }
     }
 }
