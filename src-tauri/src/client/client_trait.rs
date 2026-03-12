@@ -464,7 +464,7 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         // 新增字段
         key_type = conn.key_type(&key)?
     } else {
-        bail!("mode: {} unsupport now", mode)
+        bail!("mode: {} unsupported now", mode)
     }
 
     let fv_list = param.field_value_list;
@@ -495,7 +495,7 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
             .try_for_each(|f| conn.zadd(&key, f.field_value, f.field_score))?,
         ValueType::Stream => {
             let items: Vec<(String, String)> = fv_list.into_iter().map(|f| (f.field_key, f.field_value)).collect();
-            conn.xadd(&key, &param.id, &items)?
+            conn.xadd(&key, &param.stream_id, &items)?
         },
         ValueType::Unknown(other) if other == "json" => {
             let value: serde_json::Value = serde_json::from_str(&param.value).with_context(|| "json parse error")?;

@@ -25,7 +25,7 @@ const initForm = computed(() => ({
   ttl: -1,
   value: '',
 
-  id: '*', // stream格式的id, 默认为*，表示由redis生成
+  streamId: '*', // stream格式的id, 默认为*，表示由redis生成
 
   listPushMethod: 'rpush',
   listPushOptions: [
@@ -87,12 +87,12 @@ const rules = computed(() => ({
         callback()
       }
     }],
-  id: [
+  streamId: [
     {
       validator: (rule, value, callback) => {
         if (form.value.type === 'stream') {
           if (value) return callback()
-          callback(new Error(t('fieldAdd.idRequired')))
+          callback(new Error(t('fieldAdd.streamIdRequired')))
         }
         callback()
       }
@@ -203,9 +203,9 @@ watch(() => form.value.value, () => {
         <el-segmented v-model="form.listPushMethod" :options="form.listPushOptions"/>
       </el-form-item>
 
-      <!-- ID: 仅stream类型显示 -->
-      <el-form-item :label="t('fieldAdd.id')" prop="id" v-if="form.type === 'stream'">
-         <el-input v-model="form.id" clearable/>
+      <!-- streamId: 仅stream类型显示 -->
+      <el-form-item :label="t('fieldAdd.streamId')" prop="streamId" v-if="form.type === 'stream'">
+         <el-input v-model="form.streamId" clearable/>
       </el-form-item>
 
       <!-- key, value, score: 非string和json类型 -->

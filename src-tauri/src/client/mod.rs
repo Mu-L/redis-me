@@ -236,7 +236,7 @@ mod tests {
                 value: "字符串值".into(),
                 list_push_method: "".into(),
                 field_value_list: vec![],
-                id: "".to_string(),
+                stream_id: "".to_string(),
             })
             .unwrap();
 
@@ -260,7 +260,7 @@ mod tests {
                         field_score: 0.0,
                     },
                 ],
-                id: "".to_string(),
+                stream_id: "".to_string(),
             })
             .unwrap();
     }

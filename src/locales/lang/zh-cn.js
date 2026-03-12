@@ -195,8 +195,8 @@ export default {
     value: '值',
     element: '元素',
     hashKey: '哈希键',
-    id: 'ID (*表示服务器自动生成)',
-    idRequired: '请输入ID',
+    streamId: 'ID (*表示服务器自动生成)',
+    streamIdRequired: '请输入ID',
   },
 
   fieldSet: {
