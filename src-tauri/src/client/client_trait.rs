@@ -389,18 +389,18 @@ pub fn field_scan_4_return(
 }
 
 pub fn ttl0(mut conn: MutexGuard<impl Commands>, key: RedisKey, ttl: i64) -> AnyResult<()> {
-    if ttl < 0 {
-        // 移除 key 上已有的过期时间，将键从易失（设置了过期时间的键）变为变为持久
-        // 整型回复: 如果 key 不存在或没有关联的过期时间，则返回 0。
-        // 整型回复: 如果已移除过期时间，则返回 1。
-        let _: () = conn.persist(&key)?;
-    } else {
+    if ttl > 0 {
         // 为 key 设置超时时间。超时时间到期后，该 key 将被自动删除。
         // 请注意，调用 EXPIRE/`PEXPIRE` 时使用非正数超时，或调用 `EXPIREAT`/`PEXPIREAT` 时使用过去的时间，
         // 将导致 key 被 删除 而非过期（相应地，发出的 key 事件 将是 del，而不是 expired）。
         // 整数回复：如果未设置超时时间则返回 0；例如，key 不存在，或者由于提供的参数而跳过了操作。
         // 整数回复：如果已设置超时时间则返回 1。
         let _: () = conn.expire(&key, ttl)?;
+    } else {
+        // 移除 key 上已有的过期时间，将键从易失（设置了过期时间的键）变为变为持久
+        // 整型回复: 如果 key 不存在或没有关联的过期时间，则返回 0。
+        // 整型回复: 如果已移除过期时间，则返回 1。
+        let _: () = conn.persist(&key)?;
     };
     Ok(())
 }
@@ -421,11 +421,11 @@ pub fn set0(
         }
     } else {
         // string类型
-        if ttl < 0 {
-            let _: () = conn.set(&key, value)?;
-        } else {
+        if ttl > 0 {
             let options = SetOptions::default().with_expiration(SetExpiry::EX(ttl as u64));
             let _: () = conn.set_options(&key, value, options)?;
+        } else {
+            let _: () = conn.set(&key, value)?;
         };
     }
     Ok(())
