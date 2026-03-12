@@ -136,18 +136,19 @@ async function selectDB(){
   await refresh() // RedisInfo的键数量需要更新下
 }
 
+const keyPrefix = ref('')
+
 // 选中键
 function chooseKey(redisKey) {
-  keyPrefix.value = ''
+  keyPrefix.value = redisKey.key + '-copy'
   share.redisKey = redisKey
   share.tabName = 'value'
   bus.emit(KEY_REFRESH)
 }
 
 // 选中文件夹
-const keyPrefix = ref('')
 function chooseFolder(folder) {
-  keyPrefix.value = folder
+  keyPrefix.value = folder + ':'
 }
 
 // 键右键
@@ -168,7 +169,7 @@ function contextKey(command, redisKey) {
 // 文件夹右键
 function contextFolder(command, folder){
   if (command === 'addKey') {
-    keyPrefix.value = folder
+    keyPrefix.value = folder + ':'
     addKey()
   } else if (command === 'copyFolder') {
     meCopy(folder)
@@ -196,8 +197,7 @@ function contextFolder(command, folder){
 const fieldAddRef = useTemplateRef('fieldAddRef')
 
 function addKey() {
-  const prefix = keyShowType.value === 'list' ? '' : (keyPrefix.value ? keyPrefix.value + ':' : '')
-  fieldAddRef.value?.open({mode: 'key', key: prefix})
+  fieldAddRef.value?.open({mode: 'key', key: keyPrefix.value})
 }
 
 function addKeyOk(redisKey) {

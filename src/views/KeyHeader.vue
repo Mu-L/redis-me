@@ -31,7 +31,7 @@ async function handleCommand(command) {
   } else if ('setting' === command) {
     dialog.setting = true
   } else if ('window' === command) {
-    newWindow()
+    await newWindow()
   } else if ('info' === command) {
     dialog.info = true
   } else if ('social' === command) {
@@ -90,7 +90,6 @@ async function mockData() {
 
 // 新建窗口: 便于同时查看多个Redis实例数据
 // https://tauri.app/zh-cn/reference/javascript/api/namespacewebview/
-
 async function newWindow() {
   const isMacOS = type() === 'macos'
 
@@ -114,10 +113,7 @@ async function newWindow() {
     decorations: isMacOS
   })
 
-  appWindow.once('tauri://created', function () {
-    // console.log(appWindow.)
-  })
-
+  appWindow.once('tauri://created', function () {})
   appWindow.once('tauri://error', function (e) {
     console.log(e)
     meErr(t('keyHeader.newWindowError'))
