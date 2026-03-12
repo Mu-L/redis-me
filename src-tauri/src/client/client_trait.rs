@@ -556,6 +556,9 @@ pub fn field_del0(mut conn: MutexGuard<impl Commands>, param: RedisFieldDel) -> 
         ValueType::ZSet => {
             let _: () = conn.zrem(&key, param.field_value)?;
         }
+        ValueType::Stream => {
+            let _: () = conn.xdel(&key, &[param.stream_id])?;
+        }
         _ => {
             handle_other_value_type(&key_type, &key)?;
         }

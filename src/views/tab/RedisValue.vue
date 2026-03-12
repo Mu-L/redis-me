@@ -265,12 +265,17 @@ function rowClick(row, column, event) {
 
 // 字段删除
 async function fieldDel(row) {
-  const param = {fieldKey: row.key || '', fieldValue: row.value , key: share.redisKey}
+  const param = {fieldKey: row.key || '', fieldValue: row.value , key: share.redisKey, streamId: row.id || ''}
   if (redisValue.value.type === 'list') {
     param.fieldIndex = redisValue.value.value.indexOf(row.value)
   } else {
     param.fieldIndex = -1  // 其他类型使用不到，但接口需传递
   }
+
+  if (redisValue.value.type === 'stream') {
+    param.fieldValue = '' // 后端接收需要是String
+  }
+
   await meInvoke('field_del',{id: share.conn.id, param});
   meOk(t('deleteOk'))
   await refreshKey()

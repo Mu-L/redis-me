@@ -349,6 +349,7 @@ api_model!(RedisFieldDel {
     field_index: isize,
     field_key: String,
     field_value: String,
+    stream_id: String, // stream
 });
 
 // 执行命令
