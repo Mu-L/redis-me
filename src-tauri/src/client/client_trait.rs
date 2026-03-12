@@ -193,8 +193,7 @@ pub fn get0(
         },
         ValueType::Stream => {
             let reply: StreamRangeReply = conn.xrange_all(&key)?;
-            let value = stream_reply_to_items(reply);
-            serde_json::to_value(value)
+            serde_json::to_value(ui_stream_value(reply))
         },
         ValueType::Unknown(other) if other == "ReJSON-RL" => {
             let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
@@ -208,7 +207,7 @@ pub fn get0(
         .arg("usage")
         .arg(&key)
         .query(&mut conn)?;
-    Ok(RedisValue::from(key_type.into(), ttl, size, value))
+    Ok(RedisValue::new(key_type.into(), ttl, size, value))
 }
 
 pub fn field_scan_0_get(
@@ -272,9 +271,29 @@ pub fn field_scan_0_get(
             Some(serde_json::to_value(value)?)
         }
         ValueType::Stream => {
-            // TODO 扫描的支持（参考List）
-            let reply: StreamRangeReply = conn.xrange_all(&key)?;
-            let value = stream_reply_to_items(reply);
+            // https://redis.ac.cn/docs/latest/commands/xrange/
+            // XRANGE key start end [COUNT count]   注意start/end是包含在内的
+            // 起始参数: - 表示最小值, 游标有值则取值
+            // 结束参数: + 表示最大值
+            // 加载所有: 不追加count参数，否则追加count + 1参数，多获取1个用于判断是否已扫描结束
+            let start = if cc.stream_cursor.is_empty() { "-" } else { &cc.stream_cursor };
+            let end = "+";
+            let count = if cc.stream_cursor.is_empty() { param.count + 1 } else { param.count };
+
+            let mut cmd = redis::cmd("XRANGE");
+            cmd.arg(key).arg(start).arg(end);
+            if !param.load_all {
+                cmd.arg("COUNT").arg(count);
+            }
+            let reply: StreamRangeReply = cmd.query(&mut conn)?;
+            let mut value = ui_stream_value(reply);
+
+            if !param.load_all && value.len() > param.count as usize {
+                cc.finished = false;
+                cc.stream_cursor = value.pop().unwrap().id; // 弹出最后1个元素，作为下次游标
+            } else {
+                cc.finished = true;
+            };
             Some(serde_json::to_value(value)?)
         },
         // 注意此处SET/ZSET等是支持的，只是需要进行扫描，不能直接使用通用的: handle_other_value_type
@@ -365,13 +384,7 @@ pub fn field_scan_4_return(
         .arg("usage")
         .arg(&key)
         .query(&mut conn)?;
-    Ok(FieldScanResult {
-        key_type: key_type.into(),
-        ttl,
-        size,
-        value,
-        cursor,
-    })
+    Ok(FieldScanResult::new(key_type.into(), ttl, size, value, cursor))
 }
 
 pub fn ttl0(mut conn: MutexGuard<impl Commands>, key: RedisKey, ttl: i64) -> AnyResult<()> {

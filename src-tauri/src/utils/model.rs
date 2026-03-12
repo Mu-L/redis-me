@@ -149,6 +149,7 @@ ScanCursor {
     ready_nodes: Vec<String>,
     now_node: String,
     now_cursor: u64,
+    stream_cursor: String,
     finished: bool,
 });
 
@@ -166,6 +167,23 @@ api_model!(FieldScanResult {
     value: serde_json::Value,
     cursor: ScanCursor,
 });
+
+impl FieldScanResult {
+    pub fn new(key_type: String, ttl: i64, size: u64, value: serde_json::Value, cursor: ScanCursor) -> Self {
+        let key_type = if key_type == "ReJSON-RL" {
+            "json".to_string()
+        } else {
+            key_type
+        };
+        FieldScanResult {
+            key_type,
+            ttl,
+            size,
+            value,
+            cursor,
+        }
+    }
+}
 
 // Redis键: 由于键是字节存储的，考虑转换为utf-8字符串显示后可能会丢失信息，因此封装为对象
 // 备注: 为了方便传输与前端对比是否相等，将bytes序列化为base64字符串。
@@ -233,7 +251,7 @@ api_model!(RedisValue {
 });
 
 impl RedisValue {
-    pub fn from(key_type: String, ttl: i64, size: u64, value: serde_json::Value) -> Self {
+    pub fn new(key_type: String, ttl: i64, size: u64, value: serde_json::Value) -> Self {
         let key_type = if key_type == "ReJSON-RL" {
             "json".to_string()
         } else {

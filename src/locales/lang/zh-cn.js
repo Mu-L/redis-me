@@ -442,6 +442,7 @@ export default {
     prettyHint: '默认开启美化，开启后针对hash/list/set/json等进行格式化，关闭后显示原始值toString',
     tableKeyword: '模糊筛选',
     insertRow: '插入行',
+    id: 'ID',
     key: '键',
     value: '值',
     score: '分数',

@@ -105,12 +105,7 @@ mod tests {
             count: 10,
             scan_type: None,
 
-            cursor: Some(ScanCursor {
-                ready_nodes: vec![],
-                now_node: "".into(),
-                now_cursor: 0,
-                finished: false,
-            }),
+            cursor: Some(ScanCursor::default()),
             load_all: false,
         };
         let result1 = client().scan(param).unwrap();

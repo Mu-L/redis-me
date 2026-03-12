@@ -93,6 +93,18 @@ pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>) -> Vec<RedisZetItem> {
         .collect()
 }
 
+pub fn ui_stream_value(reply: StreamRangeReply) -> Vec<RedisStreamItem> {
+    reply.ids.iter().map(|sid| {
+        let new_map: HashMap<String, String> = sid.map.iter()
+            .map(|(k, v)| (k.clone(), redis_value_to_string(v.clone(), "\n"))).collect();
+
+        RedisStreamItem {
+            id: sid.id.clone(),
+            value: serde_json::to_string(&new_map).unwrap_or_default(),
+        }
+    }).collect()
+}
+
 // 字节数组转Base64字符串: RedisKey 的 bytes
 // pub fn vec8_to_base64_string(bytes: &[u8]) -> String {
 //     BASE64_STANDARD.encode(bytes)
@@ -197,19 +209,6 @@ pub fn redis_value_to_log(value: Value, node: &str) -> AnyResult<RedisSlowLog> {
         client,
         client_name,
     })
-}
-
-// Stream类型转换
-pub fn stream_reply_to_items(reply: StreamRangeReply) -> Vec<RedisStreamItem> {
-    reply.ids.iter().map(|sid| {
-        let new_map: HashMap<String, String> = sid.map.iter()
-            .map(|(k, v)| (k.clone(), redis_value_to_string(v.clone(), "\n"))).collect();
-
-        RedisStreamItem {
-            id: sid.id.clone(),
-            value: serde_json::to_string(&new_map).unwrap_or_default(),
-        }
-    }).collect()
 }
 
 // 时间戳(秒)转字符串

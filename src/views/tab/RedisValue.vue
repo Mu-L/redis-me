@@ -80,7 +80,7 @@ const dataList = computed(() => {
       .forEach(([key, value]) => data.push({key, value}))
   } else if (rv.type === 'list' || rv.type === 'set') {
     rv.value.forEach(value => data.push({value}))
-  } else if (rv.type === 'zset') {
+  } else if (rv.type === 'zset' || rv.type === 'stream') {
     rv.value.forEach(value => data.push(value)) // 返回的直接是[{score: '', value: ''}]
   }
   return data
@@ -90,6 +90,7 @@ const filterDataList = computed(() => {
   const key = tableKeyword.value.toLowerCase()
   return dataList.value.filter(row => !key
     || row.key?.toLowerCase().indexOf(key) > -1
+    || row.id?.toLowerCase().indexOf(key) > -1
     || row.value?.toLowerCase().indexOf(key) > -1
     || row.score?.toString().toLowerCase().indexOf(key) > -1,
   )
@@ -142,7 +143,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
     withHashKey.value = !!hashKey.value;
 
     if (useCursor) {
-      if (data.type === 'list' || data.type === 'set' || data.type === 'zset') {
+      if (data.type === 'list' || data.type === 'set' || data.type === 'zset' || data.type === 'stream') {
         redisValue.value.value = redisValue.value.value.concat(data.value)
       } else if (data.type === 'hash') {
         redisValue.value.value = {...redisValue.value.value, ...data.value}
@@ -361,11 +362,10 @@ async function fieldDel(row) {
                 </template>
               </el-table-column>
 
-              <el-table-column :label="t('redisValue.key')" prop="key" show-overflow-tooltip
-                               v-if="redisValue.type === 'hash'"/>
+              <el-table-column :label="t('redisValue.id')"    prop="id"    show-overflow-tooltip v-if="redisValue.type === 'stream'"/>
+              <el-table-column :label="t('redisValue.key')"   prop="key"   show-overflow-tooltip v-if="redisValue.type === 'hash'"/>
               <el-table-column :label="t('redisValue.value')" prop="value" show-overflow-tooltip/>
-              <el-table-column :label="t('redisValue.score')" prop="score" show-overflow-tooltip
-                               v-if="redisValue.type === 'zset'"/>
+              <el-table-column :label="t('redisValue.score')" prop="score" show-overflow-tooltip v-if="redisValue.type === 'zset'"/>
 
               <el-table-column :label="t('action')" :width="canEdit ? 100 : 60" fixed="right" align="center">
                 <template #default="scope">

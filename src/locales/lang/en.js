@@ -440,6 +440,7 @@ export default {
     prettyHint: 'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',
     tableKeyword: 'Fuzzy Filter',
     insertRow: 'Insert Row',
+    id: 'ID',
     key: 'Key',
     value: 'Value',
     score: 'Score',
