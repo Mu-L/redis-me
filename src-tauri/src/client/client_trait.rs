@@ -145,7 +145,7 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
     if let Some(mut scan_type) = scan_type
         && !scan_type.is_empty()
     {
-        if scan_type.to_lowercase() == ME_JSON_TYPE_NAME {
+        if scan_type == ME_JSON_TYPE_NAME {
             scan_type = REDIS_JSON_TYPE_NAME.to_string();
         }
         cmd.arg("type").arg(scan_type);

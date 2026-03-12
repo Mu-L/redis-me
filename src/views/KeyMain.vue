@@ -88,7 +88,7 @@ async function scanKey(useCursor = false, loadAll = false) {
     const params = {
       match: match.value,
       count: 1000,
-      type: keyType.value === 'ALL' ? '' : keyType.value,
+      type: keyType.value === 'ALL' ? '' : keyType.value.toLowerCase(),
       loadAll: loadAll,
       cursor: cursor.value,
     }
