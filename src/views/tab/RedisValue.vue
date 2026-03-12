@@ -24,7 +24,7 @@ onUnmounted(() => bus.off(KEY_REFRESH, refreshKey))
 // 共享数据
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
-const canSave = computed(() => stringType.value && canEdit.value)
+const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value) )
 
 // 值的显示方式
 const viewTypeList = ['json', 'table']
@@ -41,6 +41,7 @@ const loading = ref(false)
 
 const hashType = computed(() => 'hash' === redisValue.value?.type)
 const stringType = computed(() => 'string' === redisValue.value?.type)
+const jsonType = computed(() => 'json' === redisValue.value?.type)
 const stringTypeOrWithHashKey = computed(() => 'string' === redisValue.value?.type || withHashKey.value)
 const showValue = computed(() => {
   const obj = redisValue.value?.value
@@ -58,7 +59,10 @@ const showValue = computed(() => {
       return JSON.stringify(obj, null, 2)
     }
   } else {
-    return 'hash' === redisValue.value?.type && !withHashKey.value || 'zset' === redisValue.value?.type // zset包含分数
+    return 'hash' === redisValue.value?.type && !withHashKey.value
+        || 'zset' === redisValue.value?.type // zset包含分数
+        || 'json' === redisValue.value?.type
+        || 'stream' === redisValue.value?.type
       ? JSON.stringify(obj) : obj.toString()
   }
 })
@@ -182,7 +186,8 @@ async function setValue() {
   const params = {
     key: share.redisKey,
     value: redisValue.value.newValue || redisValue.value.value,
-    ttl: redisValue.value.ttl
+    ttl: redisValue.value.ttl,
+    keyType: redisValue.value.type,
   }
   await meInvoke('set', {id: share.conn.id, ...params});
   meOk(t('saveOk'))
@@ -390,7 +395,7 @@ async function fieldDel(row) {
         </div>
 
         <!-- string类型不显示，带有hashKey不显示, 命中黑名单的hash类型不显示-->
-        <div class="btn-rb" v-if="!(stringTypeOrWithHashKey || hashType && showValue.startsWith('['))">
+        <div class="btn-rb" v-if="!(stringTypeOrWithHashKey || jsonType || hashType && showValue.startsWith('['))">
           <el-segmented v-model="viewType" :options="viewTypeList">
             <template #default="scope">
               <me-icon :name="t('redisValue.jsonView')" icon="me-icon-json" hint placement="top"

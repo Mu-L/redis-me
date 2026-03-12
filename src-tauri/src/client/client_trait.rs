@@ -5,7 +5,7 @@ use anyhow::bail;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use chrono::{Local, Utc};
-use log::{debug, info, warn};
+use log::{info, warn};
 use parking_lot::MutexGuard;
 use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType};
 use std::collections::{HashMap, HashSet};
@@ -78,7 +78,7 @@ pub trait RedisMeClient: Send + Sync {
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()>;
 
-    fn set(&self, key: RedisKey, value: String, ttl: i64) -> AnyResult<()>;
+    fn set(&self, key: RedisKey, value: String, ttl: i64, key_type: Option<String>) -> AnyResult<()>;
 
     fn del(&self, key: RedisKey) -> AnyResult<()>;
 
@@ -410,13 +410,24 @@ pub fn set0(
     key: RedisKey,
     value: String,
     ttl: i64,
+    key_type: Option<String>
 ) -> AnyResult<()> {
-    if ttl < 0 {
-        let _: () = conn.set(&key, value)?;
+    if key_type.unwrap_or_default() == "json" {
+        // json类型
+        let value: serde_json::Value = serde_json::from_str(&value)?;
+        let _: () = conn.json_set(&key, "$", &value)?;
+        if ttl > 0 {
+            let _: () = conn.expire(&key, ttl)?;
+        }
     } else {
-        let options = SetOptions::default().with_expiration(SetExpiry::EX(ttl as u64));
-        let _: () = conn.set_options(&key, value, options)?;
-    };
+        // string类型
+        if ttl < 0 {
+            let _: () = conn.set(&key, value)?;
+        } else {
+            let options = SetOptions::default().with_expiration(SetExpiry::EX(ttl as u64));
+            let _: () = conn.set_options(&key, value, options)?;
+        };
+    }
     Ok(())
 }
 
