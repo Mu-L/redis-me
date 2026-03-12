@@ -18,7 +18,7 @@ pub type ApiResult<T> = Result<T, String>;
 pub const REDIS_ME_FIELD_TO_DELETE_TMP_VALUE: &str = "REDIS_ME_FIELD_TO_DELETE_TMP_VALUE";
 pub const REDIS_ME_SUBSCRIBE_STOP_MESSAGE: &str = "REDIS_ME_SUBSCRIBE_STOP_MESSAGE";
 pub const CONNECTION_CHECK_SECONDS: i64 = 30; // 30s检查1次连接, 避免频繁检查
-pub const CONNECTION_CHECK_TIMEOUT: Duration = Duration::from_secs(1); // 检查连接超时
+pub const CONNECTION_CHECK_TIMEOUT: Duration = Duration::from_secs(2); // 检查连接超时
 pub const CONNECTION_NORMAL_TIMEOUT: Duration = Duration::from_secs(30); // 连接操作默认操作时长
 
 pub const EVENT_SUBSCRIBE: &str = "subscribe";
