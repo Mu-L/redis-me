@@ -388,7 +388,7 @@ async function fieldDel(row) {
                 <template #default="scope">
                   <div class="me-flex" :style="{justifyContent: canEdit ? 'space-between' : 'center'}">
                     <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn"
-                             @click.stop="meCopy(scope.row.value) "/>
+                             @click.stop="meCopy(streamType ? JSON.stringify(scope.row.value) : scope.row.value) "/>
                     <me-icon :info="t('edit')" icon="el-icon-edit" class="icon-btn"
                              @click.stop="fieldSet(scope.row, scope.$index)" v-if="canEdit && !streamType"/>
                     <el-popconfirm :hide-after="0" :title="t('redisValue.deleteConfirm')"
