@@ -176,7 +176,7 @@ export default {
     ttlRequired: 'TTL required',
     ttlValidator: '-1 (Forever) or positive integer',
     valueRequired: 'Value required',
-    jsonValidator: 'Value must be json format',
+    jsonValidator: 'Value must be in a valid JSON format',
     hashValidator: 'HashKey and hashValue required',
     streamValidator: 'Field and value required',
     hashHint: '(HashKey: HashValue)',
@@ -452,6 +452,7 @@ export default {
     loadAll: 'Load All',
     renameKey: 'Rename Key',
     refreshKey: 'Refresh Key',
+    jsonValidator: 'Value must be in a valid JSON format',
   },
 
   redisChart: {

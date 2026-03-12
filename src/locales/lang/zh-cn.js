@@ -177,7 +177,7 @@ export default {
     ttlRequired: '请输入TTL',
     ttlValidator: '只允许-1(永久) 或 正整数',
     valueRequired: '值不允许为空',
-    jsonValidator: '值必须为JSON格式',
+    jsonValidator: '值必须为有效的JSON格式',
     hashValidator: '哈希键和值不允许为空',
     streamValidator: '字段和值不允许为空',
     hashHint: '(哈希键: 值)',
@@ -454,6 +454,7 @@ export default {
     loadAll: '加载剩余所有键',
     renameKey: '重命名键',
     refreshKey: '刷新键',
+    jsonValidator: '值必须为有效的JSON格式',
   },
 
   redisChart: {

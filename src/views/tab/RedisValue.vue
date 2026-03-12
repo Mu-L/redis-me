@@ -4,7 +4,7 @@ import {
   KEY_DELETE,
   KEY_REFRESH,
   meCopy,
-  meDeleteKey, meHumanSeconds,
+  meDeleteKey, meErr, meHumanSeconds,
   meHumanSize,
   meInvoke,
   meOk,
@@ -189,6 +189,19 @@ async function setValue() {
     ttl: redisValue.value.ttl,
     keyType: redisValue.value.type,
   }
+
+  // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
+  // let checked = true
+  // if (params.keyType === 'json') {
+  //   try {
+  //     JSON.parse(params.value)
+  //   } catch (e) {
+  //     checked = false
+  //     meErr(t('redisValue.jsonValidator'))
+  //   }
+  // }
+  //
+  // if (!checked) return
   await meInvoke('set', {id: share.conn.id, ...params});
   meOk(t('saveOk'))
 }
