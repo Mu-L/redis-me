@@ -142,9 +142,12 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
         .arg("count")
         .arg(batch_count);
 
-    if let Some(scan_type) = scan_type
+    if let Some(mut scan_type) = scan_type
         && !scan_type.is_empty()
     {
+        if scan_type.to_lowercase() == "json" {
+            scan_type = "ReJSON-RL".to_string();
+        }
         cmd.arg("type").arg(scan_type);
     }
     cmd
