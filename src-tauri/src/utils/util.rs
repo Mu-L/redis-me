@@ -5,7 +5,7 @@ use log::error;
 use rand::Rng;
 use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
-use redis::{FromRedisValue, Value};
+use redis::{FromRedisValue, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 use redis::streams::StreamRangeReply;
@@ -44,6 +44,15 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
             error!("错误: {}", message);
             Err(message)
         }
+    }
+}
+
+pub fn ui_key_type(key_type: ValueType) -> String {
+    let key_type: String = key_type.into();
+    if key_type == REDIS_JSON_TYPE_NAME {
+        ME_JSON_TYPE_NAME.to_string()
+    } else {
+        key_type.to_string()
     }
 }
 

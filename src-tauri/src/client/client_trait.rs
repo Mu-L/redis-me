@@ -210,7 +210,13 @@ pub fn get0(
         .arg("usage")
         .arg(&key)
         .query(&mut conn)?;
-    Ok(RedisValue::new(key_type.into(), ttl, size, value))
+
+    Ok(RedisValue {
+        key_type: ui_key_type(key_type),
+        ttl,
+        size,
+        value,
+    })
 }
 
 pub fn field_scan_0_get(
@@ -388,8 +394,16 @@ pub fn field_scan_4_return(
         .arg("usage")
         .arg(&key)
         .query(&mut conn)?;
-    Ok(FieldScanResult::new(key_type.into(), ttl, size, value, cursor))
+
+    Ok(FieldScanResult {
+        key_type: ui_key_type(key_type),
+        ttl,
+        size,
+        value,
+        cursor,
+    })
 }
+
 
 pub fn ttl0(mut conn: MutexGuard<impl Commands>, key: RedisKey, ttl: i64) -> AnyResult<()> {
     if ttl > 0 {

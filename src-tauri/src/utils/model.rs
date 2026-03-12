@@ -2,7 +2,7 @@
 
 use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
-use crate::utils::util::{AnyResult, vec8_to_display_string, ME_JSON_TYPE_NAME, REDIS_JSON_TYPE_NAME};
+use crate::utils::util::{AnyResult, vec8_to_display_string};
 use redis::{RedisWrite, ToRedisArgs, ToSingleRedisArg};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -168,23 +168,6 @@ api_model!(FieldScanResult {
     cursor: ScanCursor,
 });
 
-impl FieldScanResult {
-    pub fn new(key_type: String, ttl: i64, size: u64, value: serde_json::Value, cursor: ScanCursor) -> Self {
-        let key_type = if key_type == REDIS_JSON_TYPE_NAME {
-            ME_JSON_TYPE_NAME.to_string()
-        } else {
-            key_type
-        };
-        FieldScanResult {
-            key_type,
-            ttl,
-            size,
-            value,
-            cursor,
-        }
-    }
-}
-
 // Redis键: 由于键是字节存储的，考虑转换为utf-8字符串显示后可能会丢失信息，因此封装为对象
 // 备注: 为了方便传输与前端对比是否相等，将bytes序列化为base64字符串。
 //     （jackson针对bytes序列化, 默认会进行base64编码, 返回是字符串）
@@ -249,22 +232,6 @@ api_model!(RedisValue {
     size: u64,
     value: serde_json::Value,
 });
-
-impl RedisValue {
-    pub fn new(key_type: String, ttl: i64, size: u64, value: serde_json::Value) -> Self {
-        let key_type = if key_type == REDIS_JSON_TYPE_NAME {
-            ME_JSON_TYPE_NAME.to_string()
-        } else {
-            key_type
-        };
-        RedisValue {
-            key_type,
-            ttl,
-            size,
-            value,
-        }
-    }
-}
 
 // 批量删除
 api_model!(RedisBatchKey {
