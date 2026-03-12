@@ -5,7 +5,7 @@ use anyhow::bail;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use chrono::{Local, Utc};
-use log::{info, warn};
+use log::{debug, info, warn};
 use parking_lot::MutexGuard;
 use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType};
 use std::collections::{HashMap, HashSet};
@@ -197,7 +197,7 @@ pub fn get0(
         },
         ValueType::Unknown(other) if other == "ReJSON-RL" => {
             let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
-            serde_json::to_value(redis_value_to_string(value, "\n"))
+            serde_json::from_str(&redis_value_to_string(value, "\n"))
         },
         _ => Ok(handle_other_value_type(&key_type, &key)?),
     }?;
@@ -231,7 +231,8 @@ pub fn field_scan_0_get(
         ValueType::Unknown(other) if other == "ReJSON-RL" => {
             let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
             cc.finished = true;
-            Some(serde_json::to_value(redis_value_to_string(value, "\n"))?)
+            //Some(serde_json::to_value(redis_value_to_string(value, "\n"))?)
+            Some(serde_json::from_str(&redis_value_to_string(value, "\n"))?)
         },
         ValueType::Hash => {
             if let Some(hash_key) = hash_key
