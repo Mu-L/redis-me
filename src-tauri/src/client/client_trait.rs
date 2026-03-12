@@ -498,7 +498,7 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
             conn.xadd(&key, &param.id, &items)?
         },
         ValueType::Unknown(other) if other == "json" => {
-            let value: serde_json::Value = serde_json::from_str(&param.value).with_context(|| "json parse error")??;
+            let value: serde_json::Value = serde_json::from_str(&param.value).with_context(|| "json parse error")?;
             conn.json_set(&key, "$", &value)?
         },
         _ => {
