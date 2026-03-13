@@ -96,7 +96,7 @@ const filterDataList = computed(() => {
   return dataList.value.filter(row => !key
     || row.key?.toLowerCase().indexOf(key) > -1
     || row.id?.toLowerCase().indexOf(key) > -1
-    || row.value?.toLowerCase().indexOf(key) > -1
+    || (streamType.value ? JSON.stringify(row.value) : row.value)?.toLowerCase().indexOf(key) > -1
     || row.score?.toString().toLowerCase().indexOf(key) > -1,
   )
 })
