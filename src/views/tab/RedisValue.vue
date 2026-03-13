@@ -4,7 +4,7 @@ import {
   KEY_DELETE,
   KEY_REFRESH,
   meCopy,
-  meDeleteKey, meErr, meHumanSeconds,
+  meDeleteKey, meHumanSeconds,
   meHumanSize,
   meInvoke,
   meOk,
