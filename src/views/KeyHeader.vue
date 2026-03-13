@@ -115,7 +115,7 @@ async function newWindow() {
 
   appWindow.once('tauri://created', function () {})
   appWindow.once('tauri://error', function (e) {
-    console.log(e)
+    //console.log(e)
     meErr(t('keyHeader.newWindowError'))
   })
 }

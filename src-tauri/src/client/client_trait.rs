@@ -300,12 +300,20 @@ pub fn field_scan_0_get(
                 // 起始参数: - 表示最小值, 游标有值则取值
                 // 结束参数: + 表示最大值
                 // 加载所有: 不追加count参数，否则追加count + 1参数，多获取1个用于判断是否已扫描结束
-                let start = if cc.stream_cursor.is_empty() { "-" } else { &cc.stream_cursor };
-                let end = "+";
+                //let start = if cc.stream_cursor.is_empty() { "-" } else { &cc.stream_cursor };
+                //let end = "+";
+                //let count = if cc.stream_cursor.is_empty() { param.count + 1 } else { param.count };
+                //let mut cmd = redis::cmd("XRANGE");
+                //cmd.arg(key).arg(start).arg(end);
+
+                // 倒序: 更符合实际的使用习惯, 即查看最新的消息。TinyRDM/AnotherRDM都是倒序的
+                // XREVRANGE key end start [COUNT count]
+                let end = if cc.stream_cursor.is_empty() { "+" } else { &cc.stream_cursor };
+                let start = "-";
                 let count = if cc.stream_cursor.is_empty() { param.count + 1 } else { param.count };
 
-                let mut cmd = redis::cmd("XRANGE");
-                cmd.arg(key).arg(start).arg(end);
+                let mut cmd = redis::cmd("XREVRANGE");
+                cmd.arg(key).arg(end).arg(start);
                 if !param.load_all {
                     cmd.arg("COUNT").arg(count);
                 }
