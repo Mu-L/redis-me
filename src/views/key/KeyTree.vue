@@ -167,6 +167,7 @@ function countLeaves(node) {
       <!-- 右键菜单 -->
       <me-context ref="meContextRef" @handle-command="handleCommand" @handle-close="handleClose">
         <template v-if="contextMenuNode.isLeaf">
+          <el-dropdown-item command="addKey"    v-if="canEdit"><me-icon icon="el-icon-circle-plus"   :name="t('keyTree.addKey')"/></el-dropdown-item>
           <el-dropdown-item command="refreshKey"><me-icon icon="el-icon-refresh"       :name="t('keyTree.refreshKey')"/></el-dropdown-item>
           <el-dropdown-item command="copyKey"   ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')"/></el-dropdown-item>
           <el-dropdown-item command="renameKey" ><me-icon icon="el-icon-edit"          :name="t('keyList.renameKey')"/></el-dropdown-item>

@@ -153,7 +153,10 @@ function chooseFolder(folder) {
 
 // 键右键
 function contextKey(command, redisKey) {
-  if (command === 'refreshKey') {
+  if (command === 'addKey') {
+    keyPrefix.value = redisKey.key + '-copy'
+    addKey()
+  } else if (command === 'refreshKey') {
     chooseKey(redisKey)
   } else if (command === 'copyKey') {
     meCopy(redisKey.key)
