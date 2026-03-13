@@ -103,7 +103,7 @@ const filterDataList = computed(() => {
 
 // 监听属性
 watchEffect(() => {
-  if (stringTypeOrWithHashKey.value) {
+  if (stringTypeOrWithHashKey.value || jsonType.value) {
     viewType.value = 'json'
   }
 })
