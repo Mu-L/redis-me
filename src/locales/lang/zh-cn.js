@@ -435,6 +435,7 @@ export default {
   redisValue: {
     optional: '可选输入',
     hashKey: '哈希键',
+    streamId: 'ID',
     ttlHint: '点击修改键的过期时间',
     ttlHintReadonly: '键的过期时间',
     ttlForever: '永久',

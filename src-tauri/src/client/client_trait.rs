@@ -179,15 +179,11 @@ pub fn get0(
             serde_json::to_value(ui_zset_value(value))
         }
         ValueType::Hash => {
-            if let Some(hash_key) = hash_key
-                && !hash_key.is_empty()
-            {
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
-                if let Some(str) = value {
-                    let value: String = vec8_to_display_string(&str);
-                    serde_json::to_value(value)
-                } else {
-                    bail!("HashKey Not Exists: 【{}】", hash_key)
+                match value {
+                    Some(str) => serde_json::to_value(vec8_to_display_string(&str)),
+                    None => bail!("HashKey Not Exists: 【{}】", hash_key),
                 }
             } else {
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
@@ -195,8 +191,17 @@ pub fn get0(
             }
         },
         ValueType::Stream => {
-            let reply: StreamRangeReply = conn.xrange_all(&key)?;
-            serde_json::to_value(ui_stream_value(reply))
+            // stream的id, 复用hash_key字段
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+                let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
+                match reply.ids.pop() {
+                    Some(entry) => serde_json::to_value(ui_stream_id(entry.map)),
+                    None => bail!("StreamId Not Exists: 【{}】", hash_key),
+                }
+            } else {
+                let reply: StreamRangeReply = conn.xrange_all(&key)?;
+                serde_json::to_value(ui_stream_value(reply))
+            }
         },
         ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
             let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
@@ -244,16 +249,14 @@ pub fn field_scan_0_get(
             Some(serde_json::from_str(&redis_value_to_string(value, "\n"))?)
         },
         ValueType::Hash => {
-            if let Some(hash_key) = hash_key
-                && !hash_key.is_empty()
-            {
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
-                if let Some(str) = value {
-                    let value: String = vec8_to_display_string(&str);
-                    cc.finished = true;
-                    Some(serde_json::to_value(value)?)
-                } else {
-                    bail!("HashKey Not Exists: {}", hash_key)
+                match value {
+                    Some(str) => {
+                        cc.finished = true;
+                        Some(serde_json::to_value(vec8_to_display_string(&str))?)
+                    },
+                    None => bail!("HashKey Not Exists: 【{}】", hash_key),
                 }
             } else {
                 None
@@ -281,30 +284,42 @@ pub fn field_scan_0_get(
             Some(serde_json::to_value(value)?)
         }
         ValueType::Stream => {
-            // https://redis.ac.cn/docs/latest/commands/xrange/
-            // XRANGE key start end [COUNT count]   注意start/end是包含在内的
-            // 起始参数: - 表示最小值, 游标有值则取值
-            // 结束参数: + 表示最大值
-            // 加载所有: 不追加count参数，否则追加count + 1参数，多获取1个用于判断是否已扫描结束
-            let start = if cc.stream_cursor.is_empty() { "-" } else { &cc.stream_cursor };
-            let end = "+";
-            let count = if cc.stream_cursor.is_empty() { param.count + 1 } else { param.count };
-
-            let mut cmd = redis::cmd("XRANGE");
-            cmd.arg(key).arg(start).arg(end);
-            if !param.load_all {
-                cmd.arg("COUNT").arg(count);
-            }
-            let reply: StreamRangeReply = cmd.query(&mut conn)?;
-            let mut value = ui_stream_value(reply);
-
-            if !param.load_all && value.len() > param.count as usize {
-                cc.finished = false;
-                cc.stream_cursor = value.pop().unwrap().id; // 弹出最后1个元素，作为下次游标
+            // stream的id, 复用hash_key字段
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+                let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
+                match reply.ids.pop() {
+                    Some(entry) => {
+                        cc.finished = true;
+                        Some(serde_json::to_value(ui_stream_id(entry.map))?)
+                    },
+                    None => bail!("StreamId Not Exists: 【{}】", hash_key),
+                }
             } else {
-                cc.finished = true;
-            };
-            Some(serde_json::to_value(value)?)
+                // https://redis.ac.cn/docs/latest/commands/xrange/
+                // XRANGE key start end [COUNT count]   注意start/end是包含在内的
+                // 起始参数: - 表示最小值, 游标有值则取值
+                // 结束参数: + 表示最大值
+                // 加载所有: 不追加count参数，否则追加count + 1参数，多获取1个用于判断是否已扫描结束
+                let start = if cc.stream_cursor.is_empty() { "-" } else { &cc.stream_cursor };
+                let end = "+";
+                let count = if cc.stream_cursor.is_empty() { param.count + 1 } else { param.count };
+
+                let mut cmd = redis::cmd("XRANGE");
+                cmd.arg(key).arg(start).arg(end);
+                if !param.load_all {
+                    cmd.arg("COUNT").arg(count);
+                }
+                let reply: StreamRangeReply = cmd.query(&mut conn)?;
+                let mut value = ui_stream_value(reply);
+
+                if !param.load_all && value.len() > param.count as usize {
+                    cc.finished = false;
+                    cc.stream_cursor = value.pop().unwrap().id; // 弹出最后1个元素，作为下次游标
+                } else {
+                    cc.finished = true;
+                };
+                Some(serde_json::to_value(value)?)
+            }
         },
         // 注意此处SET/ZSET等是支持的，只是需要进行扫描，不能直接使用通用的: handle_other_value_type
         ValueType::Unknown(_) => {

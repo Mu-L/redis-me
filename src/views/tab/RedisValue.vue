@@ -50,7 +50,7 @@ const showValue = computed(() => {
 
   if (isPretty.value) {
     if (stringTypeOrWithHashKey.value) {
-      const str = obj.toString()
+      const str = streamType.value ? JSON.stringify(obj) : obj.toString()
       try {
         return str.startsWith('{') || str.startsWith('[') ? JSON.stringify(JSON.parse(str), null, 2) : str
       } catch (e) {
@@ -81,8 +81,7 @@ const dataList = computed(() => {
   let data = []
 
   if (rv.type === 'hash') {
-    Object.entries(rv.value)
-      .forEach(([key, value]) => data.push({key, value}))
+    Object.entries(rv.value).forEach(([key, value]) => data.push({key, value}))
   } else if (rv.type === 'list' || rv.type === 'set') {
     rv.value.forEach(value => data.push({value}))
   } else if (rv.type === 'zset' || rv.type === 'stream') {
@@ -296,11 +295,12 @@ async function fieldDel(row) {
           </template>
         </el-input>
 
+        <!-- 哈希键 / StreamId -->
         <el-input type="text" :placeholder="t('redisValue.optional')"
                   clearable style="width: 200px; margin-left: 10px"
-                  v-model="hashKey" v-if="redisValue.type === 'hash'"
+                  v-model="hashKey" v-if="hashType || streamType"
                   @keyup.enter="refreshKey(false)">
-          <template #prepend>{{ t('redisValue.hashKey') }}</template>
+          <template #prepend>{{ streamType ? t('redisValue.streamId') : t('redisValue.hashKey') }}</template>
         </el-input>
 
         <div class="me-flex">

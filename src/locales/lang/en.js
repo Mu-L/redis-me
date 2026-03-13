@@ -433,6 +433,7 @@ export default {
   redisValue: {
     optional: 'Optional',
     hashKey: 'HashKey',
+    streamId: 'ID',
     ttlHint: 'Click to modify the key expiration time',
     ttlHintReadonly: 'Key expiration time',
     ttlForever: 'Forever',
