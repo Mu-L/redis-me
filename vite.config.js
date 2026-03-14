@@ -12,7 +12,7 @@ export default defineConfig({
     resolve: {
         alias: {
             // 配置绝对路径别名@
-            '@': path.resolve(__dirname, 'src')
+            '@': path.resolve(import.meta.dirname, 'src')
         },
     },
 
