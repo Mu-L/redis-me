@@ -4,9 +4,9 @@
   "version": "../package.json",
   "identifier": "com.hepengju.redis",
   "build": {
-    "beforeDevCommand": "pnpm dev",
+    "beforeDevCommand": "vp dev",
     "devUrl": "http://localhost:2222",
-    "beforeBuildCommand": "pnpm build",
+    "beforeBuildCommand": "vp build",
     "frontendDist": "../dist"
   },
   "app": {
