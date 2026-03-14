@@ -1,21 +1,20 @@
 <script setup>
-import {useData} from 'vitepress'
-import {computed} from 'vue'
+import { useData } from 'vitepress'
+import { computed } from 'vue'
 
-const {isDark, lang} = useData()
+const { isDark, lang } = useData()
 
 const imgSrc = computed(() => {
   const suffix = lang.value.startsWith('zh') ? '-zh' : ''
   const prefix = isDark.value ? 'dark' : 'light'
   return `/images/${prefix}${suffix}.png`
 })
-
 </script>
 
 <template>
   <div class="preview-wrapper">
     <div class="preview-inner">
-      <img :src="imgSrc" alt="preview"/>
+      <img :src="imgSrc" alt="preview" />
     </div>
   </div>
 </template>

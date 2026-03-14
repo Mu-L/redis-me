@@ -1,25 +1,29 @@
 <script setup>
-import {ref} from 'vue'
-import {getVersion} from '@tauri-apps/api/app'
-import {useI18n} from 'vue-i18n'
+import { ref } from 'vue'
+import { getVersion } from '@tauri-apps/api/app'
+import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const appVersion = ref('')
-getVersion().then(res => appVersion.value = res).catch(_ => {})
+getVersion()
+  .then((res) => (appVersion.value = res))
+  .catch((_) => {})
 </script>
 
 <template>
   <div class="app-info">
-    <me-icon icon="me-icon-redis-me" class="app-icon"/>
+    <me-icon icon="me-icon-redis-me" class="app-icon" />
     <div class="app-name">RedisME</div>
-    <div class="app-version">v{{appVersion}}</div>
+    <div class="app-version">v{{ appVersion }}</div>
     <div class="app-site">
-      <el-link underline="never" href="https://github.com/hepengju/redis-me" target="_blank">{{ t('about.sourceCode') }}</el-link>
+      <el-link underline="never" href="https://github.com/hepengju/redis-me" target="_blank">{{
+        t('about.sourceCode')
+      }}</el-link>
       <div class="sep"></div>
-      <el-link underline="never" href="https://www.hepengju.com" target="_blank">{{ t('about.officialWebsite') }}</el-link>
+      <el-link underline="never" href="https://www.hepengju.com" target="_blank">{{
+        t('about.officialWebsite')
+      }}</el-link>
     </div>
-    <div class="app-copyright">
-      Copyright © 2025 hepengju.com All Rights Reserved
-    </div>
+    <div class="app-copyright">Copyright © 2025 hepengju.com All Rights Reserved</div>
   </div>
 </template>
 
@@ -32,7 +36,7 @@ getVersion().then(res => appVersion.value = res).catch(_ => {})
   .app-icon {
     justify-content: center;
     font-size: 70px;
-    margin-top: 10px
+    margin-top: 10px;
   }
 
   .app-name {

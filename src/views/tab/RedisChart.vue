@@ -1,6 +1,6 @@
 <script setup>
-import {isDark, meHumanNums, meInvoke, meLog, PREDEFINE_COLORS} from '@/utils/util.js'
-import {Line} from 'vue-chartjs'
+import { isDark, meHumanNums, meInvoke, meLog, PREDEFINE_COLORS } from '@/utils/util.js'
+import { Line } from 'vue-chartjs'
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -10,39 +10,52 @@ import {
   LineElement,
   PointElement,
   TimeScale,
-  Tooltip
+  Tooltip,
 } from 'chart.js'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
-import {cloneDeep, merge} from 'lodash'
+import { cloneDeep, merge } from 'lodash'
 import NodeList from '@/views/ext/NodeList.vue'
-import {useI18n} from 'vue-i18n'
+import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
 
 // 只注册必要的组件即可
 // https://chartjs.cn/docs/latest/getting-started/integration.html
-ChartJS.register(LineController, LineElement, PointElement, TimeScale, LinearScale, Legend, CategoryScale, Tooltip)
+ChartJS.register(
+  LineController,
+  LineElement,
+  PointElement,
+  TimeScale,
+  LinearScale,
+  Legend,
+  CategoryScale,
+  Tooltip,
+)
 // ChartJS.overrides.line.maintainAspectRatio = false
 
-const {t} = useI18n()
+const { t } = useI18n()
 
 const share = inject('share')
-const node = ref('')             // 指定节点
-const autoRefresh = ref(true)    // 自动刷新
-const refreshInterval = ref(5)   // 刷新间隔（秒）
-const keepMinutes = ref(60)      // 保留N分钟的数据
-const maxPointCount = ref(100)   // 最多保存N个数据
-const nowPointCount = ref(0)     // 当前数据条数
+const node = ref('') // 指定节点
+const autoRefresh = ref(true) // 自动刷新
+const refreshInterval = ref(5) // 刷新间隔（秒）
+const keepMinutes = ref(60) // 保留N分钟的数据
+const maxPointCount = ref(100) // 最多保存N个数据
+const nowPointCount = ref(0) // 当前数据条数
 const showMoreChart = ref(false) // 显示更多图表
 
 // 自动刷新及刷新间隔配置
 let timer = null
 onUnmounted(() => clearInterval(timer))
-watch([autoRefresh, refreshInterval], ([val, _]) => {
-  clearInterval(timer)
-  if (val) {
-    timer = setInterval(getData, refreshInterval.value * 1000)
-  }
-}, {immediate: true})
+watch(
+  [autoRefresh, refreshInterval],
+  ([val, _]) => {
+    clearInterval(timer)
+    if (val) {
+      timer = setInterval(getData, refreshInterval.value * 1000)
+    }
+  },
+  { immediate: true },
+)
 
 // 图表实例，手动刷新
 const commandRef = useTemplateRef('command')
@@ -53,7 +66,7 @@ const connectedClientsRef = useTemplateRef('connectedClients')
 const cacheHitRatioRef = useTemplateRef('cacheHitRatio')
 const totalConnectionsReceivedRef = useTemplateRef('totalConnectionsReceived')
 const totalCommandsProcessedRef = useTemplateRef('totalCommandsProcessed')
-function refreshInstance(){
+function refreshInstance() {
   commandRef.value?.chart.update()
   memoryRef.value?.chart.update()
   networkRef.value?.chart.update()
@@ -69,7 +82,7 @@ function refreshInstance(){
 getData()
 async function getData() {
   try {
-    const res = await meInvoke('chart', {id: share.conn.id, node: node.value})
+    const res = await meInvoke('chart', { id: share.conn.id, node: node.value })
     const label = Date.now()
     addChartData(label, res, 'command', 'instantaneousOpsPerSec')
     addChartData(label, res, 'memory', 'usedMemory')
@@ -139,7 +152,9 @@ function calcLabelIndexes() {
   const minLabel = Date.now() - keepMinutes.value * 60 * 1000
 
   // 最大值减去最小值，除以 maxPointCount 获得刻度间隔
-  const interval = Math.floor((labels[labels.length - 1] - Math.max(labels[0], minLabel)) / maxPointCount.value) * 1.5
+  const interval =
+    Math.floor((labels[labels.length - 1] - Math.max(labels[0], minLabel)) / maxPointCount.value) *
+    1.5
 
   const indexes = []
   let intervalLabel = undefined
@@ -175,18 +190,18 @@ const baseOptions = {
       time: {
         unit: 'second',
         displayFormats: {
-          second: 'HH:mm:ss'
-        }
+          second: 'HH:mm:ss',
+        },
       },
       // 控制刻度显示数量
       ticks: {
-        align: 'center',  // 刻度居中
+        align: 'center', // 刻度居中
         maxTicksLimit: 10, // 最多显示N个主刻度
-        autoSkip: true,   // 自动跳过部分刻度
+        autoSkip: true, // 自动跳过部分刻度
       },
       bounds: 'ticks', // 确保坐标轴从第一个刻度开始，到最后一个刻度结束
-      offset: false    // 在两端留出空白
-    }
+      offset: false, // 在两端留出空白
+    },
   },
   plugins: {
     tooltip: {
@@ -196,8 +211,8 @@ const baseOptions = {
           // context[0]包含第一个数据点
           const dt = dayjs(context[0].parsed.x)
           return dt.format('YYYY-MM-DD HH:mm:ss')
-        }
-      }
+        },
+      },
     },
   },
 }
@@ -208,21 +223,21 @@ const lightOptions = {
   scales: {
     x: {
       ticks: {
-        color: '#666'   // 默认的X轴标签颜色
+        color: '#666', // 默认的X轴标签颜色
       },
       grid: {
-        color: 'rgba(0, 0, 0, 0.1)'   // 默认的X轴网格线颜色
-      }
+        color: 'rgba(0, 0, 0, 0.1)', // 默认的X轴网格线颜色
+      },
     },
     y: {
       ticks: {
-        color: '#666'   // 默认的Y轴标签颜色
+        color: '#666', // 默认的Y轴标签颜色
       },
       grid: {
-        color: 'rgba(0, 0, 0, 0.1)'   // 默认的Y轴网格线颜色
-      }
-    }
-  }
+        color: 'rgba(0, 0, 0, 0.1)', // 默认的Y轴网格线颜色
+      },
+    },
+  },
 }
 
 const darkOptions = {
@@ -230,21 +245,21 @@ const darkOptions = {
   scales: {
     x: {
       ticks: {
-        color: '#EEE'   // 默认的X轴标签颜色
+        color: '#EEE', // 默认的X轴标签颜色
       },
       grid: {
-        color: 'rgba(255, 255, 255, 0.2)'   // 默认的X轴网格线颜色
-      }
+        color: 'rgba(255, 255, 255, 0.2)', // 默认的X轴网格线颜色
+      },
     },
     y: {
       ticks: {
-        color: '#EEE'   // 默认的Y轴标签颜色
+        color: '#EEE', // 默认的Y轴标签颜色
       },
       grid: {
-        color: 'rgba(255, 255, 255, 0.2)'   // 默认的Y轴网格线颜色
-      }
-    }
-  }
+        color: 'rgba(255, 255, 255, 0.2)', // 默认的Y轴网格线颜色
+      },
+    },
+  },
   // backgroundColor: '#333',
   // legend: {
   //   labels: {
@@ -273,10 +288,10 @@ const memoryOptions = computed(() => {
           callback: function (value) {
             const valueInMB = value / (1024 * 1024) // 字节转 MB
             return valueInMB.toFixed(1) + ' M' // 保留 1 位小数
-          }
+          },
         },
-      }
-    }
+      },
+    },
   })
 })
 
@@ -285,9 +300,9 @@ const ratioOptions = computed(() => {
     scales: {
       y: {
         min: 0, // 从零开始
-        max: 1
-      }
-    }
+        max: 1,
+      },
+    },
   })
 })
 
@@ -299,17 +314,17 @@ const totalOptions = computed(() => {
           // 关键：修改 Y 轴刻度的显示单位
           callback: function (value) {
             return meHumanNums(value, '0', 2)
-          }
+          },
         },
-      }
-    }
+      },
+    },
   })
 })
 
 // chart.js数据配置项
 const dataset = {
   data: [],
-  tension: 0.4  // 线条张力、平滑度
+  tension: 0.4, // 线条张力、平滑度
 }
 
 const initData = computed(() => ({
@@ -317,53 +332,79 @@ const initData = computed(() => ({
   command: {
     labels: [],
     datasets: [
-      {label: t('redisChart.command'), borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}
-    ]
+      { label: t('redisChart.command'), borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset) },
+    ],
   },
   // 已使用内存
   memory: {
     labels: [],
     datasets: [
-      {label: t('redisChart.memory'), borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
+      { label: t('redisChart.memory'), borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset) },
+    ],
   },
   // 网络输入输出
   network: {
     labels: [],
     datasets: [
-      {label: t('redisChart.networkIn'), borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)},
-      {label: t('redisChart.networkOut'), borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}
-    ]
+      { label: t('redisChart.networkIn'), borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset) },
+      {
+        label: t('redisChart.networkOut'),
+        borderColor: PREDEFINE_COLORS[4],
+        ...cloneDeep(dataset),
+      },
+    ],
   },
 
   // 键数量
   keyTotal: {
     labels: [],
     datasets: [
-      {label: t('redisChart.keyTotal'), borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset)}]
+      { label: t('redisChart.keyTotal'), borderColor: PREDEFINE_COLORS[0], ...cloneDeep(dataset) },
+    ],
   },
   // 客户端连接数
   connectedClients: {
     labels: [],
     datasets: [
-      {label: t('redisChart.connectedClients'), borderColor: PREDEFINE_COLORS[1], ...cloneDeep(dataset)}]
+      {
+        label: t('redisChart.connectedClients'),
+        borderColor: PREDEFINE_COLORS[1],
+        ...cloneDeep(dataset),
+      },
+    ],
   },
   // 缓存命中率
   cacheHitRatio: {
     labels: [],
     datasets: [
-      {label: t('redisChart.cacheHitRatio'), borderColor: PREDEFINE_COLORS[2], ...cloneDeep(dataset)}]
+      {
+        label: t('redisChart.cacheHitRatio'),
+        borderColor: PREDEFINE_COLORS[2],
+        ...cloneDeep(dataset),
+      },
+    ],
   },
   // 服务器接受的总连接数
   totalConnectionsReceived: {
     labels: [],
     datasets: [
-      {label: t('redisChart.totalConnectionsReceived'), borderColor: PREDEFINE_COLORS[3], ...cloneDeep(dataset)}]
+      {
+        label: t('redisChart.totalConnectionsReceived'),
+        borderColor: PREDEFINE_COLORS[3],
+        ...cloneDeep(dataset),
+      },
+    ],
   },
   // 服务器处理的总命令数
   totalCommandsProcessed: {
     labels: [],
     datasets: [
-      {label: t('redisChart.totalCommandsProcessed'), borderColor: PREDEFINE_COLORS[4], ...cloneDeep(dataset)}]
+      {
+        label: t('redisChart.totalCommandsProcessed'),
+        borderColor: PREDEFINE_COLORS[4],
+        ...cloneDeep(dataset),
+      },
+    ],
   },
 }))
 
@@ -378,60 +419,91 @@ function resetData() {
 watch(node, resetData)
 
 // 语言切换
-watch(() => meTauri.settings.language, () => {
-  chartData.value.command.datasets[0].label = t('redisChart.command')
-  chartData.value.memory.datasets[0].label = t('redisChart.memory')
-  chartData.value.network.datasets[0].label = t('redisChart.networkIn')
-  chartData.value.network.datasets[1].label = t('redisChart.networkOut')
+watch(
+  () => meTauri.settings.language,
+  () => {
+    chartData.value.command.datasets[0].label = t('redisChart.command')
+    chartData.value.memory.datasets[0].label = t('redisChart.memory')
+    chartData.value.network.datasets[0].label = t('redisChart.networkIn')
+    chartData.value.network.datasets[1].label = t('redisChart.networkOut')
 
-  chartData.value.keyTotal.datasets[0].label = t('redisChart.keyTotal')
-  chartData.value.connectedClients.datasets[0].label = t('redisChart.connectedClients')
-  chartData.value.cacheHitRatio.datasets[0].label = t('redisChart.cacheHitRatio')
-  chartData.value.totalConnectionsReceived.datasets[0].label = t('redisChart.totalConnectionsReceived')
-  chartData.value.totalCommandsProcessed.datasets[0].label = t('redisChart.totalCommandsProcessed')
-  chartData.value = cloneDeep(chartData.value) // 直接更新时label并没有更新，因此克隆1份，让vue进行重新渲染
-}, {immediate: true})
+    chartData.value.keyTotal.datasets[0].label = t('redisChart.keyTotal')
+    chartData.value.connectedClients.datasets[0].label = t('redisChart.connectedClients')
+    chartData.value.cacheHitRatio.datasets[0].label = t('redisChart.cacheHitRatio')
+    chartData.value.totalConnectionsReceived.datasets[0].label = t(
+      'redisChart.totalConnectionsReceived',
+    )
+    chartData.value.totalCommandsProcessed.datasets[0].label = t(
+      'redisChart.totalCommandsProcessed',
+    )
+    chartData.value = cloneDeep(chartData.value) // 直接更新时label并没有更新，因此克隆1份，让vue进行重新渲染
+  },
+  { immediate: true },
+)
 
 // 主题切换
-watch(() => meTauri.settings.theme, () => refreshInstance())
+watch(
+  () => meTauri.settings.theme,
+  () => refreshInstance(),
+)
 </script>
 
 <template>
   <div class="redis-chart">
     <div class="me-flex">
       <div class="left">
-        <me-button @click="resetData" icon="el-icon-delete" info="清空数据" placement="top"/>
+        <me-button @click="resetData" icon="el-icon-delete" info="清空数据" placement="top" />
         <el-dropdown placement="bottom-start" :hide-on-click="false" :teleported="false">
-          <me-icon class="refresh icon-btn" :class="autoRefresh ? 'rotating' : ''"
-                   icon="el-icon-refresh-right" @click="getData" style="margin-left: 20px"/>
+          <me-icon
+            class="refresh icon-btn"
+            :class="autoRefresh ? 'rotating' : ''"
+            icon="el-icon-refresh-right"
+            @click="getData"
+            style="margin-left: 20px"
+          />
           <template #dropdown>
             <el-dropdown-menu>
               <el-form :label-width="t('redisChart.labelWidth')" label-position="right">
                 <el-dropdown-item>
                   <el-form-item :label="t('redisChart.autoRefresh')">
-                    <el-switch v-model="autoRefresh" style="margin-left: 10px"/>
+                    <el-switch v-model="autoRefresh" style="margin-left: 10px" />
                   </el-form-item>
                 </el-dropdown-item>
                 <el-dropdown-item>
                   <el-form-item :label="t('redisChart.refreshInterval')">
-                    <el-input-number v-model.number="refreshInterval" :min="1" :max="60"
-                                     :controls="false" style="width: 80px; margin-left: 10px">
+                    <el-input-number
+                      v-model.number="refreshInterval"
+                      :min="1"
+                      :max="60"
+                      :controls="false"
+                      style="width: 80px; margin-left: 10px"
+                    >
                       <template #suffix>{{ t('redisChart.refreshUnit') }}</template>
                     </el-input-number>
                   </el-form-item>
                 </el-dropdown-item>
                 <el-dropdown-item>
                   <el-form-item :label="t('redisChart.keepMinutes')">
-                    <el-input-number v-model.number="keepMinutes" :min="1" :max="600"
-                                     :controls="false" style="width: 80px; margin-left: 10px">
+                    <el-input-number
+                      v-model.number="keepMinutes"
+                      :min="1"
+                      :max="600"
+                      :controls="false"
+                      style="width: 80px; margin-left: 10px"
+                    >
                       <template #suffix>{{ t('redisChart.keepUnit') }}</template>
                     </el-input-number>
                   </el-form-item>
                 </el-dropdown-item>
                 <el-dropdown-item>
                   <el-form-item :label="t('redisChart.maxPointCount')">
-                    <el-input-number v-model.number="maxPointCount" :min="10" :max="200"
-                                     :controls="false" style="width: 80px; margin-left: 10px">
+                    <el-input-number
+                      v-model.number="maxPointCount"
+                      :min="10"
+                      :max="200"
+                      :controls="false"
+                      style="width: 80px; margin-left: 10px"
+                    >
                       <template #suffix>{{ t('redisChart.pointUnit') }}</template>
                     </el-input-number>
                   </el-form-item>
@@ -439,7 +511,7 @@ watch(() => meTauri.settings.theme, () => refreshInstance())
 
                 <el-dropdown-item>
                   <el-form-item :label="t('redisChart.moreChart')">
-                    <el-switch v-model="showMoreChart" style="margin-left: 10px"/>
+                    <el-switch v-model="showMoreChart" style="margin-left: 10px" />
                   </el-form-item>
                 </el-dropdown-item>
               </el-form>
@@ -448,22 +520,40 @@ watch(() => meTauri.settings.theme, () => refreshInstance())
         </el-dropdown>
       </div>
       <div class="right">
-        <el-text type="info">[{{nowPointCount}}]</el-text>
-        <node-list v-model="node" style="margin-left: 10px" init-node/>
+        <el-text type="info">[{{ nowPointCount }}]</el-text>
+        <node-list v-model="node" style="margin-left: 10px" init-node />
       </div>
     </div>
 
     <div class="charts">
-      <div class="chart"><Line ref="command" :data="chartData.command" :options/></div>
-      <div class="chart"><Line ref="memory" :data="chartData.memory" :options="memoryOptions"/></div>
-      <div class="chart"><Line ref="network" :data="chartData.network" :options/></div>
+      <div class="chart"><Line ref="command" :data="chartData.command" :options /></div>
+      <div class="chart">
+        <Line ref="memory" :data="chartData.memory" :options="memoryOptions" />
+      </div>
+      <div class="chart"><Line ref="network" :data="chartData.network" :options /></div>
 
       <template v-if="showMoreChart">
-        <div class="chart"><Line ref="keyTotal" :data="chartData.keyTotal" :options/></div>
-        <div class="chart"><Line ref="connectedClients" :data="chartData.connectedClients" :options/></div>
-        <div class="chart"><Line ref="cacheHitRatio" :data="chartData.cacheHitRatio" :options="ratioOptions"/></div>
-        <div class="chart"><Line ref="totalConnectionsReceived" :data="chartData.totalConnectionsReceived" :options="totalOptions"/></div>
-        <div class="chart"><Line ref="totalCommandsProcessed" :data="chartData.totalCommandsProcessed" :options="totalOptions"/></div>
+        <div class="chart"><Line ref="keyTotal" :data="chartData.keyTotal" :options /></div>
+        <div class="chart">
+          <Line ref="connectedClients" :data="chartData.connectedClients" :options />
+        </div>
+        <div class="chart">
+          <Line ref="cacheHitRatio" :data="chartData.cacheHitRatio" :options="ratioOptions" />
+        </div>
+        <div class="chart">
+          <Line
+            ref="totalConnectionsReceived"
+            :data="chartData.totalConnectionsReceived"
+            :options="totalOptions"
+          />
+        </div>
+        <div class="chart">
+          <Line
+            ref="totalCommandsProcessed"
+            :data="chartData.totalCommandsProcessed"
+            :options="totalOptions"
+          />
+        </div>
       </template>
     </div>
   </div>

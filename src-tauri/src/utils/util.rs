@@ -1,15 +1,14 @@
-use crate::utils::model::{
-    RedisChart, RedisClientInfo, RedisInfo, RedisKey, RedisKeySize, RedisSlowLog, RedisZetItem,
-};
+use crate::utils::model::*;
 use anyhow::bail;
 use chrono::DateTime;
 use log::error;
 use rand::Rng;
 use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
-use redis::{FromRedisValue, Value};
+use redis::{FromRedisValue, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
+use redis::streams::{StreamId, StreamRangeReply};
 
 // 统一应用返回值
 pub type AnyResult<T> = anyhow::Result<T>;
@@ -19,7 +18,7 @@ pub type ApiResult<T> = Result<T, String>;
 pub const REDIS_ME_FIELD_TO_DELETE_TMP_VALUE: &str = "REDIS_ME_FIELD_TO_DELETE_TMP_VALUE";
 pub const REDIS_ME_SUBSCRIBE_STOP_MESSAGE: &str = "REDIS_ME_SUBSCRIBE_STOP_MESSAGE";
 pub const CONNECTION_CHECK_SECONDS: i64 = 30; // 30s检查1次连接, 避免频繁检查
-pub const CONNECTION_CHECK_TIMEOUT: Duration = Duration::from_secs(1); // 检查连接超时
+pub const CONNECTION_CHECK_TIMEOUT: Duration = Duration::from_secs(2); // 检查连接超时
 pub const CONNECTION_NORMAL_TIMEOUT: Duration = Duration::from_secs(30); // 连接操作默认操作时长
 
 pub const EVENT_SUBSCRIBE: &str = "subscribe";
@@ -27,15 +26,33 @@ pub const EVENT_MONITOR: &str = "monitor";
 pub const EVENT_EXPORT: &str = "export";
 pub const EVENT_IMPORT: &str = "import";
 
+pub const ME_JSON_TYPE_NAME: &str = "json";
+pub const REDIS_JSON_TYPE_NAME: &str = "ReJSON-RL";
+
 // tauri的错误处理中需要返回的错误实现序列化, anyhow的错误并没有实现，因此简单返回字符串错误
 pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
     match result {
         Ok(value) => Ok(value),
         Err(err) => {
-            error!("错误: {}", err);
             //error!("{}", err.backtrace());
-            Err(err.to_string())
+            let source = err.source().map(|err| err.to_string()).unwrap_or_default();
+            let message = if source.is_empty() {
+                err.to_string()
+            } else {
+                format!("{}: {}", err.to_string(), source)
+            };
+            error!("错误: {}", message);
+            Err(message)
         }
+    }
+}
+
+pub fn ui_key_type(key_type: ValueType) -> String {
+    let key_type: String = key_type.into();
+    if key_type == REDIS_JSON_TYPE_NAME {
+        ME_JSON_TYPE_NAME.to_string()
+    } else {
+        key_type.to_string()
     }
 }
 
@@ -81,7 +98,7 @@ pub fn ui_hash_value(value: HashMap<Vec<u8>, Vec<u8>>) -> HashMap<String, String
 }
 
 pub fn ui_set_value(value: HashSet<Vec<u8>>) -> Vec<String> {
-    value.iter().map(|v| vec8_to_display_string(v)).collect()
+    value.into_iter().map(|v| vec8_to_display_string(&v)).collect()
 }
 
 pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>) -> Vec<RedisZetItem> {
@@ -92,6 +109,20 @@ pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>) -> Vec<RedisZetItem> {
             score,
         })
         .collect()
+}
+
+pub fn ui_stream_value(reply: StreamRangeReply) -> Vec<RedisStreamItem> {
+    reply.ids.into_iter().map(|sid| {
+        let StreamId { id, map, .. } = sid;
+        RedisStreamItem {
+            id,
+            value: ui_stream_id(map),
+        }
+    }).collect()
+}
+
+pub fn ui_stream_id(stream_id : HashMap<String, Value>) -> HashMap<String, String> {
+    stream_id.into_iter().map(|(k, v)| (k, redis_value_to_string(v, "\n"))).collect()
 }
 
 // 字节数组转Base64字符串: RedisKey 的 bytes

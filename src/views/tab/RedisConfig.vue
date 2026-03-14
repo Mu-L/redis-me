@@ -1,21 +1,21 @@
 <script setup>
-import {configTip as tips} from '@/utils/tip.js'
-import {redisConfDict, valkeyConfDict} from '@/utils/redis.js'
+import { configTip as tips } from '@/utils/tip.js'
+import { redisConfDict, valkeyConfDict } from '@/utils/redis.js'
 import NodeList from '../ext/NodeList.vue'
-import {meInvoke, meOk} from '@/utils/util.js'
-import {sortBy} from 'lodash'
-import {useI18n} from 'vue-i18n'
-import {BaseDirectory} from '@tauri-apps/api/path'
-import {readDir, readTextFile} from '@tauri-apps/plugin-fs'
+import { meInvoke, meOk } from '@/utils/util.js'
+import { sortBy } from 'lodash'
+import { useI18n } from 'vue-i18n'
+import { BaseDirectory } from '@tauri-apps/api/path'
+import { readDir, readTextFile } from '@tauri-apps/plugin-fs'
 import MeWebsite from '@/components/MeWebsite.vue'
 
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
-const {initNode, initVersion} = defineProps({
-  initNode: {type: String, default: ''},
-  initVersion: {type: String, default: ''},
+const { initNode, initVersion } = defineProps({
+  initNode: { type: String, default: '' },
+  initVersion: { type: String, default: '' },
 })
 
 const node = ref(initNode)
@@ -26,12 +26,12 @@ const dataList = ref([])
 // 文件格式的配置文件
 // 读取配置文件目录，将所有文件存储起来
 // const configVersionList = Object.keys(redisConfText).reverse()
-const serverType = computed(() => share.isValkey ? 'Valkey' : 'Redis')
+const serverType = computed(() => (share.isValkey ? 'Valkey' : 'Redis'))
 const dirConfigList = ref([])
 onMounted(() => readConfigDir())
 async function readConfigDir() {
-  const files = await readDir('resources/conf', {baseDir: BaseDirectory.Resource})
-  files.forEach(file => {
+  const files = await readDir('resources/conf', { baseDir: BaseDirectory.Resource })
+  files.forEach((file) => {
     if (file.isFile && file.name.endsWith('.conf')) {
       dirConfigList.value.push(file.name.substring(0, file.name.length - 5))
     }
@@ -39,27 +39,31 @@ async function readConfigDir() {
   dirConfigList.value.sort().reverse()
 }
 
-const configVersionList = computed(() =>  dirConfigList.value.filter(d => d.startsWith(serverType.value)))
-const configVersion = ref('')  // 版本
+const configVersionList = computed(() =>
+  dirConfigList.value.filter((d) => d.startsWith(serverType.value)),
+)
+const configVersion = ref('') // 版本
 const configRaw = ref('')
 
 // 读取配置文件的值
 watchEffect(async () => {
   try {
     // configRaw.value = redisConfText[configVersion.value]
-    configRaw.value = await readTextFile(`resources/conf/${configVersion.value}.conf`, {baseDir: BaseDirectory.Resource})
+    configRaw.value = await readTextFile(`resources/conf/${configVersion.value}.conf`, {
+      baseDir: BaseDirectory.Resource,
+    })
   } catch (e) {
     configRaw.value = t('redisConfig.noConfig')
   }
 })
 
-function handleCommand(command){
+function handleCommand(command) {
   configVersion.value = command
-  nextTick(() => dialog.raw = true)
+  nextTick(() => (dialog.raw = true))
 }
 
 // Json格式的默认配置
-const confDict = computed(() => share.isValkey ? valkeyConfDict: redisConfDict)
+const confDict = computed(() => (share.isValkey ? valkeyConfDict : redisConfDict))
 
 const dictVersionList = Object.keys(confDict.value).reverse()
 function getDefaultVersion() {
@@ -73,19 +77,21 @@ function getDefaultVersion() {
 const dictVersion = ref(getDefaultVersion())
 const dictRaw = computed(() => confDict.value[dictVersion.value])
 const showTypeOptions = [
-  {label: t('redisConfig.all'), value: 'All'},
-  {label: t('redisConfig.diff'), value: 'Diff'},
+  { label: t('redisConfig.all'), value: 'All' },
+  { label: t('redisConfig.diff'), value: 'Diff' },
 ]
 const showType = ref('All')
 
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return dataList.value.filter(row =>
-       (!key || row.param?.toLowerCase().indexOf(key) > -1
-             || row.value?.toLowerCase().indexOf(key) > -1
-             || tips.value[row.param]?.toLowerCase().indexOf(key) > -1
-       )
-    && (showType.value === 'All' || showType.value === 'Diff' && row.value !== dictRaw.value[row.param])
+  return dataList.value.filter(
+    (row) =>
+      (!key ||
+        row.param?.toLowerCase().indexOf(key) > -1 ||
+        row.value?.toLowerCase().indexOf(key) > -1 ||
+        tips.value[row.param]?.toLowerCase().indexOf(key) > -1) &&
+      (showType.value === 'All' ||
+        (showType.value === 'Diff' && row.value !== dictRaw.value[row.param])),
   )
 })
 
@@ -95,9 +101,9 @@ function getSummaries() {
 }
 
 async function apiConfigGet() {
-  const data = await meInvoke('config_get', {id: share.conn.id, pattern: '*', node: node.value})
+  const data = await meInvoke('config_get', { id: share.conn.id, pattern: '*', node: node.value })
   const tableData = []
-  Object.entries(data).forEach(([key, value]) => tableData.push({param: key, value}))
+  Object.entries(data).forEach(([key, value]) => tableData.push({ param: key, value }))
   dataList.value = sortBy(tableData, ['param'])
 }
 
@@ -113,14 +119,13 @@ refresh()
 
 // 官网默认配置参考
 const dialog = reactive({
-  raw: false
+  raw: false,
 })
 
 // 行样式展示
-function calcRowStyle({row}) {
-  return {'color': row.value === dictRaw.value[row.param] ? '' : share.color}
+function calcRowStyle({ row }) {
+  return { color: row.value === dictRaw.value[row.param] ? '' : share.color }
 }
-
 
 // 设置参数
 const formRef = useTemplateRef('formRef')
@@ -129,9 +134,12 @@ const editShow = ref(false)
 const form = reactive({
   param: '',
   value: '',
-  autoBroadcast: true
+  autoBroadcast: true,
 })
-const command = computed(() => `CONFIG SET ${form.param} ${form.value?.includes(' ') ? '"' + form.value + '"' : form.value}`)
+const command = computed(
+  () =>
+    `CONFIG SET ${form.param} ${form.value?.includes(' ') ? '"' + form.value + '"' : form.value}`,
+)
 async function editConfig(row) {
   form.param = row.param
   form.value = row.value
@@ -140,13 +148,17 @@ async function editConfig(row) {
   })
 }
 async function configSet() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid) => {
     if (!valid) return
 
     editLoading.value = true
     try {
-      const param = {command: command.value, node: form.autoBroadcast ? '' : node.value, autoBroadcast: form.autoBroadcast}
-      await meInvoke('execute_command', {id: share.conn.id, param})
+      const param = {
+        command: command.value,
+        node: form.autoBroadcast ? '' : node.value,
+        autoBroadcast: form.autoBroadcast,
+      }
+      await meInvoke('execute_command', { id: share.conn.id, param })
       meOk(t('saveOk'))
       await refresh()
       editShow.value = false
@@ -157,7 +169,7 @@ async function configSet() {
 }
 
 const rules = computed(() => ({
-  value: [ {required: true, message: t('redisConfig.valueRequired')}]
+  value: [{ required: true, message: t('redisConfig.valueRequired') }],
 }))
 </script>
 
@@ -166,81 +178,130 @@ const rules = computed(() => ({
     <div class="me-flex header">
       <div>
         <div class="me-flex">
-          <node-list v-model="node" style="margin-right: 10px" @change="refresh"/>
+          <node-list v-model="node" style="margin-right: 10px" @change="refresh" />
           <el-dropdown @command="handleCommand">
-            <el-button plain icon="el-icon-notebook" type="info">{{ t('redisConfig.reference') }}</el-button>
+            <el-button plain icon="el-icon-notebook" type="info">{{
+              t('redisConfig.reference')
+            }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item :command="item" v-for="item in configVersionList">{{item}}</el-dropdown-item>
+                <el-dropdown-item :command="item" v-for="item in configVersionList">{{
+                  item
+                }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <me-website to="config"/>
+          <me-website to="config" />
         </div>
       </div>
       <div class="me-flex">
         <el-segmented v-model="showType" :options="showTypeOptions"></el-segmented>
         <el-select v-model="dictVersion" style="width: 120px; margin: 0 10px">
-          <el-option v-for="item in dictVersionList" :key="item" :label="item" :value="item"/>
+          <el-option v-for="item in dictVersionList" :key="item" :label="item" :value="item" />
         </el-select>
-        <el-input  v-model="keyword" :placeholder="t('redisConfig.keyword')" style="width: 250px; margin-right: 10px" clearable/>
-        <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading"/>
+        <el-input
+          v-model="keyword"
+          :placeholder="t('redisConfig.keyword')"
+          style="width: 250px; margin-right: 10px"
+          clearable
+        />
+        <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading" />
       </div>
     </div>
 
-    <el-table :data="filterDataList" ref="table"
-              style="margin-top: 10px"
-              v-loading="loading"
-              :row-style="calcRowStyle"
-              show-summary :summary-method="getSummaries"
-              border stripe height="100%">
-      <el-table-column :label="t('redisConfig.param')" prop="param" sortable show-overflow-tooltip/>
-      <el-table-column :label="t('redisConfig.value')" prop="value" show-overflow-tooltip/>
-      <el-table-column :label="dictVersion + ' ' + t('redisConfig.defaultConfig')" prop="value" show-overflow-tooltip>
+    <el-table
+      :data="filterDataList"
+      ref="table"
+      style="margin-top: 10px"
+      v-loading="loading"
+      :row-style="calcRowStyle"
+      show-summary
+      :summary-method="getSummaries"
+      border
+      stripe
+      height="100%"
+    >
+      <el-table-column
+        :label="t('redisConfig.param')"
+        prop="param"
+        sortable
+        show-overflow-tooltip
+      />
+      <el-table-column :label="t('redisConfig.value')" prop="value" show-overflow-tooltip />
+      <el-table-column
+        :label="dictVersion + ' ' + t('redisConfig.defaultConfig')"
+        prop="value"
+        show-overflow-tooltip
+      >
         <template #default="scope">
-          {{dictRaw[scope.row.param]}}
+          {{ dictRaw[scope.row.param] }}
         </template>
       </el-table-column>
       <el-table-column :label="t('redisConfig.tip')" show-overflow-tooltip>
         <template #default="scope">
-          <span style="color: var(--el-color-info)">{{tips[scope.row.param]}}</span>
+          <span style="color: var(--el-color-info)">{{ tips[scope.row.param] }}</span>
         </template>
       </el-table-column>
 
       <el-table-column :label="t('action')" width="80" align="center" fixed="right" v-if="canEdit">
         <template #default="scope">
-          <me-icon :info="t('redisConfig.configSet')" icon="el-icon-edit" class="icon-btn"
-                   @click="editConfig(scope.row)" style="justify-content: center"/>
+          <me-icon
+            :info="t('redisConfig.configSet')"
+            icon="el-icon-edit"
+            class="icon-btn"
+            @click="editConfig(scope.row)"
+            style="justify-content: center"
+          />
         </template>
       </el-table-column>
     </el-table>
 
-    <me-dialog icon="me-icon-redis" :title="`${configVersion} ${t('redisConfig.defaultConfig')}`" v-model="dialog.raw" width="60vw">
+    <me-dialog
+      icon="me-icon-redis"
+      :title="`${configVersion} ${t('redisConfig.defaultConfig')}`"
+      v-model="dialog.raw"
+      width="60vw"
+    >
       <me-code :modelValue="configRaw" mode="properties" read-only />
     </me-dialog>
 
     <el-dialog :title="t('redisConfig.configSet')" v-model="editShow" align-center>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item :label="t('redisConfig.param')">
-          <el-input v-model="form.param" disabled/>
+          <el-input v-model="form.param" disabled />
         </el-form-item>
         <el-form-item :label="t('redisConfig.value')" prop="value">
           <div class="me-flex" style="width: 100%">
-            <el-input v-model="form.value" :placeholder="t('redisConfig.value')" clearable style="flex: 1"/>
-            <el-tooltip :content="t('redisConfig.autoBroadcastTip')" placement="top-end" :show-after="500">
-              <el-checkbox v-model="form.autoBroadcast" :label="t('redisConfig.autoBroadcast')"
-                           style="margin-left: 20px" v-if="share.nodeList.length > 0"/>
+            <el-input
+              v-model="form.value"
+              :placeholder="t('redisConfig.value')"
+              clearable
+              style="flex: 1"
+            />
+            <el-tooltip
+              :content="t('redisConfig.autoBroadcastTip')"
+              placement="top-end"
+              :show-after="500"
+            >
+              <el-checkbox
+                v-model="form.autoBroadcast"
+                :label="t('redisConfig.autoBroadcast')"
+                style="margin-left: 20px"
+                v-if="share.nodeList.length > 0"
+              />
             </el-tooltip>
           </div>
         </el-form-item>
         <el-form-item :label="t('redisConfig.command')">
-          <el-text type="primary">{{command}}</el-text>
+          <el-text type="primary">{{ command }}</el-text>
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <el-button @click="editShow=false" >{{ t('cancel') }}</el-button>
-        <el-button type="primary" :loading="editLoading" @click="configSet">{{ t('save') }}</el-button>
+        <el-button @click="editShow = false">{{ t('cancel') }}</el-button>
+        <el-button type="primary" :loading="editLoading" @click="configSet">{{
+          t('save')
+        }}</el-button>
       </template>
     </el-dialog>
   </div>

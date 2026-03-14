@@ -1,16 +1,16 @@
 <script setup>
-import {computed} from 'vue'
-import {useData} from 'vitepress'
+import { computed } from 'vue'
+import { useData } from 'vitepress'
 import Windows from './icon/Windows.vue'
 import Apple from './icon/Apple.vue'
 import Linux from './icon/Linux.vue'
-import {version} from '../../../../package.json'
+import { version } from '../../../../package.json'
 
-const {lang} = useData()
+const { lang } = useData()
 const isZh = computed(() => lang.value.startsWith('zh'))
-const downloadText = computed(() => isZh.value ? '下载安装' : 'Download')
-const viewText = computed(() => isZh.value ? '进入Github' : 'View on GitHub')
-const gitHost = computed(() => isZh.value ? 'gitee' : 'github')
+const downloadText = computed(() => (isZh.value ? '下载安装' : 'Download'))
+const viewText = computed(() => (isZh.value ? '进入Github' : 'View on GitHub'))
+const gitHost = computed(() => (isZh.value ? 'gitee' : 'github'))
 
 function downloadLink(fileName) {
   return `https://${gitHost.value}.com/hepengju/redis-me/releases/download/v${version}/${fileName}`
@@ -61,19 +61,24 @@ const downloadMenu = computed(() => {
   <div class="actions">
     <div class="action">
       <a class="action-button brand dropdown-button">
-        <span class="download-icon"/>
+        <span class="download-icon" />
         <span>{{ downloadText }}</span>
       </a>
       <ul class="dropdown-menu">
         <li v-for="(m, i) in downloadMenu" :key="i" style="font-size: 14px">
-          <component :is="m.icon"/>
+          <component :is="m.icon" />
           <a :href="m.link" target="_blank">{{ m.text }}</a>
         </li>
       </ul>
     </div>
     <div class="action">
-      <a class="action-button alt" href="https://github.com/hepengju/redis-me" rel="noreferrer" target="_blank">
-        <span class="github-icon"/>
+      <a
+        class="action-button alt"
+        href="https://github.com/hepengju/redis-me"
+        rel="noreferrer"
+        target="_blank"
+      >
+        <span class="github-icon" />
         <span>{{ viewText }}</span>
       </a>
     </div>
@@ -125,10 +130,12 @@ const downloadMenu = computed(() => {
   text-align: center;
   font-weight: 600;
   white-space: nowrap;
-  transition: color 0.25s, border-color 0.25s, background-color 0.25s;
+  transition:
+    color 0.25s,
+    border-color 0.25s,
+    background-color 0.25s;
   cursor: pointer;
 }
-
 
 .action:hover .dropdown-menu {
   display: block;
@@ -186,7 +193,7 @@ const downloadMenu = computed(() => {
 }
 
 .download-icon {
-  display:inline-block;
+  display: inline-block;
   width: 16px;
   height: 16px;
   background-color: currentColor;
@@ -201,5 +208,4 @@ const downloadMenu = computed(() => {
   margin-right: 8px;
   margin-left: -10px;
 }
-
 </style>

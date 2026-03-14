@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: "RedisME"
+  name: 'RedisME'
   tagline: Lightweight, Modern Redis Desktop Manager
   image:
     src: /images/logo-color.svg
@@ -29,4 +29,3 @@ features:
     linkText: Source Code
     link: https://github.com/hepengju/redis-me
 ---
-

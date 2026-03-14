@@ -4,7 +4,7 @@ services:
     container_name: redis8-7701
     command: redis-server --port 7701 --requirepass hepengju --masterauth hepengju --replica-announce-ip 8.159.152.225
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7702:
@@ -12,7 +12,7 @@ services:
     container_name: redis8-7702
     command: redis-server --port 7702 --requirepass hepengju --masterauth hepengju --replica-announce-ip 8.159.152.225 --replicaof 8.159.152.225 7701
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7703:
@@ -20,7 +20,7 @@ services:
     container_name: redis8-7703
     command: redis-server --port 7703 --requirepass hepengju --masterauth hepengju --replica-announce-ip 8.159.152.225 --replicaof 8.159.152.225 7701
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-27701:
@@ -28,7 +28,7 @@ services:
     container_name: redis8-27701
     command: redis-sentinel /etc/redis/sentinel.conf
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -38,7 +38,7 @@ services:
     container_name: redis8-27702
     command: redis-sentinel /etc/redis/sentinel.conf
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -48,7 +48,7 @@ services:
     container_name: redis8-27703
     command: redis-sentinel /etc/redis/sentinel.conf
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:

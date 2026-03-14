@@ -1,10 +1,12 @@
 <script setup>
 import KeyList from './key/KeyList.vue'
 import KeyTree from './key/KeyTree.vue'
-import {computed, ref} from 'vue'
+import { computed, ref } from 'vue'
 import {
   bus,
-  CONN_REFRESH, EXPORT_DATA, IMPORT_DATA,
+  CONN_REFRESH,
+  EXPORT_DATA,
+  IMPORT_DATA,
   KEY_DELETE,
   KEY_REFRESH,
   KEY_TYPE_LIST,
@@ -13,13 +15,13 @@ import {
   meInvoke,
   meOk,
   meRenameKey,
-  meType
+  meType,
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
-import {useI18n} from 'vue-i18n'
-import {listen} from '@tauri-apps/api/event'
+import { useI18n } from 'vue-i18n'
+import { listen } from '@tauri-apps/api/event'
 import KeyImport from '@/views/key/KeyImport.vue'
 
 const { t } = useI18n()
@@ -36,7 +38,7 @@ onMounted(() => refresh())
 
 // 刷新时条件初始化
 function initReset() {
-  keyType.value = {value: 'ALL', type: meType('ALL')}
+  keyType.value = 'ALL'
   exact.value = false
   keyword.value = ''
   keyList.value = []
@@ -44,7 +46,7 @@ function initReset() {
 }
 
 // 键类型
-const keyType = ref({value: 'ALL', type: meType('ALL')})    // 键类型
+const keyType = ref('ALL') // 键类型
 function chooseKeyType(keyTypeSelected) {
   keyType.value = keyTypeSelected
   keyword.value = ''
@@ -52,10 +54,10 @@ function chooseKeyType(keyTypeSelected) {
 }
 
 // 查询框: SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
-const exact      = ref(false)   // 是否精确查询
-const keyword    = ref('')      // 关键字
-const loading    = ref(false)   // 扫描键过程中loading
-const loadFolder = ref(false)   // 文件夹的右键：仅加载该目录的特殊处理
+const exact = ref(false) // 是否精确查询
+const keyword = ref('') // 关键字
+const loading = ref(false) // 扫描键过程中loading
+const loadFolder = ref(false) // 文件夹的右键：仅加载该目录的特殊处理
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -63,18 +65,18 @@ const match = computed(() => {
   // 精确查询直接返回；空白则返回*；否则判断前后是否需要添加*
   if (exact.value) return keyword.value
   if (!keyword.value) return '*'
-  if (keyword.value.startsWith('*') && keyword.value.endsWith("*")) return keyword.value
+  if (keyword.value.startsWith('*') && keyword.value.endsWith('*')) return keyword.value
   if (keyword.value.startsWith('*')) return keyword.value + '*'
   if (keyword.value.endsWith('*')) return '*' + keyword.value
   return '*' + keyword.value + '*'
 })
-const cursor = ref(null)     // 扫描的游标
+const cursor = ref(null) // 扫描的游标
 
 // 扫描键
-const keyList  = ref([])    // 键列表
+const keyList = ref([]) // 键列表
 const filterKeyList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
+  return keyList.value.filter((k) => k.key.toLowerCase().indexOf(key) > -1)
 })
 
 async function scanKey(useCursor = false, loadAll = false) {
@@ -88,11 +90,11 @@ async function scanKey(useCursor = false, loadAll = false) {
     const params = {
       match: match.value,
       count: 1000,
-      type: keyType.value?.value === 'ALL' ? '' : keyType.value.value,
+      type: keyType.value === 'ALL' ? '' : keyType.value.toLowerCase(),
       loadAll: loadAll,
       cursor: cursor.value,
     }
-    const data = await meInvoke('scan', {id: share.conn.id, param: params})
+    const data = await meInvoke('scan', { id: share.conn.id, param: params })
     cursor.value = data.cursor
     keyList.value.push(...data.keyList)
     // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
@@ -116,7 +118,7 @@ onUnmounted(() => {
 })
 
 function deleteKey(redisKey) {
-  keyList.value = keyList.value.filter(rk => rk.bytes !== redisKey.bytes)
+  keyList.value = keyList.value.filter((rk) => rk.bytes !== redisKey.bytes)
   share.redisKey = null
 }
 
@@ -127,32 +129,36 @@ const keyShowType = ref('tree')
 // 数据库列表
 const dbList = ref([])
 async function refreshDbList() {
-  dbList.value = await meInvoke('db_list', {id: share.conn.id})
+  dbList.value = await meInvoke('db_list', { id: share.conn.id })
 }
 refreshDbList()
 
-async function selectDB(){
-  await meInvoke('select_db', {id: share.conn.id, db: share.conn.db})
+async function selectDB() {
+  await meInvoke('select_db', { id: share.conn.id, db: share.conn.db })
   await refresh() // RedisInfo的键数量需要更新下
 }
 
+const keyPrefix = ref('')
+
 // 选中键
 function chooseKey(redisKey) {
-  keyPrefix.value = ''
+  keyPrefix.value = redisKey.key + '-copy'
   share.redisKey = redisKey
   share.tabName = 'value'
   bus.emit(KEY_REFRESH)
 }
 
 // 选中文件夹
-const keyPrefix = ref('')
 function chooseFolder(folder) {
-  keyPrefix.value = folder
+  keyPrefix.value = folder + ':'
 }
 
 // 键右键
 function contextKey(command, redisKey) {
-  if (command === 'refreshKey') {
+  if (command === 'addKey') {
+    keyPrefix.value = redisKey.key + '-copy'
+    addKey()
+  } else if (command === 'refreshKey') {
     chooseKey(redisKey)
   } else if (command === 'copyKey') {
     meCopy(redisKey.key)
@@ -166,9 +172,9 @@ function contextKey(command, redisKey) {
 }
 
 // 文件夹右键
-function contextFolder(command, folder){
+function contextFolder(command, folder) {
   if (command === 'addKey') {
-    keyPrefix.value = folder
+    keyPrefix.value = folder + ':'
     addKey()
   } else if (command === 'copyFolder') {
     meCopy(folder)
@@ -196,8 +202,7 @@ function contextFolder(command, folder){
 const fieldAddRef = useTemplateRef('fieldAddRef')
 
 function addKey() {
-  const prefix = keyShowType.value === 'list' ? '' : (keyPrefix.value ? keyPrefix.value + ':' : '')
-  fieldAddRef.value?.open({mode: 'key', key: prefix})
+  fieldAddRef.value?.open({ mode: 'key', key: keyPrefix.value })
 }
 
 function addKeyOk(redisKey) {
@@ -208,10 +213,10 @@ function addKeyOk(redisKey) {
 // 批量导出键 和 批量删除键
 const keyBatchRef = useTemplateRef('keyBatchRef')
 function deleteFolder(folder) {
-  keyBatchRef.value?.open({match: folder + ':*', keyList: []}, 'delete')
+  keyBatchRef.value?.open({ match: folder + ':*', keyList: [] }, 'delete')
 }
 function exportFolder(folder) {
-  keyBatchRef.value?.open({match: folder ? folder + ':*' : '*', keyList: []}, 'export')
+  keyBatchRef.value?.open({ match: folder ? folder + ':*' : '*', keyList: [] }, 'export')
 }
 
 function batchKeyOk(mode) {
@@ -244,7 +249,9 @@ async function tauriListen(eventName) {
   unlisten = await listen(eventName, (event) => {
     const payload = event.payload
     if (payload.id !== share.conn.id) return
-    share.exportImportingPercentage = Math.round(((payload.okCount  + payload.errCount + payload.ignoreCount) / payload.totalCount) * 100)
+    share.exportImportingPercentage = Math.round(
+      ((payload.okCount + payload.errCount + payload.ignoreCount) / payload.totalCount) * 100,
+    )
 
     if (payload.finished) {
       tauriUnlisten()
@@ -271,27 +278,52 @@ onUnmounted(() => tauriUnlisten())
 // 内存分析
 const keyMemoryRef = useTemplateRef('keyMemoryRef')
 function keyMemory(folder) {
-  keyMemoryRef.value?.open({match: folder + ':*'})
+  keyMemoryRef.value?.open({ match: folder + ':*' })
 }
 </script>
 
 <template>
   <div class="key-main">
-    <el-input class="key-search"
-              v-model="keyword"
-              :placeholder="t('keyMain.keyword')"
-              @keyup.enter="scanKey(false, false)"
-              clearable>
+    <el-input
+      class="key-search"
+      v-model="keyword"
+      :placeholder="t('keyMain.keyword')"
+      @keyup.enter="scanKey(false, false)"
+      clearable
+    >
       <template #prepend>
         <el-dropdown placement="bottom-start" @command="chooseKeyType">
-          <el-tag :type="keyType.type" effect="plain" style="width: 32px; height: 32px; font-weight: bold; border-bottom-right-radius: 0; border-top-right-radius: 0;">
-            {{ keyType.value.slice(0, 1) }}
+          <el-tag
+            :type="keyType.type"
+            effect="plain"
+            style="
+              width: 32px;
+              height: 32px;
+              font-weight: bold;
+              border-bottom-right-radius: 0;
+              border-top-right-radius: 0;
+            "
+          >
+            {{ keyType.slice(0, 1) }}
           </el-tag>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item">
-                <el-tag :type="item.type" :effect="item.value === keyType.value ? 'dark' : 'plain'"
-                        style="font-weight: bold; width: 26px;">
+              <el-dropdown-item command="ALL">
+                <el-tag
+                  type="info"
+                  :effect="'ALL' === keyType ? 'dark' : 'plain'"
+                  style="font-weight: bold; width: 26px"
+                >
+                  A
+                </el-tag>
+                <el-text style="margin-left: 6px" type="info">ALL</el-text>
+              </el-dropdown-item>
+              <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
+                <el-tag
+                  :type="item.type"
+                  :effect="item.value === keyType ? 'dark' : 'plain'"
+                  style="font-weight: bold; width: 26px"
+                >
                   {{ item.value.slice(0, 1) }}
                 </el-tag>
                 <el-text style="margin-left: 6px" :type="item.type">{{ item.value }}</el-text>
@@ -300,56 +332,103 @@ function keyMemory(folder) {
           </template>
         </el-dropdown>
         <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
-          <el-checkbox size="small" v-model="exact" style="margin-left: 10px"/>
+          <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
         </el-tooltip>
       </template>
       <template #append>
         <el-button-group>
-          <me-button :info="t('keyMain.refreshKey')" @click="scanKey(false, false)" icon="el-icon-search" placement="bottom"/>
-          <me-button :info="t('keyMain.addKey')" @click="addKey" style="border-color: var(--el-button-border-color)" v-if="canEdit"
-                     icon="el-icon-plus" placement="bottom"/>
+          <me-button
+            :info="t('keyMain.refreshKey')"
+            @click="scanKey(false, false)"
+            icon="el-icon-search"
+            placement="bottom"
+          />
+          <me-button
+            :info="t('keyMain.addKey')"
+            @click="addKey"
+            style="border-color: var(--el-button-border-color)"
+            v-if="canEdit"
+            icon="el-icon-plus"
+            placement="bottom"
+          />
         </el-button-group>
       </template>
     </el-input>
 
     <div class="key-list" v-loading="loading">
-      <KeyList v-if="keyShowType === 'list'"
-               :filter-key-list="filterKeyList"
-               :redis-key="share.redisKey"
-               :color="share.color"
-               @chooseKey="chooseKey"
-               @contextKey="contextKey"/>
-      <KeyTree v-else
-               :filter-key-list="filterKeyList"
-               :redis-key="share.redisKey"
-               :color="share.color"
-               @chooseKey="chooseKey"
-               @contextKey="contextKey"
-               @chooseFolder="chooseFolder"
-               @contextFolder="contextFolder"/>
+      <KeyList
+        v-if="keyShowType === 'list'"
+        :filter-key-list="filterKeyList"
+        :redis-key="share.redisKey"
+        :color="share.color"
+        @chooseKey="chooseKey"
+        @contextKey="contextKey"
+      />
+      <KeyTree
+        v-else
+        :filter-key-list="filterKeyList"
+        :redis-key="share.redisKey"
+        :color="share.color"
+        @chooseKey="chooseKey"
+        @contextKey="contextKey"
+        @chooseFolder="chooseFolder"
+        @contextFolder="contextFolder"
+      />
     </div>
 
-    <div class="key-footer" >
+    <div class="key-footer">
       <div class="me-flex" style="align-items: center">
         <el-segmented v-model="keyShowType" :options="keyShowTypeList">
           <template #default="scope">
-            <me-icon :name="t('keyMain.listView')" icon="me-icon-list" hint placement="top" v-if="scope.item === 'list'"/>
-            <me-icon :name="t('keyMain.treeView')" icon="me-icon-tree" hint placement="top" v-else/>
+            <me-icon
+              :name="t('keyMain.listView')"
+              icon="me-icon-list"
+              hint
+              placement="top"
+              v-if="scope.item === 'list'"
+            />
+            <me-icon
+              :name="t('keyMain.treeView')"
+              icon="me-icon-tree"
+              hint
+              placement="top"
+              v-else
+            />
           </template>
         </el-segmented>
       </div>
 
-      <el-text class="tip" size="large" type="primary">{{ filterKeyList.length }} / {{ keyList.length }}</el-text>
+      <el-text class="tip" size="large" type="primary"
+        >{{ filterKeyList.length }} / {{ keyList.length }}</el-text
+      >
 
       <div class="me-flex">
-        <div class="btn-rb" v-if="!(cursor?.finished)">
-          <me-icon :name="t('keyMain.loadMore')" icon="me-icon-load-more" hint placement="top" class="icon-btn" @click="scanKey(true, false)"/>
-          <me-icon :name="t('keyMain.loadAll')"  icon="me-icon-load-all"  hint placement="top" class="icon-btn" @click="scanKey(true, true)"/>
+        <div class="btn-rb" v-if="!cursor?.finished">
+          <me-icon
+            :name="t('keyMain.loadMore')"
+            icon="me-icon-load-more"
+            hint
+            placement="top"
+            class="icon-btn"
+            @click="scanKey(true, false)"
+          />
+          <me-icon
+            :name="t('keyMain.loadAll')"
+            icon="me-icon-load-all"
+            hint
+            placement="top"
+            class="icon-btn"
+            @click="scanKey(true, true)"
+          />
         </div>
 
         <!-- 集群不显示数据库列表 -->
-        <el-select v-model="share.conn.db" @change="selectDB"
-                   style="width: 120px;"   v-if="!share.conn.cluster">
+        <el-select
+          v-model="share.conn.db"
+          @change="selectDB"
+          style="width: 120px"
+          v-if="!share.conn.cluster"
+        >
           <el-option v-for="item in dbList" :key="item.db" :value="item.db">
             {{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}
           </el-option>
@@ -361,10 +440,10 @@ function keyMemory(folder) {
     </div>
 
     <!-- 字段新增、批量删除键、目录内存分析 -->
-    <FieldAdd    ref="fieldAddRef"    @success="addKeyOk"/>
-    <KeyBatch    ref="keyBatchRef"    @success="batchKeyOk"/>
-    <KeyImport   ref="keyImportRef"   @success="importStart"/>
-    <KeyMemory   ref="keyMemoryRef" />
+    <FieldAdd ref="fieldAddRef" @success="addKeyOk" />
+    <KeyBatch ref="keyBatchRef" @success="batchKeyOk" />
+    <KeyImport ref="keyImportRef" @success="importStart" />
+    <KeyMemory ref="keyMemoryRef" />
   </div>
 </template>
 
@@ -442,7 +521,7 @@ function keyMemory(folder) {
     }
 
     .btn-rb {
-      width:50px;
+      width: 50px;
       font-size: 22px;
       display: flex;
       justify-content: space-between;

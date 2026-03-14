@@ -15,15 +15,15 @@ const share = inject('share')
 
 <template>
   <el-tabs class="redis-tag" v-model="share.tabName">
-    <me-tab-pane name="info"     icon="el-icon-calendar">          <RedisInfo/>       </me-tab-pane>
-    <me-tab-pane name="value"    icon="el-icon-memo">              <RedisValue/>      </me-tab-pane>
-    <me-tab-pane name="terminal" icon="me-icon-terminal"  lazy>    <RedisTerminal/>    </me-tab-pane>
-    <me-tab-pane name="memory"   icon="me-icon-memory"    lazy>    <RedisMemory/>     </me-tab-pane>
-    <me-tab-pane name="slow"     icon="me-icon-slow"      lazy>    <RedisSlow/>       </me-tab-pane>
-    <me-tab-pane name="monitor"  icon="el-icon-monitor"   lazy>    <RedisMonitor/>    </me-tab-pane>
-    <me-tab-pane name="pubsub"   icon="me-icon-pubsub"    lazy>    <RedisPubsub/>     </me-tab-pane>
-    <me-tab-pane name="chart"    icon="el-icon-data-line" lazy>    <RedisChart/>      </me-tab-pane>
-<!--    <me-tab-pane name="tauri"   icon="el-icon-data-line" lazy>    <RedisTauri/>      </me-tab-pane>-->
+    <me-tab-pane name="info" icon="el-icon-calendar"> <RedisInfo /> </me-tab-pane>
+    <me-tab-pane name="value" icon="el-icon-memo"> <RedisValue /> </me-tab-pane>
+    <me-tab-pane name="terminal" icon="me-icon-terminal" lazy> <RedisTerminal /> </me-tab-pane>
+    <me-tab-pane name="memory" icon="me-icon-memory" lazy> <RedisMemory /> </me-tab-pane>
+    <me-tab-pane name="slow" icon="me-icon-slow" lazy> <RedisSlow /> </me-tab-pane>
+    <me-tab-pane name="monitor" icon="el-icon-monitor" lazy> <RedisMonitor /> </me-tab-pane>
+    <me-tab-pane name="pubsub" icon="me-icon-pubsub" lazy> <RedisPubsub /> </me-tab-pane>
+    <me-tab-pane name="chart" icon="el-icon-data-line" lazy> <RedisChart /> </me-tab-pane>
+    <!--    <me-tab-pane name="tauri"   icon="el-icon-data-line" lazy>    <RedisTauri/>      </me-tab-pane>-->
   </el-tabs>
 </template>
 

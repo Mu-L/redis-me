@@ -35,7 +35,7 @@ export default {
     readonly: '只读',
     writable: '可写',
     readonlyTip: '切换为只读模式',
-    writableTip: '切换为可写模式'
+    writableTip: '切换为可写模式',
   },
 
   setting: {
@@ -60,7 +60,7 @@ export default {
     nowVersion: '版本',
     updateNow: '检查更新',
     updateProxy: '更新代理',
-    updateAppStore: '应用商店控制更新'
+    updateAppStore: '应用商店控制更新',
   },
 
   conn: {
@@ -141,7 +141,7 @@ export default {
     monitor: '监控',
     pubsub: '发布订阅',
     chart: '图表',
-    tauri: 'Tauri'
+    tauri: 'Tauri',
   },
 
   keyHeader: {
@@ -161,12 +161,12 @@ export default {
     newWindowError: '打开新窗口失败',
     setting: '设置',
     social: '社交',
-    about: '关于'
+    about: '关于',
   },
 
   about: {
     sourceCode: '源码地址',
-    officialWebsite: '官方网站'
+    officialWebsite: '官方网站',
   },
 
   fieldAdd: {
@@ -177,9 +177,12 @@ export default {
     ttlRequired: '请输入TTL',
     ttlValidator: '只允许-1(永久) 或 正整数',
     valueRequired: '值不允许为空',
+    jsonValidator: '值必须为有效的JSON格式',
     hashValidator: '哈希键和值不允许为空',
+    streamValidator: '字段和值不允许为空',
     hashHint: '(哈希键: 值)',
     zsetHint: '(值: 分数)',
+    streamHint: '(字段: 值)',
     newKey: '新增键',
     newField: '新增字段',
     key: '键',
@@ -191,7 +194,9 @@ export default {
     second: '秒',
     value: '值',
     element: '元素',
-    hashKey: '哈希键'
+    hashKey: '哈希键',
+    streamId: 'ID (*表示服务器自动生成)',
+    streamIdRequired: '请输入ID',
   },
 
   fieldSet: {
@@ -207,7 +212,7 @@ export default {
   nodeList: {
     placeholder: '指定节点【可选】',
     master: '主',
-    slave: '从'
+    slave: '从',
   },
 
   keyBatch: {
@@ -228,7 +233,7 @@ export default {
     exportFile: '导出路径',
     exportFileRequired: '请选择文件导出路径',
     exportFileTip: '请选择文件导出路径',
-    expireTip: '同时导出过期时间'
+    expireTip: '同时导出过期时间',
   },
 
   keyImport: {
@@ -242,14 +247,14 @@ export default {
     handleTtl: '过期时间',
     parse: '解析文件',
     forever: '永久',
-    confirm: '确认导入'
+    confirm: '确认导入',
   },
 
   keyMemory: {
     title: '目录内存分析',
     match: '键名表达式',
     info: '总数：{total}，大小：{size}',
-    limit: '（数据量达到扫描限制：${limit}）'
+    limit: '（数据量达到扫描限制：${limit}）',
   },
 
   keyList: {
@@ -282,7 +287,7 @@ export default {
     cmd: '最后命令',
     killClientHint: '关闭客户端',
     killClientConfirm: '确定关闭客户端【{client}】吗？',
-    killClientOk: '关闭成功'
+    killClientOk: '关闭成功',
   },
 
   redisConfig: {
@@ -300,7 +305,7 @@ export default {
     valueRequired: 'value不能为空',
     command: '命令',
     autoBroadcast: '广播',
-    autoBroadcastTip: '开启时自动广播到集群的所有节点'
+    autoBroadcastTip: '开启时自动广播到集群的所有节点',
   },
 
   redisInfo: {
@@ -330,7 +335,7 @@ export default {
     tip: '说明',
     client: '客户端',
     runConfig: '运行配置',
-    cacheRatio: '缓存命中率'
+    cacheRatio: '缓存命中率',
   },
 
   redisMemory: {
@@ -359,7 +364,7 @@ export default {
     type: '类型',
     key: '键',
     size: '大小',
-    chooseKey: '详情'
+    chooseKey: '详情',
   },
 
   redisMonitor: {
@@ -371,7 +376,7 @@ export default {
     monitorStart: '开启监控',
     monitorStop: '停止监控',
     time: '时间',
-    command: '命令'
+    command: '命令',
   },
 
   redisPubSub: {
@@ -387,7 +392,7 @@ export default {
     channel: '频道',
     message: '消息',
     messageContent: '消息内容',
-    send: '发送'
+    send: '发送',
   },
 
   redisSlow: {
@@ -404,7 +409,7 @@ export default {
     clientName: '客户端名称',
     time: '执行时间',
     node: '节点',
-    client: '客户端'
+    client: '客户端',
   },
 
   redisTerminal: {
@@ -430,6 +435,7 @@ export default {
   redisValue: {
     optional: '可选输入',
     hashKey: '哈希键',
+    streamId: 'ID',
     ttlHint: '点击修改键的过期时间',
     ttlHintReadonly: '键的过期时间',
     ttlForever: '永久',
@@ -437,6 +443,7 @@ export default {
     prettyHint: '默认开启美化，开启后针对hash/list/set/json等进行格式化，关闭后显示原始值toString',
     tableKeyword: '模糊筛选',
     insertRow: '插入行',
+    id: 'ID',
     key: '键',
     value: '值',
     score: '分数',
@@ -448,6 +455,7 @@ export default {
     loadAll: '加载剩余所有键',
     renameKey: '重命名键',
     refreshKey: '刷新键',
+    jsonValidator: '值必须为有效的JSON格式',
   },
 
   redisChart: {
@@ -470,7 +478,7 @@ export default {
     keepUnit: '分',
     maxPointCount: '最大点数',
     pointUnit: '个',
-    moreChart: '更多图表'
+    moreChart: '更多图表',
   },
 
   keyMain: {
@@ -503,5 +511,5 @@ export default {
     ttlOk: '设置TTL成功',
     ttlRequired: '请输入TTL',
     ttlValidator: '只允许-1(永久) 或 正整数',
-  }
+  },
 }

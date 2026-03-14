@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: "RedisME"
+  name: 'RedisME'
   tagline: 轻量、现代的Redis桌面客户端
   image:
     src: /images/logo-color.svg
@@ -29,4 +29,3 @@ features:
     linkText: 源码地址
     link: https://github.com/hepengju/redis-me
 ---
-

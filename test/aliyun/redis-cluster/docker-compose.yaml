@@ -4,7 +4,7 @@ services:
     container_name: redis8-7001
     command: redis-server --cluster-enabled yes --port 7001 --cluster-announce-ip 8.159.152.225 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7002:
@@ -12,7 +12,7 @@ services:
     container_name: redis8-7002
     command: redis-server --cluster-enabled yes --port 7002 --cluster-announce-ip 8.159.152.225 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7003:
@@ -20,7 +20,7 @@ services:
     container_name: redis8-7003
     command: redis-server --cluster-enabled yes --port 7003 --cluster-announce-ip 8.159.152.225 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7004:
@@ -28,7 +28,7 @@ services:
     container_name: redis8-7004
     command: redis-server --cluster-enabled yes --port 7004 --cluster-announce-ip 8.159.152.225 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7005:
@@ -36,7 +36,7 @@ services:
     container_name: redis8-7005
     command: redis-server --cluster-enabled yes --port 7005 --cluster-announce-ip 8.159.152.225 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7006:
@@ -44,6 +44,6 @@ services:
     container_name: redis8-7006
     command: redis-server --cluster-enabled yes --port 7006 --cluster-announce-ip 8.159.152.225 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai

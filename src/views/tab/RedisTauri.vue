@@ -1,10 +1,10 @@
 <script setup>
-import {invoke} from '@tauri-apps/api/core'
-import {mockApiCommands} from '@/utils/mock.js'
+import { invoke } from '@tauri-apps/api/core'
+import { mockApiCommands } from '@/utils/mock.js'
 
 // 测试集群或单机
 let testClient = 'single'
-let apiCommands = mockApiCommands.map(c => {
+let apiCommands = mockApiCommands.map((c) => {
   c.param.id = testClient
   return c
 })
@@ -12,8 +12,8 @@ let apiCommands = mockApiCommands.map(c => {
 const apiCommand = ref({
   command: 'greet',
   param: {
-    name: 'RedisME'
-  }
+    name: 'RedisME',
+  },
 })
 const param = ref('{"name": "RedisME"}')
 
@@ -40,18 +40,17 @@ function invokeCommand() {
 
   loading.value = true
   invoke(apiCommand.value.command, paramJson)
-      .then(data => {
-        loading.value = false
-        hint.value = '命令执行成功'
-        result.value = data ? JSON.stringify(data, null, 2) : ''
-      })
-      .catch(error => {
-        loading.value = false
-        hint.value = '命令执行报错'
-        result.value = error
-      })
+    .then((data) => {
+      loading.value = false
+      hint.value = '命令执行成功'
+      result.value = data ? JSON.stringify(data, null, 2) : ''
+    })
+    .catch((error) => {
+      loading.value = false
+      hint.value = '命令执行报错'
+      result.value = error
+    })
 }
-
 </script>
 
 <template>
@@ -59,17 +58,28 @@ function invokeCommand() {
     <div class="header">
       <el-form>
         <el-form-item label="命令">
-          <el-select v-model="apiCommand" value-key="command" @change="selectChange"
-                     filterable allow-create>
-            <el-option key="greet" label="greet" :value="{command: 'greet', param: {name: 'RedisME'}}"></el-option>
-            <el-option v-for="item in apiCommands"
-                       :key="item.command"
-                       :label="item.command"
-                       :value="item"/>
+          <el-select
+            v-model="apiCommand"
+            value-key="command"
+            @change="selectChange"
+            filterable
+            allow-create
+          >
+            <el-option
+              key="greet"
+              label="greet"
+              :value="{ command: 'greet', param: { name: 'RedisME' } }"
+            ></el-option>
+            <el-option
+              v-for="item in apiCommands"
+              :key="item.command"
+              :label="item.command"
+              :value="item"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="参数">
-          <el-input type="textarea" :rows="10" v-model="param" placeholder="json格式参数"/>
+          <el-input type="textarea" :rows="10" v-model="param" placeholder="json格式参数" />
         </el-form-item>
 
         <el-form-item label="提示">
@@ -81,9 +91,8 @@ function invokeCommand() {
       </el-form>
     </div>
     <div class="body" v-loading="loading">
-      <me-code v-model="result"/>
+      <me-code v-model="result" />
     </div>
-
   </div>
 </template>
 

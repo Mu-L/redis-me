@@ -9,21 +9,20 @@ import {
   // highlightActiveLineGutter
 } from '@codemirror/view'
 
-export {EditorView} from '@codemirror/view'
-import {EditorState} from '@codemirror/state'
+export { EditorView } from '@codemirror/view'
+import { EditorState } from '@codemirror/state'
 import {
   foldGutter,
   indentOnInput,
   syntaxHighlighting,
   defaultHighlightStyle,
   bracketMatching,
-  foldKeymap
+  foldKeymap,
 } from '@codemirror/language'
-import {history, defaultKeymap, historyKeymap} from '@codemirror/commands'
-import {highlightSelectionMatches, searchKeymap} from '@codemirror/search'
+import { history, defaultKeymap, historyKeymap } from '@codemirror/commands'
+import { highlightSelectionMatches, searchKeymap } from '@codemirror/search'
 // import {closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap} from '@codemirror/autocomplete'
 // import {lintKeymap} from '@codemirror/lint'
-
 
 // import { basicSetup } from "codemirror"
 export const meBasicSetup = [
@@ -31,12 +30,12 @@ export const meBasicSetup = [
   // highlightActiveLineGutter(), // 关闭高亮激活行的行号区域
   highlightSpecialChars(),
   history(),
-  foldGutter({openText: "▾"}), // 自定义打开文字，和codemirror5一样
+  foldGutter({ openText: '▾' }), // 自定义打开文字，和codemirror5一样
   drawSelection(),
   dropCursor(),
   EditorState.allowMultipleSelections.of(true),
   indentOnInput(),
-  syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
+  syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
   bracketMatching(),
   // closeBrackets(),
   // autocompletion(),
@@ -52,7 +51,7 @@ export const meBasicSetup = [
     ...foldKeymap,
     // ...completionKeymap,
     // ...lintKeymap
-  ])
+  ]),
 ]
 
 // 语言切换及功能提示

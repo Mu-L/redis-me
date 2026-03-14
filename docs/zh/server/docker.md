@@ -28,5 +28,5 @@ vim /etc/docker/daemon.json
 # 重启服务
 sudo systemctl restart docker
 # 查看信息中的加速镜像
-sudo docker info 
+sudo docker info
 ```

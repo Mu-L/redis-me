@@ -149,6 +149,7 @@ ScanCursor {
     ready_nodes: Vec<String>,
     now_node: String,
     now_cursor: u64,
+    stream_cursor: String,
     finished: bool,
 });
 
@@ -271,6 +272,12 @@ api_model!(RedisZetItem {
     score: f64,
 });
 
+// Stream条目
+api_model!(RedisStreamItem {
+    id: String,
+    value: HashMap<String, String>, // map转化为的json字符串
+});
+
 // 字段新增
 api_model!(RedisFieldAdd {
     key: String,
@@ -283,6 +290,7 @@ api_model!(RedisFieldAdd {
 
     list_push_method: String, // lpush, rpush
     field_value_list: Vec<RedisFieldValue>,
+    stream_id: String, // stream
 });
 
 // 字段修改
@@ -308,6 +316,7 @@ api_model!(RedisFieldDel {
     field_index: isize,
     field_key: String,
     field_value: String,
+    stream_id: String, // stream
 });
 
 // 执行命令

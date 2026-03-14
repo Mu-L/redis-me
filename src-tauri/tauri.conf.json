@@ -4,9 +4,9 @@
   "version": "../package.json",
   "identifier": "com.hepengju.redis",
   "build": {
-    "beforeDevCommand": "pnpm dev",
+    "beforeDevCommand": "vp dev",
     "devUrl": "http://localhost:2222",
-    "beforeBuildCommand": "pnpm build",
+    "beforeBuildCommand": "vp build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -26,7 +26,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["deb", "rpm", "appimage","nsis", "dmg", "app"],
+    "targets": ["deb", "rpm", "appimage", "nsis", "dmg", "app"],
     "icon": [
       "resources/icons/128x128.png",
       "resources/icons/128x128@2x.png",
@@ -36,9 +36,7 @@
       "resources/icons/icon.png",
       "resources/icons/icon.svg"
     ],
-    "resources": [
-      "resources/conf/*"
-    ],
+    "resources": ["resources/conf/*"],
     "createUpdaterArtifacts": true,
     "windows": {
       "wix": {

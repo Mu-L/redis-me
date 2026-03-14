@@ -1,7 +1,7 @@
 <script setup>
-import {useVirtualList} from '@vueuse/core'
-import {computed} from 'vue'
-import {useI18n} from 'vue-i18n'
+import { useVirtualList } from '@vueuse/core'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 // 共享数据
 const { t } = useI18n()
@@ -9,17 +9,15 @@ const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 
 const emit = defineEmits(['chooseKey', 'contextKey'])
-const {color, redisKey, filterKeyList} = defineProps({
-  color: {type: String, default: 'var(--el-color-primary)'},
-  redisKey: {type: Object, default: null},
-  filterKeyList: {type: Array, default: []},
+const { color, redisKey, filterKeyList } = defineProps({
+  color: { type: String, default: 'var(--el-color-primary)' },
+  redisKey: { type: Object, default: null },
+  filterKeyList: { type: Array, default: [] },
 })
 
 // useVirtualList必须这样才能响应式，可能是个BUG
 const items = computed(() => filterKeyList)
-const {list, containerProps, wrapperProps} = useVirtualList(
-  items, {itemHeight: 18},
-)
+const { list, containerProps, wrapperProps } = useVirtualList(items, { itemHeight: 18 })
 
 // 右键点击
 const contextMenuKey = ref({})
@@ -35,11 +33,11 @@ function handleCommand(command) {
   emit('contextKey', command, redisKey)
 }
 
-function handleClose(){
+function handleClose() {
   contextMenuKey.value = {}
 }
 
-function getKeyClass(item){
+function getKeyClass(item) {
   const clazz = []
   if (item.data.key === redisKey?.key) {
     clazz.push('choose-key')
@@ -52,23 +50,34 @@ function getKeyClass(item){
 </script>
 
 <template>
-  <div v-bind="containerProps" :style="{color: color, height: '100%'}">
+  <div v-bind="containerProps" :style="{ color: color, height: '100%' }">
     <div v-bind="wrapperProps">
-      <div v-for="item in list" :key="item.index"
-           @click="emit('chooseKey', item.data)"
-           @contextmenu="keyContextMenu($event, item.data)"
-           :class="getKeyClass(item)"
-           class="key single-line-ellipsis">
+      <div
+        v-for="item in list"
+        :key="item.index"
+        @click="emit('chooseKey', item.data)"
+        @contextmenu="keyContextMenu($event, item.data)"
+        :class="getKeyClass(item)"
+        class="key single-line-ellipsis"
+      >
         {{ item.data.key }}
       </div>
     </div>
 
     <!-- 右键菜单 -->
     <me-context ref="meContextRef" @handle-command="handleCommand" @handle-close="handleClose">
-      <el-dropdown-item command="refreshKey"><me-icon icon="el-icon-refresh"       :name="t('keyList.refreshKey')"/></el-dropdown-item>
-      <el-dropdown-item command="copyKey"   ><me-icon icon="el-icon-document-copy" :name="t('keyList.copyKey')"/></el-dropdown-item>
-      <el-dropdown-item command="renameKey" ><me-icon icon="el-icon-edit"          :name="t('keyList.renameKey')"/></el-dropdown-item>
-      <el-dropdown-item command="deleteKey" divided v-if="canEdit"><me-icon icon="el-icon-delete" :name="t('keyList.deleteKey')"/></el-dropdown-item>
+      <el-dropdown-item command="refreshKey"
+        ><me-icon icon="el-icon-refresh" :name="t('keyList.refreshKey')"
+      /></el-dropdown-item>
+      <el-dropdown-item command="copyKey"
+        ><me-icon icon="el-icon-document-copy" :name="t('keyList.copyKey')"
+      /></el-dropdown-item>
+      <el-dropdown-item command="renameKey"
+        ><me-icon icon="el-icon-edit" :name="t('keyList.renameKey')"
+      /></el-dropdown-item>
+      <el-dropdown-item command="deleteKey" divided v-if="canEdit"
+        ><me-icon icon="el-icon-delete" :name="t('keyList.deleteKey')"
+      /></el-dropdown-item>
     </me-context>
   </div>
 </template>

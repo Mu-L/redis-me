@@ -1,30 +1,23 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
-use crate::utils::util::{
-    AnyResult, EVENT_EXPORT, EVENT_IMPORT, EVENT_MONITOR, EVENT_SUBSCRIBE,
-    REDIS_ME_FIELD_TO_DELETE_TMP_VALUE, REDIS_ME_SUBSCRIBE_STOP_MESSAGE, assert_is_true,
-    info_to_chart, ui_hash_value, ui_list_value, ui_set_value, ui_zset_value,
-    vec8_to_display_string,
-};
-use Ordering::Relaxed;
-use anyhow::bail;
-use base64::Engine;
+use crate::utils::util::*;
+use anyhow::{bail, Context};
 use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 use chrono::{Local, Utc};
 use log::{info, warn};
 use parking_lot::MutexGuard;
-use redis::{
-    Cmd, Commands, Connection, FromRedisValue, Msg, SetExpiry, SetOptions, ValueType,
-    from_redis_value,
-};
+use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
+use Ordering::Relaxed;
+use redis::streams::StreamRangeReply;
 
 // 抽取公共属性
 pub struct RedisMeBase {
@@ -85,7 +78,7 @@ pub trait RedisMeClient: Send + Sync {
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()>;
 
-    fn set(&self, key: RedisKey, value: String, ttl: i64) -> AnyResult<()>;
+    fn set(&self, key: RedisKey, value: String, ttl: i64, key_type: Option<String>) -> AnyResult<()>;
 
     fn del(&self, key: RedisKey) -> AnyResult<()>;
 
@@ -149,9 +142,12 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
         .arg("count")
         .arg(batch_count);
 
-    if let Some(scan_type) = scan_type
+    if let Some(mut scan_type) = scan_type
         && !scan_type.is_empty()
     {
+        if scan_type == ME_JSON_TYPE_NAME {
+            scan_type = REDIS_JSON_TYPE_NAME.to_string();
+        }
         cmd.arg("type").arg(scan_type);
     }
     cmd
@@ -164,7 +160,7 @@ pub fn get0(
 ) -> AnyResult<RedisValue> {
     let key_type: ValueType = conn.key_type(&key)?;
 
-    let value: serde_json::Value = match key_type {
+    let value: serde_json::Value = match key_type.clone() {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             serde_json::to_value(vec8_to_display_string(&value))
@@ -183,21 +179,34 @@ pub fn get0(
             serde_json::to_value(ui_zset_value(value))
         }
         ValueType::Hash => {
-            if let Some(hash_key) = hash_key
-                && !hash_key.is_empty()
-            {
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
-                if let Some(str) = value {
-                    let value: String = vec8_to_display_string(&str);
-                    serde_json::to_value(value)
-                } else {
-                    bail!("HashKey Not Exists: 【{}】", hash_key)
+                match value {
+                    Some(str) => serde_json::to_value(vec8_to_display_string(&str)),
+                    None => bail!("HashKey Not Exists: 【{}】", hash_key),
                 }
             } else {
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
                 serde_json::to_value(ui_hash_value(value))
             }
-        }
+        },
+        ValueType::Stream => {
+            // stream的id, 复用hash_key字段
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+                let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
+                match reply.ids.pop() {
+                    Some(entry) => serde_json::to_value(ui_stream_id(entry.map)),
+                    None => bail!("StreamId Not Exists: 【{}】", hash_key),
+                }
+            } else {
+                let reply: StreamRangeReply = conn.xrange_all(&key)?;
+                serde_json::to_value(ui_stream_value(reply))
+            }
+        },
+        ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
+            let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
+            serde_json::from_str(&redis_value_to_string(value, "\n"))
+        },
         _ => Ok(handle_other_value_type(&key_type, &key)?),
     }?;
 
@@ -206,8 +215,9 @@ pub fn get0(
         .arg("usage")
         .arg(&key)
         .query(&mut conn)?;
+
     Ok(RedisValue {
-        key_type: key_type.into(),
+        key_type: ui_key_type(key_type),
         ttl,
         size,
         value,
@@ -215,7 +225,7 @@ pub fn get0(
 }
 
 pub fn field_scan_0_get(
-    conn: &mut MutexGuard<impl Commands>,
+    mut conn: &mut MutexGuard<impl Commands>,
     param: FieldScanParam,
 ) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor)> {
     let key = param.key;
@@ -225,24 +235,28 @@ pub fn field_scan_0_get(
     let mut cc = param.cursor.unwrap_or_default();
 
     // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
-    let value: Option<serde_json::Value> = match key_type {
+    let value: Option<serde_json::Value> = match key_type.clone() {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             let value: String = vec8_to_display_string(&value);
             cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
+        ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
+            let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
+            cc.finished = true;
+            //Some(serde_json::to_value(redis_value_to_string(value, "\n"))?)
+            Some(serde_json::from_str(&redis_value_to_string(value, "\n"))?)
+        },
         ValueType::Hash => {
-            if let Some(hash_key) = hash_key
-                && !hash_key.is_empty()
-            {
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
-                if let Some(str) = value {
-                    let value: String = vec8_to_display_string(&str);
-                    cc.finished = true;
-                    Some(serde_json::to_value(value)?)
-                } else {
-                    bail!("HashKey Not Exists: {}", hash_key)
+                match value {
+                    Some(str) => {
+                        cc.finished = true;
+                        Some(serde_json::to_value(vec8_to_display_string(&str))?)
+                    },
+                    None => bail!("HashKey Not Exists: 【{}】", hash_key),
                 }
             } else {
                 None
@@ -269,8 +283,53 @@ pub fn field_scan_0_get(
             };
             Some(serde_json::to_value(value)?)
         }
+        ValueType::Stream => {
+            // stream的id, 复用hash_key字段
+            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+                let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
+                match reply.ids.pop() {
+                    Some(entry) => {
+                        cc.finished = true;
+                        Some(serde_json::to_value(ui_stream_id(entry.map))?)
+                    },
+                    None => bail!("StreamId Not Exists: 【{}】", hash_key),
+                }
+            } else {
+                // https://redis.ac.cn/docs/latest/commands/xrange/
+                // XRANGE key start end [COUNT count]   注意start/end是包含在内的
+                // 起始参数: - 表示最小值, 游标有值则取值
+                // 结束参数: + 表示最大值
+                // 加载所有: 不追加count参数，否则追加count + 1参数，多获取1个用于判断是否已扫描结束
+                //let start = if cc.stream_cursor.is_empty() { "-" } else { &cc.stream_cursor };
+                //let end = "+";
+                //let count = if cc.stream_cursor.is_empty() { param.count + 1 } else { param.count };
+                //let mut cmd = redis::cmd("XRANGE");
+                //cmd.arg(key).arg(start).arg(end);
+
+                // 倒序: 更符合实际的使用习惯, 即查看最新的消息。TinyRDM/AnotherRDM都是倒序的
+                // XREVRANGE key end start [COUNT count]
+                let end = if cc.stream_cursor.is_empty() { "+" } else { &cc.stream_cursor };
+                let start = "-";
+                let count = if cc.stream_cursor.is_empty() { param.count + 1 } else { param.count };
+
+                let mut cmd = redis::cmd("XREVRANGE");
+                cmd.arg(key).arg(end).arg(start);
+                if !param.load_all {
+                    cmd.arg("COUNT").arg(count);
+                }
+                let reply: StreamRangeReply = cmd.query(&mut conn)?;
+                let mut value = ui_stream_value(reply);
+
+                if !param.load_all && value.len() > param.count as usize {
+                    cc.finished = false;
+                    cc.stream_cursor = value.pop().unwrap().id; // 弹出最后1个元素，作为下次游标
+                } else {
+                    cc.finished = true;
+                };
+                Some(serde_json::to_value(value)?)
+            }
+        },
         // 注意此处SET/ZSET等是支持的，只是需要进行扫描，不能直接使用通用的: handle_other_value_type
-        ValueType::Stream => bail!("Unsupport type: Stream"),
         ValueType::Unknown(_) => {
             handle_other_value_type(&key_type, &key)?;
             None
@@ -306,7 +365,7 @@ pub fn field_scan_1_cmd(
 pub fn field_scan_2_value(
     key_type: &ValueType,
     scan_value: &mut FieldScanValue,
-    new_value: redis::Value,
+    new_value: Value,
 ) -> AnyResult<usize> {
     let new_count = match key_type {
         ValueType::Hash => {
@@ -358,8 +417,9 @@ pub fn field_scan_4_return(
         .arg("usage")
         .arg(&key)
         .query(&mut conn)?;
+
     Ok(FieldScanResult {
-        key_type: key_type.into(),
+        key_type: ui_key_type(key_type),
         ttl,
         size,
         value,
@@ -367,19 +427,20 @@ pub fn field_scan_4_return(
     })
 }
 
+
 pub fn ttl0(mut conn: MutexGuard<impl Commands>, key: RedisKey, ttl: i64) -> AnyResult<()> {
-    if ttl < 0 {
-        // 移除 key 上已有的过期时间，将键从易失（设置了过期时间的键）变为变为持久
-        // 整型回复: 如果 key 不存在或没有关联的过期时间，则返回 0。
-        // 整型回复: 如果已移除过期时间，则返回 1。
-        let _: () = conn.persist(&key)?;
-    } else {
+    if ttl > 0 {
         // 为 key 设置超时时间。超时时间到期后，该 key 将被自动删除。
         // 请注意，调用 EXPIRE/`PEXPIRE` 时使用非正数超时，或调用 `EXPIREAT`/`PEXPIREAT` 时使用过去的时间，
         // 将导致 key 被 删除 而非过期（相应地，发出的 key 事件 将是 del，而不是 expired）。
         // 整数回复：如果未设置超时时间则返回 0；例如，key 不存在，或者由于提供的参数而跳过了操作。
         // 整数回复：如果已设置超时时间则返回 1。
         let _: () = conn.expire(&key, ttl)?;
+    } else {
+        // 移除 key 上已有的过期时间，将键从易失（设置了过期时间的键）变为变为持久
+        // 整型回复: 如果 key 不存在或没有关联的过期时间，则返回 0。
+        // 整型回复: 如果已移除过期时间，则返回 1。
+        let _: () = conn.persist(&key)?;
     };
     Ok(())
 }
@@ -389,13 +450,24 @@ pub fn set0(
     key: RedisKey,
     value: String,
     ttl: i64,
+    key_type: Option<String>
 ) -> AnyResult<()> {
-    if ttl < 0 {
-        let _: () = conn.set(&key, value)?;
+    if key_type.unwrap_or_default() == ME_JSON_TYPE_NAME {
+        // json类型
+        let value: serde_json::Value = serde_json::from_str(&value).with_context(|| "json parse error")?;
+        let _: () = conn.json_set(&key, "$", &value)?;
+        if ttl > 0 {
+            let _: () = conn.expire(&key, ttl)?;
+        }
     } else {
-        let options = SetOptions::default().with_expiration(SetExpiry::EX(ttl as u64));
-        let _: () = conn.set_options(&key, value, options)?;
-    };
+        // string类型
+        if ttl > 0 {
+            let options = SetOptions::default().with_expiration(SetExpiry::EX(ttl as u64));
+            let _: () = conn.set_options(&key, value, options)?;
+        } else {
+            let _: () = conn.set(&key, value)?;
+        };
+    }
     Ok(())
 }
 
@@ -432,7 +504,7 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         // 新增字段
         key_type = conn.key_type(&key)?
     } else {
-        bail!("mode: {} unsupport now", mode)
+        bail!("mode: {} unsupported now", mode)
     }
 
     let fv_list = param.field_value_list;
@@ -461,6 +533,14 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         ValueType::ZSet => fv_list
             .into_iter()
             .try_for_each(|f| conn.zadd(&key, f.field_value, f.field_score))?,
+        ValueType::Stream => {
+            let items: Vec<(String, String)> = fv_list.into_iter().map(|f| (f.field_key, f.field_value)).collect();
+            conn.xadd(&key, &param.stream_id, &items)?
+        },
+        ValueType::Unknown(other) if other == ME_JSON_TYPE_NAME => {
+            let value: serde_json::Value = serde_json::from_str(&param.value).with_context(|| "json parse error")?;
+            conn.json_set(&key, "$", &value)?
+        },
         _ => {
             handle_other_value_type(&key_type, &key)?;
         }
@@ -515,6 +595,9 @@ pub fn field_del0(mut conn: MutexGuard<impl Commands>, param: RedisFieldDel) -> 
         }
         ValueType::ZSet => {
             let _: () = conn.zrem(&key, param.field_value)?;
+        }
+        ValueType::Stream => {
+            let _: () = conn.xdel(&key, &[param.stream_id])?;
         }
         _ => {
             handle_other_value_type(&key_type, &key)?;
@@ -625,7 +708,7 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
                 bail!("Unknown ValueType: {other}")
             }
         }
-        ValueType::Stream => bail!("Unsupported Type: Stream"),
+        //ValueType::Stream => bail!("Unsupported Type: Stream"),
         _ => bail!("Unsupported Type: {value_type:?}"),
     }
 }

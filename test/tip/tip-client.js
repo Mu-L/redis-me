@@ -33,7 +33,6 @@ rbs: 客户端读取缓冲区当前大小（字节）。在 Redis 7.0 中添加
 io-thread: 分配给客户端的 I/O 线程 ID。在 Redis 8.0 中添加
 `
 
-
 str = `
 id: a unique 64-bit client ID.
 addr: address/port of the client.
@@ -73,11 +72,14 @@ tot-cmds: total count of commands this client executed.
 `
 // 转换为json格式输出
 const json = {}
-str.trim().split('\n').forEach(item => {
-  const [key, value] = item.split(': ')
-  if (key) {
-    json[_.camelCase(key)] = _.trim( value, '.')
-  }
-})
+str
+  .trim()
+  .split('\n')
+  .forEach((item) => {
+    const [key, value] = item.split(': ')
+    if (key) {
+      json[_.camelCase(key)] = _.trim(value, '.')
+    }
+  })
 console.log(json)
 console.log(Object.keys(json))

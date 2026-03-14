@@ -9,10 +9,11 @@ import {
   meFilterHandler,
   meHumanSize,
   meInvoke,
-  meOk, meType
+  meOk,
+  meType,
 } from '@/utils/util.js'
-import {capitalize} from 'lodash'
-import {useI18n} from 'vue-i18n'
+import { capitalize } from 'lodash'
+import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 // 共享数据
@@ -25,7 +26,7 @@ const hint = computed(() => {
     sizeLimitKb: sizeLimitKb.value,
     scanTotal: scanTotal.value,
     countLimit: countLimit.value,
-    sleepMillis: sleepMillis.value
+    sleepMillis: sleepMillis.value,
   }
   return t('redisMemory.hint', params)
 })
@@ -44,9 +45,9 @@ const matchParam = computed(() => {
 // 要求为正整数, 避免调用Rust时转换为u64报错
 watchEffect(() => {
   if (sizeLimitKb.value < 0 || sizeLimitKb.value === '') sizeLimitKb.value = 0
-  if (countLimit.value < 0  || countLimit.value === '') countLimit.value = 0
-  if (scanCount.value < 0   || scanCount.value === '') scanCount.value = 0
-  if (scanTotal.value < 0   || scanTotal.value === '') scanTotal.value = 0
+  if (countLimit.value < 0 || countLimit.value === '') countLimit.value = 0
+  if (scanCount.value < 0 || scanCount.value === '') scanCount.value = 0
+  if (scanTotal.value < 0 || scanTotal.value === '') scanTotal.value = 0
   if (sleepMillis.value < 0 || sleepMillis.value === '') sleepMillis.value = 0
 })
 
@@ -56,22 +57,25 @@ const dataList = ref([])
 
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return dataList.value.filter(row => !key || row.key?.toLowerCase().indexOf(key) > -1)
+  return dataList.value.filter((row) => !key || row.key?.toLowerCase().indexOf(key) > -1)
 })
 const filterTypes = computed(() => {
-  return [...new Set(dataList.value.map(d => d.type))].map(d => ({text: d?.toUpperCase(), value: d}))
+  return [...new Set(dataList.value.map((d) => d.type))].map((d) => ({
+    text: d?.toUpperCase(),
+    value: d,
+  }))
 })
 
 // 避免表格自动调整列宽时闪烁一下
 function humanTotalSize(list) {
-  return meHumanSize(list.value.map(d => d.size).reduce((sum, cur) => sum + cur, 0) ?? 0)
+  return meHumanSize(list.value.map((d) => d.size).reduce((sum, cur) => sum + cur, 0) ?? 0)
 }
 
 // 合计列
 function getSummaries() {
   const count = filterDataList.value.length + ' / ' + dataList.value.length
   const size = humanTotalSize(filterDataList) + ' / ' + humanTotalSize(dataList)
-  const show = h('div', {class: 'me-flex'}, [h('div', null, count), h('div', null, size)])
+  const show = h('div', { class: 'me-flex' }, [h('div', null, count), h('div', null, size)])
   return ['', t('redisMemory.total'), show, '']
 }
 
@@ -85,9 +89,9 @@ async function refresh() {
       scanCount: scanCount.value,
       scanTotal: scanTotal.value,
       sleepMillis: sleepMillis.value,
-      needKeyType: true
+      needKeyType: true,
     }
-    dataList.value = await meInvoke('memory_usage', {id: share.conn.id, param})
+    dataList.value = await meInvoke('memory_usage', { id: share.conn.id, param })
   } finally {
     loading.value = false
   }
@@ -112,7 +116,7 @@ function chooseKey(redisKey) {
 // 删除键
 async function delKey(redisKey) {
   meDeleteKey(share.conn.id, redisKey, () => {
-    dataList.value = dataList.value.filter(rk => rk.bytes !== redisKey.bytes)
+    dataList.value = dataList.value.filter((rk) => rk.bytes !== redisKey.bytes)
   })
 }
 
@@ -124,16 +128,19 @@ function selectionChange(newSelection) {
 }
 
 function batchDelKey() {
-  meConfirm(t('redisMemory.batchDeleteHint', selection.value.length, {count: selection.value.length}), async () => {
-    const param = {
-      match: '',
-      keyList: selection.value.map(row => ({key: row.key, bytes: row.bytes})),
-    }
-    await meInvoke('batch_del', {id: share.conn.id, param})
-    meOk(t('deleteOk'))
-    const keyBytesArr = param.keyList.map(rk => rk.bytes)
-    dataList.value = dataList.value.filter(rk => keyBytesArr.indexOf(rk.bytes) < 0)
-  })
+  meConfirm(
+    t('redisMemory.batchDeleteHint', selection.value.length, { count: selection.value.length }),
+    async () => {
+      const param = {
+        match: '',
+        keyList: selection.value.map((row) => ({ key: row.key, bytes: row.bytes })),
+      }
+      await meInvoke('batch_del', { id: share.conn.id, param })
+      meOk(t('deleteOk'))
+      const keyBytesArr = param.keyList.map((rk) => rk.bytes)
+      dataList.value = dataList.value.filter((rk) => keyBytesArr.indexOf(rk.bytes) < 0)
+    },
+  )
 }
 </script>
 
@@ -147,12 +154,16 @@ function batchDelKey() {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item>
-                <el-input v-model="match" style="width: 220px" :placeholder="t('redisMemory.fuzzy')">
+                <el-input
+                  v-model="match"
+                  style="width: 220px"
+                  :placeholder="t('redisMemory.fuzzy')"
+                >
                   <template #prepend>{{ t('redisMemory.matchParam') }}</template>
                   <template #append>
                     <el-tooltip raw-content :content="hint" popper-style="max-width: 600px">
                       <el-icon>
-                        <el-icon-question-filled/>
+                        <el-icon-question-filled />
                       </el-icon>
                     </el-tooltip>
                   </template>
@@ -165,20 +176,20 @@ function batchDelKey() {
                 </el-input>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-input v-model.number="sleepMillis" style="width: 220px;">
+                <el-input v-model.number="sleepMillis" style="width: 220px">
                   <template #prepend>{{ t('redisMemory.sleepMillis') }}</template>
                   <template #append>ms</template>
                 </el-input>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-input v-model.number="scanTotal" style="width: 220px;">
+                <el-input v-model.number="scanTotal" style="width: 220px">
                   <template #prepend>{{ t('redisMemory.scanTotal') }}</template>
                   <template #append>{{ t('redisMemory.unit') }}</template>
                 </el-input>
               </el-dropdown-item>
 
               <el-dropdown-item divided>
-                <el-input v-model.number="sizeLimitKb" style="width: 220px; ">
+                <el-input v-model.number="sizeLimitKb" style="width: 220px">
                   <template #prepend>{{ t('redisMemory.sizeLimit') }}</template>
                   <template #prefix>
                     <div style="margin-right: 10px">&gE;</div>
@@ -187,7 +198,7 @@ function batchDelKey() {
                 </el-input>
               </el-dropdown-item>
               <el-dropdown-item>
-                <el-input v-model.number="countLimit" style="width: 220px; ">
+                <el-input v-model.number="countLimit" style="width: 220px">
                   <template #prepend>{{ t('redisMemory.countLimit') }}</template>
                   <template #append>{{ t('redisMemory.unit') }}</template>
                 </el-input>
@@ -203,31 +214,54 @@ function batchDelKey() {
           <template #append>Kb</template>
         </el-input>
 
-        <el-button icon="el-icon-delete" type="danger" v-if="canEdit"
-                   :disabled="selection.length === 0"
-                   @click="batchDelKey" style="margin-left: 10px">{{ t('redisMemory.batchDelete') }}
+        <el-button
+          icon="el-icon-delete"
+          type="danger"
+          v-if="canEdit"
+          :disabled="selection.length === 0"
+          @click="batchDelKey"
+          style="margin-left: 10px"
+          >{{ t('redisMemory.batchDelete') }}
         </el-button>
       </div>
 
       <div>
-        <el-input v-model="keyword" :placeholder="t('redisMemory.keyword')" style="width: 240px; margin:0 10px" clearable/>
-        <el-button icon="el-icon-search" @click="memoryUsage" type="primary" :loading="loading">{{ t('redisMemory.startScan') }}</el-button>
+        <el-input
+          v-model="keyword"
+          :placeholder="t('redisMemory.keyword')"
+          style="width: 240px; margin: 0 10px"
+          clearable
+        />
+        <el-button icon="el-icon-search" @click="memoryUsage" type="primary" :loading="loading">{{
+          t('redisMemory.startScan')
+        }}</el-button>
       </div>
     </div>
-    <el-table :data="filterDataList" ref="table"
-              show-summary :summary-method="getSummaries"
-              :default-sort="{prop: 'size', order: 'descending'}"
-              style="margin-top: 10px"
-              v-loading="loading"
-              @selection-change="selectionChange"
-              border stripe height="100%">
-      <el-table-column type="selection" width="50" align="center"/>
-      <el-table-column :label="t('redisMemory.type')" prop="type" width="100"
-                       show-overflow-tooltip sortable
-                       :filters="filterTypes"
-                       :filter-method="meFilterHandler">
+    <el-table
+      :data="filterDataList"
+      ref="table"
+      show-summary
+      :summary-method="getSummaries"
+      :default-sort="{ prop: 'size', order: 'descending' }"
+      style="margin-top: 10px"
+      v-loading="loading"
+      @selection-change="selectionChange"
+      border
+      stripe
+      height="100%"
+    >
+      <el-table-column type="selection" width="50" align="center" />
+      <el-table-column
+        :label="t('redisMemory.type')"
+        prop="type"
+        width="100"
+        show-overflow-tooltip
+        sortable
+        :filters="filterTypes"
+        :filter-method="meFilterHandler"
+      >
         <template #default="scope">
-          <el-text :type="meType(scope.row.type)"> {{scope.row.type?.toUpperCase()}}</el-text>
+          <el-text :type="meType(scope.row.type)"> {{ scope.row.type?.toUpperCase() }}</el-text>
         </template>
       </el-table-column>
       <el-table-column :label="t('redisMemory.key')" prop="key" show-overflow-tooltip>
@@ -235,17 +269,44 @@ function batchDelKey() {
           {{ scope.row.key }}
         </template>
       </el-table-column>
-      <el-table-column :label="t('redisMemory.size')" prop="size" width="120" sortable show-overflow-tooltip>
+      <el-table-column
+        :label="t('redisMemory.size')"
+        prop="size"
+        width="120"
+        sortable
+        show-overflow-tooltip
+      >
         <template #default="scope">
           {{ meHumanSize(scope.row.size) }}
         </template>
       </el-table-column>
-      <el-table-column :label="t('action')" :width="canEdit ? 100 : 65" fixed="right" align="center">
+      <el-table-column
+        :label="t('action')"
+        :width="canEdit ? 100 : 65"
+        fixed="right"
+        align="center"
+      >
         <template #default="scope">
           <div class="me-flex">
-            <me-icon :info="t('copy')" icon="el-icon-document-copy" class="icon-btn" @click="meCopy(scope.row.key) "/>
-            <me-icon :info="t('redisMemory.chooseKey')" icon="el-icon-view" class="icon-btn" @click="chooseKey(scope.row)"/>
-            <me-icon :info="t('delete')" icon="el-icon-delete" class="icon-btn" @click="delKey(scope.row)" v-if="canEdit"/>
+            <me-icon
+              :info="t('copy')"
+              icon="el-icon-document-copy"
+              class="icon-btn"
+              @click="meCopy(scope.row.key)"
+            />
+            <me-icon
+              :info="t('redisMemory.chooseKey')"
+              icon="el-icon-view"
+              class="icon-btn"
+              @click="chooseKey(scope.row)"
+            />
+            <me-icon
+              :info="t('delete')"
+              icon="el-icon-delete"
+              class="icon-btn"
+              @click="delKey(scope.row)"
+              v-if="canEdit"
+            />
           </div>
         </template>
       </el-table-column>

@@ -221,8 +221,8 @@ impl RedisMeClient for RedisMeCluster {
         ttl0(self.get_conn()?, key, ttl)
     }
 
-    fn set(&self, key: RedisKey, value: String, ttl: i64) -> AnyResult<()> {
-        set0(self.get_conn()?, key, value, ttl)
+    fn set(&self, key: RedisKey, value: String, ttl: i64, key_type: Option<String>) -> AnyResult<()> {
+        set0(self.get_conn()?, key, value, ttl, key_type)
     }
 
     fn del(&self, key: RedisKey) -> AnyResult<()> {

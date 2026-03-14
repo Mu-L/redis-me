@@ -1,19 +1,19 @@
 <script setup>
 // 说明: 自定义右键菜单（使用el-dropdown的虚拟触发实现）
-import {ref, useTemplateRef} from 'vue'
+import { ref, useTemplateRef } from 'vue'
 
-defineExpose({showMenu})
+defineExpose({ showMenu })
 const emit = defineEmits(['handleCommand', 'handleClose'])
 
 const dropdownRef = useTemplateRef('dropdownRef')
-const position = ref({top: 0, left: 0, bottom: 0, right: 0})
+const position = ref({ top: 0, left: 0, bottom: 0, right: 0 })
 const triggerRef = ref({
   getBoundingClientRect: () => position.value,
 })
 
 // 显示菜单
 function showMenu(e) {
-  const {clientX, clientY} = e
+  const { clientX, clientY } = e
   position.value = DOMRect.fromRect({
     x: clientX,
     y: clientY,
@@ -36,14 +36,16 @@ function handleClose(isOpen) {
 </script>
 
 <template>
-  <el-dropdown ref="dropdownRef"
-               @command="handleCommand"
-               @visible-change="handleClose"
-               :virtual-ref="triggerRef"
-               virtual-triggering
-               :show-arrow="false"
-               trigger="contextmenu"
-               placement="bottom-start">
+  <el-dropdown
+    ref="dropdownRef"
+    @command="handleCommand"
+    @visible-change="handleClose"
+    :virtual-ref="triggerRef"
+    virtual-triggering
+    :show-arrow="false"
+    trigger="contextmenu"
+    placement="bottom-start"
+  >
     <template #dropdown>
       <slot></slot>
     </template>

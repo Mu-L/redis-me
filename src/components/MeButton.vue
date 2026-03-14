@@ -1,9 +1,9 @@
 <script setup>
 // 说明: 支持tooltip的按钮
 defineProps({
-  info: {type: String, default: '请添加按钮提示'},
-  placement: {type: String, default: 'auto'},
-  icon: {type: String, default: ''},
+  info: { type: String, default: '请添加按钮提示' },
+  placement: { type: String, default: 'auto' },
+  icon: { type: String, default: '' },
 })
 </script>
 
@@ -16,7 +16,7 @@ defineProps({
     </el-button>
     <el-button v-bind="$attrs" v-else>
       <template #icon>
-        <SvgIcon :name="icon"/>
+        <SvgIcon :name="icon" />
       </template>
       <template v-for="(item, key, index) in $slots" :key="index" v-slot:[key]>
         <slot :name="key"></slot>

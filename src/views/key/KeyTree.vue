@@ -1,22 +1,21 @@
 <script setup>
-
 // 共享数据
-import {useI18n} from 'vue-i18n'
-import {computed} from 'vue'
+import { useI18n } from 'vue-i18n'
+import { computed } from 'vue'
 
 const { t } = useI18n()
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 
 const emit = defineEmits(['chooseKey', 'chooseFolder', 'contextKey', 'contextFolder'])
-const {filterKeyList} = defineProps({
-  color: {type: String, default: 'var(--el-color-primary)'},
-  redisKey: {type: Object, default: null},
-  filterKeyList: {type: Array, default: []},
+const { filterKeyList } = defineProps({
+  color: { type: String, default: 'var(--el-color-primary)' },
+  redisKey: { type: Object, default: null },
+  filterKeyList: { type: Array, default: [] },
 })
 
 // 左键点击
-function nodeClick(_data, node){
+function nodeClick(_data, node) {
   if (node.isLeaf) {
     emit('chooseKey', node.data.redisKey)
   } else {
@@ -41,14 +40,16 @@ function handleCommand(command) {
   }
 }
 
-function handleClose(){
+function handleClose() {
   contextMenuNode.value = {}
 }
 
-function getNodeClass(node){
+function getNodeClass(node) {
   const clazz = []
-  if (node.isLeaf && node.data.redisKey.key === contextMenuNode.value?.data?.redisKey?.key
-  || !node.isLeaf && node.key == contextMenuNode.value?.key) {
+  if (
+    (node.isLeaf && node.data.redisKey.key === contextMenuNode.value?.data?.redisKey?.key) ||
+    (!node.isLeaf && node.key == contextMenuNode.value?.key)
+  ) {
     clazz.push('context-key')
   }
   return clazz
@@ -58,13 +59,13 @@ function getNodeClass(node){
 const emptyText = computed(() => t('keyTree.noData'))
 const treeData = computed(() => {
   const root = buildTree(filterKeyList)
-  root.forEach(node => countLeaves(node))
-  root.sort((n1, n2) =>  {
+  root.forEach((node) => countLeaves(node))
+  root.sort((n1, n2) => {
     // 文件夹在上面，叶子在下面（将叶子节点的数量归零，避免和只有1个键的文件夹混在一起）
     const n1Count = n1.children.length > 0 ? n1.keyCount : 0
     const n2Count = n2.children.length > 0 ? n2.keyCount : 0
     // 文件夹按照键数量排序, 键数量相同时按照名称排序
-    return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1 ): n2Count - n1Count
+    return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
   })
   return root
 })
@@ -72,7 +73,7 @@ const treeData = computed(() => {
 // 构建树：这个方法是由AI（豆包）生成的，非常不赖！ 但由BUG，还得亲自修复边界问题
 function buildTree(keyList) {
   const root = []
-  keyList.forEach(rk => {
+  keyList.forEach((rk) => {
     const parts = rk.key.split(/:+/)
     let nowLevel = root
     parts.forEach((part, index) => {
@@ -80,17 +81,17 @@ function buildTree(keyList) {
       // hepengju 这种键直接返回
       if (index === parts.length - 1) {
         // 叶子节点显示全称且保存原始值
-        let node = {id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk}
+        let node = { id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk }
         nowLevel.push(node)
         return
       }
 
       // hepengju:
       // hepengju:string
-      let node = nowLevel.find(item => item.label === part && item.redisKey === undefined) // 此处过滤去掉上面的叶子节点
+      let node = nowLevel.find((item) => item.label === part && item.redisKey === undefined) // 此处过滤去掉上面的叶子节点
       if (!node) {
         // 避免叶子节点的id与部分非叶子节点一致
-        node = {id: parts.slice(0, index + 1).join(':'), label: part, children: []}
+        node = { id: parts.slice(0, index + 1).join(':'), label: part, children: [] }
         nowLevel.push(node)
       }
       nowLevel = node.children
@@ -111,7 +112,7 @@ function countLeaves(node) {
     const nowNode = stack[stack.length - 1]
 
     // 如果当前节点的所有子节点都已经处理过
-    if (nowNode.children.every(child => keyCounts.has(child))) {
+    if (nowNode.children.every((child) => keyCounts.has(child))) {
       // 弹出栈顶节点
       stack.pop()
       if (nowNode.children.length === 0) {
@@ -120,7 +121,7 @@ function countLeaves(node) {
       } else {
         // 计算当前节点的叶子节点数量，等于所有子节点叶子节点数量之和
         let keyCount = 0
-        nowNode.children.forEach(child => {
+        nowNode.children.forEach((child) => {
           keyCount += keyCounts.get(child)
         })
         keyCounts.set(nowNode, keyCount)
@@ -129,7 +130,7 @@ function countLeaves(node) {
       nowNode.keyCount = keyCounts.get(nowNode)
     } else {
       // 如果当前节点的子节点还有未处理的，将未处理的子节点压入栈中
-      nowNode.children.forEach(child => {
+      nowNode.children.forEach((child) => {
         if (!keyCounts.has(child)) {
           stack.push(child)
         }
@@ -139,27 +140,37 @@ function countLeaves(node) {
   // 返回根节点的叶子节点数量
   return keyCounts.get(node)
 }
-
-
 </script>
 
 <template>
   <el-auto-resizer>
     <template #default="{ height }">
-      <el-tree-v2 ref="tree" :data="treeData"
-                  @node-click="nodeClick"
-                  @node-contextmenu="nodeContextMenu"
-                  highlight-current
-                  :style="{'--el-text-color-regular': color,
-                           '--el-tree-node-hover-bg-color': 'var(--el-color-info-light-8)'}"
-                  :empty-text="emptyText" :height="height" :item-size="20">
+      <el-tree-v2
+        ref="tree"
+        :data="treeData"
+        @node-click="nodeClick"
+        @node-contextmenu="nodeContextMenu"
+        highlight-current
+        :style="{
+          '--el-text-color-regular': color,
+          '--el-tree-node-hover-bg-color': 'var(--el-color-info-light-8)',
+        }"
+        :empty-text="emptyText"
+        :height="height"
+        :item-size="20"
+      >
         <template #default="{ node }">
           <div style="width: 100%" v-if="node.isLeaf" :class="getNodeClass(node)">
             {{ node.label }}
           </div>
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
-            <me-icon :name="node.label" :icon="node.expanded ? 'el-icon-folderOpened' : 'el-icon-folder'"/>
-            <div style="color: var(--el-color-info); margin-right: 10px">[ {{ node.data.keyCount }} ]</div>
+            <me-icon
+              :name="node.label"
+              :icon="node.expanded ? 'el-icon-folderOpened' : 'el-icon-folder'"
+            />
+            <div style="color: var(--el-color-info); margin-right: 10px">
+              [ {{ node.data.keyCount }} ]
+            </div>
           </div>
         </template>
       </el-tree-v2>
@@ -167,18 +178,41 @@ function countLeaves(node) {
       <!-- 右键菜单 -->
       <me-context ref="meContextRef" @handle-command="handleCommand" @handle-close="handleClose">
         <template v-if="contextMenuNode.isLeaf">
-          <el-dropdown-item command="refreshKey"><me-icon icon="el-icon-refresh"       :name="t('keyTree.refreshKey')"/></el-dropdown-item>
-          <el-dropdown-item command="copyKey"   ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')"/></el-dropdown-item>
-          <el-dropdown-item command="renameKey" ><me-icon icon="el-icon-edit"          :name="t('keyList.renameKey')"/></el-dropdown-item>
-          <el-dropdown-item command="deleteKey" divided v-if="canEdit"><me-icon icon="el-icon-delete" :name="t('keyTree.deleteKey')"/></el-dropdown-item>
+          <el-dropdown-item command="addKey" v-if="canEdit"
+            ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="refreshKey"
+            ><me-icon icon="el-icon-refresh" :name="t('keyTree.refreshKey')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="copyKey"
+            ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="renameKey"
+            ><me-icon icon="el-icon-edit" :name="t('keyList.renameKey')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="deleteKey" divided v-if="canEdit"
+            ><me-icon icon="el-icon-delete" :name="t('keyTree.deleteKey')"
+          /></el-dropdown-item>
         </template>
         <template v-else>
-          <el-dropdown-item command="addKey"    v-if="canEdit"><me-icon icon="el-icon-circle-plus"   :name="t('keyTree.addKey')"/></el-dropdown-item>
-          <el-dropdown-item command="copyFolder"><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyFolder')"/></el-dropdown-item>
-          <el-dropdown-item command="loadFolder" divided><me-icon icon="el-icon-search" :name="t('keyTree.loadFolder')"/></el-dropdown-item>
-          <el-dropdown-item command="memoryUsage"><me-icon icon="me-icon-memory" :name="t('keyTree.memoryUsage')"/></el-dropdown-item>
-          <el-dropdown-item command="exportFolder" divided :disabled="share.exportImporting"><me-icon icon="el-icon-upload" :name="t('keyTree.exportFolder')"/></el-dropdown-item>
-          <el-dropdown-item command="deleteFolder"  v-if="canEdit" :disabled="share.exportImporting"><me-icon icon="el-icon-delete" :name="t('keyTree.deleteFolder')"/></el-dropdown-item>
+          <el-dropdown-item command="addKey" v-if="canEdit"
+            ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="copyFolder"
+            ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyFolder')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="loadFolder" divided
+            ><me-icon icon="el-icon-search" :name="t('keyTree.loadFolder')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="memoryUsage"
+            ><me-icon icon="me-icon-memory" :name="t('keyTree.memoryUsage')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="exportFolder" divided :disabled="share.exportImporting"
+            ><me-icon icon="el-icon-upload" :name="t('keyTree.exportFolder')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="deleteFolder" v-if="canEdit" :disabled="share.exportImporting"
+            ><me-icon icon="el-icon-delete" :name="t('keyTree.deleteFolder')"
+          /></el-dropdown-item>
         </template>
       </me-context>
     </template>
@@ -187,7 +221,7 @@ function countLeaves(node) {
 
 <style scoped lang="scss">
 /* 高亮当前行的颜色 */
-:deep(.el-tree--highlight-current .el-tree-node.is-current>.el-tree-node__content) {
+:deep(.el-tree--highlight-current .el-tree-node.is-current > .el-tree-node__content) {
   background-color: var(--el-color-info-light-8);
 }
 
