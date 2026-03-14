@@ -51,19 +51,15 @@ Available to download for free from [here](https://github.com/hepengju/redis-me/
 # rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# node (fnm)
-curl -o- https://fnm.vercel.app/install | bash
-fnm install 22
-
-# pnpm
-npm install -g pnpm
+# vite+: node/pnpm etc
+curl -fsSL https://vite.plus | bash
 
 # clone
 git clone https://github.com/hepengju/redis-me.git --depth=1
 
 # install package.json and start dev
-pnpm install
-pnpm tauri dev
+vp install
+vp run tauri dev
 ```
 
 ## WeChat Official Account
