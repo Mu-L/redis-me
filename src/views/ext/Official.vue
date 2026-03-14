@@ -5,8 +5,8 @@ import bilibili from '@/assets/images/bilibili.png'
 
 <template>
   <div class="app-official">
-    <el-image :src="wechat" class="img"/>
-    <el-image :src="bilibili" class="img"/>
+    <el-image :src="wechat" class="img" />
+    <el-image :src="bilibili" class="img" />
   </div>
 </template>
 

@@ -9,7 +9,7 @@ export default {
   Layout() {
     return h(DefaultTheme.Layout, null, {
       'home-hero-actions-after': () => h(HeroActions),
-      'home-hero-after': () => h(AppPreview)
+      'home-hero-after': () => h(AppPreview),
     })
-  }
+  },
 }

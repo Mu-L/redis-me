@@ -1,5 +1,5 @@
-import {defineAdditionalConfig} from 'vitepress'
-import {version} from '../../package.json'
+import { defineAdditionalConfig } from 'vitepress'
+import { version } from '../../package.json'
 
 export default defineAdditionalConfig({
   lang: 'zh-Hans',
@@ -7,9 +7,9 @@ export default defineAdditionalConfig({
   themeConfig: {
     nav: nav(),
     sidebar: {
-      '/zh/guide/': {base: '/zh/guide/', items: sidebarGuide()},
-      '/zh/changelog/': {base: '/zh/changelog/', items: sidebarChangelog()},
-      '/zh/server/': {base: '/zh/server/', items: sidebarServer()},
+      '/zh/guide/': { base: '/zh/guide/', items: sidebarGuide() },
+      '/zh/changelog/': { base: '/zh/changelog/', items: sidebarChangelog() },
+      '/zh/server/': { base: '/zh/server/', items: sidebarServer() },
     },
     footer: {
       message: `友情链接
@@ -18,26 +18,25 @@ export default defineAdditionalConfig({
              <a href="https://redis.io/insight" target="_blank">Redis Insight</a>
              <br/><br/>
              基于GPL-3.0开源许可协议`,
-      copyright: 'Copyright © 2025-present All Rights Reserved. 沪ICP备2026000918号'
+      copyright: 'Copyright © 2025-present All Rights Reserved. 沪ICP备2026000918号',
     },
 
     //#region 以下直接从官网复制: https://github.com/vuejs/vitepress/blob/main/docs/zh/config.ts
     docFooter: {
       prev: '上一页',
-      next: '下一页'
+      next: '下一页',
     },
     outline: {
-      label: '页面导航'
+      label: '页面导航',
     },
     lastUpdated: {
-      text: '最后更新于'
+      text: '最后更新于',
     },
     notFound: {
       title: '页面未找到',
-      quote:
-        '但如果你不改变方向，并且继续寻找，你可能最终会到达你所前往的地方。',
+      quote: '但如果你不改变方向，并且继续寻找，你可能最终会到达你所前往的地方。',
       linkLabel: '前往首页',
-      linkText: '带我回首页'
+      linkText: '带我回首页',
     },
     langMenuLabel: '多语言',
     returnToTopLabel: '回到顶部',
@@ -45,22 +44,22 @@ export default defineAdditionalConfig({
     darkModeSwitchLabel: '主题',
     lightModeSwitchTitle: '切换到浅色模式',
     darkModeSwitchTitle: '切换到深色模式',
-    skipToContentLabel: '跳转到内容'
+    skipToContentLabel: '跳转到内容',
     //#endregion
   },
 })
 
 function nav() {
   return [
-    {text: '主页', link: '/zh/'},
-    {text: '指南', link: '/zh/guide/intro/about', activeMatch: '/zh/guide/'},
+    { text: '主页', link: '/zh/' },
+    { text: '指南', link: '/zh/guide/intro/about', activeMatch: '/zh/guide/' },
     {
       text: `v${version}`,
       items: [
-        {text: '更新日志', link: '/zh/changelog/latest', activeMatch: '/zh/changelog/'},
-        {text: 'Redis安装', link: '/zh/server/single', activeMatch: '/zh/server/'}
-      ]
-    }
+        { text: '更新日志', link: '/zh/changelog/latest', activeMatch: '/zh/changelog/' },
+        { text: 'Redis安装', link: '/zh/server/single', activeMatch: '/zh/server/' },
+      ],
+    },
   ]
 }
 
@@ -69,49 +68,49 @@ function sidebarGuide() {
     {
       text: '简介',
       items: [
-        {text: '关于', link: '/intro/about'},
-        {text: '安装帮助', link: '/intro/install'},
-        {text: '软件截图', link: '/intro/screenshots'},
-      ]
+        { text: '关于', link: '/intro/about' },
+        { text: '安装帮助', link: '/intro/install' },
+        { text: '软件截图', link: '/intro/screenshots' },
+      ],
     },
     {
       text: '使用手册',
       items: [
-        {text: '特色功能', link: '/usage/special'},
+        { text: '特色功能', link: '/usage/special' },
         // {text: '应用设置', link: '/usage/setting'},
-        {text: '连接列表', link: '/usage/connection'},
-        {text: '信息', link: '/usage/info'},
+        { text: '连接列表', link: '/usage/connection' },
+        { text: '信息', link: '/usage/info' },
         // {text: '客户端', link: '/usage/client'},
         // {text: '配置', link: '/usage/config'},
-        {text: '键值', link: '/usage/value'},
-        {text: '终端', link: '/usage/terminal'},
-        {text: '内存分析', link: '/usage/memory'},
-        {text: '慢日志', link: '/usage/slowlog'},
-        {text: '命令监控', link: '/usage/monitor'},
-        {text: '发布订阅', link: '/usage/pubsub'},
-        {text: '图表展示', link: '/usage/chart'},
-      ]
+        { text: '键值', link: '/usage/value' },
+        { text: '终端', link: '/usage/terminal' },
+        { text: '内存分析', link: '/usage/memory' },
+        { text: '慢日志', link: '/usage/slowlog' },
+        { text: '命令监控', link: '/usage/monitor' },
+        { text: '发布订阅', link: '/usage/pubsub' },
+        { text: '图表展示', link: '/usage/chart' },
+      ],
     },
     {
       text: '其他',
       items: [
-        {text: '常见问题', link: '/other/faq'},
-        {text: '隐私政策', link: '/other/privacy'}
-      ]
-    }
+        { text: '常见问题', link: '/other/faq' },
+        { text: '隐私政策', link: '/other/privacy' },
+      ],
+    },
   ]
 }
 
-function sidebarChangelog(){
+function sidebarChangelog() {
   return [
     {
       text: '更新日志',
       items: [
-        {text: 'latest', link: 'latest'},
-        {text: '1.x', link: '1.x'},
-        {text: '0.x', link: '0.x'},
-      ]
-    }
+        { text: 'latest', link: 'latest' },
+        { text: '1.x', link: '1.x' },
+        { text: '0.x', link: '0.x' },
+      ],
+    },
   ]
 }
 
@@ -120,12 +119,12 @@ function sidebarServer() {
     {
       text: 'Redis安装',
       items: [
-        {text: '单机', link: '/single'},
-        {text: '集群', link: '/cluster'},
-        {text: '哨兵', link: '/sentinel'},
-        {text: 'Docker', link: '/docker'},
-        {text: 'SSL', link: '/ssl'},
-      ]
-    }
+        { text: '单机', link: '/single' },
+        { text: '集群', link: '/cluster' },
+        { text: '哨兵', link: '/sentinel' },
+        { text: 'Docker', link: '/docker' },
+        { text: 'SSL', link: '/ssl' },
+      ],
+    },
   ]
 }

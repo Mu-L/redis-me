@@ -1,4 +1,4 @@
-import {createApp} from 'vue'
+import { createApp } from 'vue'
 import App from './App.vue'
 import setupElementPlus from '@/plugins/element-plus.js'
 import setupSvgIcon from '@/plugins/icon.js'

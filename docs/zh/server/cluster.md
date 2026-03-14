@@ -1,4 +1,5 @@
 # Redis集群
+
 使用docker-compose快速搭建Redis集群，供验证或测试环境使用。
 
 ```shell
@@ -14,6 +15,7 @@ docker compose up -d
 ```
 
 ## 集群
+
 ```yaml
 services:
   redis8-7001:
@@ -21,7 +23,7 @@ services:
     container_name: redis8-7001
     command: redis-server --cluster-enabled yes --port 7001 --cluster-announce-ip 192.168.1.111 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7002:
@@ -29,7 +31,7 @@ services:
     container_name: redis8-7002
     command: redis-server --cluster-enabled yes --port 7002 --cluster-announce-ip 192.168.1.111 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7003:
@@ -37,7 +39,7 @@ services:
     container_name: redis8-7003
     command: redis-server --cluster-enabled yes --port 7003 --cluster-announce-ip 192.168.1.111 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7004:
@@ -45,7 +47,7 @@ services:
     container_name: redis8-7004
     command: redis-server --cluster-enabled yes --port 7004 --cluster-announce-ip 192.168.1.111 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7005:
@@ -53,7 +55,7 @@ services:
     container_name: redis8-7005
     command: redis-server --cluster-enabled yes --port 7005 --cluster-announce-ip 192.168.1.111 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7006:
@@ -61,7 +63,7 @@ services:
     container_name: redis8-7006
     command: redis-server --cluster-enabled yes --port 7006 --cluster-announce-ip 192.168.1.111 --requirepass hepengju --masterauth hepengju
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
 ```
@@ -79,6 +81,7 @@ cluster nodes
 ```
 
 ## 集群 + SSL
+
 ```yaml
 services:
   redis8-8001:
@@ -86,7 +89,7 @@ services:
     container_name: redis8-8001-ssl
     command: redis-server --requirepass "hepengju" --cluster-enabled yes --cluster-announce-ip 192.168.1.111 --masterauth hepengju --port 0 --tls-port 8001 --tls-cert-file /etc/redis/redis.crt --tls-key-file /etc/redis/redis.key --tls-ca-cert-file /etc/redis/redis.crt --tls-replication yes --tls-cluster yes
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -97,7 +100,7 @@ services:
     container_name: redis8-8002-ssl
     command: redis-server --requirepass "hepengju" --cluster-enabled yes --cluster-announce-ip 192.168.1.111 --masterauth hepengju --port 0 --tls-port 8002 --tls-cert-file /etc/redis/redis.crt --tls-key-file /etc/redis/redis.key --tls-ca-cert-file /etc/redis/redis.crt --tls-replication yes --tls-cluster yes
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -108,7 +111,7 @@ services:
     container_name: redis8-8003-ssl
     command: redis-server --requirepass "hepengju" --cluster-enabled yes --cluster-announce-ip 192.168.1.111 --masterauth hepengju --port 0 --tls-port 8003 --tls-cert-file /etc/redis/redis.crt --tls-key-file /etc/redis/redis.key --tls-ca-cert-file /etc/redis/redis.crt --tls-replication yes --tls-cluster yes
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -119,7 +122,7 @@ services:
     container_name: redis8-8004-ssl
     command: redis-server --requirepass "hepengju" --cluster-enabled yes --cluster-announce-ip 192.168.1.111 --masterauth hepengju --port 0 --tls-port 8004 --tls-cert-file /etc/redis/redis.crt --tls-key-file /etc/redis/redis.key --tls-ca-cert-file /etc/redis/redis.crt --tls-replication yes --tls-cluster yes
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -130,7 +133,7 @@ services:
     container_name: redis8-8005-ssl
     command: redis-server --requirepass "hepengju" --cluster-enabled yes --cluster-announce-ip 192.168.1.111 --masterauth hepengju --port 0 --tls-port 8005 --tls-cert-file /etc/redis/redis.crt --tls-key-file /etc/redis/redis.key --tls-ca-cert-file /etc/redis/redis.crt --tls-replication yes --tls-cluster yes
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -141,7 +144,7 @@ services:
     container_name: redis8-8006-ssl
     command: redis-server --requirepass "hepengju" --cluster-enabled yes --cluster-announce-ip 192.168.1.111 --masterauth hepengju --port 0 --tls-port 8006 --tls-cert-file /etc/redis/redis.crt --tls-key-file /etc/redis/redis.key --tls-ca-cert-file /etc/redis/redis.crt --tls-replication yes --tls-cluster yes
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:

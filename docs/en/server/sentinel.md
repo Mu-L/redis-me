@@ -1,4 +1,5 @@
 # Redis Sentinel
+
 Quickly set up a Redis Sentinel using docker-compose for verification or testing environments.
 
 ```shell
@@ -11,7 +12,9 @@ docker compose up -d
 ```
 
 ## Sentinel
+
 ### config
+
 Sentinel must use a configuration file when running, because the system will use this file to save the current state for reloading upon restart. If no configuration file is provided or the configuration file path is not writable, Sentinel will refuse to start.
 
 ```shell
@@ -53,7 +56,9 @@ sentinel announce-ip 192.168.1.111
 # permission
 chmod -R 777 config-27701/ config-27702/ config-27703/
 ```
+
 ### docker-compose.yaml
+
 ```yaml
 services:
   redis8-7701:
@@ -61,7 +66,7 @@ services:
     container_name: redis8-7701
     command: redis-server --port 7701 --requirepass hepengju --masterauth hepengju --replica-announce-ip 192.168.1.111
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7702:
@@ -69,7 +74,7 @@ services:
     container_name: redis8-7702
     command: redis-server --port 7702 --requirepass hepengju --masterauth hepengju --replica-announce-ip 192.168.1.111 --replicaof 192.168.1.111 7701
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-7703:
@@ -77,7 +82,7 @@ services:
     container_name: redis8-7703
     command: redis-server --port 7703 --requirepass hepengju --masterauth hepengju --replica-announce-ip 192.168.1.111 --replicaof 192.168.1.111 7701
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
   redis8-27701:
@@ -85,7 +90,7 @@ services:
     container_name: redis8-27701
     command: redis-sentinel /etc/redis/sentinel.conf
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -95,7 +100,7 @@ services:
     container_name: redis8-27702
     command: redis-sentinel /etc/redis/sentinel.conf
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -105,16 +110,17 @@ services:
     container_name: redis8-27703
     command: redis-sentinel /etc/redis/sentinel.conf
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
       - ./config-27703/:/etc/redis/
 ```
 
-
 ## Sentinel + SSL
+
 ### config
+
 ```shell
 mkdir config-2880{1,2,3}
 
@@ -169,7 +175,9 @@ cp ../redis.* config-28803
 chmod -R 777 config-28801/ config-28802/ config-28803/
 
 ```
+
 ### docker-compose.yaml
+
 ```yaml
 services:
   redis8-8801:
@@ -177,7 +185,7 @@ services:
     container_name: redis8-8801-ssl
     command: redis-server --port 0 --tls-port 8801 --tls-cert-file /etc/redis/redis.crt --tls-key-file /etc/redis/redis.key --tls-ca-cert-file /etc/redis/redis.crt --tls-replication yes --requirepass hepengju --masterauth hepengju --replica-announce-ip 192.168.1.111
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -188,7 +196,7 @@ services:
     container_name: redis8-8802-ssl
     command: redis-server --port 0 --tls-port 8802 --tls-cert-file /etc/redis/redis.crt --tls-key-file /etc/redis/redis.key --tls-ca-cert-file /etc/redis/redis.crt --tls-replication yes --requirepass hepengju --masterauth hepengju --replica-announce-ip 192.168.1.111 --replicaof 192.168.1.111 8801
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -199,7 +207,7 @@ services:
     container_name: redis8-8803-ssl
     command: redis-server --port 0 --tls-port 8803 --tls-cert-file /etc/redis/redis.crt --tls-key-file /etc/redis/redis.key --tls-ca-cert-file /etc/redis/redis.crt --tls-replication yes --requirepass hepengju --masterauth hepengju --replica-announce-ip 192.168.1.111 --replicaof 192.168.1.111 8801
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -210,7 +218,7 @@ services:
     container_name: redis8-28801-ssl
     command: redis-sentinel /etc/redis/sentinel.conf
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -220,7 +228,7 @@ services:
     container_name: redis8-28802-ssl
     command: redis-sentinel /etc/redis/sentinel.conf
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -230,7 +238,7 @@ services:
     container_name: redis8-28803-ssl
     command: redis-sentinel /etc/redis/sentinel.conf
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:

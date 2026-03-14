@@ -1,15 +1,15 @@
 <script setup>
-import {clientTip as tips} from '@/utils/tip.js'
+import { clientTip as tips } from '@/utils/tip.js'
 import NodeList from '@/views/ext/NodeList.vue'
-import {meConfirm, meHumanSeconds, meInvoke, meOk} from '@/utils/util.js'
-import {useI18n} from 'vue-i18n'
+import { meConfirm, meHumanSeconds, meInvoke, meOk } from '@/utils/util.js'
+import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
-const {initNode} = defineProps({
-  initNode: {type: String, default: ''}
+const { initNode } = defineProps({
+  initNode: { type: String, default: '' },
 })
 
 const node = ref(initNode)
@@ -22,20 +22,22 @@ const sortOrder = ref('ascending')
 
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
-  const arr = dataList.value.filter(row => !key
-    || row.addr?.toLowerCase().indexOf(key) > -1
-    || row.name?.toLowerCase().indexOf(key) > -1
+  const arr = dataList.value.filter(
+    (row) =>
+      !key ||
+      row.addr?.toLowerCase().indexOf(key) > -1 ||
+      row.name?.toLowerCase().indexOf(key) > -1,
   )
 
   const prop = sortProperty.value
   const isAsc = sortOrder.value === 'ascending'
-  const arr01 = arr.filter(d => d[prop])
-  const arr02 = arr.filter(d => !d[prop])
+  const arr01 = arr.filter((d) => d[prop])
+  const arr02 = arr.filter((d) => !d[prop])
   arr01.sort((a, b) => (a[prop] < b[prop] ? -1 : 1) * (isAsc ? 1 : -1))
   return [...arr01, ...arr02]
 })
 
-function sortChange({prop, order}) {
+function sortChange({ prop, order }) {
   if (order) {
     sortProperty.value = prop
     sortOrder.value = order
@@ -48,7 +50,7 @@ function sortChange({prop, order}) {
 async function refresh() {
   loading.value = true
   try {
-    const params = {id: share.conn.id, node: node.value, clientType: clientType.value}
+    const params = { id: share.conn.id, node: node.value, clientType: clientType.value }
     dataList.value = await meInvoke('client_list', params)
   } finally {
     loading.value = false
@@ -57,25 +59,61 @@ async function refresh() {
 refresh()
 
 async function killClient(row) {
-  meConfirm(t('redisClient.killClientConfirm', {client: row.addr}), async () => {
-    const param = {command: `client kill ${row.addr}`, node: node.value}
-    await meInvoke('execute_command', {id: share.conn.id, param})
+  meConfirm(t('redisClient.killClientConfirm', { client: row.addr }), async () => {
+    const param = { command: `client kill ${row.addr}`, node: node.value }
+    await meInvoke('execute_command', { id: share.conn.id, param })
     meOk(t('redisClient.killClientOk'))
     await refresh()
   })
 }
 
 // 客户端属性
-const totalProps = ["user","db","id","addr","laddr","fd","name","age","idle","flags","sub","psub","ssub","multi","watch","qbuf","qbufFree","argvMem","multiMem","obl","oll","omem","totMem","events","cmd","redir","resp","rbp","rbs","libName","libVer","ioThread","totNetIn","totNetOut","totCmds"]
-const mainProps = ["id", "addr", "name", "age", "idle", "cmd"]
-const otherProps = totalProps.filter(p => !mainProps.includes(p))
+const totalProps = [
+  'user',
+  'db',
+  'id',
+  'addr',
+  'laddr',
+  'fd',
+  'name',
+  'age',
+  'idle',
+  'flags',
+  'sub',
+  'psub',
+  'ssub',
+  'multi',
+  'watch',
+  'qbuf',
+  'qbufFree',
+  'argvMem',
+  'multiMem',
+  'obl',
+  'oll',
+  'omem',
+  'totMem',
+  'events',
+  'cmd',
+  'redir',
+  'resp',
+  'rbp',
+  'rbs',
+  'libName',
+  'libVer',
+  'ioThread',
+  'totNetIn',
+  'totNetOut',
+  'totCmds',
+]
+const mainProps = ['id', 'addr', 'name', 'age', 'idle', 'cmd']
+const otherProps = totalProps.filter((p) => !mainProps.includes(p))
 function propWidth(item) {
-  if (item === 'laddr') return 180;
-  if (item.length == 2) return 70;
-  if (item.length == 3) return 80;
-  if (item.length == 4 ) return 96;
-  if (item.length == 5 ) return 100;
-  return 130;
+  if (item === 'laddr') return 180
+  if (item.length == 2) return 70
+  if (item.length == 3) return 80
+  if (item.length == 4) return 96
+  if (item.length == 5) return 100
+  return 130
 }
 </script>
 
@@ -83,31 +121,51 @@ function propWidth(item) {
   <div class="redis-client">
     <div class="me-flex header">
       <div class="me-flex">
-        <node-list v-model="node" style="margin-right: 10px" @change="refresh"/>
-        <el-select v-model="clientType" style="width: 120px;"
-                   @change="refresh"
-                   :placeholder="t('redisClient.clientType')" clearable>
-          <el-option value="NORMAL"/>
-          <el-option value="MASTER"/>
-          <el-option value="SLAVE"/>
-          <el-option value="REPLICA"/>
-          <el-option value="PUBSUB"/>
+        <node-list v-model="node" style="margin-right: 10px" @change="refresh" />
+        <el-select
+          v-model="clientType"
+          style="width: 120px"
+          @change="refresh"
+          :placeholder="t('redisClient.clientType')"
+          clearable
+        >
+          <el-option value="NORMAL" />
+          <el-option value="MASTER" />
+          <el-option value="SLAVE" />
+          <el-option value="REPLICA" />
+          <el-option value="PUBSUB" />
         </el-select>
-        <me-website to="client"/>
+        <me-website to="client" />
       </div>
       <div>
-        <el-input v-model="keyword" :placeholder="t('redisClient.keyword')" style="width: 280px; margin-right: 10px"
-                  clearable/>
-        <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading"/>
+        <el-input
+          v-model="keyword"
+          :placeholder="t('redisClient.keyword')"
+          style="width: 280px; margin-right: 10px"
+          clearable
+        />
+        <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading" />
       </div>
     </div>
     <div class="table">
-      <me-table :data="filterDataList" ref="table" v-loading="loading"
-                :default-sort="{prop: 'id', order: 'ascending'}"
-                @sort-change="sortChange"
-                border stripe height="100%">
-
-        <el-table-column label="ID" prop="id" show-overflow-tooltip sortable width="100" align="right">
+      <me-table
+        :data="filterDataList"
+        ref="table"
+        v-loading="loading"
+        :default-sort="{ prop: 'id', order: 'ascending' }"
+        @sort-change="sortChange"
+        border
+        stripe
+        height="100%"
+      >
+        <el-table-column
+          label="ID"
+          prop="id"
+          show-overflow-tooltip
+          sortable
+          width="100"
+          align="right"
+        >
           <template #header>
             <el-tooltip :content="tips['id'] || 'id'" placement="top">
               <span>ID</span>
@@ -128,14 +186,28 @@ function propWidth(item) {
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="age" show-overflow-tooltip sortable width="140" align="right" :formatter="row => meHumanSeconds(row.age)">
+        <el-table-column
+          prop="age"
+          show-overflow-tooltip
+          sortable
+          width="140"
+          align="right"
+          :formatter="(row) => meHumanSeconds(row.age)"
+        >
           <template #header>
             <el-tooltip :content="tips['age'] || 'age'" placement="top">
               <span>{{ t('redisClient.age') }}</span>
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="idle" show-overflow-tooltip sortable width="120" align="right" :formatter="row => meHumanSeconds(row.idle)">
+        <el-table-column
+          prop="idle"
+          show-overflow-tooltip
+          sortable
+          width="120"
+          align="right"
+          :formatter="(row) => meHumanSeconds(row.idle)"
+        >
           <template #header>
             <el-tooltip :content="tips['idle'] || 'idle'" placement="top">
               <span>{{ t('redisClient.idle') }}</span>
@@ -150,18 +222,37 @@ function propWidth(item) {
           </template>
         </el-table-column>
 
-        <el-table-column v-for="item in otherProps" :key="item" :prop="item" show-overflow-tooltip sortable :width="propWidth(item)" align="right">
+        <el-table-column
+          v-for="item in otherProps"
+          :key="item"
+          :prop="item"
+          show-overflow-tooltip
+          sortable
+          :width="propWidth(item)"
+          align="right"
+        >
           <template #header>
-              <el-tooltip :content="tips[item] || item" placement="top">
-                <span>{{ item }}</span>
-              </el-tooltip>
+            <el-tooltip :content="tips[item] || item" placement="top">
+              <span>{{ item }}</span>
+            </el-tooltip>
           </template>
         </el-table-column>
 
-        <el-table-column :label="t('action')" width="80" align="center" fixed="right" v-if="canEdit">
+        <el-table-column
+          :label="t('action')"
+          width="80"
+          align="center"
+          fixed="right"
+          v-if="canEdit"
+        >
           <template #default="scope">
-            <me-icon :info="t('redisClient.killClientHint')" icon="el-icon-CircleCloseFilled" class="icon-btn"
-                     @click="killClient(scope.row)" style="justify-content: center"/>
+            <me-icon
+              :info="t('redisClient.killClientHint')"
+              icon="el-icon-CircleCloseFilled"
+              class="icon-btn"
+              @click="killClient(scope.row)"
+              style="justify-content: center"
+            />
           </template>
         </el-table-column>
       </me-table>

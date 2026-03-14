@@ -1,14 +1,21 @@
 <script setup>
-import {meConfirm, meDownloadUpdate, meErr, meInvoke, meOk, PREDEFINE_COLORS} from '@/utils/util.js'
+import {
+  meConfirm,
+  meDownloadUpdate,
+  meErr,
+  meInvoke,
+  meOk,
+  PREDEFINE_COLORS,
+} from '@/utils/util.js'
 import ConnSave from '@/views/ext/ConnSave.vue'
-import {nextTick, useTemplateRef} from 'vue'
-import {debounce} from 'lodash'
-import {Sortable} from 'sortablejs'
-import {open, save} from '@tauri-apps/plugin-dialog'
-import {readTextFile, writeTextFile} from '@tauri-apps/plugin-fs'
+import { nextTick, useTemplateRef } from 'vue'
+import { debounce } from 'lodash'
+import { Sortable } from 'sortablejs'
+import { open, save } from '@tauri-apps/plugin-dialog'
+import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
 import dayjs from 'dayjs'
 import { useI18n } from 'vue-i18n'
-import {checkConnList} from '@/plugins/tauri.js'
+import { checkConnList } from '@/plugins/tauri.js'
 
 const { t } = useI18n()
 const share = inject('share')
@@ -16,15 +23,17 @@ const share = inject('share')
 const keyword = ref('')
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return share.connList.filter(row => !key
-      || row.name?.toLowerCase().indexOf(key) > -1
-      || row.host?.toLowerCase().indexOf(key) > -1
+  return share.connList.filter(
+    (row) =>
+      !key ||
+      row.name?.toLowerCase().indexOf(key) > -1 ||
+      row.host?.toLowerCase().indexOf(key) > -1,
   )
 })
 
 const connRef = useTemplateRef('conn')
 const dialog = reactive({
-  conn: false
+  conn: false,
 })
 
 // 新增连接
@@ -63,8 +72,8 @@ const selectConn = debounce(async (conn) => {
 }, 200)
 
 // 单元格样式: 颜色显示
-function cellStyle({row}) {
-  if (row.color) return {color: row.color} // 优先考虑列中定义的颜色
+function cellStyle({ row }) {
+  if (row.color) return { color: row.color } // 优先考虑列中定义的颜色
 }
 
 // 行可拖拽 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,23 +83,20 @@ const table = useTemplateRef('table')
 // 原因: tauri v2里的配置文件默认监听了tauri的webview的拖拽功能，导致了HTML5的拖拽功能失效。
 // 参考: https://owl.xylib.top/posts/tauri-drag-drop
 function rowDrag() {
-  Sortable.create(
-      table.value.$el.querySelector('.el-table__body-wrapper tbody'),
-      {
-        // handle：selector 格式为简单css选择器的字符串，使列表单元中符合选择器的元素成为拖动的手柄，只有按住拖动手柄才能使列表单元进行拖动；
-        handle: '.drag-handle',
-        onEnd: ({oldIndex, newIndex}) => {
-          const dragRow = share.connList.splice(oldIndex, 1)[0]
-          share.connList.splice(newIndex, 0, dragRow)
-        }
-      }
-  )
+  Sortable.create(table.value.$el.querySelector('.el-table__body-wrapper tbody'), {
+    // handle：selector 格式为简单css选择器的字符串，使列表单元中符合选择器的元素成为拖动的手柄，只有按住拖动手柄才能使列表单元进行拖动；
+    handle: '.drag-handle',
+    onEnd: ({ oldIndex, newIndex }) => {
+      const dragRow = share.connList.splice(oldIndex, 1)[0]
+      share.connList.splice(newIndex, 0, dragRow)
+    },
+  })
 }
 
 onMounted(() => rowDrag())
 
 // 导入导出的公共属性
-const filters = [{name: '', extensions: ['json']}]
+const filters = [{ name: '', extensions: ['json'] }]
 
 // 导入导出下拉框命令处理
 function handleCommand(command) {
@@ -104,7 +110,7 @@ function handleCommand(command) {
 // 导出连接
 async function exportConn() {
   const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss')
-  const path = await save({multiple: false, directory: true, filters, defaultPath: fileName})
+  const path = await save({ multiple: false, directory: true, filters, defaultPath: fileName })
   if (path) {
     try {
       await writeTextFile(path, JSON.stringify(share.connList, null, 2))
@@ -117,16 +123,16 @@ async function exportConn() {
 
 // 导入连接
 async function importConn() {
-  const file = await open({multiple: false, directory: false, filters})
+  const file = await open({ multiple: false, directory: false, filters })
   if (file) {
     // 读取文件并检查文件内容是否符合要求
     try {
       const content = await readTextFile(file)
       const impConnList = await checkImportContent(content)
-      const impIds = impConnList.map(conn => conn.id)
+      const impIds = impConnList.map((conn) => conn.id)
 
       const newConnList = []
-      newConnList.push(...share.connList.filter(conn => !impIds.includes(conn.id)))
+      newConnList.push(...share.connList.filter((conn) => !impIds.includes(conn.id)))
       newConnList.push(...impConnList)
 
       share.connList = newConnList
@@ -155,7 +161,7 @@ async function checkImportContent(content) {
   }
 
   // 属性检查（简单检查）
-  connList.forEach(conn => {
+  connList.forEach((conn) => {
     if (!conn.id || !conn.name || !conn.host || !conn.port) {
       throw new Error(t('conn.importFormatErr'))
     }
@@ -181,46 +187,59 @@ function clickNew() {
   <div class="redis-conn">
     <div class="me-flex header">
       <div class="me-flex">
-        <el-button icon="el-icon-plus" type="primary" @click="addConn">{{t('conn.add')}}</el-button>
+        <el-button icon="el-icon-plus" type="primary" @click="addConn">{{
+          t('conn.add')
+        }}</el-button>
       </div>
       <div class="me-flex">
-        <me-icon icon="me-icon-new" class="icon-new" @click="clickNew" v-if="app.update?.version"/>
+        <me-icon icon="me-icon-new" class="icon-new" @click="clickNew" v-if="app.update?.version" />
         <el-dropdown placement="bottom-start" @command="handleCommand" style="margin-right: 10px">
           <el-button>...</el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="export" :disabled="share.connList.length === 0 ">
-                <me-icon :name="t('conn.export')" icon="el-icon-upload"/>
+              <el-dropdown-item command="export" :disabled="share.connList.length === 0">
+                <me-icon :name="t('conn.export')" icon="el-icon-upload" />
               </el-dropdown-item>
               <el-dropdown-item command="import">
-                <me-icon :name="t('conn.import')" icon="el-icon-download"/>
+                <me-icon :name="t('conn.import')" icon="el-icon-download" />
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-input v-model="keyword" :placeholder="t('conn.keyword')" style="width: 300px; margin-right: 10px" clearable/>
+        <el-input
+          v-model="keyword"
+          :placeholder="t('conn.keyword')"
+          style="width: 300px; margin-right: 10px"
+          clearable
+        />
       </div>
     </div>
-    <el-table ref="table"
-              :data="filterDataList"
-              :cell-style="cellStyle"
-              row-key="id"
-              @row-dblclick="selectConn"
-              border stripe
-              height="100%">
-      <el-table-column label="#" type="index" width="50" align="center" class-name="drag-handle"/>
+    <el-table
+      ref="table"
+      :data="filterDataList"
+      :cell-style="cellStyle"
+      row-key="id"
+      @row-dblclick="selectConn"
+      border
+      stripe
+      height="100%"
+    >
+      <el-table-column label="#" type="index" width="50" align="center" class-name="drag-handle" />
       <el-table-column :label="t('conn.color')" prop="color" width="64" align="center">
         <template #default="scope">
-          <el-color-picker size="small" v-model="scope.row.color" :predefine="PREDEFINE_COLORS"/>
+          <el-color-picker size="small" v-model="scope.row.color" :predefine="PREDEFINE_COLORS" />
         </template>
       </el-table-column>
       <el-table-column :label="t('conn.name')" prop="name" show-overflow-tooltip>
         <template #default="scope">
           <div style="display: flex">
-            <el-link underline="never" type="primary"
-                     @click="selectConn(scope.row)"
-                     :style="{'--el-link-text-color': scope.row.color}">
-              <me-icon icon="el-icon-connection" :name="scope.row.name"/>
+            <el-link
+              underline="never"
+              type="primary"
+              @click="selectConn(scope.row)"
+              :style="{ '--el-link-text-color': scope.row.color }"
+            >
+              <me-icon icon="el-icon-connection" :name="scope.row.name" />
             </el-link>
           </div>
         </template>
@@ -232,26 +251,50 @@ function clickNew() {
       </el-table-column>
       <el-table-column :label="t('conn.otherProp')" width="200" show-overflow-tooltip>
         <template #default="scope">
-          <el-checkbox disabled size="small" v-model="scope.row.readonly">{{ t('conn.readonlyShort') }}</el-checkbox>
-          <el-checkbox disabled size="small" v-model="scope.row.cluster">{{ t('conn.cluster') }}</el-checkbox>
+          <el-checkbox disabled size="small" v-model="scope.row.readonly">{{
+            t('conn.readonlyShort')
+          }}</el-checkbox>
+          <el-checkbox disabled size="small" v-model="scope.row.cluster">{{
+            t('conn.cluster')
+          }}</el-checkbox>
           <el-checkbox disabled size="small" v-model="scope.row.ssl">SSL</el-checkbox>
         </template>
       </el-table-column>
       <el-table-column :label="t('action')" width="100" fixed="right" align="center">
         <template #default="scope">
           <div class="me-flex">
-            <me-icon :info="t('copy')"   icon="el-icon-document-copy" class="icon-btn" @click="copyConn(scope.row) "/>
-            <me-icon :info="t('edit')"   icon="el-icon-edit" class="icon-btn" @click="editConn(scope.row)"/>
-            <me-icon :info="t('delete')" icon="el-icon-delete" class="icon-btn" @click="deleteConn(scope.row)"/>
+            <me-icon
+              :info="t('copy')"
+              icon="el-icon-document-copy"
+              class="icon-btn"
+              @click="copyConn(scope.row)"
+            />
+            <me-icon
+              :info="t('edit')"
+              icon="el-icon-edit"
+              class="icon-btn"
+              @click="editConn(scope.row)"
+            />
+            <me-icon
+              :info="t('delete')"
+              icon="el-icon-delete"
+              class="icon-btn"
+              @click="deleteConn(scope.row)"
+            />
           </div>
         </template>
       </el-table-column>
     </el-table>
 
-    <ConnSave ref="conn" v-if="dialog.conn" @closed="dialog.conn = false"/>
+    <ConnSave ref="conn" v-if="dialog.conn" @closed="dialog.conn = false" />
 
     <!-- 应用升级时的下载进度显示 -->
-    <el-progress class="downloading" type="dashboard" :percentage="app.downloadPercentage" v-if="app.downloading">
+    <el-progress
+      class="downloading"
+      type="dashboard"
+      :percentage="app.downloadPercentage"
+      v-if="app.downloading"
+    >
       <template #default="{ percentage }">
         <div class="percentage-value">{{ percentage }}%</div>
         <div class="percentage-label">{{ t('conn.downloading') }}</div>

@@ -1,4 +1,5 @@
 # Redis单机
+
 Quickly set up a Redis using docker-compose for verification or testing environments.
 
 ```shell
@@ -11,6 +12,7 @@ docker compose up -d
 ```
 
 ## Redis
+
 ```yaml
 services:
   redis:
@@ -18,12 +20,13 @@ services:
     container_name: redis8-6379
     command: redis-server --requirepass "hepengju"
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
 ```
 
 ## Redis + SSL
+
 ```yaml
 services:
   redis:
@@ -31,7 +34,7 @@ services:
     container_name: redis8-6380-ssl
     command: redis-server --requirepass "hepengju" --port 0 --tls-port 6380 --tls-cert-file /etc/redis/redis.crt --tls-key-file /etc/redis/redis.key --tls-ca-cert-file /etc/redis/redis.crt
     restart: always
-    network_mode: "host"
+    network_mode: 'host'
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -40,6 +43,7 @@ services:
 ```
 
 ## Redis Quick
+
 ```shell
 docker run -d --name redis-8 --network host --restart always -e TZ=Asia/Shanghai redis:8 redis-server --requirepass "hepengju" --port 6666
 ```

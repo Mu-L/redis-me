@@ -7,9 +7,9 @@
 - Social QR code: A new "Social" function is added, which displays the pictures of the WeChat official account (
   Xiaohebao) and Bilibili (He Yileng). You can follow them to view the text and picture update logs and video tutorials.
 - Valkey compatibility: A judgment identifier. The info contains the valkey_version key.
-    * Info: Compatibility of server version and modes.
-    * Config: Support for default configuration files and default table values (Valkey 7.2/8.0/8.1/9.0).
-    * Prefix of the connection dropdown box: Icon display.
+  - Info: Compatibility of server version and modes.
+  - Config: Support for default configuration files and default table values (Valkey 7.2/8.0/8.1/9.0).
+  - Prefix of the connection dropdown box: Icon display.
 - Official Website: The redirection to the official Redis website for info/config/client/commands fully supports four
   URLs, including the Chinese and English versions of Redis and Valkey.
 
@@ -27,4 +27,3 @@
 
 - New Feature: Support exporting data and importing data
 - Fix: Display of Chinese numbers in batch deletion keys
-

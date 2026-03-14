@@ -409,15 +409,13 @@ allocator_frag_bytes_lua: Delta between allocator_active_lua and allocator_alloc
 `.trim()
 
 const obj = {}
-str.split('\n')
-  .forEach(line => {
-    const index = line.indexOf(':')
-    if (index > 0) {
-      const key = line.substring(0, index).trim()
-      const value = line.substring(index + 1).trim()
-      obj[key] = value
-    }
-
-  })
+str.split('\n').forEach((line) => {
+  const index = line.indexOf(':')
+  if (index > 0) {
+    const key = line.substring(0, index).trim()
+    const value = line.substring(index + 1).trim()
+    obj[key] = value
+  }
+})
 
 console.log(obj)

@@ -12,10 +12,10 @@ Although the RedisME GUI supports most scenarios, running commands in the termin
 - **Extended Features**: Collapsible command output, selection copy, right-click paste, auto-copy results, etc.
 - **Built-in Commands**: clear to clear screen, help for help, open to open a URL
 - **Cluster Mode**: Automatic command broadcasting, execution on specified nodes
-    * When auto-broadcast is enabled and no node is selected, commands such as `CONFIG SET` and `SLOWLOG RESET` are
-      executed on all nodes
-    * Node specification is usually unnecessary; manual selection is only for special scenarios like viewing
-      configurations of a specific node
+  - When auto-broadcast is enabled and no node is selected, commands such as `CONFIG SET` and `SLOWLOG RESET` are
+    executed on all nodes
+  - Node specification is usually unnecessary; manual selection is only for special scenarios like viewing
+    configurations of a specific node
 
 ![light.png](../../../public/images/terminal/light.png)
 ![dark.png](../../../public/images/terminal/dark.png)

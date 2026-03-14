@@ -22,5 +22,5 @@ vim /etc/docker/daemon.json
 }
 
 sudo systemctl restart docker
-sudo docker info 
+sudo docker info
 ```

@@ -1,9 +1,9 @@
 <script setup>
 // 说明: 前端分页表，用于数据量比较大的场景（比如内存分析等），进行前端分页，避免卡顿
-import {computed} from 'vue'
+import { computed } from 'vue'
 
-const {data} = defineProps({
-  data: {type: Array, default: () => []},
+const { data } = defineProps({
+  data: { type: Array, default: () => [] },
 })
 
 // 前端分页表
@@ -32,15 +32,15 @@ function updatePageSize(size) {
       </el-table>
     </div>
     <el-pagination
-        style="margin: 10px 0 0 5px"
-        size="small"
-        background
-        @change="handleChange"
-        :page-size="pageSize"
-        :page-sizes="[20,50,100]"
-        @update:page-size="updatePageSize"
-        :total="data.length"
-        layout="total, sizes, prev, pager, next, jumper"
+      style="margin: 10px 0 0 5px"
+      size="small"
+      background
+      @change="handleChange"
+      :page-size="pageSize"
+      :page-sizes="[20, 50, 100]"
+      @update:page-size="updatePageSize"
+      :total="data.length"
+      layout="total, sizes, prev, pager, next, jumper"
     />
   </div>
 </template>

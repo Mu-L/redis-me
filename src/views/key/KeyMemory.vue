@@ -1,10 +1,10 @@
 <script setup>
-import {useVirtualList} from '@vueuse/core'
-import {meHumanSize, meInvoke} from '@/utils/util.js'
-import {useI18n} from 'vue-i18n'
+import { useVirtualList } from '@vueuse/core'
+import { meHumanSize, meInvoke } from '@/utils/util.js'
+import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-defineExpose({open})
+defineExpose({ open })
 function open(data) {
   keyList.value = []
   visible.value = true
@@ -25,7 +25,7 @@ const form = ref({
   countLimit: 10000,
   scanCount: 10000,
   scanTotal: 0,
-  sleepMillis: 0
+  sleepMillis: 0,
 })
 
 // 内存分析
@@ -33,33 +33,38 @@ const keyList = ref([])
 async function keyMemory() {
   loading.value = true
   try {
-    const data = await meInvoke('memory_usage', {id: share.conn.id, param: form.value})
+    const data = await meInvoke('memory_usage', { id: share.conn.id, param: form.value })
     keyList.value = data
   } finally {
     loading.value = false
   }
 }
 
-const totalSize = computed(() => keyList.value.map(item => item.size).reduce((sum, cur) => sum + cur, 0))
+const totalSize = computed(() =>
+  keyList.value.map((item) => item.size).reduce((sum, cur) => sum + cur, 0),
+)
 
 // 虚拟列表
 const items = computed(() => keyList.value)
-const {list, containerProps, wrapperProps} = useVirtualList(
-  items, {itemHeight: 14},
-)
+const { list, containerProps, wrapperProps } = useVirtualList(items, { itemHeight: 14 })
 </script>
 
 <template>
   <el-dialog :title="t('keyMemory.title')" v-model="visible" :width="600">
-
     <el-form label-position="top">
       <el-form-item :label="t('keyMemory.match')">
         <!-- 此处保留可编辑，使用更加方便 -->
-        <el-input type="text" v-model="form.match" disabled/>
+        <el-input type="text" v-model="form.match" disabled />
       </el-form-item>
 
-      <el-form-item :label="t('keyMemory.info', {total: keyList.length, size: meHumanSize(totalSize)}) + (keyList.length >= form.countLimit ? t('keyMemory.limit', {size: form.countLimit}) : '')" :loading="loading">
-        <div v-bind="containerProps" :style="{height: '300px', width: '100%'}">
+      <el-form-item
+        :label="
+          t('keyMemory.info', { total: keyList.length, size: meHumanSize(totalSize) }) +
+          (keyList.length >= form.countLimit ? t('keyMemory.limit', { size: form.countLimit }) : '')
+        "
+        :loading="loading"
+      >
+        <div v-bind="containerProps" :style="{ height: '300px', width: '100%' }">
           <div v-bind="wrapperProps">
             <div v-for="item in list" :key="item.index" class="key me-flex">
               <div class="single-line-ellipsis">{{ item.data.key }}</div>
@@ -80,4 +85,3 @@ const {list, containerProps, wrapperProps} = useVirtualList(
   color: var(--el-color-info);
 }
 </style>
-

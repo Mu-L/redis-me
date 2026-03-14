@@ -12,8 +12,8 @@
 - **扩展功能**: 命令折叠、选中复制、右键粘贴、结果自动复制等
 - **内置命令**: clear 清屏, help 帮助, open 打开网址
 - **集群模式**: 命令自动广播, 指定节点执行
-    * 自动广播开启且没有选择节点时`CONFIG SET`和`SLOWLOG RESET`等命令会在所有节点执行
-    * 正常情况下无需指定节点，仅在查看特定节点配置等特殊场景可手动指定节点
+  - 自动广播开启且没有选择节点时`CONFIG SET`和`SLOWLOG RESET`等命令会在所有节点执行
+  - 正常情况下无需指定节点，仅在查看特定节点配置等特殊场景可手动指定节点
 
 ![light.png](../../../public/images/terminal/light.png)
 ![dark.png](../../../public/images/terminal/dark.png)

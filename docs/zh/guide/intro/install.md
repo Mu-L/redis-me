@@ -1,6 +1,7 @@
 <script setup>
 import {version} from '../../../../package.json'
 </script>
+
 # 安装帮助
 
 ## Windows

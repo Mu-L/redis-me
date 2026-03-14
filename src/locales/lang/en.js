@@ -35,7 +35,7 @@ export default {
     readonly: 'Readonly',
     writable: 'Writable',
     readonlyTip: 'Changed To Readonly',
-    writableTip: 'Changed To Writable'
+    writableTip: 'Changed To Writable',
   },
 
   setting: {
@@ -59,7 +59,7 @@ export default {
     nowVersion: 'Version',
     updateNow: 'Check Now',
     updateProxy: 'Update Proxy',
-    updateAppStore: 'Update By AppStore'
+    updateAppStore: 'Update By AppStore',
   },
 
   conn: {
@@ -128,7 +128,7 @@ export default {
     updateDone: 'Update done, restart now?',
     updateErr: 'Download Package Fail',
     latestVersion: "You're up-to-date",
-    checkUpdateErr: 'Check Update Fail'
+    checkUpdateErr: 'Check Update Fail',
   },
 
   tabMain: {
@@ -140,7 +140,7 @@ export default {
     monitor: 'Monitor',
     pubsub: 'Pub/Sub',
     chart: 'Chart',
-    tauri: 'Tauri'
+    tauri: 'Tauri',
   },
 
   keyHeader: {
@@ -165,7 +165,7 @@ export default {
 
   about: {
     sourceCode: 'Source Code',
-    officialWebsite: 'Official Website'
+    officialWebsite: 'Official Website',
   },
 
   fieldAdd: {
@@ -211,7 +211,7 @@ export default {
   nodeList: {
     placeholder: 'Node [Optional]',
     master: 'M',
-    slave: 'S'
+    slave: 'S',
   },
 
   keyBatch: {
@@ -232,7 +232,7 @@ export default {
     exportFile: 'Export Path',
     exportFileRequired: 'Please Select export path',
     exportFileTip: 'Select export path',
-    expireTip: 'Include Expiration'
+    expireTip: 'Include Expiration',
   },
 
   keyImport: {
@@ -246,14 +246,14 @@ export default {
     handleTtl: 'Expiration',
     parse: 'Parse File',
     forever: 'Forever',
-    confirm: 'Confirm Import'
+    confirm: 'Confirm Import',
   },
 
   keyMemory: {
     title: 'Folder Memory Usage',
     match: 'Key match expression',
     info: 'Total: {total}，Size: {size}',
-    limit: '(Data has reached limit：${limit})'
+    limit: '(Data has reached limit：${limit})',
   },
 
   keyList: {
@@ -286,7 +286,7 @@ export default {
     cmd: 'Last Cmd',
     killClientHint: 'Kill Client',
     killClientConfirm: 'Confirm Kill Client【{client}】?',
-    killClientOk: 'Killed'
+    killClientOk: 'Killed',
   },
 
   redisConfig: {
@@ -304,7 +304,7 @@ export default {
     valueRequired: 'value required',
     command: 'Command',
     autoBroadcast: 'Broadcast',
-    autoBroadcastTip: 'Automatically broadcast to all nodes in the cluster when enabled'
+    autoBroadcastTip: 'Automatically broadcast to all nodes in the cluster when enabled',
   },
 
   redisInfo: {
@@ -334,7 +334,7 @@ export default {
     tip: 'Tip',
     client: 'Client',
     runConfig: 'Run Config',
-    cacheRatio: 'Cache Hit Ratio'
+    cacheRatio: 'Cache Hit Ratio',
   },
 
   redisMemory: {
@@ -344,7 +344,8 @@ export default {
     Note: The memory usage command reports the number of bytes required for a key and its value to be stored in memory. The reported usage is the total memory allocation for a key and its value, including data and administrative overhead.
     `,
     total: 'Total',
-    longTimeHint: 'Are you sure to start memory analysis? It may take a long time, please be patient!',
+    longTimeHint:
+      'Are you sure to start memory analysis? It may take a long time, please be patient!',
     batchDeleteHint: 'Batch Delete 1 Key? | Batch Delete {count} Keys?',
     scanConfig: 'Scan Config',
 
@@ -362,11 +363,12 @@ export default {
     type: 'Type',
     key: 'Key',
     size: 'Size',
-    chooseKey: 'Detail'
+    chooseKey: 'Detail',
   },
 
   redisMonitor: {
-    monitorHint: 'Monitor command may cause server blocking, use with caution in production environment !',
+    monitorHint:
+      'Monitor command may cause server blocking, use with caution in production environment !',
     monitorStarted: 'Monitor Started',
     monitorStopped: 'Monitor Stoped',
     clearMessage: 'Clear Message',
@@ -374,7 +376,7 @@ export default {
     monitorStart: 'Start Monitor',
     monitorStop: 'Stop Monitor',
     time: 'DateTime',
-    command: 'Command'
+    command: 'Command',
   },
 
   redisPubSub: {
@@ -390,7 +392,7 @@ export default {
     channel: 'Channel',
     message: 'Message',
     messageContent: 'Message Content',
-    send: 'Send'
+    send: 'Send',
   },
 
   redisSlow: {
@@ -407,7 +409,7 @@ export default {
     clientName: 'ClientName',
     time: 'DateTime',
     node: 'Node',
-    client: 'Client'
+    client: 'Client',
   },
 
   redisTerminal: {
@@ -438,7 +440,8 @@ export default {
     ttlHintReadonly: 'Key expiration time',
     ttlForever: 'Forever',
     deleteKey: 'Delete Key',
-    prettyHint: 'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',
+    prettyHint:
+      'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',
     tableKeyword: 'Fuzzy Filter',
     insertRow: 'Insert Row',
     id: 'ID',
@@ -476,7 +479,7 @@ export default {
     keepUnit: 'm',
     maxPointCount: 'Max Point Count',
     pointUnit: '',
-    moreChart: 'More Charts'
+    moreChart: 'More Charts',
   },
 
   keyMain: {
@@ -509,5 +512,5 @@ export default {
     ttlOk: 'Set TTL Success',
     ttlRequired: 'Please input TTL',
     ttlValidator: '-1 (Forever) or positive integer',
-  }
+  },
 }

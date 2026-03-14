@@ -11,7 +11,7 @@ openssl x509 -req -in redis.csr -signkey redis.key -days 3650 -out redis.crt
 # Certificate:
 #     Data:
 #         Version: 3 (0x2)   ==> 注意此处的版本号, v1版本已弃用, rustls放弃支持
-  
+
 # 合并私钥和证书为PFX文件
 # openssl pkcs12 -export -out redis.pfx \
 #  -inkey redis.key -in redis.crt -password pass:hepengju

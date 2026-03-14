@@ -1,9 +1,9 @@
 <script setup>
-import {useI18n} from 'vue-i18n'
+import { useI18n } from 'vue-i18n'
 
-const {data} = defineProps({
-  name: {type: String, required: true},
-  icon: {type: String, required: true}
+const { data } = defineProps({
+  name: { type: String, required: true },
+  icon: { type: String, required: true },
 })
 
 const { t } = useI18n()
@@ -12,8 +12,8 @@ const { t } = useI18n()
 <template>
   <el-tab-pane :name>
     <template #label>
-      <me-icon :name="t(`tabMain.${name}`)" :icon/>
+      <me-icon :name="t(`tabMain.${name}`)" :icon />
     </template>
-    <slot/>
+    <slot />
   </el-tab-pane>
 </template>

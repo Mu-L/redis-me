@@ -1,5 +1,5 @@
 - 微软应用商店里面的升级去掉，由应用商店自行处理 √
-- 终端长命令输入  （Xterm ==> XTerminal）√
+- 终端长命令输入 （Xterm ==> XTerminal）√
 - 终端 Ctrl + L/C/E 快捷键及复制文本 √
 - 终端命令输入提示列表 √
 - 发布苹果商店（还需要缴费！）
@@ -16,7 +16,7 @@
 - 英文的配置项说明提示 √
 - Mac标题栏显示适配 √
 - 默认字体处理：适配MacOS,Linux可以合适显示 √
-- 阻止已发布程序的右键reload  √
+- 阻止已发布程序的右键reload √
 - 网站初步设计优化 √
 - 各平台打包优化：考虑是否需要Windows绿色版 √ （暂不需要）
 - 升级检测优化验证 √
@@ -25,18 +25,18 @@
 - 站点文档目录优化 √
 
 - Gitee的api暂不支直接获取最新release的latest.json文件，已提issue意向。已更换实现方式 √
-> https://gitee.com/oschina/git-osc/issues/IDERPB?from=project-issue
+  > https://gitee.com/oschina/git-osc/issues/IDERPB?from=project-issue
 - v-model.number优化 √
-- 监控、发布/订阅优化  √
+- 监控、发布/订阅优化 √
 - 标准线程无法取消，是否必要使用异步？×（实测异步不支持pipeline，在内存分析等场景更慢）
 - 终端命令是否需要单独的连接？避免相互影响？暂不处理
 - Command是Sized，是否可以定义个父类？× 更麻烦了
 - tauri第三方组件unwrap导致程序直接退出
 - tauri考虑是否需要使用异步模式执行 ×
-- 执行命令支持数据库切换  √
-- 监控、发布订阅  √
+- 执行命令支持数据库切换 √
+- 监控、发布订阅 √
 
-- 国际化支持  √
+- 国际化支持 √
 - dbSize显示出来 √
 - 尝试更换secrets设置方式
 - 单机、单机-ssl、集群、集群-ssl都验证连接成功 √

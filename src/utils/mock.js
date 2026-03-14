@@ -2,33 +2,33 @@ export const mockApiCommands = [
   {
     command: 'connect',
     param: {
-      id: 'test'
-    }
+      id: 'test',
+    },
   },
   {
     command: 'disconnect',
     param: {
-      id: 'test'
-    }
+      id: 'test',
+    },
   },
   {
     command: 'info',
     param: {
       id: 'test',
-      node: null
-    }
+      node: null,
+    },
   },
   {
     command: 'info_list',
     param: {
-      id: 'test'
-    }
+      id: 'test',
+    },
   },
   {
     command: 'node_list',
     param: {
-      id: 'test'
-    }
+      id: 'test',
+    },
   },
   {
     command: 'scan',
@@ -42,22 +42,22 @@ export const mockApiCommands = [
           readyNodes: [],
           nowNode: '',
           nowCursor: 0,
-          finished: false
+          finished: false,
         },
-        loadAll: false
-      }
-    }
+        loadAll: false,
+      },
+    },
   },
   {
     command: 'get',
     param: {
       id: 'test',
       key: {
-        "key": "hepengju:key",
-        "bytes": "aGVwZW5nanU6a2V5"
+        key: 'hepengju:key',
+        bytes: 'aGVwZW5nanU6a2V5',
       },
-      hash_key: null
-    }
+      hash_key: null,
+    },
   },
   {
     command: 'ttl',
@@ -65,10 +65,10 @@ export const mockApiCommands = [
       id: 'test',
       key: {
         key: 'hepengju:string',
-        bytes: []
+        bytes: [],
       },
-      ttl: 10000
-    }
+      ttl: 10000,
+    },
   },
   {
     command: 'set',
@@ -76,11 +76,11 @@ export const mockApiCommands = [
       id: 'test',
       key: {
         key: 'hepengju:string1',
-        bytes: []
+        bytes: [],
       },
       value: 'hepengju:string1value1',
-      ttl: 10000
-    }
+      ttl: 10000,
+    },
   },
   {
     command: 'del',
@@ -88,9 +88,9 @@ export const mockApiCommands = [
       id: 'test',
       key: {
         key: 'hepengju:string1',
-        bytes: []
+        bytes: [],
       },
-    }
+    },
   },
   {
     command: 'field_add',
@@ -99,7 +99,7 @@ export const mockApiCommands = [
       param: {
         key: {
           key: 'hepengju:key',
-          bytes: []
+          bytes: [],
         },
         bytes: [],
         mode: 'key',
@@ -111,16 +111,16 @@ export const mockApiCommands = [
           {
             fieldKey: 'k01',
             fieldValue: 'v01',
-            fieldScore: 0.1
+            fieldScore: 0.1,
           },
           {
             fieldKey: 'k02',
             fieldValue: 'v02',
-            fieldScore: 0.2
-          }
+            fieldScore: 0.2,
+          },
         ],
-      }
-    }
+      },
+    },
   },
   {
     command: 'field_set',
@@ -129,7 +129,7 @@ export const mockApiCommands = [
       param: {
         key: {
           key: 'hepengju:key',
-          bytes: []
+          bytes: [],
         },
         srcFieldKey: 'k01',
         srcFieldValue: 'v01',
@@ -137,9 +137,9 @@ export const mockApiCommands = [
         fieldIndex: 0,
         fieldKey: 'k011',
         fieldValue: 'v011',
-        fieldScore: 0.1
-      }
-    }
+        fieldScore: 0.1,
+      },
+    },
   },
   {
     command: 'field_del',
@@ -148,13 +148,13 @@ export const mockApiCommands = [
       param: {
         key: {
           key: 'hepengju:key',
-          bytes: []
+          bytes: [],
         },
         fieldIndex: 0,
         fieldKey: 'k011',
         fieldValue: 'v011',
-      }
-    }
+      },
+    },
   },
   {
     command: 'execute_command',
@@ -163,9 +163,9 @@ export const mockApiCommands = [
       param: {
         command: 'cluster nodes',
         node: null,
-        autoBroadcast: true
-      }
-    }
+        autoBroadcast: true,
+      },
+    },
   },
   {
     command: 'config_get',
@@ -173,7 +173,7 @@ export const mockApiCommands = [
       id: 'test',
       pattern: 'save',
       node: null,
-    }
+    },
   },
   {
     command: 'config_set',
@@ -182,7 +182,7 @@ export const mockApiCommands = [
       key: 'save',
       value: '3600 3 300 100 60 10000',
       node: null,
-    }
+    },
   },
   {
     command: 'slow_log',
@@ -190,7 +190,7 @@ export const mockApiCommands = [
       id: 'test',
       count: 10,
       node: null,
-    }
+    },
   },
   {
     command: 'memory_usage',
@@ -202,17 +202,17 @@ export const mockApiCommands = [
         countLimit: 100,
         scanCount: 1000,
         scanTotal: 10000,
-        sleepMillis: 0
-      }
-    }
+        sleepMillis: 0,
+      },
+    },
   },
   {
     command: 'client_list',
     param: {
       id: 'test',
       node: null,
-      clientType: null
-    }
+      clientType: null,
+    },
   },
 
   {
@@ -220,41 +220,41 @@ export const mockApiCommands = [
     param: {
       id: 'test',
       channel: 'channel',
-      message: 'message'
-    }
+      message: 'message',
+    },
   },
   {
     command: 'subscribe',
     param: {
       id: 'test',
       channel: '',
-    }
+    },
   },
   {
     command: 'subscribe_stop',
     param: {
       id: 'test',
-    }
+    },
   },
   {
     command: 'monitor',
     param: {
       id: 'test',
       node: null,
-    }
+    },
   },
   {
     command: 'monitor_stop',
     param: {
       id: 'test',
       node: null,
-    }
+    },
   },
   {
     command: 'mock_data',
     param: {
       id: 'test',
-      count: 10
-    }
+      count: 10,
+    },
   },
 ]

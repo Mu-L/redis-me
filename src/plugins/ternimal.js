@@ -1,4 +1,4 @@
-import {createTerminal} from 'vue-web-terminal'
+import { createTerminal } from 'vue-web-terminal'
 
 const terminal = createTerminal()
 

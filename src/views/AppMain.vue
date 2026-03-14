@@ -1,36 +1,43 @@
 <script setup>
 import TabMain from './TabMain.vue'
-import {sortBy} from 'lodash'
-import {bus, CONN_LIST_WINDOWS_SYNC, CONN_REFRESH, DoNothing, meInvoke, meOk} from '@/utils/util.js'
+import { sortBy } from 'lodash'
+import {
+  bus,
+  CONN_LIST_WINDOWS_SYNC,
+  CONN_REFRESH,
+  DoNothing,
+  meInvoke,
+  meOk,
+} from '@/utils/util.js'
 import TabConn from '@/views/TabConn.vue'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
-import {onMounted, ref} from 'vue'
-import {check} from '@tauri-apps/plugin-updater'
-import {useI18n} from 'vue-i18n'
-import {getCurrentWindow} from '@tauri-apps/api/window'
+import { onMounted, ref } from 'vue'
+import { check } from '@tauri-apps/plugin-updater'
+import { useI18n } from 'vue-i18n'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 
-const {t} = useI18n()
+const { t } = useI18n()
 
 // 共享数据
 const share = reactive({
-  conn: null,                         // 当前连接
-  connList: meTauri.connList,         // 连接列表, 初始化从存储中已读取
-  nodeList: [],                       // 节点列表
-  loading: false,                     // 整个主体界面loading（其他地方也会使用到）
-  color: 'var(--el-color-primary)',   // 即 share.conn.color（便于使用和移植）
-  readonly: false,                    // 即 share.conn.readonly 当前连接是否只读(此处另外存储1份，避免影响连接默认的只读设置)
-  redisKey: null,                     // Redis键
-  tabName: 'info',                    // 标签页名
-  dbSizeMap: {},                      // 数据库大小显示
+  conn: null, // 当前连接
+  connList: meTauri.connList, // 连接列表, 初始化从存储中已读取
+  nodeList: [], // 节点列表
+  loading: false, // 整个主体界面loading（其他地方也会使用到）
+  color: 'var(--el-color-primary)', // 即 share.conn.color（便于使用和移植）
+  readonly: false, // 即 share.conn.readonly 当前连接是否只读(此处另外存储1份，避免影响连接默认的只读设置)
+  redisKey: null, // Redis键
+  tabName: 'info', // 标签页名
+  dbSizeMap: {}, // 数据库大小显示
 
   // 导入导出
-  exportImporting: false,             // 导入导出中
-  exportImportingTip: '',             // 导入导出提示
-  exportImportingPercentage: 0,       // 导入导出进度
+  exportImporting: false, // 导入导出中
+  exportImportingTip: '', // 导入导出提示
+  exportImportingPercentage: 0, // 导入导出进度
 
   // 兼容valkey
-  isValkey: false,                    // 默认不是valkey, 如果info信息中有valkey_version则设置为true
+  isValkey: false, // 默认不是valkey, 如果info信息中有valkey_version则设置为true
 })
 provide('share', share)
 
@@ -42,66 +49,73 @@ onUnmounted(() => bus.off(CONN_REFRESH, toggleKeyTag))
 const connPrepared = ref(false)
 function toggleKeyTag() {
   connPrepared.value = false
-  nextTick(() => connPrepared.value = true)
+  nextTick(() => (connPrepared.value = true))
 }
 
 // 切换连接时loading
-watch(() => share.conn, async (newConn, oldConn) => {
-  // 连接id未发生改变时，无需断开重连（比如颜色或db改变）
-  if (newConn?.id === oldConn?.id) return
+watch(
+  () => share.conn,
+  async (newConn, oldConn) => {
+    // 连接id未发生改变时，无需断开重连（比如颜色或db改变）
+    if (newConn?.id === oldConn?.id) return
 
-  share.loading = true
-  connPrepared.value = false
+    share.loading = true
+    connPrepared.value = false
 
-  try { // 关闭旧连接
-    if (oldConn) {
-      await meInvoke('disconnect', {id: oldConn.id})
+    try {
+      // 关闭旧连接
+      if (oldConn) {
+        await meInvoke('disconnect', { id: oldConn.id })
+      }
+
+      // 打开新连接，获取节点列表和数据库列表（TODO）
+      if (newConn) {
+        share.color = newConn.color
+        share.readonly = !!newConn.readonly
+        share.tabName = 'info'
+        await meInvoke('connect', { id: newConn.id })
+        connPrepared.value = true
+        const data = await meInvoke('node_list', { id: share.conn.id })
+        // 节点列表排序: 主节点在前面，相同类型节点按照node升序
+        const nodeList = sortBy(data, 'node').reverse()
+        share.nodeList = sortBy(nodeList, 'isMaster').reverse()
+      }
+    } catch (e) {
+      // 如果从连接列表页进入的，则返回连接列表页
+      if (!oldConn) share.conn = null
+    } finally {
+      share.loading = false
     }
-
-    // 打开新连接，获取节点列表和数据库列表（TODO）
-    if (newConn) {
-      share.color = newConn.color
-      share.readonly = !!newConn.readonly
-      share.tabName = 'info'
-      await meInvoke('connect', {id: newConn.id})
-      connPrepared.value = true
-      const data = await meInvoke('node_list', {id: share.conn.id})
-      // 节点列表排序: 主节点在前面，相同类型节点按照node升序
-      const nodeList = sortBy(data, 'node').reverse()
-      share.nodeList = sortBy(nodeList, 'isMaster').reverse()
-    }
-  } catch (e) {
-    // 如果从连接列表页进入的，则返回连接列表页
-    if (!oldConn) share.conn = null
-  } finally {
-    share.loading = false
-  }
-
-}, {deep: true})
+  },
+  { deep: true },
+)
 
 // 保存连接列表: 列表真实变化时才发送命令
 const window = getCurrentWindow()
 const connListToString = computed(() => JSON.stringify(share.connList))
-watch(connListToString, async (newConnList) => {
-  const connList = JSON.parse(newConnList)
-  meTauri.connList = connList // 保证导入导出连接时也进行持久化更新
+watch(
+  connListToString,
+  async (newConnList) => {
+    const connList = JSON.parse(newConnList)
+    meTauri.connList = connList // 保证导入导出连接时也进行持久化更新
 
-  // 后端同步 和 多窗口同步
-  await meInvoke('conn_list', {connList})
-  await window.emit(CONN_LIST_WINDOWS_SYNC, {connList, label: window.label})
-}, {immediate: true})
+    // 后端同步 和 多窗口同步
+    await meInvoke('conn_list', { connList })
+    await window.emit(CONN_LIST_WINDOWS_SYNC, { connList, label: window.label })
+  },
+  { immediate: true },
+)
 
 // 多窗口的连接列表实时同步（TODO 后端和持久化仅需要变化的窗口处理即可）
-onMounted(() => window.listen(CONN_LIST_WINDOWS_SYNC, e => share.connList = e.payload.connList))
+onMounted(() => window.listen(CONN_LIST_WINDOWS_SYNC, (e) => (share.connList = e.payload.connList)))
 
 // 软件自动更新
 const app = reactive({
-    // 软件更新
-    update: null,
-    downloading: false,
-    downloadPercentage: 0,
-  }
-)
+  // 软件更新
+  update: null,
+  downloading: false,
+  downloadPercentage: 0,
+})
 provide('app', app)
 async function checkAutoUpdate() {
   if (!meTauri.settings.autoUpdate) return
@@ -122,29 +136,37 @@ function changeReadonly() {
       <!-- 左侧键 -->
       <el-splitter-panel :min="250" size="30%">
         <div class="redis-key">
-          <KeyHeader/>
-          <KeyMain v-if="share.conn && connPrepared"/>
-          <el-empty v-else/>
+          <KeyHeader />
+          <KeyMain v-if="share.conn && connPrepared" />
+          <el-empty v-else />
         </div>
       </el-splitter-panel>
 
       <!-- 右侧值 -->
       <el-splitter-panel :min="250">
-        <TabConn     v-if="!share.conn"/>
+        <TabConn v-if="!share.conn" />
         <template v-else-if="connPrepared">
-          <TabMain/>
+          <TabMain />
 
           <!-- 只读/可写 -->
-          <me-icon class="readonly-icon" plain
-                     :icon="share.readonly ? 'me-icon-lock' : 'me-icon-unlock'"
-                     :name="share.readonly ? t('appMain.readonly') : t('appMain.writable')"
-                     :hint="true" :show-after="0"
-                     @click="changeReadonly"
+          <me-icon
+            class="readonly-icon"
+            plain
+            :icon="share.readonly ? 'me-icon-lock' : 'me-icon-unlock'"
+            :name="share.readonly ? t('appMain.readonly') : t('appMain.writable')"
+            :hint="true"
+            :show-after="0"
+            @click="changeReadonly"
           />
 
           <!-- 导入导出 -->
-          <el-progress class="export-importing" type="dashboard" status="success"
-                       :percentage="share.exportImportingPercentage" v-if="share.exportImporting">
+          <el-progress
+            class="export-importing"
+            type="dashboard"
+            status="success"
+            :percentage="share.exportImportingPercentage"
+            v-if="share.exportImporting"
+          >
             <template #default="{ percentage }">
               <div class="percentage-value">{{ percentage }}%</div>
               <div class="percentage-label">{{ share.exportImportingTip }}</div>
@@ -169,7 +191,7 @@ function changeReadonly() {
     display: flex;
     flex-direction: column;
   }
-    /* 中间分隔面板的样式调整 */
+  /* 中间分隔面板的样式调整 */
   :deep(.el-splitter-bar) {
     width: 5px !important;
 

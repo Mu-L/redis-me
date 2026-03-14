@@ -1,26 +1,33 @@
 <script setup>
-import {useDark} from '@vueuse/core'
+import { useDark } from '@vueuse/core'
 import CodeMirror from 'vue-codemirror6'
-import {json} from '@codemirror/lang-json'
-import {python} from '@codemirror/lang-python'
-import {isZh} from '@/utils/util.js'
-import {meBasicSetup, zhPhrases} from '@/plugins/codemirror.js'
+import { json } from '@codemirror/lang-json'
+import { python } from '@codemirror/lang-python'
+import { isZh } from '@/utils/util.js'
+import { meBasicSetup, zhPhrases } from '@/plugins/codemirror.js'
 
-const {mode, readOnly} = defineProps({
-  mode: {type: String, default: 'json'},
-  readOnly: {type: Boolean, default: false, required: false},
+const { mode, readOnly } = defineProps({
+  mode: { type: String, default: 'json' },
+  readOnly: { type: Boolean, default: false, required: false },
 })
 
 const dark = useDark()
 const lang = mode === 'json' ? json() : python() // 暂未找到ini或properties的语法高亮，暂用python代替（也是#作为注释）
-const phrases = computed(() => isZh.value ? zhPhrases: {})
+const phrases = computed(() => (isZh.value ? zhPhrases : {}))
 const extensions = [meBasicSetup] // 不使用默认的basicSetup，自己定义扩展（取消高亮当前行等）
 </script>
 
 <template>
   <!-- https://github.com/logue/vue-codemirror6  -->
-  <code-mirror v-bind="$attrs" :dark :lang :phrases :readonly="readOnly" :extensions
-               :class="readOnly ? ['codemirror-opacity' , 'is-disabled'] : []" />
+  <code-mirror
+    v-bind="$attrs"
+    :dark
+    :lang
+    :phrases
+    :readonly="readOnly"
+    :extensions
+    :class="readOnly ? ['codemirror-opacity', 'is-disabled'] : []"
+  />
 </template>
 
 <style scoped lang="scss">
