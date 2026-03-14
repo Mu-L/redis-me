@@ -22,7 +22,7 @@
 - 键的右键也加入`添加新键`动作, 默认键名设为`当前键名-copy`
 - 新增键的键类型下拉框与键类型过滤及键类型显示保持统一
 - 检查连接超时: 1s改为2s, 适配弱网络环境
-- vite升级8.0, pnpm/cargo update升级依赖到最新版本
+- 升级到viteplus, 并升级js/rust依赖代码
 
 ## [v2.2.1](https://mp.weixin.qq.com/s/GKM0wOIvPTl5Q_X_gme7Cg) (2026-03-08)
 

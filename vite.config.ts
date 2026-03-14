@@ -8,7 +8,9 @@ const host = process.env.TAURI_DEV_HOST
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  staged: { '*': 'vp check --fix' },
   lint: { options: { typeAware: true, typeCheck: true } },
+  // 这个选项目前验证只能在ts文件中才会生效，否则报错（应该是vp的bug）
   fmt: {
     semi: false,
     singleQuote: true,
