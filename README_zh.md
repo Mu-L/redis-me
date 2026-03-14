@@ -54,15 +54,15 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 curl -o- https://fnm.vercel.app/install | bash
 fnm install 22
 
-# 安装pnpm （国内镜像 https://npmmirror.com/）
-npm install -g pnpm
+# 安装vite+: 自动管理node/pnpm （国内镜像 https://npmmirror.com, 环境变量: NPM_CONFIG_REGISTRY）
+curl -fsSL https://vite.plus | bash
 
 # 克隆项目
 git clone https://github.com/hepengju/redis-me.git --depth=1
 
 # 安装前端依赖，然后本地启动开发模式
-pnpm install
-pnpm tauri dev
+vp install
+vp run tauri dev
 ```
 
 ## 微信公众号
