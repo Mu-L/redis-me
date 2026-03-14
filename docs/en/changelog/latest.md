@@ -1,6 +1,6 @@
 # 2.x Changelog
 
-## [v2.3.0]() (2026-03-15)
+## [v2.3.0](https://mp.weixin.qq.com/s/WoZvSwyv-w4bxW0lzHh9OA) (2026-03-15)
 
 - **Key type support**: Added support for json and stream types.
 - The right-click menu of keys also includes the action of Add new key, and the default key name is set to current key name-copy.

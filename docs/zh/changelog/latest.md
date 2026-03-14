@@ -16,7 +16,7 @@
 - Stream类型的其他命令扩展支持
 - Redis其他命令扩展支持
 
-## [v2.3.0]() (2026-03-15)
+## [v2.3.0](https://mp.weixin.qq.com/s/WoZvSwyv-w4bxW0lzHh9OA) (2026-03-15)
 
 - **键类型支持**: 新增json,stream类型的支持
 - 键的右键也加入`添加新键`动作, 默认键名设为`当前键名-copy`
