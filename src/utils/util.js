@@ -1,7 +1,7 @@
 import mitt from 'mitt'
 import { sampleSize } from 'lodash'
 import { useClipboard, useDark } from '@vueuse/core'
-import { ElLink, ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { invoke } from '@tauri-apps/api/core'
 import { check } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
@@ -79,7 +79,8 @@ export async function meInvoke(command, params, alert = true) {
     meLog(`命令: ${command}, 参数: `, params, '结果: ', data)
     retryCount = 0 // 一旦调用成功则重置重试次数
     return data
-  } catch (error) {
+  } catch (e) {
+    const error = e.toString()
     // 客户端断开后的自动重连(后端处理大部分，前端仅处理立刻的场景, 优化用户体验。避免无限递归，最多重试3次)
     if (error === 'unexpected end of file') {
       if (retryCount <= 3) {
@@ -104,7 +105,7 @@ export const DoNothing = () => {}
 export function meOk(message, isAlert = false, title = '') {
   if (isAlert) {
     // 提示后不消失（适用于长时间运行的任务）
-    ElMessageBox.alert(message, title || t('info'), { type: 'success' }).then(DoNothing)
+    void ElMessageBox.alert(message, title || t('info'), { type: 'success' }).then(DoNothing)
   } else {
     // 提示后自动消失
     ElMessage.success(message)
@@ -115,7 +116,7 @@ export function meErr(message, title = t('error')) {
   if (message instanceof Error) {
     message = message.message
   }
-  ElMessageBox.alert(message, title, { type: 'error' }).then(DoNothing)
+  void ElMessageBox.alert(message, title, { type: 'error' }).then(DoNothing)
 }
 
 export function meConfirm(message, thenFun, boxOptions = {}) {
@@ -134,14 +135,14 @@ export function mePrompt(message, options, thenFun) {
 
 // 复制文本
 export function meCopy(text, hintContent, hint = true) {
-  useClipboard({ legacy: true }).copy(text)
+  void useClipboard({ legacy: true }).copy(text)
   if (hint) {
     meOk(hintContent || t('copyOk'))
   }
 }
 
 // 随机N个字符
-const CHAR_ARRAY = [...'abcdefghigklmnopqrstuvwxyz0123456789']
+const CHAR_ARRAY = Array.from('abcdefghigklmnopqrstuvwxyz0123456789')
 export function meRandomString(n) {
   return sampleSize(CHAR_ARRAY, n).join('')
 }
@@ -305,7 +306,7 @@ export async function meDownloadUpdate(quiet = true, update, app) {
           style: 'text-decoration: none; margin-left: 5px',
           onClick: (e) => {
             e.preventDefault()
-            openUrl(changelogUrl) // a 和 el-link都无法打开外部链接，使用openUrl可以
+            void openUrl(changelogUrl) // a 和 el-link都无法打开外部链接，使用openUrl可以
           },
         },
         changelog,

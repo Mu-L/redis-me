@@ -4,7 +4,6 @@ import UnpluginSvgComponent from 'unplugin-svg-component/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import * as path from 'path'
 
-// @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST
 
 // https://vitejs.dev/config/

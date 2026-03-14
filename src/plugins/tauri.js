@@ -72,7 +72,7 @@ window.meTauri = meTauri
 // window.open不能用，修改为tauri的openUrl
 try {
   window.open = openUrl
-} catch (e) {}
+} catch {}
 
 // 配置保存
 watch(meTauri, async (newValue) => {
@@ -90,4 +90,4 @@ export function checkConnList() {
   })
 }
 
-export default function (app) {}
+export default function (_app) {}
