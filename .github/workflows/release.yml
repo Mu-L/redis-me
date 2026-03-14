@@ -65,5 +65,5 @@ jobs:
           releaseBody: 'See www.hepengju.com for more info'
           releaseDraft: true
           prerelease: false
-          tauriScript: vp
+          tauriScript: vp run tauri
           args: ${{ matrix.args }}
