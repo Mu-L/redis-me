@@ -138,7 +138,7 @@ export default {
     terminal: '终端',
     memory: '内存',
     slow: '慢日志',
-    monitor: '监控',
+    monitor: '命令监控',
     pubsub: '发布订阅',
     chart: '图表',
     tauri: 'Tauri',
