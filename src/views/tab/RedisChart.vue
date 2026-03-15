@@ -78,8 +78,13 @@ function refreshInstance() {
   totalCommandsProcessedRef.value?.chart.update()
 }
 
+
+// 单机节点上来就获取1次数据（注: 集群节点由于watch node的存在上来会自动获取1次数据)
+if (share.nodeList.length === 0) {
+  getData()
+}
+
 // 从后台获取原始数据
-getData()
 async function getData() {
   try {
     const res = await meInvoke('chart', { id: share.conn.id, node: node.value })

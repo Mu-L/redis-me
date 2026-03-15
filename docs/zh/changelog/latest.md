@@ -3,18 +3,20 @@
 ## Future
 
 - vite8/next的升级
-- 前端代码格式化
 - DB是否在连接界面使得用户可配置？DBxx不存在的报错
 - 连接超时，执行超时配置？
 - 改为TypeScript 或 JSDoc以便支持类型提示？
 - 调研: 谷歌firebase, 腾讯CloudBase实现用户体系会员登录/连接同步/设置同步等
 - 账号: 微信登录后可以同步连接配置和应用配置
 - Valkey9.0支持集群模式下的多数据库: rust-rs暂不支持
+- Redis其他命令扩展支持
+
+## [2.4.0]() (2026-04-01)
+
 - 键复选框多个选中后的批量操作
 - DB支持自定义名称显示
 - 值查看支持: hex,binary,base64等
-- Stream类型的其他命令扩展支持
-- Redis其他命令扩展支持
+- Stream类型支持设置最大、最小id进行查询，支持查询订阅组
 
 ## [v2.3.0](https://mp.weixin.qq.com/s/WoZvSwyv-w4bxW0lzHh9OA) (2026-03-15)
 

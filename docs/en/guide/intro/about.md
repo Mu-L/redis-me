@@ -21,4 +21,4 @@ RedisME is a modern lightweight cross-platform Redis desktop manager
 
 Regularly share the special features and update logs of RedisME, as well as other technical issues and solutions.
 
-<img src="../../../public/images/wechat.png" alt="wechat" width="400" />
+<img src="/images/wechat.png" alt="wechat" width="400" />

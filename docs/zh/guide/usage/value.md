@@ -12,7 +12,7 @@
 - **可选哈希键**: 支持输入hash键，仅获取hash值
 - **JSON/Table**: hash/set等默认显示为json，可切换为表格展示进行增删改
 
-![string.png](../../../public/images/value/string.png)
-![string-json-dark.png](../../../public/images/value/string-json-dark.png)
-![hash.png](../../../public/images/value/hash.png)
-![hash-table.png](../../../public/images/value/hash-table.png)
+![string.png](/images/value/string.png)
+![string-json-dark.png](/images/value/string-json-dark.png)
+![hash.png](/images/value/hash.png)
+![hash-table.png](/images/value/hash-table.png)
