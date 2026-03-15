@@ -17,9 +17,9 @@ Although the RedisME GUI supports most scenarios, running commands in the termin
   - Node specification is usually unnecessary; manual selection is only for special scenarios like viewing
     configurations of a specific node
 
-![light.png](../../../public/images/terminal/light.png)
-![dark.png](../../../public/images/terminal/dark.png)
-![command-table.png](../../../public/images/terminal/command-table.png)
+![light.png](/images/terminal/light.png)
+![dark.png](/images/terminal/dark.png)
+![command-table.png](/images/terminal/command-table.png)
 
 ## Design History
 
@@ -38,7 +38,7 @@ required manual implementation, which was relatively straightforward.
 exceed one line, proved extremely difficult**.
 Xterm.js is therefore more suitable for scenarios where all characters are
 forwarded to the backend via WebSocket, rather than the current requirements.
-![xtermjs.png](../../../public/images/terminal/xtermjs.png)
+![xtermjs.png](/images/terminal/xtermjs.png)
 
 ## 2. Based on [Xterminal](https://xterminal.js.org) (v1.3 ~ v1.8)
 
@@ -46,11 +46,11 @@ XTerminal is a lightweight, high‑performance frontend library for building com
 works well for the typical flow: input command → execute → display result.Command history is built‑in; only shortcuts
 required manual addition, meeting basic needs. **Displaying the command manual and implementing input hints required
 heavy custom development**.
-![xterminal.png](../../../public/images/terminal/xterminal.png)
+![xterminal.png](/images/terminal/xterminal.png)
 
 ## 3. Based on [vue-web-terminal](https://tzfun.github.io/vue-web-terminal/zh) (v1.9 ~ v2.x)
 
 vue-web-terminal is a powerful imperative web‑based emulated terminal plugin.It supports drag, resize, cursor
 control, history navigation, and other typical terminal behaviors,making it ideal for building clients for Redis,
 MySQL, ETCD, and similar tools.It satisfied requirements with minimal customization and was a perfect fit.
-![vue-web-terminal.png](../../../public/images/terminal/vue-web-terminal.png)
+![vue-web-terminal.png](/images/terminal/vue-web-terminal.png)
