@@ -16,15 +16,19 @@ hero:
 #      link: https://github.com/hepengju/redis-me
 
 features:
-  - title: Super Lightweight
+  - icon: 🚀
+    title: Tiny, Fast
     details: Based on Rust/Tauri, package size is less than 10M
-  - title: Pretty UI
+  - icon: 🎨
+    title: Pretty UI
     details: Light/dark themes, multi-language, font settings
-  - title: Cross Platform
+  - icon: 📚
+    title: Cross Platform
     details: Support Windows, Mac, Linux
     linkText: Download
     link: https://github.com/hepengju/redis-me/releases
-  - title: Open Source
+  - icon: 📖
+    title: Open Source
     details: Completely open source, safe
     linkText: Source Code
     link: https://github.com/hepengju/redis-me
