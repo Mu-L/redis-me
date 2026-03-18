@@ -68,6 +68,7 @@ function sidebarGuide() {
     {
       text: 'Other',
       items: [
+        { text: 'Compare', link: '/other/compare' },
         { text: 'Q&A', link: '/other/faq' },
         { text: 'Privacy Policy', link: '/other/privacy' },
       ],
