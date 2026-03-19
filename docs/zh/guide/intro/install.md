@@ -22,8 +22,16 @@ import {version} from '../../../../package.json'
 打开 `.dmg` 文件，将 `RedisME.app` 拖到 `Applications` 目录内即可。
 
 ::: danger 故障排除
-由于应用没有签名，如果显示开发者无法验证：
-点击`取消`按钮，并打开`设置 -> 隐私与安全性`页面，点击`仍要打开`按钮，最后在弹出窗口里点击`打开`按钮即可。
+
+- 如果显示开发者无法验证（应用签名需注册苹果开发者，每年99美元）：点击`取消`按钮，并打开`设置 -> 隐私与安全性`页面，点击`仍要打开`
+  按钮，最后在弹出窗口里点击`打开`按钮即可。
+- 如果安装后提示 `“RedisME”已损坏，无法打开` ，请打开 `Terminal.app` 并执行以下命令即可：
+
+```bash
+sudo xattr -d com.apple.quarantine /Applications/RedisME.app
+```
+
+然后再次尝试打开`RedisME`
 :::
 
 ## Linux

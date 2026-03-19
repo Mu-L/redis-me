@@ -23,9 +23,18 @@ download and install the [Webview2](https://developer.microsoft.com/en-us/micros
 After downloading, open the `.dmg` file and drag `RedisME.app` into the `Applications` folder.
 
 ::: danger Troubleshooting
-Since the app is not signed, shows "The developer cannot be verified":
-Click the `Cancel` button, then go to `Settings -> Privacy & Security` page, click the `Still Open` button, and then
-click the `Open` button in the pop-up window
+
+- If it shows "The developer cannot be verified" (the app signature requires registration as an Apple developer, which
+  costs $99 per year): Click the `Cancel` button, then go to `Settings -> Privacy & Security` page, click the
+  `Still Open` button, and then click the `Open` button in the pop-up window
+- If you get a pop-up such as "Broken files" after installation, please open `Terminal.app` and execute the following
+  command:
+
+```bash
+sudo xattr -d com.apple.quarantine /Applications/RedisME.app
+```
+
+Then try reopen `RedisME`
 :::
 
 ## Linux
