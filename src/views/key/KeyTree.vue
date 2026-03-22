@@ -2,6 +2,7 @@
 // 共享数据
 import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
+import {nanoid} from 'nanoid'
 
 const { t } = useI18n()
 const share = inject('share')
@@ -76,28 +77,35 @@ const treeData = computed(() => {
   const root = buildTree(filterKeyList)
   root.forEach((node) => countLeaves(node))
   root.sort((n1, n2) => {
-    // 文件夹在上面，叶子在下面（将叶子节点的数量归零，避免和只有1个键的文件夹混在一起）
-    const n1Count = n1.children.length > 0 ? n1.keyCount : 0
-    const n2Count = n2.children.length > 0 ? n2.keyCount : 0
-
     if (sortByCount) {
+      // 文件夹在上面，叶子在下面（将叶子节点的数量归零，避免和只有1个键的文件夹混在一起）
+      const n1Count = n1.children.length > 0 ? n1.keyCount : 0
+      const n2Count = n2.children.length > 0 ? n2.keyCount : 0
       // 文件夹按照键数量排序, 键数量相同时按照名称排序
       return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
     } else {
+      // 保存文件夹在上面，叶子在下面（文件夹的数量为都设置为1）
+      const n1Count = n1.children.length > 0 ? 1 : 0
+      const n2Count = n2.children.length > 0 ? 1 : 0
       // 文件夹按照名称排序
-      return n2.id > n1.id ? -1 : 1
+      return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
     }
   })
   return root
 })
 
 // 显示复选框时补充根节点
+const rootId = ref('')
+const defaultExpandedKeys = computed(() => [rootId.value])
 const rootTreeData = computed(() => {
   if (showCheckbox) {
+    rootId.value = nanoid() + Date.now()
     return [{
-      id: 'REDIS_ME_ROOT_NODE',
+      id: rootId.value,
       label: 'db' + share.conn?.db,
-      children: treeData.value
+      children: treeData.value,
+      keyCount: filterKeyList.length || 0,
+      isRootNode: true
     }]
   } else {
     return treeData.value
@@ -187,7 +195,7 @@ function buildList(keyList) {
       <el-tree-v2
         ref="tree"
         :data="rootTreeData"
-        :default-expanded-keys="['root']"
+        :default-expanded-keys="defaultExpandedKeys"
         @node-click="nodeClick"
         @node-contextmenu="nodeContextMenu"
         highlight-current
@@ -207,9 +215,9 @@ function buildList(keyList) {
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
             <me-icon
               :name="node.label"
-              :icon="node.key === 'root' ? 'me-icon-db' : (node.expanded ? 'el-icon-folderOpened' : 'el-icon-folder')"
+              :icon="node.data.isRootNode ? 'me-icon-db' : (node.expanded ? 'el-icon-folderOpened' : 'el-icon-folder')"
             />
-            <div style="color: var(--el-color-info); margin-right: 10px" v-if="node.key !== 'root'">
+            <div style="color: var(--el-color-info); margin-right: 10px">
               [ {{ node.data.keyCount }} ]
             </div>
           </div>
