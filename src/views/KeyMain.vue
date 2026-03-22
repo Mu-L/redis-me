@@ -24,7 +24,7 @@ import {sortBy} from 'lodash'
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
-const canEdit = computed(() => true)
+const canEdit = computed(() => !share.readonly)
 
 // 监听刷新事件
 async function refresh() {
@@ -336,10 +336,11 @@ function toggleChecked() {
 
 function checkChange(redisKeys) {
   checkedKeyList.value = redisKeys
-  console.log('xxx')
 }
 
 // 多选后的批量操作
+const checkedDisabled = computed(() => checkedKeyList.value.length === 0)
+const checkedBtnClass = computed(() => checkedDisabled.value ? ['footer-btn']: ['icon-btn', 'footer-btn'])
 function exportChecked() {
 
 }
@@ -351,7 +352,6 @@ function ttlChecked() {
 function deleteChecked() {
 
 }
-
 </script>
 
 <template>
@@ -482,10 +482,19 @@ function deleteChecked() {
       </div>
 
       <!-- 左侧: 导出|TTL|删除 （多选时显示） -->
-      <div class="me-flex" v-else style="width: 70px; margin-left: 10px" >
-        <me-icon :name="t('keyMain.exportChecked')" icon="me-icon-export" hint class="icon-btn footer-btn" placement="top" @click="exportChecked"/>
-        <me-icon :name="t('keyMain.ttlChecked')" icon="el-icon-timer" hint class="icon-btn footer-btn" placement="top" @click="ttlChecked"/>
-        <me-icon :name="t('keyMain.deleteChecked')" icon="el-icon-delete" hint class="icon-btn footer-btn" placement="top" @click="deleteChecked"/>
+      <div class="me-flex" v-else style="width: 70px; margin-left: 10px">
+        <el-link underline="never" :disabled="checkedDisabled" @click="exportChecked">
+          <me-icon :name="t('keyMain.exportChecked')" icon="me-icon-export" hint :class="checkedBtnClass"
+                   placement="top"/>
+        </el-link>
+        <el-link underline="never" :disabled="checkedDisabled" @click="ttlChecked" v-if="canEdit">
+          <me-icon :name="t('keyMain.ttlChecked')" icon="el-icon-timer" hint :class="checkedBtnClass"
+                   placement="top"/>
+        </el-link>
+        <el-link underline="never" :disabled="checkedDisabled" @click="deleteChecked" v-if="canEdit">
+          <me-icon :name="t('keyMain.deleteChecked')" icon="el-icon-delete" hint :class="checkedBtnClass"
+                   placement="top"/>
+        </el-link>
       </div>
 
       <!-- 中间: 选中/过滤/总数 -->
@@ -614,18 +623,8 @@ function deleteChecked() {
       white-space: nowrap;
     }
 
-    .btn-lb {
-      width: 50px;
-      font-size: 22px;
-      display: flex;
-      justify-content: space-between;
-      cursor: pointer;
-      margin-right: 5px;
-    }
-
     .footer-btn {
       font-size: 20px;
-      color: var(--el-color-info);
     }
   }
 
