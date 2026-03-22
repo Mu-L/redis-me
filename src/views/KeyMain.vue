@@ -470,7 +470,9 @@ function checkChange(redisKeys) {
 
       <div class="center">
         <el-text class="tip" size="large" type="primary"
-        >{{showCheckbox ? '[ ' +  checkedKeyList.length + ' ] ' : ''}} {{ filterKeyList.length }} / {{ keyList.length }}
+        >
+          <span style="color: var(--el-color-info)">{{showCheckbox ? checkedKeyList.length + ' / ' : ''}}</span>
+          {{ filterKeyList.length }} / {{ keyList.length }}
         </el-text
         >
       </div>

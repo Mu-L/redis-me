@@ -98,7 +98,7 @@ const treeData = computed(() => {
 const rootId = nanoid() + Date.now()
 const treeRef = useTemplateRef('tree')
 const defaultExpandedKeys = computed(() => [rootId])
-watch(() => showCheckbox, () => {
+watch(() => [showCheckbox, filterKeyList], () => {
   treeRef.value?.setCheckedKeys([])
 })
 const rootTreeData = computed(() => {
