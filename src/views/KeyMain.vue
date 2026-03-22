@@ -497,14 +497,12 @@ function deleteChecked() {
         </el-link>
       </div>
 
-      <!-- 中间: 选中/过滤/总数 -->
+      <!-- 中间: 选中/过滤, 过滤/总数 -->
       <div class="center">
-        <el-text class="tip" size="large" type="primary"
-        >
-          <span style="color: var(--el-color-info)">{{showCheckbox ? checkedKeyList.length + ' / ' : ''}}</span>
-          {{ filterKeyList.length }} / {{ keyList.length }}
-        </el-text
-        >
+        <el-text class="tip" size="large" type="primary">
+          <span v-if="showCheckbox">{{ checkedKeyList.length }} / {{ filterKeyList.length }}</span>
+          <span v-else>{{ filterKeyList.length }} / {{ keyList.length }}</span>
+        </el-text>
       </div>
 
       <!-- 右侧: 多选|扩展 -->
