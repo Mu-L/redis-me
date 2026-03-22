@@ -128,7 +128,7 @@ svg {
 }
 
 .icon-btn :hover {
-  color: var(--el-color-primary);
+  color: var(--el-color-warning);
 }
 
 /*ElDialog新增的全屏按钮*/
