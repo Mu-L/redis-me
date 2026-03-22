@@ -198,10 +198,10 @@ function clickNew() {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="export" :disabled="share.connList.length === 0">
-                <me-icon :name="t('conn.export')" icon="el-icon-upload" />
+                <me-icon :name="t('conn.export')" icon="me-icon-export" />
               </el-dropdown-item>
               <el-dropdown-item command="import">
-                <me-icon :name="t('conn.import')" icon="el-icon-download" />
+                <me-icon :name="t('conn.import')" icon="me-icon-import" />
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>

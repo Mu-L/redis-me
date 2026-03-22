@@ -433,7 +433,8 @@ function checkChange(redisKeys) {
     </div>
 
     <div class="key-footer">
-      <div class="me-flex">
+      <!-- 左侧: 数据库|游标 -->
+      <div class="me-flex" v-if="!showCheckbox">
         <!-- 集群不显示数据库列表 -->
         <el-select
             v-model="share.conn.db"
@@ -468,6 +469,11 @@ function checkChange(redisKeys) {
         </div>
       </div>
 
+      <div class="me-flex" v-else>
+        <me-icon :name="t('keyMain.exportData')" icon="me-icon-export" hint class="icon-btn footer-btn"/>
+      </div>
+
+      <!-- 中间: 选中/过滤/总数 -->
       <div class="center">
         <el-text class="tip" size="large" type="primary"
         >
@@ -477,6 +483,7 @@ function checkChange(redisKeys) {
         >
       </div>
 
+      <!-- 右侧: 多选|扩展 -->
       <div class="me-flex">
         <me-icon icon="me-icon-checked" class="icon-btn footer-btn" @click="toggleChecked"
                  :name="t('keyMain.checkedMode')" hint
@@ -485,14 +492,14 @@ function checkChange(redisKeys) {
           <me-icon icon="el-icon-more-filled" class="icon-btn footer-btn"/>
           <template #dropdown>
             <el-dropdown-menu>
+              <el-dropdown-item command="exportData">
+                <me-icon :name="t('keyMain.exportData')" icon="me-icon-export"/>
+              </el-dropdown-item>
               <el-dropdown-item command="importData" v-if="canEdit">
-                <me-icon :name="t('keyMain.importData')" icon="el-icon-download"/>
+                <me-icon :name="t('keyMain.importData')" icon="me-icon-import"/>
               </el-dropdown-item>
               <el-dropdown-item command="mockData" v-if="canEdit">
                 <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup"/>
-              </el-dropdown-item>
-              <el-dropdown-item command="exportData">
-                <me-icon :name="t('keyMain.exportData')" icon="el-icon-upload"/>
               </el-dropdown-item>
 
               <el-dropdown-item command="toggleKeyShow" divided>
