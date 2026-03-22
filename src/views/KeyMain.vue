@@ -280,6 +280,11 @@ const keyMemoryRef = useTemplateRef('keyMemoryRef')
 function keyMemory(folder) {
   keyMemoryRef.value?.open({ match: folder + ':*' })
 }
+
+// 多选选择
+const showCheckbox = ref(false)
+
+// 文件夹排序方式
 </script>
 
 <template>
@@ -356,7 +361,7 @@ function keyMemory(folder) {
     </el-input>
 
     <div class="key-list" v-loading="loading">
-      <KeyTree
+      <KeyTree show-checkbox
         :filter-key-list="filterKeyList"
         :redis-key="share.redisKey"
         :key-show-type="keyShowType"

@@ -51,7 +51,7 @@ function handleClose() {
 function getNodeClass(node) {
   const clazz = []
   if (
-    (node.isLeaf && node.data.redisKey.key === contextMenuNode.value?.data?.redisKey?.key) ||
+    (node.isLeaf && node.data.redisKey?.key === contextMenuNode.value?.data?.redisKey?.key) ||
     (!node.isLeaf && node.key == contextMenuNode.value?.key)
   ) {
     clazz.push('context-key')
@@ -91,6 +91,19 @@ const treeData = computed(() => {
   return root
 })
 
+// 显示复选框时补充根节点
+const rootTreeData = computed(() => {
+  if (showCheckbox) {
+    return [{
+      id: 'root',
+      label: 'db' + share.conn?.db,
+      children: treeData.value
+    }]
+  } else {
+    return treeData.value
+  }
+})
+
 // 构建树：这个方法是由AI（豆包）生成的，非常不赖！ 但由BUG，还得亲自修复边界问题
 function buildTree(keyList) {
   const root = []
@@ -112,7 +125,7 @@ function buildTree(keyList) {
       let node = nowLevel.find((item) => item.label === part && item.redisKey === undefined) // 此处过滤去掉上面的叶子节点
       if (!node) {
         // 避免叶子节点的id与部分非叶子节点一致
-        node = { id: parts.slice(0, index + 1).join(':'), label: part, children: [] }
+        node = { id: 'folder-' + parts.slice(0, index + 1).join(':'), label: part, children: [] }
         nowLevel.push(node)
       }
       nowLevel = node.children
@@ -173,7 +186,8 @@ function buildList(keyList) {
     <template #default="{ height }">
       <el-tree-v2
         ref="tree"
-        :data="treeData"
+        :data="rootTreeData"
+        :default-expanded-keys="['root']"
         @node-click="nodeClick"
         @node-contextmenu="nodeContextMenu"
         highlight-current
@@ -193,9 +207,9 @@ function buildList(keyList) {
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
             <me-icon
               :name="node.label"
-              :icon="node.expanded ? 'el-icon-folderOpened' : 'el-icon-folder'"
+              :icon="node.key === 'root' ? 'me-icon-db' : (node.expanded ? 'el-icon-folderOpened' : 'el-icon-folder')"
             />
-            <div style="color: var(--el-color-info); margin-right: 10px">
+            <div style="color: var(--el-color-info); margin-right: 10px" v-if="node.key !== 'root'">
               [ {{ node.data.keyCount }} ]
             </div>
           </div>
