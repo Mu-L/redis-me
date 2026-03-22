@@ -3,7 +3,6 @@ use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name};
 use crate::utils::model::*;
 use crate::utils::util::*;
-use Ordering::Relaxed;
 use anyhow::bail;
 use chrono::Utc;
 use log::{info, warn};
@@ -19,6 +18,7 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
+use Ordering::Relaxed;
 
 pub struct RedisMeCluster {
     base: RedisMeBase,
@@ -469,6 +469,22 @@ impl RedisMeClient for RedisMeCluster {
         let mut conn = self.get_conn()?;
         let _: () = pipe.query(&mut conn)?;
         info!("batch delete finished: {}", size);
+        Ok(())
+    }
+
+    fn batch_ttl(&self, param: RedisBatchTtl) -> AnyResult<()> {
+        if param.key_list.is_empty() {
+            return Ok(());
+        }
+
+        let size = param.key_list.len();
+        let mut pipe = ClusterPipeline::with_capacity(size);
+        for key in param.key_list {
+            pipe.expire(&key, param.ttl).ignore();
+        }
+        let mut conn = self.get_conn()?;
+        let _: () = pipe.query(&mut conn)?;
+        info!("batch ttl finished: {}", size);
         Ok(())
     }
 
