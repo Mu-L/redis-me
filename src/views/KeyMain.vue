@@ -289,11 +289,6 @@ async function handleCommand(command) {
     importData()
   }
 }
-// 多选选择
-const showCheckbox = ref(false)
-function toggleChecked() {
-  showCheckbox.value = !showCheckbox.value
-}
 
 // 新增模拟数据
 async function mockData() {
@@ -329,6 +324,21 @@ async function mockData() {
       },
   )
 }
+
+// 多选选择
+const showCheckbox = ref(false)
+const checkedKeyList = ref([])
+
+function toggleChecked() {
+  showCheckbox.value = !showCheckbox.value
+  checkedKeyList.value = []
+}
+
+function checkChange(redisKeys) {
+  checkedKeyList.value = redisKeys
+  console.log('xxx')
+}
+
 </script>
 
 <template>
@@ -407,6 +417,7 @@ async function mockData() {
 
     <div class="key-list" v-loading="loading">
       <KeyTree
+        ref="keyTreeRef"
         :show-checkbox="showCheckbox"
         :filter-key-list="filterKeyList"
         :redis-key="share.redisKey"
@@ -417,6 +428,7 @@ async function mockData() {
         @contextKey="contextKey"
         @chooseFolder="chooseFolder"
         @contextFolder="contextFolder"
+        @checkChange="checkChange"
       />
     </div>
 
@@ -458,7 +470,7 @@ async function mockData() {
 
       <div class="center">
         <el-text class="tip" size="large" type="primary"
-        >{{ filterKeyList.length }} / {{ keyList.length }}
+        >{{showCheckbox ? '[ ' +  checkedKeyList.length + ' ] ' : ''}} {{ filterKeyList.length }} / {{ keyList.length }}
         </el-text
         >
       </div>

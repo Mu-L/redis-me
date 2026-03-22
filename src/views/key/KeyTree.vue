@@ -8,7 +8,7 @@ const { t } = useI18n()
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 
-const emit = defineEmits(['chooseKey', 'chooseFolder', 'contextKey', 'contextFolder'])
+const emit = defineEmits(['chooseKey', 'chooseFolder', 'contextKey', 'contextFolder', 'checkChange'])
 const { filterKeyList, showCheckbox, keyShowTree, sortByCount } = defineProps({
   color: { type: String, default: 'var(--el-color-primary)' },
   redisKey: { type: Object, default: null },
@@ -95,13 +95,16 @@ const treeData = computed(() => {
 })
 
 // 显示复选框时补充根节点
-const rootId = ref('')
-const defaultExpandedKeys = computed(() => [rootId.value])
+const rootId = nanoid() + Date.now()
+const treeRef = useTemplateRef('tree')
+const defaultExpandedKeys = computed(() => [rootId])
+watch(() => showCheckbox, () => {
+  treeRef.value?.setCheckedKeys([])
+})
 const rootTreeData = computed(() => {
   if (showCheckbox) {
-    rootId.value = nanoid() + Date.now()
     return [{
-      id: rootId.value,
+      id: rootId,
       label: 'db' + share.conn?.db,
       children: treeData.value,
       keyCount: filterKeyList.length || 0,
@@ -187,6 +190,11 @@ function countLeaves(node) {
 function buildList(keyList) {
   return keyList.map(rk =>  ({ id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk }))
 }
+
+// 获取选中的节点键
+function checkChange() {
+  emit('checkChange', treeRef.value.getCheckedNodes(true).map(node => node.redisKey))
+}
 </script>
 
 <template>
@@ -196,6 +204,7 @@ function buildList(keyList) {
         ref="tree"
         :data="rootTreeData"
         :default-expanded-keys="defaultExpandedKeys"
+        @check-change="checkChange"
         @node-click="nodeClick"
         @node-contextmenu="nodeContextMenu"
         highlight-current
