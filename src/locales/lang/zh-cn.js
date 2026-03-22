@@ -500,6 +500,11 @@ export default {
     treeView: '树形展示',
     sortByCount: '数量排序',
     sortByAlphabet: '字母排序',
+
+    exportChecked: '导出所选项',
+    ttlChecked: '为所选项更新TTL',
+    deleteChecked: '删除所选项',
+    exitCheckedMode: '退出勾选模式',
   },
 
   ttlSet: {

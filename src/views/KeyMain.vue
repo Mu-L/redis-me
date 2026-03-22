@@ -339,6 +339,19 @@ function checkChange(redisKeys) {
   console.log('xxx')
 }
 
+// 多选后的批量操作
+function exportChecked() {
+
+}
+
+function ttlChecked() {
+
+}
+
+function deleteChecked() {
+
+}
+
 </script>
 
 <template>
@@ -435,7 +448,6 @@ function checkChange(redisKeys) {
     <div class="key-footer">
       <!-- 左侧: 数据库|游标 -->
       <div class="me-flex" v-if="!showCheckbox">
-        <!-- 集群不显示数据库列表 -->
         <el-select
             v-model="share.conn.db"
             @change="selectDB"
@@ -469,8 +481,11 @@ function checkChange(redisKeys) {
         </div>
       </div>
 
-      <div class="me-flex" v-else>
-        <me-icon :name="t('keyMain.exportData')" icon="me-icon-export" hint class="icon-btn footer-btn"/>
+      <!-- 左侧: 导出|TTL|删除 （多选时显示） -->
+      <div class="me-flex" v-else style="width: 70px; margin-left: 10px" >
+        <me-icon :name="t('keyMain.exportChecked')" icon="me-icon-export" hint class="icon-btn footer-btn" placement="top" @click="exportChecked"/>
+        <me-icon :name="t('keyMain.ttlChecked')" icon="el-icon-timer" hint class="icon-btn footer-btn" placement="top" @click="ttlChecked"/>
+        <me-icon :name="t('keyMain.deleteChecked')" icon="el-icon-delete" hint class="icon-btn footer-btn" placement="top" @click="deleteChecked"/>
       </div>
 
       <!-- 中间: 选中/过滤/总数 -->
@@ -484,7 +499,7 @@ function checkChange(redisKeys) {
       </div>
 
       <!-- 右侧: 多选|扩展 -->
-      <div class="me-flex">
+      <div class="me-flex" v-if="!showCheckbox">
         <me-icon icon="me-icon-checked" class="icon-btn footer-btn" @click="toggleChecked"
                  :name="t('keyMain.checkedMode')" hint
                  style="font-size: 24px;"/>
@@ -511,6 +526,13 @@ function checkChange(redisKeys) {
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+      </div  s>
+
+      <!-- 右侧: 关闭多选 （多选时显示） -->
+      <div class="me-flex" v-else style="width: 30px">
+        <me-icon :name="t('keyMain.exitCheckedMode')" icon="el-icon-circle-close"
+                 @click="toggleChecked"
+                 hint class="icon-btn footer-btn" placement="top"/>
       </div>
     </div>
 
@@ -572,6 +594,7 @@ function checkChange(redisKeys) {
   }
 
   .key-footer {
+    height: 32px;
     border: 1px solid var(--el-border-color);
     border-top: none;
 

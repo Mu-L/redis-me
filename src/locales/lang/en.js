@@ -493,6 +493,7 @@ export default {
     importDone: 'Import Done',
     importResult: 'Success: {okCount}, Fail: {errCount}, Ignore: {ignoreCount}',
     checkedMode: 'Checked Mode',
+
     mockData: 'Mock Data',
     exportData: 'Export Data',
     importData: 'Import Data',
@@ -500,6 +501,11 @@ export default {
     treeView: 'Tree View',
     sortByCount: 'Key Count',
     sortByAlphabet: 'Alphabet',
+
+    exportChecked: 'Export Checked',
+    ttlChecked: 'TTL Checked',
+    deleteChecked: 'Delete Checked',
+    exitCheckedMode: 'Exit Checked',
   },
 
   ttlSet: {
