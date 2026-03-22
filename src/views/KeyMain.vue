@@ -1,6 +1,6 @@
 <script setup>
 import KeyTree from './key/KeyTree.vue'
-import { computed, ref } from 'vue'
+import {computed, ref} from 'vue'
 import {
   bus,
   CONN_REFRESH,
@@ -14,14 +14,14 @@ import {
   meInvoke,
   meOk,
   meRenameKey,
-  meType,
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
-import { useI18n } from 'vue-i18n'
-import { listen } from '@tauri-apps/api/event'
+import {useI18n} from 'vue-i18n'
+import {listen} from '@tauri-apps/api/event'
 import KeyImport from '@/views/key/KeyImport.vue'
+import {sortBy} from 'lodash'
 
 const { t } = useI18n()
 // 共享数据
@@ -75,7 +75,7 @@ const cursor = ref(null) // 扫描的游标
 const keyList = ref([]) // 键列表
 const filterKeyList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return keyList.value.filter((k) => k.key.toLowerCase().indexOf(key) > -1)
+  return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
 })
 
 async function scanKey(useCursor = false, loadAll = false) {
@@ -97,7 +97,8 @@ async function scanKey(useCursor = false, loadAll = false) {
     cursor.value = data.cursor
     keyList.value.push(...data.keyList)
     // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
-    keyList.value.sort((a, b) => a.key.toLowerCase().localeCompare(b.key.toLowerCase()))
+    //keyList.value.sort((a, b) => a.key.toLowerCase().localeCompare(b.key.toLowerCase()))
+    keyList.value = sortBy(keyList.value, ['key'])
   } finally {
     loading.value = false
   }
@@ -481,10 +482,6 @@ function keyMemory(folder) {
     height: 100%;
     padding: 5px;
     overflow: hidden; // 隐藏水平滚动条，仅显示竖直滚动条
-
-    // 简单键列表和文件夹列表共享的属性
-    //font-size: 12px;
-    //color: var(--el-color-primary);
 
     :deep(.el-link) {
       font-size: 12px;
