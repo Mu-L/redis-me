@@ -95,7 +95,7 @@ const treeData = computed(() => {
 const rootTreeData = computed(() => {
   if (showCheckbox) {
     return [{
-      id: 'root',
+      id: 'REDIS_ME_ROOT_NODE',
       label: 'db' + share.conn?.db,
       children: treeData.value
     }]
@@ -125,7 +125,7 @@ function buildTree(keyList) {
       let node = nowLevel.find((item) => item.label === part && item.redisKey === undefined) // 此处过滤去掉上面的叶子节点
       if (!node) {
         // 避免叶子节点的id与部分非叶子节点一致
-        node = { id: 'folder-' + parts.slice(0, index + 1).join(':'), label: part, children: [] }
+        node = { id: parts.slice(0, index + 1).join(':'), label: part, children: [] }
         nowLevel.push(node)
       }
       nowLevel = node.children

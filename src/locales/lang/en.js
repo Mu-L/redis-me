@@ -498,8 +498,8 @@ export default {
     importData: 'Import Data',
     listView: 'List View',
     treeView: 'Tree View',
-    sortByCount: 'SortBy Count',
-    sortByAlphabet: 'SortBy Alphabet',
+    sortByCount: 'Key Count',
+    sortByAlphabet: 'Alphabet',
   },
 
   ttlSet: {

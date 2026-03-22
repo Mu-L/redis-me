@@ -4,16 +4,14 @@ import {computed, ref} from 'vue'
 import {
   bus,
   CONN_REFRESH,
-  EXPORT_DATA,
-  IMPORT_DATA,
   KEY_DELETE,
   KEY_REFRESH,
   KEY_TYPE_LIST,
   meCopy,
   meDeleteKey,
   meInvoke,
-  meOk,
-  meRenameKey,
+  meOk, mePrompt,
+  meRenameKey, sleep,
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatch from './key/KeyBatch.vue'
@@ -107,14 +105,10 @@ async function scanKey(useCursor = false, loadAll = false) {
 onMounted(() => {
   bus.on(KEY_DELETE, deleteKey)
   bus.on(CONN_REFRESH, refresh)
-  bus.on(EXPORT_DATA, exportFolder)
-  bus.on(IMPORT_DATA, importData)
 })
 onUnmounted(() => {
   bus.off(KEY_DELETE, deleteKey)
   bus.off(CONN_REFRESH, refresh)
-  bus.off(EXPORT_DATA, exportFolder)
-  bus.off(IMPORT_DATA, importData)
 })
 
 function deleteKey(redisKey) {
@@ -282,11 +276,17 @@ const keyShowTree = ref(true)
 const sortByCount = ref(true)
 
 // 更多选项按钮
-function handleCommand(command) {
+async function handleCommand(command) {
   if (command === 'toggleKeyShow') {
     keyShowTree.value = !keyShowTree.value
   } else if (command === 'toggleKeySort') {
     sortByCount.value = !sortByCount.value
+  } else if ('mockData' === command) {
+    await mockData()
+  } else if ('exportData' === command) {
+    exportFolder()
+  } else if ('importData' === command) {
+    importData()
   }
 }
 // 多选选择
@@ -295,7 +295,40 @@ function toggleChecked() {
   showCheckbox.value = !showCheckbox.value
 }
 
-// 文件夹排序方式
+// 新增模拟数据
+async function mockData() {
+  mePrompt(
+      t('keyHeader.mockHint'),
+      {
+        inputValue: 100,
+        inputType: 'number',
+        inputValidator: (value) => {
+          if (value < 1 || value > 1000) {
+            return t('keyHeader.mockValidator')
+          }
+        },
+      },
+      async ({ value }) => {
+        let total = value
+        share.exportImportingPercentage = 0
+        share.exportImporting = true
+        share.exportImportingTip = t('keyHeader.mocking')
+
+        try {
+          while (value > 0) {
+            const count = Math.min(value, 10)
+            await meInvoke('mock_data', { id: share.conn.id, count })
+            value = value - count
+            share.exportImportingPercentage = Math.round(((total - value) / total) * 100)
+            await sleep(10) // 睡眠10ms以便其他动作可以获取到锁, 同时避免UI界面卡顿
+          }
+          meOk(t('keyHeader.mockOk'))
+        } finally {
+          share.exportImporting = false
+        }
+      },
+  )
+}
 </script>
 
 <template>
@@ -441,10 +474,9 @@ function toggleChecked() {
               <el-dropdown-item command="importData" v-if="canEdit">
                 <me-icon :name="t('keyMain.importData')" icon="el-icon-download"/>
               </el-dropdown-item>
-              <el-dropdown-item command="mockData" divided v-if="canEdit">
+              <el-dropdown-item command="mockData" v-if="canEdit">
                 <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup"/>
               </el-dropdown-item>
-
               <el-dropdown-item command="exportData">
                 <me-icon :name="t('keyMain.exportData')" icon="el-icon-upload"/>
               </el-dropdown-item>
@@ -453,7 +485,7 @@ function toggleChecked() {
                 <me-icon :name="keyShowTree ? t('keyMain.listView') : t('keyMain.treeView')" :icon="keyShowTree ? 'me-icon-list': 'me-icon-tree'"></me-icon>
               </el-dropdown-item>
               <el-dropdown-item command="toggleKeySort" v-if="keyShowTree">
-                <me-icon :name="sortByCount ? t('keyMain.sortByAlphabet') : t('keyMain.sortByCount')" :icon="sortByCount ? 'me-icon-alphabet': 'el-icon-data-line'"></me-icon>
+                <me-icon :name="sortByCount ? t('keyMain.sortByAlphabet') : t('keyMain.sortByCount')" icon="me-icon-alphabet"></me-icon>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
