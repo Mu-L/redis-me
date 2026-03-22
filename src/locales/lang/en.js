@@ -152,9 +152,6 @@ export default {
 
     refreshConn: 'Refresh Conn',
     closeConn: 'Close Conn',
-    mockData: 'Mock Data',
-    exportData: 'Export Data',
-    importData: 'Import Data',
 
     newWindow: 'New Window',
     newWindowError: 'Open New Window Error',
@@ -487,8 +484,6 @@ export default {
     exactSearch: 'Exact Search',
     refreshKey: 'Refresh Key',
     addKey: 'Add Key',
-    listView: 'List View',
-    treeView: 'Tree View',
     loadMore: 'Load More',
     loadAll: 'Load All',
     exporting: 'Exporting',
@@ -497,6 +492,14 @@ export default {
     importing: 'Importing',
     importDone: 'Import Done',
     importResult: 'Success: {okCount}, Fail: {errCount}, Ignore: {ignoreCount}',
+    checkedMode: 'Checked Mode',
+    mockData: 'Mock Data',
+    exportData: 'Export Data',
+    importData: 'Import Data',
+    listView: 'List View',
+    treeView: 'Tree View',
+    sortByCount: 'SortBy Count',
+    sortByAlphabet: 'SortBy Alphabet',
   },
 
   ttlSet: {

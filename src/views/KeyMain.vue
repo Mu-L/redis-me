@@ -122,10 +122,6 @@ function deleteKey(redisKey) {
   share.redisKey = null
 }
 
-// 键显示类型
-const keyShowTypeList = ref(['tree', 'list'])
-const keyShowType = ref('tree')
-
 // 数据库列表
 const dbList = ref([])
 async function refreshDbList() {
@@ -281,90 +277,108 @@ function keyMemory(folder) {
   keyMemoryRef.value?.open({ match: folder + ':*' })
 }
 
+// 键显示类型: tree/list; 树形列表排序方式: 字母排序/数量排序
+const keyShowTree = ref(true)
+const sortByCount = ref(true)
+
+// 更多选项按钮
+function handleCommand(command) {
+  if (command === 'toggleKeyShow') {
+    keyShowTree.value = !keyShowTree.value
+  } else if (command === 'toggleKeySort') {
+    sortByCount.value = !sortByCount.value
+  }
+}
 // 多选选择
 const showCheckbox = ref(false)
+function toggleChecked() {
+  showCheckbox.value = !showCheckbox.value
+}
 
 // 文件夹排序方式
 </script>
 
 <template>
   <div class="key-main">
-    <el-input
-      class="key-search"
-      v-model="keyword"
-      :placeholder="t('keyMain.keyword')"
-      @keyup.enter="scanKey(false, false)"
-      clearable
-    >
-      <template #prepend>
-        <el-dropdown placement="bottom-start" @command="chooseKeyType">
-          <el-tag
-            :type="keyType.type"
-            effect="plain"
-            style="
+    <div class="key-header">
+      <el-input
+          v-model="keyword"
+          :placeholder="t('keyMain.keyword')"
+          @keyup.enter="scanKey(false, false)"
+          clearable
+      >
+        <template #prepend>
+          <el-dropdown placement="bottom-start" @command="chooseKeyType">
+            <el-tag
+                :type="keyType.type"
+                effect="plain"
+                style="
               width: 32px;
               height: 32px;
               font-weight: bold;
               border-bottom-right-radius: 0;
               border-top-right-radius: 0;
             "
-          >
-            {{ keyType.slice(0, 1) }}
-          </el-tag>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="ALL">
-                <el-tag
-                  type="info"
-                  :effect="'ALL' === keyType ? 'dark' : 'plain'"
-                  style="font-weight: bold; width: 26px"
-                >
-                  A
-                </el-tag>
-                <el-text style="margin-left: 6px" type="info">ALL</el-text>
-              </el-dropdown-item>
-              <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
-                <el-tag
-                  :type="item.type"
-                  :effect="item.value === keyType ? 'dark' : 'plain'"
-                  style="font-weight: bold; width: 26px"
-                >
-                  {{ item.value.slice(0, 1) }}
-                </el-tag>
-                <el-text style="margin-left: 6px" :type="item.type">{{ item.value }}</el-text>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
-          <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
-        </el-tooltip>
-      </template>
-      <template #append>
-        <el-button-group>
-          <me-button
-            :info="t('keyMain.refreshKey')"
-            @click="scanKey(false, false)"
-            icon="el-icon-search"
-            placement="bottom"
-          />
-          <me-button
-            :info="t('keyMain.addKey')"
-            @click="addKey"
-            style="border-color: var(--el-button-border-color)"
-            v-if="canEdit"
-            icon="el-icon-plus"
-            placement="bottom"
-          />
-        </el-button-group>
-      </template>
-    </el-input>
+            >
+              {{ keyType.slice(0, 1) }}
+            </el-tag>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="ALL">
+                  <el-tag
+                      type="info"
+                      :effect="'ALL' === keyType ? 'dark' : 'plain'"
+                      style="font-weight: bold; width: 26px"
+                  >
+                    A
+                  </el-tag>
+                  <el-text style="margin-left: 6px" type="info">ALL</el-text>
+                </el-dropdown-item>
+                <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
+                  <el-tag
+                      :type="item.type"
+                      :effect="item.value === keyType ? 'dark' : 'plain'"
+                      style="font-weight: bold; width: 26px"
+                  >
+                    {{ item.value.slice(0, 1) }}
+                  </el-tag>
+                  <el-text style="margin-left: 6px" :type="item.type">{{ item.value }}</el-text>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
+            <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
+          </el-tooltip>
+        </template>
+        <template #append>
+          <el-button-group>
+            <me-button
+                :info="t('keyMain.refreshKey')"
+                @click="scanKey(false, false)"
+                icon="el-icon-search"
+                placement="bottom"
+            />
+            <me-button
+                :info="t('keyMain.addKey')"
+                @click="addKey"
+                style="border-color: var(--el-button-border-color)"
+                v-if="canEdit"
+                icon="el-icon-plus"
+                placement="bottom"
+            />
+          </el-button-group>
+        </template>
+      </el-input>
+    </div>
 
     <div class="key-list" v-loading="loading">
-      <KeyTree show-checkbox
+      <KeyTree
+        :show-checkbox="showCheckbox"
         :filter-key-list="filterKeyList"
         :redis-key="share.redisKey"
-        :key-show-type="keyShowType"
+        :key-show-tree="keyShowTree"
+        :sort-by-count="sortByCount"
         :color="share.color"
         @chooseKey="chooseKey"
         @contextKey="contextKey"
@@ -374,57 +388,13 @@ const showCheckbox = ref(false)
     </div>
 
     <div class="key-footer">
-      <div class="me-flex" style="align-items: center">
-        <el-segmented v-model="keyShowType" :options="keyShowTypeList">
-          <template #default="scope">
-            <me-icon
-              :name="t('keyMain.listView')"
-              icon="me-icon-list"
-              hint
-              placement="top"
-              v-if="scope.item === 'list'"
-            />
-            <me-icon
-              :name="t('keyMain.treeView')"
-              icon="me-icon-tree"
-              hint
-              placement="top"
-              v-else
-            />
-          </template>
-        </el-segmented>
-      </div>
-
-      <el-text class="tip" size="large" type="primary"
-        >{{ filterKeyList.length }} / {{ keyList.length }}</el-text
-      >
-
       <div class="me-flex">
-        <div class="btn-rb" v-if="!cursor?.finished">
-          <me-icon
-            :name="t('keyMain.loadMore')"
-            icon="me-icon-load-more"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, false)"
-          />
-          <me-icon
-            :name="t('keyMain.loadAll')"
-            icon="me-icon-load-all"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, true)"
-          />
-        </div>
-
         <!-- 集群不显示数据库列表 -->
         <el-select
-          v-model="share.conn.db"
-          @change="selectDB"
-          style="width: 120px"
-          v-if="!share.conn.cluster"
+            v-model="share.conn.db"
+            @change="selectDB"
+            style="width: 120px;"
+            v-if="!share.conn.cluster"
         >
           <el-option v-for="item in dbList" :key="item.db" :value="item.db">
             {{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}
@@ -433,6 +403,61 @@ const showCheckbox = ref(false)
             {{ `db${share.conn.db} (${share.dbSizeMap['db' + share.conn.db] || 0})` }}
           </template>
         </el-select>
+        <div class="me-flex" style="width: 50px; margin: 0 5px" v-if="!cursor?.finished">
+          <me-icon
+              :name="t('keyMain.loadMore')"
+              icon="me-icon-load-more"
+              hint
+              placement="top"
+              class="icon-btn footer-btn"
+              @click="scanKey(true, false)"
+          />
+          <me-icon
+              :name="t('keyMain.loadAll')"
+              icon="me-icon-load-all"
+              hint
+              placement="top"
+              class="icon-btn footer-btn"
+              @click="scanKey(true, true)"
+          />
+        </div>
+      </div>
+
+      <div class="center">
+        <el-text class="tip" size="large" type="primary"
+        >{{ filterKeyList.length }} / {{ keyList.length }}
+        </el-text
+        >
+      </div>
+
+      <div class="me-flex">
+        <me-icon icon="me-icon-checked" class="icon-btn footer-btn" @click="toggleChecked"
+                 :name="t('keyMain.checkedMode')" hint
+                 style="font-size: 24px;"/>
+        <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
+          <me-icon icon="el-icon-more-filled" class="icon-btn footer-btn"/>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="importData" v-if="canEdit">
+                <me-icon :name="t('keyMain.importData')" icon="el-icon-download"/>
+              </el-dropdown-item>
+              <el-dropdown-item command="mockData" divided v-if="canEdit">
+                <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup"/>
+              </el-dropdown-item>
+
+              <el-dropdown-item command="exportData">
+                <me-icon :name="t('keyMain.exportData')" icon="el-icon-upload"/>
+              </el-dropdown-item>
+
+              <el-dropdown-item command="toggleKeyShow" divided>
+                <me-icon :name="keyShowTree ? t('keyMain.listView') : t('keyMain.treeView')" :icon="keyShowTree ? 'me-icon-list': 'me-icon-tree'"></me-icon>
+              </el-dropdown-item>
+              <el-dropdown-item command="toggleKeySort" v-if="keyShowTree">
+                <me-icon :name="sortByCount ? t('keyMain.sortByAlphabet') : t('keyMain.sortByCount')" :icon="sortByCount ? 'me-icon-alphabet': 'el-icon-data-line'"></me-icon>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </div>
 
@@ -454,7 +479,7 @@ const showCheckbox = ref(false)
     border: 1px solid var(--el-border-color);
   }
 
-  .key-search {
+  .key-header {
     :deep(.el-tag) {
       border-color: var(--el-border-color);
     }
@@ -513,14 +538,18 @@ const showCheckbox = ref(false)
       white-space: nowrap;
     }
 
-    .btn-rb {
+    .btn-lb {
       width: 50px;
       font-size: 22px;
       display: flex;
       justify-content: space-between;
-      color: var(--el-color-info);
       cursor: pointer;
       margin-right: 5px;
+    }
+
+    .footer-btn {
+      font-size: 20px;
+      color: var(--el-color-info);
     }
   }
 

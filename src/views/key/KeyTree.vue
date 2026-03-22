@@ -8,13 +8,13 @@ const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 
 const emit = defineEmits(['chooseKey', 'chooseFolder', 'contextKey', 'contextFolder'])
-const { filterKeyList, showCheckbox, keyShowType, keySortType } = defineProps({
+const { filterKeyList, showCheckbox, keyShowTree, sortByCount } = defineProps({
   color: { type: String, default: 'var(--el-color-primary)' },
   redisKey: { type: Object, default: null },
   filterKeyList: { type: Array, default: [] },
   showCheckbox: {type: Boolean, default: false}, // 是否显示树形节点的复选框
-  keyShowType: {type: String, default: 'tree'},  // 列表或者树形
-  keySortType: {type: String, default: 'count'}, // 文件夹按照键数量排序 或 字母顺序
+  keyShowTree: {type: Boolean, default: true},  // 列表或者树形
+  sortByCount: {type: Boolean, default: true}, // 文件夹按照键数量排序 或 字母顺序
 })
 
 // 左键点击
@@ -58,7 +58,7 @@ function getNodeClass(node) {
   }
 
   // 列表展示时左侧的空白较多处理
-  if (keyShowType === 'list' && !showCheckbox && node.isLeaf) {
+  if (!keyShowTree && !showCheckbox && node.isLeaf) {
     clazz.push('list-key')
   }
   return clazz
@@ -68,7 +68,7 @@ function getNodeClass(node) {
 const emptyText = computed(() => t('keyTree.noData'))
 const treeData = computed(() => {
   // 列表展示
-  if (keyShowType === 'list') {
+  if (!keyShowTree) {
     return buildList(filterKeyList)
   }
 
@@ -80,7 +80,7 @@ const treeData = computed(() => {
     const n1Count = n1.children.length > 0 ? n1.keyCount : 0
     const n2Count = n2.children.length > 0 ? n2.keyCount : 0
 
-    if (keySortType === 'count') {
+    if (sortByCount) {
       // 文件夹按照键数量排序, 键数量相同时按照名称排序
       return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
     } else {

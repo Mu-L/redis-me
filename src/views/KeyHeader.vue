@@ -167,16 +167,6 @@ async function newWindow() {
             <el-dropdown-item command="closeConn">
               <me-icon :name="t('keyHeader.closeConn')" icon="el-icon-circle-close" />
             </el-dropdown-item>
-
-            <el-dropdown-item command="mockData" divided v-if="canEdit">
-              <me-icon :name="t('keyHeader.mockData')" icon="el-icon-coffee-cup" />
-            </el-dropdown-item>
-            <el-dropdown-item command="exportData">
-              <me-icon :name="t('keyHeader.exportData')" icon="el-icon-upload" />
-            </el-dropdown-item>
-            <el-dropdown-item command="importData" v-if="canEdit">
-              <me-icon :name="t('keyHeader.importData')" icon="el-icon-download" />
-            </el-dropdown-item>
           </template>
 
           <el-dropdown-item command="window" :divided="!!share.conn">

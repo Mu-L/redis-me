@@ -153,9 +153,7 @@ export default {
 
     refreshConn: '刷新连接',
     closeConn: '关闭连接',
-    mockData: '模拟数据',
-    exportData: '导出数据',
-    importData: '导入数据',
+
 
     newWindow: '新窗口',
     newWindowError: '打开新窗口失败',
@@ -486,8 +484,6 @@ export default {
     exactSearch: '精确匹配',
     refreshKey: '刷新键',
     addKey: '新增键',
-    listView: '键平铺展示',
-    treeView: '键树形展示',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
     exporting: '导出中...',
@@ -496,6 +492,14 @@ export default {
     importing: '导入中...',
     importDone: '导入完成',
     importResult: '成功{okCount}个，失败{errCount}个，忽略{ignoreCount}个！',
+    checkedMode: '勾选模式',
+    mockData: '模拟数据',
+    exportData: '导出数据',
+    importData: '导入数据',
+    listView: '平铺展示',
+    treeView: '树形展示',
+    sortByCount: '数量排序',
+    sortByAlphabet: '字母排序',
   },
 
   ttlSet: {
