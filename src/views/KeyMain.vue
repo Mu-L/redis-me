@@ -1,5 +1,4 @@
 <script setup>
-import KeyList from './key/KeyList.vue'
 import KeyTree from './key/KeyTree.vue'
 import { computed, ref } from 'vue'
 import {
@@ -356,18 +355,10 @@ function keyMemory(folder) {
     </el-input>
 
     <div class="key-list" v-loading="loading">
-      <KeyList
-        v-if="keyShowType === 'list'"
-        :filter-key-list="filterKeyList"
-        :redis-key="share.redisKey"
-        :color="share.color"
-        @chooseKey="chooseKey"
-        @contextKey="contextKey"
-      />
       <KeyTree
-        v-else
         :filter-key-list="filterKeyList"
         :redis-key="share.redisKey"
+        :key-show-type="keyShowType"
         :color="share.color"
         @chooseKey="chooseKey"
         @contextKey="contextKey"

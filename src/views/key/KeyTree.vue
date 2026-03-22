@@ -8,10 +8,13 @@ const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 
 const emit = defineEmits(['chooseKey', 'chooseFolder', 'contextKey', 'contextFolder'])
-const { filterKeyList } = defineProps({
+const { filterKeyList, showCheckbox, keyShowType, keySortType } = defineProps({
   color: { type: String, default: 'var(--el-color-primary)' },
   redisKey: { type: Object, default: null },
   filterKeyList: { type: Array, default: [] },
+  showCheckbox: {type: Boolean, default: false}, // 是否显示树形节点的复选框
+  keyShowType: {type: String, default: 'tree'},  // 列表或者树形
+  keySortType: {type: String, default: 'count'}, // 文件夹按照键数量排序 或 字母顺序
 })
 
 // 左键点击
@@ -44,6 +47,7 @@ function handleClose() {
   contextMenuNode.value = {}
 }
 
+// 右键选中的键, 加入样式
 function getNodeClass(node) {
   const clazz = []
   if (
@@ -52,20 +56,37 @@ function getNodeClass(node) {
   ) {
     clazz.push('context-key')
   }
+
+  // 列表展示时左侧的空白较多处理
+  if (keyShowType === 'list' && !showCheckbox && node.isLeaf) {
+    clazz.push('list-key')
+  }
   return clazz
 }
 
 // 计算树的数据
 const emptyText = computed(() => t('keyTree.noData'))
 const treeData = computed(() => {
+  // 列表展示
+  if (keyShowType === 'list') {
+    return buildList(filterKeyList)
+  }
+
+  // 树形展示
   const root = buildTree(filterKeyList)
   root.forEach((node) => countLeaves(node))
   root.sort((n1, n2) => {
     // 文件夹在上面，叶子在下面（将叶子节点的数量归零，避免和只有1个键的文件夹混在一起）
     const n1Count = n1.children.length > 0 ? n1.keyCount : 0
     const n2Count = n2.children.length > 0 ? n2.keyCount : 0
-    // 文件夹按照键数量排序, 键数量相同时按照名称排序
-    return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
+
+    if (keySortType === 'count') {
+      // 文件夹按照键数量排序, 键数量相同时按照名称排序
+      return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
+    } else {
+      // 文件夹按照名称排序
+      return n2.id > n1.id ? -1 : 1
+    }
   })
   return root
 })
@@ -140,6 +161,11 @@ function countLeaves(node) {
   // 返回根节点的叶子节点数量
   return keyCounts.get(node)
 }
+
+// 构建树: 仅仅叶子节点（即List显示）
+function buildList(keyList) {
+  return keyList.map(rk =>  ({ id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk }))
+}
 </script>
 
 <template>
@@ -158,6 +184,7 @@ function countLeaves(node) {
         :empty-text="emptyText"
         :height="height"
         :item-size="20"
+        :show-checkbox="showCheckbox"
       >
         <template #default="{ node }">
           <div style="width: 100%" v-if="node.isLeaf" :class="getNodeClass(node)">
@@ -229,5 +256,10 @@ function countLeaves(node) {
 :deep(.context-key) {
   outline: 1px dashed var(--el-color-primary);
   outline-offset: 1px;
+}
+
+/* 列表展示时左侧空白处理 */
+:deep(.list-key) {
+  margin-left: -20px;
 }
 </style>
