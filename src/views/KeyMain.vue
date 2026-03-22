@@ -342,7 +342,7 @@ function checkChange(redisKeys) {
 const checkedDisabled = computed(() => checkedKeyList.value.length === 0)
 const checkedBtnClass = computed(() => checkedDisabled.value ? ['footer-btn']: ['icon-btn', 'footer-btn'])
 function exportChecked() {
-
+  keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'export')
 }
 
 function ttlChecked() {
@@ -350,7 +350,7 @@ function ttlChecked() {
 }
 
 function deleteChecked() {
-
+  keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'delete')
 }
 </script>
 

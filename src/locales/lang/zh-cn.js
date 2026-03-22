@@ -232,6 +232,7 @@ export default {
     exportFileRequired: '请选择文件导出路径',
     exportFileTip: '请选择文件导出路径',
     expireTip: '同时导出过期时间',
+    ttl: '过期时间',
   },
 
   keyImport: {

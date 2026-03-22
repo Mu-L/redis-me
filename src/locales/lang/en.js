@@ -230,6 +230,7 @@ export default {
     exportFileRequired: 'Please Select export path',
     exportFileTip: 'Select export path',
     expireTip: 'Include Expiration',
+    ttl: 'Expiration',
   },
 
   keyImport: {

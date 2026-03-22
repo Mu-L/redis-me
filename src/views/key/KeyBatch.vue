@@ -10,7 +10,8 @@ const emit = defineEmits(['success', 'closed'])
 defineExpose({ open })
 function open(data, mode = 'export') {
   visible.value = true
-  showScan.value = true
+  checkedKeys.value = data.keyList?.length > 0
+  showScan.value = !checkedKeys.value
   batchMode.value = mode
   Object.assign(form.value, cloneDeep(initForm))
   Object.assign(form.value, data)
@@ -20,6 +21,7 @@ function open(data, mode = 'export') {
 const share = inject('share')
 
 // 表单数据
+const checkedKeys = ref(false)
 const batchMode = ref('export')
 const visible = ref(false)
 const loading = ref(false)
@@ -37,8 +39,10 @@ const form = ref(cloneDeep(initForm))
 watch(
   () => form.value.match,
   () => {
-    showScan.value = true
-    form.value.keyList = []
+    if (!checkedKeys.value) {
+      showScan.value = true
+      form.value.keyList = []
+    }
   },
 )
 
@@ -118,15 +122,18 @@ const exportBtnEnabled = computed(() => (isExport.value ? !!form.value.file : tr
 <template>
   <el-dialog :title v-model="visible" :width="600" @closed="emit('closed')" destroy-on-close>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-      <el-form-item :label="t('keyBatch.match')" prop="match">
+      <el-form-item :label="t('keyBatch.match')" prop="match" v-if="!checkedKeys">
         <!-- 此处保留可编辑，使用更加方便 -->
         <el-input type="text" v-model="form.match" />
         <el-checkbox v-model="form.deleteDirect" v-if="form.keyList.length === 0">{{
           directTip
         }}</el-checkbox>
-        <el-checkbox v-model="form.withTtl" v-if="isExport">{{
-          t('keyBatch.expireTip')
-        }}</el-checkbox>
+      </el-form-item>
+
+      <el-form-item :label="t('keyBatch.ttl')" v-if="isExport">
+        <el-checkbox v-model="form.withTtl">{{
+            t('keyBatch.expireTip')
+          }}</el-checkbox>
       </el-form-item>
 
       <el-form-item :label="t('keyBatch.exportFile')" v-if="isExport" prop="file">
