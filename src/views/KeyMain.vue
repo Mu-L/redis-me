@@ -339,7 +339,7 @@ function checkChange(redisKeys) {
 }
 
 // 多选后的批量操作
-const checkedDisabled = computed(() => checkedKeyList.value.length === 0)
+const checkedDisabled = computed(() => checkedKeyList.value.length === 0 || share.exportImporting)
 const checkedBtnClass = computed(() => checkedDisabled.value ? ['footer-btn']: ['icon-btn', 'footer-btn'])
 function exportChecked() {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'export')
