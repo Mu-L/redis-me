@@ -76,23 +76,52 @@ const treeData = computed(() => {
   // 树形展示
   const root = buildTree(filterKeyList)
   root.forEach((node) => countLeaves(node))
-  root.sort((n1, n2) => {
-    if (sortByCount) {
-      // 文件夹在上面，叶子在下面（将叶子节点的数量归零，避免和只有1个键的文件夹混在一起）
-      const n1Count = n1.children.length > 0 ? n1.keyCount : 0
-      const n2Count = n2.children.length > 0 ? n2.keyCount : 0
-      // 文件夹按照键数量排序, 键数量相同时按照名称排序
-      return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
-    } else {
-      // 保存文件夹在上面，叶子在下面（文件夹的数量为都设置为1）
-      const n1Count = n1.children.length > 0 ? 1 : 0
-      const n2Count = n2.children.length > 0 ? 1 : 0
-      // 文件夹按照名称排序
-      return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
-    }
-  })
+  console.log('treeData', root)
+
+  // 根节点排序及其子节点排序
+  root.sort((n1, n2) => nodesSort(n1, n2))
+  root.forEach(node => sortNodeChildrenLoop(node))
   return root
 })
+
+// 循环方式排序节点的子节点（避免递归栈溢出）
+function sortNodeChildrenLoop(rootNode) {
+  // 初始化一个栈，将根节点压入栈中
+  const stack = [rootNode]
+
+  while (stack.length > 0) {
+    // 取出栈顶节点
+    const node = stack.pop()
+
+    if (node.children && node.children.length > 0) {
+      // 对当前节点的子节点进行排序
+      node.children.sort((n1, n2) => {
+        return nodesSort(n1, n2)
+      })
+
+      // 将所有子节点压入栈中，以便后续处理
+      node.children.forEach((child) => {
+        stack.push(child)
+      })
+    }
+  }
+}
+
+function nodesSort(n1, n2) {
+  if (sortByCount) {
+    // 文件夹在上面，叶子在下面（将叶子节点的数量归零，避免和只有1个键的文件夹混在一起）
+    const n1Count = n1.children.length > 0 ? n1.keyCount : 0
+    const n2Count = n2.children.length > 0 ? n2.keyCount : 0
+    // 文件夹按照键数量排序, 键数量相同时按照名称排序
+    return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
+  } else {
+    // 保存文件夹在上面，叶子在下面（文件夹的数量为都设置为1）
+    const n1Count = n1.children.length > 0 ? 1 : 0
+    const n2Count = n2.children.length > 0 ? 1 : 0
+    // 文件夹按照名称排序
+    return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
+  }
+}
 
 // 显示复选框时补充根节点
 const rootId = nanoid() + Date.now()
