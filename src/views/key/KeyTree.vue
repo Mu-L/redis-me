@@ -75,8 +75,7 @@ const treeData = computed(() => {
 
   // 树形展示
   const root = buildTree(filterKeyList)
-  root.forEach((node) => countLeaves(node))
-  console.log('treeData', root)
+  root.forEach(node => countLeaves(node))
 
   // 根节点排序及其子节点排序
   root.sort((n1, n2) => nodesSort(n1, n2))
@@ -88,21 +87,14 @@ const treeData = computed(() => {
 function sortNodeChildrenLoop(rootNode) {
   // 初始化一个栈，将根节点压入栈中
   const stack = [rootNode]
-
   while (stack.length > 0) {
     // 取出栈顶节点
     const node = stack.pop()
-
     if (node.children && node.children.length > 0) {
       // 对当前节点的子节点进行排序
-      node.children.sort((n1, n2) => {
-        return nodesSort(n1, n2)
-      })
-
+      node.children.sort((n1, n2) => nodesSort(n1, n2))
       // 将所有子节点压入栈中，以便后续处理
-      node.children.forEach((child) => {
-        stack.push(child)
-      })
+      node.children.forEach(child => stack.push(child))
     }
   }
 }
