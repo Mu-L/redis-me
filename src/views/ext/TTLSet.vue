@@ -9,7 +9,8 @@ defineExpose({ open })
 function open(data) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
-  form.value.ttl = data.ttl
+  form.value.ttl = data.ttl || -1
+  form.value.keyList = data.keyList || []
 }
 
 // 共享数据
@@ -21,6 +22,7 @@ const loading = ref(false)
 const initForm = readonly({
   ttl: '',
   ttlUnit: 'second',
+  keyList: [],
 })
 const form = ref(cloneDeep(initForm))
 const rules = computed(() => ({
@@ -44,8 +46,15 @@ function submit() {
     loading.value = true
     try {
       const seconds = meTtlSeconds(form.value.ttl, form.value.ttlUnit)
-      await meInvoke('ttl', { id: share.conn.id, ttl: seconds, key: share.redisKey })
-      meOk(t('ttlSet.ttlOk'))
+      if (isBatch.value) {
+        const param = {ttl: seconds, keyList: form.value.keyList}
+        await meInvoke('batch_ttl', {id: share.conn.id, param})
+        meOk(t('ttlSet.ttlOkBatch'))
+      } else {
+        await meInvoke('ttl', {id: share.conn.id, ttl: seconds, key: share.redisKey})
+        meOk(t('ttlSet.ttlOk'))
+      }
+
       emit('success', seconds)
       visible.value = false
     } finally {
@@ -59,14 +68,20 @@ function quickSet(ttl, ttlUnit) {
   form.value.ttl = ttl
   form.value.ttlUnit = ttlUnit
 }
+
+const isBatch = computed(() => form.value.keyList.length > 0)
+const title = computed(() => isBatch.value
+    ? (t('ttlSet.batchTitle') + ` (${form.value.keyList.length})`)
+    : t('ttlSet.title')
+)
 </script>
 
 <template>
-  <el-dialog :title="t('ttlSet.title')" v-model="visible" :width="500" @closed="emit('closed')">
+  <el-dialog :title v-model="visible" :width="500" @closed="emit('closed')">
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-      <el-form-item :label="t('ttlSet.key')">
+      <el-form-item :label="t('ttlSet.key')" v-if="isBatch">
         <!-- 此处保留可编辑，使用更加方便 -->
-        <el-input type="text" v-model="share.redisKey.key" disabled />
+        <el-input type="text" :modelValue="share.redisKey?.key" disabled />
       </el-form-item>
 
       <el-form-item :label="t('ttlSet.ttl')" prop="ttl">

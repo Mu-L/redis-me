@@ -511,6 +511,7 @@ export default {
 
   ttlSet: {
     title: 'Update TTL',
+    batchTitle: 'Batch Update TTL',
     key: 'Key',
     ttl: 'TTL (-1 means Forever)',
     quickSet: 'Quick Set',
@@ -520,6 +521,7 @@ export default {
     quick04: '1 Hour',
     quick05: '1 Day',
     ttlOk: 'Set TTL Success',
+    ttlOkBatch: 'Batch Set TTL Success',
     ttlRequired: 'Please input TTL',
     ttlValidator: '-1 (Forever) or positive integer',
   },

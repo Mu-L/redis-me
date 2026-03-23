@@ -510,6 +510,7 @@ export default {
 
   ttlSet: {
     title: '更新TTL',
+    batchTitle: '批量更新TTL',
     key: '键',
     ttl: 'TTL超时时长 (-1代表永久)',
     quickSet: '快捷设置',
@@ -519,6 +520,7 @@ export default {
     quick04: '1小时',
     quick05: '1天',
     ttlOk: '设置TTL成功',
+    ttlOkBatch: '批量设置TTL成功',
     ttlRequired: '请输入TTL',
     ttlValidator: '只允许-1(永久) 或 正整数',
   },

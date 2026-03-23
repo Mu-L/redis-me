@@ -20,6 +20,7 @@ import {useI18n} from 'vue-i18n'
 import {listen} from '@tauri-apps/api/event'
 import KeyImport from '@/views/key/KeyImport.vue'
 import {sortBy} from 'lodash'
+import TTLSet from '@/views/ext/TTLSet.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -345,8 +346,11 @@ function exportChecked() {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'export')
 }
 
+const ttlSetRef = useTemplateRef('ttlSetRef')
 function ttlChecked() {
-
+  ttlSetRef.value?.open({
+    keyList: checkedKeyList.value
+  })
 }
 
 function deleteChecked() {
@@ -548,6 +552,7 @@ function deleteChecked() {
     <KeyBatch ref="keyBatchRef" @success="batchKeyOk" />
     <KeyImport ref="keyImportRef" @success="importStart" />
     <KeyMemory ref="keyMemoryRef" />
+    <TTLSet ref="ttlSetRef" />
   </div>
 </template>
 
