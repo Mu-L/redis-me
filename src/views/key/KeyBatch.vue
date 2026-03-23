@@ -31,7 +31,7 @@ const initForm = readonly({
   deleteDirect: false,
 
   file: '',
-  withTtl: false,
+  withTtl: true,
 })
 
 const form = ref(cloneDeep(initForm))
