@@ -60,6 +60,18 @@ export default {
     updateNow: 'Check Now',
     updateProxy: 'Update Proxy',
     updateAppStore: 'Update By AppStore',
+
+    baseSetting: 'Base Setting',
+    moreSetting: 'More Setting',
+    extLabelWidth: '100',
+    keyScanCount: 'Key Scan',
+    fieldScanCount: 'Field Scan',
+    keyShow: 'Key Show',
+    keyShowTree: 'Tree',
+    keyShowList: 'List',
+    keySort: 'Key Sort',
+    sortByCount: 'Count',
+    sortByAlphabet: 'Alphabet',
   },
 
   conn: {

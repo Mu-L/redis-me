@@ -81,7 +81,7 @@ const keySortList = computed(() => [
 </script>
 
 <template>
-  <el-card>
+  <el-card :header="t('setting.baseSetting')">
     <el-form inline label-position="right" :label-width="t('setting.labelWidth')">
       <el-row class="me-flex">
         <el-form-item :label="t('setting.theme')">
@@ -155,23 +155,25 @@ const keySortList = computed(() => [
     </el-form>
   </el-card>
 
-  <el-card style="margin-top: 20px">
+  <el-card :header="t('setting.moreSetting')" style="margin-top: 20px">
     <el-form inline label-position="right" :label-width="t('setting.extLabelWidth')">
       <el-row class="me-flex">
         <el-form-item :label="t('setting.keyScanCount')">
-          <el-input v-model.number="settings.keyScanCount" :label="t('setting.keyScanCount')" />
+          <el-input-number v-model="settings.keyScanCount" :min="100" :max="10000" :controls="false"
+                           style="width: 100px" align="left"/>
         </el-form-item>
         <el-form-item :label="t('setting.fieldScanCount')">
-          <el-input v-model.number="settings.fieldScanCount" :label="t('setting.fieldScanCount')" />
+          <el-input-number v-model.number="settings.fieldScanCount" :min="10" :max="1000" :controls="false"
+                           style="width: 100px" align="left"/>
         </el-form-item>
       </el-row>
 
       <el-row class="me-flex">
         <el-form-item :label="t('setting.keyShow')">
-          <el-segmented v-model="settings.keyShow" :options="keyShowList" />
+          <el-segmented v-model="settings.keyShow" :options="keyShowList"/>
         </el-form-item>
         <el-form-item :label="t('setting.keySort')">
-          <el-segmented v-model="settings.keySort" :options="keySortList" />
+          <el-segmented v-model="settings.keySort" :options="keySortList" :disabled="settings.keyShow !== 'tree'"/>
         </el-form-item>
       </el-row>
     </el-form>
@@ -180,7 +182,7 @@ const keySortList = computed(() => [
 </template>
 
 <style scoped lang="scss">
-:deep(.me-card) {
+:deep(.el-card__header) {
   font-weight: bold;
 }
 

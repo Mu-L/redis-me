@@ -54,6 +54,12 @@ const initSettings = {
   uiFont: [],
   codeFont: [],
   autoUpdate: true,
+
+  // 扩展设置
+  keyScanCount: 1000,
+  fieldScanCount: 20,
+  keyShow: 'tree',
+  keySort: 'count'
 }
 const settings = { ...initSettings, ...storeSettings }
 const meTauri = reactive({
