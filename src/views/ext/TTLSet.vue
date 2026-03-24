@@ -79,7 +79,7 @@ const title = computed(() => isBatch.value
 <template>
   <el-dialog :title v-model="visible" :width="500" @closed="emit('closed')">
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-      <el-form-item :label="t('ttlSet.key')" v-if="isBatch">
+      <el-form-item :label="t('ttlSet.key')" v-if="!isBatch">
         <!-- 此处保留可编辑，使用更加方便 -->
         <el-input type="text" :modelValue="share.redisKey?.key" disabled />
       </el-form-item>
