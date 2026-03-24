@@ -78,6 +78,9 @@ const filterKeyList = computed(() => {
 })
 
 async function scanKey(useCursor = false, loadAll = false) {
+  // 避免重复调用
+  if (loading.value) return
+
   loading.value = true
   try {
     if (!useCursor) {
@@ -94,10 +97,11 @@ async function scanKey(useCursor = false, loadAll = false) {
     }
     const data = await meInvoke('scan', { id: share.conn.id, param: params })
     cursor.value = data.cursor
-    keyList.value.push(...data.keyList)
+
     // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
     //keyList.value.sort((a, b) => a.key.toLowerCase().localeCompare(b.key.toLowerCase()))
-    keyList.value = sortBy(keyList.value, ['key'])
+    const newKeyList = [...keyList.value, ...data.keyList]
+    keyList.value = sortBy(newKeyList, ['key'])
   } finally {
     loading.value = false
   }
