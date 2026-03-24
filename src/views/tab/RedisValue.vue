@@ -152,7 +152,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
     const param = {
       key: share.redisKey,
       hashKey: hashKey.value,
-      count: 10,
+      count: meTauri.settings.fieldScanCount,
       cursor: cursor.value,
       loadAll,
     }

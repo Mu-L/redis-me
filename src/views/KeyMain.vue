@@ -90,7 +90,7 @@ async function scanKey(useCursor = false, loadAll = false) {
 
     const params = {
       match: match.value,
-      count: 1000,
+      count: meTauri.settings.keyScanCount,
       type: keyType.value === 'ALL' ? '' : keyType.value.toLowerCase(),
       loadAll: loadAll,
       cursor: cursor.value,
@@ -280,9 +280,23 @@ function keyMemory(folder) {
 }
 
 // 键显示类型: tree/list; 树形列表排序方式: 字母排序/数量排序
-const keyShowTree = ref(true)
-const sortByCount = ref(true)
+const keyShowTree = computed({
+  get() {
+    return meTauri.settings.keyShow === 'tree'
+  },
+  set(newValue) {
+    meTauri.settings.keyShow = newValue ? 'tree' : 'list'
+  }
+})
 
+const sortByCount = computed({
+  get() {
+    return meTauri.settings.keySort === 'count'
+  },
+  set(newValue) {
+    meTauri.settings.keySort = newValue ? 'count' : 'alphabet'
+  }
+})
 // 更多选项按钮
 async function handleCommand(command) {
   if (command === 'toggleKeyShow') {

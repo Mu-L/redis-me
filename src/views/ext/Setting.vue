@@ -159,7 +159,7 @@ const keySortList = computed(() => [
     <el-form inline label-position="right" :label-width="t('setting.extLabelWidth')">
       <el-row class="me-flex">
         <el-form-item :label="t('setting.keyScanCount')">
-          <el-input-number v-model="settings.keyScanCount" :min="100" :max="10000" :controls="false"
+          <el-input-number v-model="settings.keyScanCount" :min="1000" :max="10000" :controls="false"
                            style="width: 100px" align="left"/>
         </el-form-item>
         <el-form-item :label="t('setting.fieldScanCount')">
