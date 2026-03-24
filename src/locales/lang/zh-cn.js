@@ -61,6 +61,16 @@ export default {
     updateNow: '检查更新',
     updateProxy: '更新代理',
     updateAppStore: '应用商店控制更新',
+
+    extLabelWidth: '80',
+    keyScanCount: '键扫描',
+    fieldScanCount: '字段扫描',
+    keyShow: '键展示',
+    keyShowTree: '树形列表',
+    keyShowList: '平铺列表',
+    keySort: '键排序',
+    sortByCount: '数量排序',
+    sortByAlphabet: '字母排序',
   },
 
   conn: {

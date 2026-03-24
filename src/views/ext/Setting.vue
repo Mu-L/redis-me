@@ -68,6 +68,16 @@ async function checkUpdate() {
     loading.value = false
   }
 }
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+const keyShowList = computed(() => [
+  { value: 'tree', label: t('setting.keyShowTree') },
+  { value: 'list', label: t('setting.keyShowList') },
+])
+const keySortList = computed(() => [
+  { value: 'count', label: t('setting.sortByCount') },
+  { value: 'alphabet', label: t('setting.sortByAlphabet') },
+])
 </script>
 
 <template>
@@ -144,6 +154,29 @@ async function checkUpdate() {
       </el-row>
     </el-form>
   </el-card>
+
+  <el-card style="margin-top: 20px">
+    <el-form inline label-position="right" :label-width="t('setting.extLabelWidth')">
+      <el-row class="me-flex">
+        <el-form-item :label="t('setting.keyScanCount')">
+          <el-input v-model.number="settings.keyScanCount" :label="t('setting.keyScanCount')" />
+        </el-form-item>
+        <el-form-item :label="t('setting.fieldScanCount')">
+          <el-input v-model.number="settings.fieldScanCount" :label="t('setting.fieldScanCount')" />
+        </el-form-item>
+      </el-row>
+
+      <el-row class="me-flex">
+        <el-form-item :label="t('setting.keyShow')">
+          <el-segmented v-model="settings.keyShow" :options="keyShowList" />
+        </el-form-item>
+        <el-form-item :label="t('setting.keySort')">
+          <el-segmented v-model="settings.keySort" :options="keySortList" />
+        </el-form-item>
+      </el-row>
+    </el-form>
+  </el-card>
+
 </template>
 
 <style scoped lang="scss">
