@@ -13,8 +13,9 @@ import { openUrl } from '@tauri-apps/plugin-opener'
 export const bus = mitt()
 
 // 常量
-export const KEY_DELETE = 'DELETE_KEY'
-export const KEY_REFRESH = 'REFRESH_KEY'
+export const KEY_DELETE = 'KEY_DELETE'
+export const KEY_REFRESH = 'KEY_REFRESH'
+export const INFO_REFRESH = 'INFO_REFRESH'
 export const CONN_REFRESH = 'CONN_REFRESH'
 export const CONN_LIST_WINDOWS_SYNC = 'CONN_LIST_WINDOWS_SYNC'
 

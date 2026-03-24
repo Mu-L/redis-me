@@ -3,7 +3,7 @@ import KeyTree from './key/KeyTree.vue'
 import {computed, ref} from 'vue'
 import {
   bus,
-  CONN_REFRESH,
+  CONN_REFRESH, INFO_REFRESH,
   KEY_DELETE,
   KEY_REFRESH,
   KEY_TYPE_LIST,
@@ -115,6 +115,7 @@ onUnmounted(() => {
 function deleteKey(redisKey) {
   keyList.value = keyList.value.filter((rk) => rk.bytes !== redisKey.bytes)
   share.redisKey = null
+  bus.emit(INFO_REFRESH)
 }
 
 // 数据库列表
@@ -199,6 +200,7 @@ function addKey() {
 function addKeyOk(redisKey) {
   keyList.value.unshift(redisKey)
   chooseKey(redisKey)
+  bus.emit(INFO_REFRESH)
 }
 
 // 批量导出键 和 批量删除键
@@ -213,6 +215,7 @@ function exportFolder(folder) {
 function batchKeyOk(mode) {
   if (mode === 'delete') {
     scanKey(false, false)
+    bus.emit(INFO_REFRESH)
   } else {
     share.exportImportingPercentage = 0
     share.exportImporting = true
@@ -252,7 +255,7 @@ async function tauriListen(eventName) {
 
       // 导入完成后刷新连接
       if (eventName === 'import') {
-        bus.emit(CONN_REFRESH) // 让info信息一并刷新(dbMap)
+        bus.emit(INFO_REFRESH)
       }
     }
   })
@@ -511,7 +514,7 @@ function deleteChecked() {
 
       <!-- 右侧: 多选|扩展 -->
       <div class="me-flex" v-if="!showCheckbox">
-        <me-icon icon="me-icon-checked" class="icon-btn footer-btn" @click="toggleChecked"
+        <me-icon icon="me-icon-checked" class="icon-btn footer-btn" @click="toggleChecked" placement="top"
                  :name="t('keyMain.checkedMode')" hint
                  style="font-size: 24px;"/>
         <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
