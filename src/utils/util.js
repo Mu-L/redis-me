@@ -8,6 +8,7 @@ import { relaunch } from '@tauri-apps/plugin-process'
 import i18n from '@/locales'
 import { type } from '@tauri-apps/plugin-os'
 import { openUrl } from '@tauri-apps/plugin-opener'
+import {applyEdits, format} from 'jsonc-parser'
 
 // 全局事件总线: setup直接导入，app全局属性也添加
 export const bus = mitt()
@@ -362,4 +363,13 @@ export async function meDownloadUpdate(quiet = true, update, app) {
 // 休眠
 export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+
+// 支持注释等非标格式（vscode 同款）- genericFastjson格式化Set时不是标准的json
+export function meFormatJson(jsonString) {
+  return applyEdits(jsonString, format(jsonString, undefined, {
+    insertSpaces: true,
+    tabSize: 2
+  }))
 }

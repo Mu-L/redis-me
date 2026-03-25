@@ -5,6 +5,7 @@ import {
   KEY_REFRESH,
   meCopy,
   meDeleteKey,
+  meFormatJson,
   meHumanSeconds,
   meHumanSize,
   meInvoke,
@@ -14,7 +15,7 @@ import {
 } from '@/utils/util.js'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
-import { useI18n } from 'vue-i18n'
+import {useI18n} from 'vue-i18n'
 import TTLSet from '@/views/ext/TTLSet.vue'
 
 const { t } = useI18n()
@@ -56,9 +57,11 @@ const showValue = computed(() => {
       const str = streamType.value ? JSON.stringify(obj) : obj.toString()
       try {
         return str.startsWith('{') || str.startsWith('[')
-          ? JSON.stringify(JSON.parse(str), null, 2)
+          // ? JSON.stringify(JSON.parse(str), null, 2)
+          ? meFormatJson( str) // 格式化支持非标json
           : str
       } catch (e) {
+        console.log(e)
         return str
       }
     } else {

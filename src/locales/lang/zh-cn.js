@@ -70,7 +70,7 @@ export default {
     keyShow: '键展示',
     keyShowTree: '树形',
     keyShowList: '平铺',
-    keySort: '键排序',
+    keySort: '树形排序',
     sortByCount: '数量',
     sortByAlphabet: '字母',
   },

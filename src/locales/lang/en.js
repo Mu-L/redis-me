@@ -69,7 +69,7 @@ export default {
     keyShow: 'Key Show',
     keyShowTree: 'Tree',
     keyShowList: 'List',
-    keySort: 'Key Sort',
+    keySort: 'Tree Sort',
     sortByCount: 'Count',
     sortByAlphabet: 'Alphabet',
   },
