@@ -84,6 +84,9 @@ importers:
       element-plus:
         specifier: ^2.13.5
         version: 2.13.5(typescript@5.8.3)(vue@3.5.30(typescript@5.8.3))
+      json5:
+        specifier: ^2.2.3
+        version: 2.2.3
       jsonc-parser:
         specifier: ^3.3.1
         version: 3.3.1
@@ -1892,6 +1895,11 @@ packages:
 
   js-yaml@4.1.1:
     resolution: {integrity: sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==}
+    hasBin: true
+
+  json5@2.2.3:
+    resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
+    engines: {node: '>=6'}
     hasBin: true
 
   jsonc-parser@3.3.1:
@@ -4130,6 +4138,8 @@ snapshots:
   js-yaml@4.1.1:
     dependencies:
       argparse: 2.0.1
+
+  json5@2.2.3: {}
 
   jsonc-parser@3.3.1: {}
 

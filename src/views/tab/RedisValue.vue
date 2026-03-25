@@ -5,10 +5,11 @@ import {
   KEY_REFRESH,
   meCopy,
   meDeleteKey,
-  meFormatJson,
   meHumanSeconds,
   meHumanSize,
   meInvoke,
+  meJsonFormat,
+  meJsonNormal,
   meOk,
   meRenameKey,
   meType,
@@ -57,11 +58,10 @@ const showValue = computed(() => {
       const str = streamType.value ? JSON.stringify(obj) : obj.toString()
       try {
         return str.startsWith('{') || str.startsWith('[')
-          // ? JSON.stringify(JSON.parse(str), null, 2)
-          ? meFormatJson( str) // 格式化支持非标json
-          : str
-      } catch (e) {
-        console.log(e)
+            // ? JSON.stringify(JSON.parse(str), null, 2)
+            ? meJsonFormat(str) // 格式化支持非标json
+            : str
+      } catch {
         return str
       }
     } else {
@@ -165,14 +165,14 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
 
     if (useCursor) {
       if (
-        data.type === 'list' ||
-        data.type === 'set' ||
-        data.type === 'zset' ||
-        data.type === 'stream'
+          data.type === 'list' ||
+          data.type === 'set' ||
+          data.type === 'zset' ||
+          data.type === 'stream'
       ) {
         redisValue.value.value = redisValue.value.value.concat(data.value)
       } else if (data.type === 'hash') {
-        redisValue.value.value = { ...redisValue.value.value, ...data.value }
+        redisValue.value.value = {...redisValue.value.value, ...data.value}
       } else {
         redisValue.value = data
       }
@@ -205,15 +205,26 @@ function renameKey() {
 
 // 保存值
 async function setValue() {
+  let value = redisValue.value.newValue ||
+      (redisValue.value.type === 'json'
+          ? JSON.stringify(redisValue.value.value, null, 2)
+          : redisValue.value.value)
   const params = {
     key: share.redisKey,
-    value: redisValue.value.newValue || redisValue.value.value,
     ttl: redisValue.value.ttl,
     keyType: redisValue.value.type,
   }
 
   // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
-  await meInvoke('set', { id: share.conn.id, ...params })
+  try {
+    // 支持json5格式输入
+    if (params.keyType === 'json') {
+      value = meJsonNormal(value)
+    }
+  } catch {
+  }
+
+  await meInvoke('set', { id: share.conn.id, ...params, value })
   meOk(t('saveOk'))
 }
 
