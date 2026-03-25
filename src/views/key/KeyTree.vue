@@ -30,10 +30,14 @@ function nodeClick(_data, node) {
 // 右键点击
 const contextMenuNode = ref({})
 const meContextRef = useTemplateRef('meContextRef')
+
 function nodeContextMenu(e, _data, node) {
+  // db0根节点不显示上下文
+  if (node.data.isRootNode) return
   contextMenuNode.value = node
   meContextRef.value.showMenu(e)
 }
+
 function handleCommand(command) {
   if (contextMenuNode.value.isLeaf) {
     const redisKey = contextMenuNode.value.data.redisKey
