@@ -431,6 +431,7 @@ export default {
     autoBroadcast: 'Auto Broadcast',
     readonlyHint: 'Executing commands is temporarily not supported in read-only mode',
     autoCopyHint: 'Auto Copy Command Result',
+
     commandHint: 'View Command Manual',
     commandTitle: 'Commands',
     keywordHint: 'Filter (Command)',
@@ -440,6 +441,23 @@ export default {
     summary: 'Summary',
     since: 'Since',
     total: 'Total',
+    keyShortHint: 'View KeyShort',
+    keyShortTitle: 'KeyShort',
+    keyShortMore: `
+        <br> F11     : Full Screen
+        <br> Enter   : Execute Command
+        <br> Tab     : Command Completion
+        <br> ↑  ↓    : History 
+        <br>
+        <br> Ctrl + L : Clear Screen
+        <br> Ctrl + C : Clear Input
+        <br> Ctrl + A : Move Cursor to line start
+        <br> Ctrl + E : Move Cursor to line end
+        <br>
+        <br> clear : Clear Screen
+        <br> help  : Help
+        <br> open  : Open Website
+    `
   },
 
   redisValue: {

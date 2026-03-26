@@ -21,7 +21,7 @@ const autoBroadcast = ref(true)
 const node = ref('')
 const prefix = computed(() => (node.value ? node.value + '> ' : '$ '))
 const welcome = computed(() =>
-  t('redisTerminal.welcome', { RedisME: colorText('var(--el-color-primary)', 'RedisME', true) }),
+  t('redisTerminal.welcome', { RedisME: colorText(share.color, 'RedisME', true) }),
 )
 
 // 定制化执行命令
@@ -87,6 +87,11 @@ function getSummaries() {
     '',
   ]
 }
+
+const keyShortVisible = ref(false)
+function openKeyShortDialog() {
+  keyShortVisible.value = true
+}
 </script>
 
 <template>
@@ -114,20 +119,39 @@ function getSummaries() {
 
     <!-- 工具栏 -->
     <div class="tool me-flex">
-      <el-tooltip :content="t('redisTerminal.autoCopyHint')" placement="left">
+      <el-tooltip :content="t('redisTerminal.autoCopyHint')" placement="top-end">
         <el-checkbox v-model="autoCopy" />
       </el-tooltip>
       <me-icon
         class="icon-btn"
-        icon="el-icon-document"
+        icon="me-icon-keyshort"
+        :info="t('redisTerminal.keyShortHint')"
+        placement="top-end"
+        @click="openKeyShortDialog"
+        style="margin-left: 10px; font-size: 20px"
+      />
+      <me-icon
+        class="icon-btn"
+        icon="el-icon-help"
         :info="t('redisTerminal.commandHint')"
-        raw-content
         placement="top-end"
         @click="openCommandDialog"
-        :show-after="0"
-        style="margin-left: 5px; font-size: 14px"
+        style="margin-left: 5px;"
       />
     </div>
+
+    <!-- 快捷键提示 -->
+    <el-dialog
+      v-model="keyShortVisible"
+      width="400"
+      align-center
+      draggable
+      :show-close="false"
+      style="--el-dialog-bg-color: unset; box-shadow: unset"
+    >
+      <el-text :style="{color: share.color}" size="large" v-html="t('redisTerminal.keyShortMore')">
+      </el-text>
+    </el-dialog>
 
     <!-- 命令表格 -->
     <me-dialog
@@ -159,7 +183,7 @@ function getSummaries() {
         </div>
 
         <div style="margin-top: 10px; flex-grow: 1; height: 0">
-          <el-table
+          <me-table
             ref="table"
             :data="filterDataList"
             border
@@ -196,7 +220,7 @@ function getSummaries() {
               show-overflow-tooltip
               sortable
             />
-          </el-table>
+          </me-table>
         </div>
       </div>
     </me-dialog>

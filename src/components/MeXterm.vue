@@ -38,7 +38,7 @@ const theme = computed(() => (isDark.value ? 'dark' : 'light'))
 // 快捷键
 // 上下历史记录，回车执行，Ctrl + A光标到行首 已内置支持
 // 新增下面的键: F11 全屏, Ctrl + C 停止当前命令
-// vue-web-terminal 3.4.2 新增：内置快捷键：清屏（Ctrl+L），光标跳转行首（Ctrl+A），光标跳转行尾（Ctrl+E），清除输入（Ctrl+U
+// vue-web-terminal 3.4.2 新增：内置快捷键：清屏（Ctrl+L），光标跳转行首（Ctrl+A），光标跳转行尾（Ctrl+E），清除输入（Ctrl+U）
 function onKeydown(e) {
   const key = e.key.toUpperCase()
   const term = terminalRef.value

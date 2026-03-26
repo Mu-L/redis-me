@@ -441,6 +441,23 @@ export default {
     summary: '概述',
     since: '版本',
     total: '合计',
+    keyShortHint: '查看快捷键',
+    keyShortTitle: '快捷键',
+    keyShortMore: `
+        <br> F11     : 全屏
+        <br> Enter   : 执行命令
+        <br> Tab     : 命令补全
+        <br> ↑  ↓    : 历史记录
+        <br>
+        <br> Ctrl + L : 清屏
+        <br> Ctrl + C : 清除输入
+        <br> Ctrl + A : 光标到行首
+        <br> Ctrl + E : 光标到行尾
+        <br>
+        <br> clear : 清屏
+        <br> help  : 帮助
+        <br> open  : 打开网址
+    `
   },
 
   redisValue: {
