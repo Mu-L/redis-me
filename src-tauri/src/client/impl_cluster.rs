@@ -3,6 +3,7 @@ use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name};
 use crate::utils::model::*;
 use crate::utils::util::*;
+use Ordering::Relaxed;
 use anyhow::bail;
 use chrono::Utc;
 use log::{info, warn};
@@ -18,7 +19,6 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
-use Ordering::Relaxed;
 
 pub struct RedisMeCluster {
     base: RedisMeBase,
@@ -221,7 +221,13 @@ impl RedisMeClient for RedisMeCluster {
         ttl0(self.get_conn()?, key, ttl)
     }
 
-    fn set(&self, key: RedisKey, value: String, ttl: i64, key_type: Option<String>) -> AnyResult<()> {
+    fn set(
+        &self,
+        key: RedisKey,
+        value: String,
+        ttl: i64,
+        key_type: Option<String>,
+    ) -> AnyResult<()> {
         set0(self.get_conn()?, key, value, ttl, key_type)
     }
 
