@@ -37,7 +37,8 @@ const theme = computed(() => (isDark.value ? 'dark' : 'light'))
 
 // 快捷键
 // 上下历史记录，回车执行，Ctrl + A光标到行首 已内置支持
-// 新增下面的键: F11 全屏, Ctrl + L/C/E 清屏/停止当前命令/光标到行尾
+// 新增下面的键: F11 全屏, Ctrl + C 停止当前命令
+// vue-web-terminal 3.4.2 新增：内置快捷键：清屏（Ctrl+L），光标跳转行首（Ctrl+A），光标跳转行尾（Ctrl+E），清除输入（Ctrl+U
 function onKeydown(e) {
   const key = e.key.toUpperCase()
   const term = terminalRef.value
@@ -59,12 +60,6 @@ function onKeydown(e) {
       break
     case 'C': // 停止当前命令 （但不能保留之前的命令）
       term.setCommand('')
-      break
-    //case 'A': // 光标到行首
-    // 似乎已支持, 但只有Ctrl键弹起时才生效（可能跟浏览器自带的全选有关系）
-    //  break
-    case 'E': // 光标到行尾
-      term.setCommand(term.getCommand())
       break
   }
 }
