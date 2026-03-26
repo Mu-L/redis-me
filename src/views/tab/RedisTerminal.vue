@@ -150,7 +150,7 @@ function openKeyShortDialog() {
       style="--el-dialog-bg-color: unset; box-shadow: unset"
     >
       <el-text
-        :style="{ color: share.color }"
+        type="warning"
         size="large"
         v-html="t('redisTerminal.keyShortMore')"
       >
