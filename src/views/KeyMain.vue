@@ -102,7 +102,6 @@ async function scanKey(useCursor = false, loadAll = false) {
     cursor.value = data.cursor
 
     // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
-    //keyList.value.sort((a, b) => a.key.toLowerCase().localeCompare(b.key.toLowerCase()))
     const newKeyList = [...keyList.value, ...data.keyList]
     keyList.value = sortBy(newKeyList, ['key'])
   } finally {
