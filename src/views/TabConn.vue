@@ -1,14 +1,21 @@
 <script setup>
-import {meConfirm, meDownloadUpdate, meErr, meJsonParse, meOk, PREDEFINE_COLORS,} from '@/utils/util.js'
+import {
+  meConfirm,
+  meDownloadUpdate,
+  meErr,
+  meJsonParse,
+  meOk,
+  PREDEFINE_COLORS,
+} from '@/utils/util.js'
 import ConnSave from '@/views/ext/ConnSave.vue'
-import {nextTick, useTemplateRef} from 'vue'
-import {debounce} from 'lodash'
-import {Sortable} from 'sortablejs'
-import {open, save} from '@tauri-apps/plugin-dialog'
-import {readTextFile, writeTextFile} from '@tauri-apps/plugin-fs'
+import { nextTick, useTemplateRef } from 'vue'
+import { debounce } from 'lodash'
+import { Sortable } from 'sortablejs'
+import { open, save } from '@tauri-apps/plugin-dialog'
+import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
 import dayjs from 'dayjs'
-import {useI18n} from 'vue-i18n'
-import {checkConnList} from '@/plugins/tauri.js'
+import { useI18n } from 'vue-i18n'
+import { checkConnList } from '@/plugins/tauri.js'
 
 const { t } = useI18n()
 const share = inject('share')

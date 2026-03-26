@@ -2,20 +2,26 @@
 // 共享数据
 import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
-import {nanoid} from 'nanoid'
+import { nanoid } from 'nanoid'
 
 const { t } = useI18n()
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 
-const emit = defineEmits(['chooseKey', 'chooseFolder', 'contextKey', 'contextFolder', 'checkChange'])
+const emit = defineEmits([
+  'chooseKey',
+  'chooseFolder',
+  'contextKey',
+  'contextFolder',
+  'checkChange',
+])
 const { filterKeyList, showCheckbox, keyShowTree, sortByCount } = defineProps({
   color: { type: String, default: 'var(--el-color-primary)' },
   redisKey: { type: Object, default: null },
   filterKeyList: { type: Array, default: [] },
-  showCheckbox: {type: Boolean, default: false}, // 是否显示树形节点的复选框
-  keyShowTree: {type: Boolean, default: true},  // 列表或者树形
-  sortByCount: {type: Boolean, default: true}, // 文件夹按照键数量排序 或 字母顺序
+  showCheckbox: { type: Boolean, default: false }, // 是否显示树形节点的复选框
+  keyShowTree: { type: Boolean, default: true }, // 列表或者树形
+  sortByCount: { type: Boolean, default: true }, // 文件夹按照键数量排序 或 字母顺序
 })
 
 // 左键点击
@@ -79,11 +85,11 @@ const treeData = computed(() => {
 
   // 树形展示
   const root = buildTree(filterKeyList)
-  root.forEach(node => countLeaves(node))
+  root.forEach((node) => countLeaves(node))
 
   // 根节点排序及其子节点排序
   root.sort((n1, n2) => nodesSort(n1, n2))
-  root.forEach(node => sortNodeChildrenLoop(node))
+  root.forEach((node) => sortNodeChildrenLoop(node))
   return root
 })
 
@@ -98,7 +104,7 @@ function sortNodeChildrenLoop(rootNode) {
       // 对当前节点的子节点进行排序
       node.children.sort((n1, n2) => nodesSort(n1, n2))
       // 将所有子节点压入栈中，以便后续处理
-      node.children.forEach(child => stack.push(child))
+      node.children.forEach((child) => stack.push(child))
     }
   }
 }
@@ -123,18 +129,23 @@ function nodesSort(n1, n2) {
 const rootId = nanoid() + Date.now()
 const treeRef = useTemplateRef('tree')
 const defaultExpandedKeys = computed(() => [rootId])
-watch(() => [showCheckbox, filterKeyList], () => {
-  treeRef.value?.setCheckedKeys([])
-})
+watch(
+  () => [showCheckbox, filterKeyList],
+  () => {
+    treeRef.value?.setCheckedKeys([])
+  },
+)
 const rootTreeData = computed(() => {
   if (showCheckbox) {
-    return [{
-      id: rootId,
-      label: 'db' + share.conn?.db,
-      children: treeData.value,
-      keyCount: filterKeyList.length || 0,
-      isRootNode: true
-    }]
+    return [
+      {
+        id: rootId,
+        label: 'db' + share.conn?.db,
+        children: treeData.value,
+        keyCount: filterKeyList.length || 0,
+        isRootNode: true,
+      },
+    ]
   } else {
     return treeData.value
   }
@@ -213,12 +224,15 @@ function countLeaves(node) {
 
 // 构建树: 仅仅叶子节点（即List显示）
 function buildList(keyList) {
-  return keyList.map(rk =>  ({ id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk }))
+  return keyList.map((rk) => ({ id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk }))
 }
 
 // 获取选中的节点键
 function checkChange() {
-  emit('checkChange', treeRef.value.getCheckedNodes(true).map(node => node.redisKey))
+  emit(
+    'checkChange',
+    treeRef.value.getCheckedNodes(true).map((node) => node.redisKey),
+  )
 }
 </script>
 
@@ -249,7 +263,13 @@ function checkChange() {
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
             <me-icon
               :name="node.label"
-              :icon="node.data.isRootNode ? 'me-icon-db' : (node.expanded ? 'el-icon-folderOpened' : 'el-icon-folder')"
+              :icon="
+                node.data.isRootNode
+                  ? 'me-icon-db'
+                  : node.expanded
+                    ? 'el-icon-folderOpened'
+                    : 'el-icon-folder'
+              "
             />
             <div style="color: var(--el-color-info); margin-right: 10px">
               [ {{ node.data.keyCount }} ]

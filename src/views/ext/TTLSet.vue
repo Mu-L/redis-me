@@ -47,11 +47,11 @@ function submit() {
     try {
       const seconds = meTtlSeconds(form.value.ttl, form.value.ttlUnit)
       if (isBatch.value) {
-        const param = {ttl: seconds, keyList: form.value.keyList}
-        await meInvoke('batch_ttl', {id: share.conn.id, param})
+        const param = { ttl: seconds, keyList: form.value.keyList }
+        await meInvoke('batch_ttl', { id: share.conn.id, param })
         meOk(t('ttlSet.ttlOkBatch'))
       } else {
-        await meInvoke('ttl', {id: share.conn.id, ttl: seconds, key: share.redisKey})
+        await meInvoke('ttl', { id: share.conn.id, ttl: seconds, key: share.redisKey })
         meOk(t('ttlSet.ttlOk'))
       }
 
@@ -70,9 +70,8 @@ function quickSet(ttl, ttlUnit) {
 }
 
 const isBatch = computed(() => form.value.keyList.length > 0)
-const title = computed(() => isBatch.value
-    ? (t('ttlSet.batchTitle') + ` (${form.value.keyList.length})`)
-    : t('ttlSet.title')
+const title = computed(() =>
+  isBatch.value ? t('ttlSet.batchTitle') + ` (${form.value.keyList.length})` : t('ttlSet.title'),
 )
 </script>
 

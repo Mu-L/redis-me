@@ -16,7 +16,7 @@ import {
 } from '@/utils/util.js'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
-import {useI18n} from 'vue-i18n'
+import { useI18n } from 'vue-i18n'
 import TTLSet from '@/views/ext/TTLSet.vue'
 
 const { t } = useI18n()
@@ -58,9 +58,9 @@ const showValue = computed(() => {
       const str = streamType.value ? JSON.stringify(obj) : obj.toString()
       try {
         return str.startsWith('{') || str.startsWith('[')
-            // ? JSON.stringify(JSON.parse(str), null, 2)
-            ? meJsonFormat(str) // 格式化支持非标json
-            : str
+          ? // ? JSON.stringify(JSON.parse(str), null, 2)
+            meJsonFormat(str) // 格式化支持非标json
+          : str
       } catch {
         return str
       }
@@ -165,14 +165,14 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
 
     if (useCursor) {
       if (
-          data.type === 'list' ||
-          data.type === 'set' ||
-          data.type === 'zset' ||
-          data.type === 'stream'
+        data.type === 'list' ||
+        data.type === 'set' ||
+        data.type === 'zset' ||
+        data.type === 'stream'
       ) {
         redisValue.value.value = redisValue.value.value.concat(data.value)
       } else if (data.type === 'hash') {
-        redisValue.value.value = {...redisValue.value.value, ...data.value}
+        redisValue.value.value = { ...redisValue.value.value, ...data.value }
       } else {
         redisValue.value = data
       }
@@ -205,10 +205,11 @@ function renameKey() {
 
 // 保存值
 async function setValue() {
-  let value = redisValue.value.newValue ||
-      (redisValue.value.type === 'json'
-          ? JSON.stringify(redisValue.value.value, null, 2)
-          : redisValue.value.value)
+  let value =
+    redisValue.value.newValue ||
+    (redisValue.value.type === 'json'
+      ? JSON.stringify(redisValue.value.value, null, 2)
+      : redisValue.value.value)
   const params = {
     key: share.redisKey,
     ttl: redisValue.value.ttl,
@@ -221,8 +222,7 @@ async function setValue() {
     if (params.keyType === 'json') {
       value = meJsonNormal(value)
     }
-  } catch {
-  }
+  } catch {}
 
   await meInvoke('set', { id: share.conn.id, ...params, value })
   meOk(t('saveOk'))

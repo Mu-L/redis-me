@@ -59,7 +59,7 @@ const initSettings = {
   keyScanCount: 1000,
   fieldScanCount: 20,
   keyShow: 'tree',
-  keySort: 'count'
+  keySort: 'count',
 }
 const settings = { ...initSettings, ...storeSettings }
 const meTauri = reactive({

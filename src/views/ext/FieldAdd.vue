@@ -1,6 +1,14 @@
 <script setup>
 import { cloneDeep } from 'lodash'
-import {KEY_TYPE_LIST, meInvoke, meOk, meJsonParse, meJsonNormal, meTtlSeconds, meType} from '@/utils/util.js'
+import {
+  KEY_TYPE_LIST,
+  meInvoke,
+  meOk,
+  meJsonParse,
+  meJsonNormal,
+  meTtlSeconds,
+  meType,
+} from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

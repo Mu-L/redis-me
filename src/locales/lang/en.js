@@ -457,7 +457,7 @@ export default {
         <br> clear : Clear Screen
         <br> help  : Help
         <br> open  : Open Website
-    `
+    `,
   },
 
   redisValue: {

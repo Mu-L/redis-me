@@ -131,9 +131,7 @@ const exportBtnEnabled = computed(() => (isExport.value ? !!form.value.file : tr
       </el-form-item>
 
       <el-form-item :label="t('keyBatch.ttl')" v-if="isExport">
-        <el-checkbox v-model="form.withTtl">{{
-            t('keyBatch.expireTip')
-          }}</el-checkbox>
+        <el-checkbox v-model="form.withTtl">{{ t('keyBatch.expireTip') }}</el-checkbox>
       </el-form-item>
 
       <el-form-item :label="t('keyBatch.exportFile')" v-if="isExport" prop="file">

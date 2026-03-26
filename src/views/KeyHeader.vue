@@ -1,12 +1,12 @@
 <script setup>
-import {bus, CONN_REFRESH, meErr, meInvoke, meOk,} from '@/utils/util.js'
+import { bus, CONN_REFRESH, meErr, meInvoke, meOk } from '@/utils/util.js'
 import Setting from '@/views/ext/Setting.vue'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
-import {useI18n} from 'vue-i18n'
-import {nanoid} from 'nanoid'
-import {type} from '@tauri-apps/plugin-os'
-import {getAllWebviewWindows, WebviewWindow} from '@tauri-apps/api/webviewWindow'
+import { useI18n } from 'vue-i18n'
+import { nanoid } from 'nanoid'
+import { type } from '@tauri-apps/plugin-os'
+import { getAllWebviewWindows, WebviewWindow } from '@tauri-apps/api/webviewWindow'
 
 // 共享数据
 const share = inject('share')
@@ -38,7 +38,6 @@ async function handleCommand(command) {
     meOk(`TODO: ${command}`)
   }
 }
-
 
 // 新建窗口: 便于同时查看多个Redis实例数据
 // https://tauri.app/zh-cn/reference/javascript/api/namespacewebview/

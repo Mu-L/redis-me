@@ -8,7 +8,7 @@ import { relaunch } from '@tauri-apps/plugin-process'
 import i18n from '@/locales'
 import { type } from '@tauri-apps/plugin-os'
 import { openUrl } from '@tauri-apps/plugin-opener'
-import {applyEdits, format} from 'jsonc-parser'
+import { applyEdits, format } from 'jsonc-parser'
 import JSON5 from 'json5'
 
 // 全局事件总线: setup直接导入，app全局属性也添加
@@ -366,13 +366,15 @@ export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-
 // 支持注释等非标格式（vscode 同款）- genericFastjson格式化Set时不是标准的json
 export function meJsonFormat(jsonString) {
-  return applyEdits(jsonString, format(jsonString, undefined, {
-    insertSpaces: true,
-    tabSize: 2
-  }))
+  return applyEdits(
+    jsonString,
+    format(jsonString, undefined, {
+      insertSpaces: true,
+      tabSize: 2,
+    }),
+  )
 }
 
 // 支持json5格式的输入(key可以不加引号，key-value可以为单引号，允许注释等)

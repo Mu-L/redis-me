@@ -1,25 +1,28 @@
 <script setup>
 import KeyTree from './key/KeyTree.vue'
-import {computed, ref} from 'vue'
+import { computed, ref } from 'vue'
 import {
   bus,
-  CONN_REFRESH, INFO_REFRESH,
+  CONN_REFRESH,
+  INFO_REFRESH,
   KEY_DELETE,
   KEY_REFRESH,
   KEY_TYPE_LIST,
   meCopy,
   meDeleteKey,
   meInvoke,
-  meOk, mePrompt,
-  meRenameKey, sleep,
+  meOk,
+  mePrompt,
+  meRenameKey,
+  sleep,
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
-import {useI18n} from 'vue-i18n'
-import {listen} from '@tauri-apps/api/event'
+import { useI18n } from 'vue-i18n'
+import { listen } from '@tauri-apps/api/event'
 import KeyImport from '@/views/key/KeyImport.vue'
-import {sortBy} from 'lodash'
+import { sortBy } from 'lodash'
 import TTLSet from '@/views/ext/TTLSet.vue'
 
 const { t } = useI18n()
@@ -74,7 +77,7 @@ const cursor = ref(null) // 扫描的游标
 const keyList = ref([]) // 键列表
 const filterKeyList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
+  return keyList.value.filter((k) => k.key.toLowerCase().indexOf(key) > -1)
 })
 
 async function scanKey(useCursor = false, loadAll = false) {
@@ -286,7 +289,7 @@ const keyShowTree = computed({
   },
   set(newValue) {
     meTauri.settings.keyShow = newValue ? 'tree' : 'list'
-  }
+  },
 })
 
 const sortByCount = computed({
@@ -295,7 +298,7 @@ const sortByCount = computed({
   },
   set(newValue) {
     meTauri.settings.keySort = newValue ? 'count' : 'alphabet'
-  }
+  },
 })
 // 更多选项按钮
 async function handleCommand(command) {
@@ -315,35 +318,35 @@ async function handleCommand(command) {
 // 新增模拟数据
 async function mockData() {
   mePrompt(
-      t('keyHeader.mockHint'),
-      {
-        inputValue: 100,
-        inputType: 'number',
-        inputValidator: (value) => {
-          if (value < 1 || value > 1000) {
-            return t('keyHeader.mockValidator')
-          }
-        },
-      },
-      async ({ value }) => {
-        let total = value
-        share.exportImportingPercentage = 0
-        share.exportImporting = true
-        share.exportImportingTip = t('keyHeader.mocking')
-
-        try {
-          while (value > 0) {
-            const count = Math.min(value, 10)
-            await meInvoke('mock_data', { id: share.conn.id, count })
-            value = value - count
-            share.exportImportingPercentage = Math.round(((total - value) / total) * 100)
-            await sleep(10) // 睡眠10ms以便其他动作可以获取到锁, 同时避免UI界面卡顿
-          }
-          meOk(t('keyHeader.mockOk'))
-        } finally {
-          share.exportImporting = false
+    t('keyHeader.mockHint'),
+    {
+      inputValue: 100,
+      inputType: 'number',
+      inputValidator: (value) => {
+        if (value < 1 || value > 1000) {
+          return t('keyHeader.mockValidator')
         }
       },
+    },
+    async ({ value }) => {
+      let total = value
+      share.exportImportingPercentage = 0
+      share.exportImporting = true
+      share.exportImportingTip = t('keyHeader.mocking')
+
+      try {
+        while (value > 0) {
+          const count = Math.min(value, 10)
+          await meInvoke('mock_data', { id: share.conn.id, count })
+          value = value - count
+          share.exportImportingPercentage = Math.round(((total - value) / total) * 100)
+          await sleep(10) // 睡眠10ms以便其他动作可以获取到锁, 同时避免UI界面卡顿
+        }
+        meOk(t('keyHeader.mockOk'))
+      } finally {
+        share.exportImporting = false
+      }
+    },
   )
 }
 
@@ -362,7 +365,9 @@ function checkChange(redisKeys) {
 
 // 多选后的批量操作
 const checkedDisabled = computed(() => checkedKeyList.value.length === 0 || share.exportImporting)
-const checkedBtnClass = computed(() => checkedDisabled.value ? ['footer-btn']: ['icon-btn', 'footer-btn'])
+const checkedBtnClass = computed(() =>
+  checkedDisabled.value ? ['footer-btn'] : ['icon-btn', 'footer-btn'],
+)
 function exportChecked() {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'export')
 }
@@ -370,7 +375,7 @@ function exportChecked() {
 const ttlSetRef = useTemplateRef('ttlSetRef')
 function ttlChecked() {
   ttlSetRef.value?.open({
-    keyList: checkedKeyList.value
+    keyList: checkedKeyList.value,
   })
 }
 
@@ -383,23 +388,23 @@ function deleteChecked() {
   <div class="key-main">
     <div class="key-header">
       <el-input
-          v-model="keyword"
-          :placeholder="t('keyMain.keyword')"
-          @keyup.enter="scanKey(false, false)"
-          clearable
+        v-model="keyword"
+        :placeholder="t('keyMain.keyword')"
+        @keyup.enter="scanKey(false, false)"
+        clearable
       >
         <template #prepend>
           <el-dropdown placement="bottom-start" @command="chooseKeyType">
             <el-tag
-                :type="keyType.type"
-                effect="plain"
-                style="
-              width: 32px;
-              height: 32px;
-              font-weight: bold;
-              border-bottom-right-radius: 0;
-              border-top-right-radius: 0;
-            "
+              :type="keyType.type"
+              effect="plain"
+              style="
+                width: 32px;
+                height: 32px;
+                font-weight: bold;
+                border-bottom-right-radius: 0;
+                border-top-right-radius: 0;
+              "
             >
               {{ keyType.slice(0, 1) }}
             </el-tag>
@@ -407,9 +412,9 @@ function deleteChecked() {
               <el-dropdown-menu>
                 <el-dropdown-item command="ALL">
                   <el-tag
-                      type="info"
-                      :effect="'ALL' === keyType ? 'dark' : 'plain'"
-                      style="font-weight: bold; width: 26px"
+                    type="info"
+                    :effect="'ALL' === keyType ? 'dark' : 'plain'"
+                    style="font-weight: bold; width: 26px"
                   >
                     A
                   </el-tag>
@@ -417,9 +422,9 @@ function deleteChecked() {
                 </el-dropdown-item>
                 <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
                   <el-tag
-                      :type="item.type"
-                      :effect="item.value === keyType ? 'dark' : 'plain'"
-                      style="font-weight: bold; width: 26px"
+                    :type="item.type"
+                    :effect="item.value === keyType ? 'dark' : 'plain'"
+                    style="font-weight: bold; width: 26px"
                   >
                     {{ item.value.slice(0, 1) }}
                   </el-tag>
@@ -435,18 +440,18 @@ function deleteChecked() {
         <template #append>
           <el-button-group>
             <me-button
-                :info="t('keyMain.refreshKey')"
-                @click="scanKey(false, false)"
-                icon="el-icon-search"
-                placement="bottom"
+              :info="t('keyMain.refreshKey')"
+              @click="scanKey(false, false)"
+              icon="el-icon-search"
+              placement="bottom"
             />
             <me-button
-                :info="t('keyMain.addKey')"
-                @click="addKey"
-                style="border-color: var(--el-button-border-color)"
-                v-if="canEdit"
-                icon="el-icon-plus"
-                placement="bottom"
+              :info="t('keyMain.addKey')"
+              @click="addKey"
+              style="border-color: var(--el-button-border-color)"
+              v-if="canEdit"
+              icon="el-icon-plus"
+              placement="bottom"
             />
           </el-button-group>
         </template>
@@ -474,10 +479,10 @@ function deleteChecked() {
       <!-- 左侧: 数据库|游标 -->
       <div class="me-flex" v-if="!showCheckbox">
         <el-select
-            v-model="share.conn.db"
-            @change="selectDB"
-            style="width: 120px;"
-            v-if="!share.conn.cluster"
+          v-model="share.conn.db"
+          @change="selectDB"
+          style="width: 120px"
+          v-if="!share.conn.cluster"
         >
           <el-option v-for="item in dbList" :key="item.db" :value="item.db">
             {{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}
@@ -488,20 +493,20 @@ function deleteChecked() {
         </el-select>
         <div class="me-flex" style="width: 50px; margin: 0 5px" v-if="!cursor?.finished">
           <me-icon
-              :name="t('keyMain.loadMore')"
-              icon="me-icon-load-more"
-              hint
-              placement="top"
-              class="icon-btn footer-btn"
-              @click="scanKey(true, false)"
+            :name="t('keyMain.loadMore')"
+            icon="me-icon-load-more"
+            hint
+            placement="top"
+            class="icon-btn footer-btn"
+            @click="scanKey(true, false)"
           />
           <me-icon
-              :name="t('keyMain.loadAll')"
-              icon="me-icon-load-all"
-              hint
-              placement="top"
-              class="icon-btn footer-btn"
-              @click="scanKey(true, true)"
+            :name="t('keyMain.loadAll')"
+            icon="me-icon-load-all"
+            hint
+            placement="top"
+            class="icon-btn footer-btn"
+            @click="scanKey(true, true)"
           />
         </div>
       </div>
@@ -509,16 +514,36 @@ function deleteChecked() {
       <!-- 左侧: 导出|TTL|删除 （多选时显示） -->
       <div class="me-flex" v-else style="width: 70px; margin-left: 10px">
         <el-link underline="never" :disabled="checkedDisabled" @click="exportChecked">
-          <me-icon :name="t('keyMain.exportChecked')" icon="me-icon-export" hint :class="checkedBtnClass"
-                   placement="top"/>
+          <me-icon
+            :name="t('keyMain.exportChecked')"
+            icon="me-icon-export"
+            hint
+            :class="checkedBtnClass"
+            placement="top"
+          />
         </el-link>
         <el-link underline="never" :disabled="checkedDisabled" @click="ttlChecked" v-if="canEdit">
-          <me-icon :name="t('keyMain.ttlChecked')" icon="el-icon-timer" hint :class="checkedBtnClass"
-                   placement="top"/>
+          <me-icon
+            :name="t('keyMain.ttlChecked')"
+            icon="el-icon-timer"
+            hint
+            :class="checkedBtnClass"
+            placement="top"
+          />
         </el-link>
-        <el-link underline="never" :disabled="checkedDisabled" @click="deleteChecked" v-if="canEdit">
-          <me-icon :name="t('keyMain.deleteChecked')" icon="el-icon-delete" hint :class="checkedBtnClass"
-                   placement="top"/>
+        <el-link
+          underline="never"
+          :disabled="checkedDisabled"
+          @click="deleteChecked"
+          v-if="canEdit"
+        >
+          <me-icon
+            :name="t('keyMain.deleteChecked')"
+            icon="el-icon-delete"
+            hint
+            :class="checkedBtnClass"
+            placement="top"
+          />
         </el-link>
       </div>
 
@@ -532,28 +557,40 @@ function deleteChecked() {
 
       <!-- 右侧: 多选|扩展 -->
       <div class="me-flex" v-if="!showCheckbox">
-        <me-icon icon="me-icon-checked" class="icon-btn footer-btn" @click="toggleChecked" placement="top"
-                 :name="t('keyMain.checkedMode')" hint
-                 style="font-size: 24px;"/>
+        <me-icon
+          icon="me-icon-checked"
+          class="icon-btn footer-btn"
+          @click="toggleChecked"
+          placement="top"
+          :name="t('keyMain.checkedMode')"
+          hint
+          style="font-size: 24px"
+        />
         <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
-          <me-icon icon="el-icon-more-filled" class="icon-btn footer-btn"/>
+          <me-icon icon="el-icon-more-filled" class="icon-btn footer-btn" />
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="exportData">
-                <me-icon :name="t('keyMain.exportData')" icon="me-icon-export"/>
+                <me-icon :name="t('keyMain.exportData')" icon="me-icon-export" />
               </el-dropdown-item>
               <el-dropdown-item command="importData" v-if="canEdit">
-                <me-icon :name="t('keyMain.importData')" icon="me-icon-import"/>
+                <me-icon :name="t('keyMain.importData')" icon="me-icon-import" />
               </el-dropdown-item>
               <el-dropdown-item command="mockData" v-if="canEdit">
-                <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup"/>
+                <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />
               </el-dropdown-item>
 
               <el-dropdown-item command="toggleKeyShow" divided>
-                <me-icon :name="keyShowTree ? t('keyMain.listView') : t('keyMain.treeView')" :icon="keyShowTree ? 'me-icon-list': 'me-icon-tree'"></me-icon>
+                <me-icon
+                  :name="keyShowTree ? t('keyMain.listView') : t('keyMain.treeView')"
+                  :icon="keyShowTree ? 'me-icon-list' : 'me-icon-tree'"
+                ></me-icon>
               </el-dropdown-item>
               <el-dropdown-item command="toggleKeySort" v-if="keyShowTree">
-                <me-icon :name="sortByCount ? t('keyMain.sortByAlphabet') : t('keyMain.sortByCount')" icon="me-icon-alphabet"></me-icon>
+                <me-icon
+                  :name="sortByCount ? t('keyMain.sortByAlphabet') : t('keyMain.sortByCount')"
+                  icon="me-icon-alphabet"
+                ></me-icon>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -562,9 +599,14 @@ function deleteChecked() {
 
       <!-- 右侧: 关闭多选 （多选时显示） -->
       <div class="me-flex" v-else style="width: 30px">
-        <me-icon :name="t('keyMain.exitCheckedMode')" icon="el-icon-circle-close"
-                 @click="toggleChecked"
-                 hint class="icon-btn footer-btn" placement="top"/>
+        <me-icon
+          :name="t('keyMain.exitCheckedMode')"
+          icon="el-icon-circle-close"
+          @click="toggleChecked"
+          hint
+          class="icon-btn footer-btn"
+          placement="top"
+        />
       </div>
     </div>
 

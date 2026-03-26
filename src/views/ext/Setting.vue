@@ -159,26 +159,41 @@ const keySortList = computed(() => [
     <el-form inline label-position="right" :label-width="t('setting.extLabelWidth')">
       <el-row class="me-flex">
         <el-form-item :label="t('setting.keyScanCount')">
-          <el-input-number v-model="settings.keyScanCount" :min="1000" :max="10000" :controls="false"
-                           style="width: 100px" align="left"/>
+          <el-input-number
+            v-model="settings.keyScanCount"
+            :min="1000"
+            :max="10000"
+            :controls="false"
+            style="width: 100px"
+            align="left"
+          />
         </el-form-item>
         <el-form-item :label="t('setting.fieldScanCount')">
-          <el-input-number v-model.number="settings.fieldScanCount" :min="10" :max="1000" :controls="false"
-                           style="width: 100px" align="left"/>
+          <el-input-number
+            v-model.number="settings.fieldScanCount"
+            :min="10"
+            :max="1000"
+            :controls="false"
+            style="width: 100px"
+            align="left"
+          />
         </el-form-item>
       </el-row>
 
       <el-row class="me-flex">
         <el-form-item :label="t('setting.keyShow')">
-          <el-segmented v-model="settings.keyShow" :options="keyShowList"/>
+          <el-segmented v-model="settings.keyShow" :options="keyShowList" />
         </el-form-item>
         <el-form-item :label="t('setting.keySort')">
-          <el-segmented v-model="settings.keySort" :options="keySortList" :disabled="settings.keyShow !== 'tree'"/>
+          <el-segmented
+            v-model="settings.keySort"
+            :options="keySortList"
+            :disabled="settings.keyShow !== 'tree'"
+          />
         </el-form-item>
       </el-row>
     </el-form>
   </el-card>
-
 </template>
 
 <style scoped lang="scss">

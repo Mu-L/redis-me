@@ -15,9 +15,10 @@
 ![chartjs.png](/images/chart/chartjs.png)
 
 ## Indicator details
+
 ```rust
 // 图表的计算指标说明
-struct RedisChart {  
+struct RedisChart {
     node: String,
 
     // db0:keys=1558,expires=0,avg_ttl=0,subexpiry=0; db1:keys=50,expires=0,avg_ttl=0,subexpiry=0

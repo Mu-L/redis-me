@@ -136,7 +136,7 @@ function openKeyShortDialog() {
         :info="t('redisTerminal.commandHint')"
         placement="top-end"
         @click="openCommandDialog"
-        style="margin-left: 5px;"
+        style="margin-left: 5px"
       />
     </div>
 
@@ -149,7 +149,11 @@ function openKeyShortDialog() {
       :show-close="false"
       style="--el-dialog-bg-color: unset; box-shadow: unset"
     >
-      <el-text :style="{color: share.color}" size="large" v-html="t('redisTerminal.keyShortMore')">
+      <el-text
+        :style="{ color: share.color }"
+        size="large"
+        v-html="t('redisTerminal.keyShortMore')"
+      >
       </el-text>
     </el-dialog>
 

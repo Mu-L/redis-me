@@ -2,7 +2,7 @@
 import { useTemplateRef } from 'vue'
 import { infoTip as tips } from '@/utils/tip.js'
 import NodeList from '../ext/NodeList.vue'
-import {bus, INFO_REFRESH, meInvoke} from '@/utils/util.js'
+import { bus, INFO_REFRESH, meInvoke } from '@/utils/util.js'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 import { useI18n } from 'vue-i18n'

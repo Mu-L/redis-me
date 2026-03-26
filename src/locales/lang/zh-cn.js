@@ -166,7 +166,6 @@ export default {
     refreshConn: '刷新连接',
     closeConn: '关闭连接',
 
-
     newWindow: '新窗口',
     newWindowError: '打开新窗口失败',
     setting: '设置',
@@ -457,7 +456,7 @@ export default {
         <br> clear : 清屏
         <br> help  : 帮助
         <br> open  : 打开网址
-    `
+    `,
   },
 
   redisValue: {

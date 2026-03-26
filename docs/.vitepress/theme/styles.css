@@ -5,8 +5,10 @@
   --vp-home-hero-image-filter: blur(44px);
 
   /* 字体采用Rspress的默认字体，似乎更好看一些 */
-  --vp-font-family-base: "Inter var experimental", "Inter var", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-  --vp-font-family-mono: Menlo, Monaco, Consolas, "Courier New", monospace;
+  --vp-font-family-base:
+    'Inter var experimental', 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --vp-font-family-mono: Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 @media (min-width: 640px) {
