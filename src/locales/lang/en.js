@@ -432,7 +432,7 @@ export default {
     readonlyHint: 'Executing commands is temporarily not supported in read-only mode',
     autoCopyHint: 'Auto Copy Command Result',
 
-    commandHint: 'View Command Manual',
+    commandHint: 'View Command List',
     commandTitle: 'Commands',
     keywordHint: 'Filter (Command)',
     group: 'Group',

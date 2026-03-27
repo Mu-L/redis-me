@@ -357,7 +357,7 @@ export default {
     `,
     total: '合计',
     longTimeHint: '确定开始内存分析吗？耗时可能较长，请耐心等待！',
-    batchDeleteHint: '确定批量删除【{size}】个键吗？',
+    batchDeleteHint: '确定批量删除【{count}】个键吗？',
     scanConfig: '扫描配置',
 
     fuzzy: '模糊',
@@ -431,7 +431,7 @@ export default {
     autoBroadcast: '自动广播',
     readonlyHint: '只读模式下暂不支持执行命令',
     autoCopyHint: '自动复制命令结果',
-    commandHint: '查看命令手册',
+    commandHint: '查看命令列表',
     commandTitle: '命令列表',
     keywordHint: '命令模糊筛选',
     group: '分组',
