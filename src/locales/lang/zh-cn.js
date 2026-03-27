@@ -61,6 +61,18 @@ export default {
     updateNow: '检查更新',
     updateProxy: '更新代理',
     updateAppStore: '应用商店控制更新',
+
+    baseSetting: '基础设置',
+    moreSetting: '更多设置',
+    extLabelWidth: '80',
+    keyScanCount: '键扫描',
+    fieldScanCount: '字段扫描',
+    keyShow: '键展示',
+    keyShowTree: '树形',
+    keyShowList: '平铺',
+    keySort: '树形排序',
+    sortByCount: '数量',
+    sortByAlphabet: '字母',
   },
 
   conn: {
@@ -153,9 +165,6 @@ export default {
 
     refreshConn: '刷新连接',
     closeConn: '关闭连接',
-    mockData: '模拟数据',
-    exportData: '导出数据',
-    importData: '导入数据',
 
     newWindow: '新窗口',
     newWindowError: '打开新窗口失败',
@@ -234,6 +243,7 @@ export default {
     exportFileRequired: '请选择文件导出路径',
     exportFileTip: '请选择文件导出路径',
     expireTip: '同时导出过期时间',
+    ttl: '过期时间',
   },
 
   keyImport: {
@@ -347,7 +357,7 @@ export default {
     `,
     total: '合计',
     longTimeHint: '确定开始内存分析吗？耗时可能较长，请耐心等待！',
-    batchDeleteHint: '确定批量删除【{size}】个键吗？',
+    batchDeleteHint: '确定批量删除【{count}】个键吗？',
     scanConfig: '扫描配置',
 
     fuzzy: '模糊',
@@ -421,7 +431,7 @@ export default {
     autoBroadcast: '自动广播',
     readonlyHint: '只读模式下暂不支持执行命令',
     autoCopyHint: '自动复制命令结果',
-    commandHint: '查看命令手册',
+    commandHint: '查看命令列表',
     commandTitle: '命令列表',
     keywordHint: '命令模糊筛选',
     group: '分组',
@@ -429,7 +439,23 @@ export default {
     usage: '使用',
     summary: '概述',
     since: '版本',
-    total: '合计',
+    keyShortHint: '查看快捷键',
+    keyShortTitle: '快捷键',
+    keyShortMore: `
+        <br> F11     : 全屏
+        <br> Enter   : 执行命令
+        <br> Tab     : 命令补全
+        <br> ↑  ↓    : 历史记录
+        <br>
+        <br> Ctrl + L : 清屏
+        <br> Ctrl + C : 清除输入
+        <br> Ctrl + A : 光标到行首
+        <br> Ctrl + E : 光标到行尾
+        <br>
+        <br> clear : 清屏
+        <br> help  : 帮助
+        <br> open  : 打开网址
+    `,
   },
 
   redisValue: {
@@ -486,8 +512,6 @@ export default {
     exactSearch: '精确匹配',
     refreshKey: '刷新键',
     addKey: '新增键',
-    listView: '键平铺展示',
-    treeView: '键树形展示',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
     exporting: '导出中...',
@@ -496,10 +520,24 @@ export default {
     importing: '导入中...',
     importDone: '导入完成',
     importResult: '成功{okCount}个，失败{errCount}个，忽略{ignoreCount}个！',
+    checkedMode: '勾选模式',
+    mockData: '模拟数据',
+    exportData: '导出数据',
+    importData: '导入数据',
+    listView: '平铺展示',
+    treeView: '树形展示',
+    sortByCount: '数量排序',
+    sortByAlphabet: '字母排序',
+
+    exportChecked: '导出所选项',
+    ttlChecked: '为所选项更新TTL',
+    deleteChecked: '删除所选项',
+    exitCheckedMode: '退出勾选模式',
   },
 
   ttlSet: {
     title: '更新TTL',
+    batchTitle: '批量更新TTL',
     key: '键',
     ttl: 'TTL超时时长 (-1代表永久)',
     quickSet: '快捷设置',
@@ -509,6 +547,7 @@ export default {
     quick04: '1小时',
     quick05: '1天',
     ttlOk: '设置TTL成功',
+    ttlOkBatch: '批量设置TTL成功',
     ttlRequired: '请输入TTL',
     ttlValidator: '只允许-1(永久) 或 正整数',
   },

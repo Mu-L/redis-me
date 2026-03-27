@@ -8,6 +8,8 @@ import {
   meHumanSeconds,
   meHumanSize,
   meInvoke,
+  meJsonFormat,
+  meJsonNormal,
   meOk,
   meRenameKey,
   meType,
@@ -56,9 +58,10 @@ const showValue = computed(() => {
       const str = streamType.value ? JSON.stringify(obj) : obj.toString()
       try {
         return str.startsWith('{') || str.startsWith('[')
-          ? JSON.stringify(JSON.parse(str), null, 2)
+          ? // ? JSON.stringify(JSON.parse(str), null, 2)
+            meJsonFormat(str) // 格式化支持非标json
           : str
-      } catch (e) {
+      } catch {
         return str
       }
     } else {
@@ -152,7 +155,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
     const param = {
       key: share.redisKey,
       hashKey: hashKey.value,
-      count: 10,
+      count: meTauri.settings.fieldScanCount,
       cursor: cursor.value,
       loadAll,
     }
@@ -202,15 +205,26 @@ function renameKey() {
 
 // 保存值
 async function setValue() {
+  let value =
+    redisValue.value.newValue ||
+    (redisValue.value.type === 'json'
+      ? JSON.stringify(redisValue.value.value, null, 2)
+      : redisValue.value.value)
   const params = {
     key: share.redisKey,
-    value: redisValue.value.newValue || redisValue.value.value,
     ttl: redisValue.value.ttl,
     keyType: redisValue.value.type,
   }
 
   // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
-  await meInvoke('set', { id: share.conn.id, ...params })
+  try {
+    // 支持json5格式输入
+    if (params.keyType === 'json') {
+      value = meJsonNormal(value)
+    }
+  } catch {}
+
+  await meInvoke('set', { id: share.conn.id, ...params, value })
   meOk(t('saveOk'))
 }
 

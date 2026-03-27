@@ -60,6 +60,18 @@ export default {
     updateNow: 'Check Now',
     updateProxy: 'Update Proxy',
     updateAppStore: 'Update By AppStore',
+
+    baseSetting: 'Base Setting',
+    moreSetting: 'More Setting',
+    extLabelWidth: '100',
+    keyScanCount: 'Key Scan',
+    fieldScanCount: 'Field Scan',
+    keyShow: 'Key Show',
+    keyShowTree: 'Tree',
+    keyShowList: 'List',
+    keySort: 'Tree Sort',
+    sortByCount: 'Count',
+    sortByAlphabet: 'Alphabet',
   },
 
   conn: {
@@ -152,9 +164,6 @@ export default {
 
     refreshConn: 'Refresh Conn',
     closeConn: 'Close Conn',
-    mockData: 'Mock Data',
-    exportData: 'Export Data',
-    importData: 'Import Data',
 
     newWindow: 'New Window',
     newWindowError: 'Open New Window Error',
@@ -233,6 +242,7 @@ export default {
     exportFileRequired: 'Please Select export path',
     exportFileTip: 'Select export path',
     expireTip: 'Include Expiration',
+    ttl: 'Expiration',
   },
 
   keyImport: {
@@ -421,7 +431,8 @@ export default {
     autoBroadcast: 'Auto Broadcast',
     readonlyHint: 'Executing commands is temporarily not supported in read-only mode',
     autoCopyHint: 'Auto Copy Command Result',
-    commandHint: 'View Command Manual',
+
+    commandHint: 'View Command List',
     commandTitle: 'Commands',
     keywordHint: 'Filter (Command)',
     group: 'Group',
@@ -429,7 +440,23 @@ export default {
     usage: 'Usage',
     summary: 'Summary',
     since: 'Since',
-    total: 'Total',
+    keyShortHint: 'View KeyShort',
+    keyShortTitle: 'KeyShort',
+    keyShortMore: `
+        <br> F11     : Full Screen
+        <br> Enter   : Execute Command
+        <br> Tab     : Command Completion
+        <br> ↑  ↓    : History 
+        <br>
+        <br> Ctrl + L : Clear Screen
+        <br> Ctrl + C : Clear Input
+        <br> Ctrl + A : Move Cursor to line start
+        <br> Ctrl + E : Move Cursor to line end
+        <br>
+        <br> clear : Clear Screen
+        <br> help  : Help
+        <br> open  : Open Website
+    `,
   },
 
   redisValue: {
@@ -487,8 +514,6 @@ export default {
     exactSearch: 'Exact Search',
     refreshKey: 'Refresh Key',
     addKey: 'Add Key',
-    listView: 'List View',
-    treeView: 'Tree View',
     loadMore: 'Load More',
     loadAll: 'Load All',
     exporting: 'Exporting',
@@ -497,10 +522,25 @@ export default {
     importing: 'Importing',
     importDone: 'Import Done',
     importResult: 'Success: {okCount}, Fail: {errCount}, Ignore: {ignoreCount}',
+    checkedMode: 'Checked Mode',
+
+    mockData: 'Mock Data',
+    exportData: 'Export Data',
+    importData: 'Import Data',
+    listView: 'List View',
+    treeView: 'Tree View',
+    sortByCount: 'Key Count',
+    sortByAlphabet: 'Alphabet',
+
+    exportChecked: 'Export Checked',
+    ttlChecked: 'TTL Checked',
+    deleteChecked: 'Delete Checked',
+    exitCheckedMode: 'Exit Checked',
   },
 
   ttlSet: {
     title: 'Update TTL',
+    batchTitle: 'Batch Update TTL',
     key: 'Key',
     ttl: 'TTL (-1 means Forever)',
     quickSet: 'Quick Set',
@@ -510,6 +550,7 @@ export default {
     quick04: '1 Hour',
     quick05: '1 Day',
     ttlOk: 'Set TTL Success',
+    ttlOkBatch: 'Batch Set TTL Success',
     ttlRequired: 'Please input TTL',
     ttlValidator: '-1 (Forever) or positive integer',
   },

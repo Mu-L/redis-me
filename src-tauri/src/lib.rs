@@ -71,6 +71,7 @@ pub fn run() {
             monitor,
             monitor_stop,
             batch_del,
+            batch_ttl,
             export_csv,
             import_csv,
             mock_data,

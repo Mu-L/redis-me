@@ -5,10 +5,10 @@ use log::error;
 use rand::Rng;
 use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
+use redis::streams::{StreamId, StreamRangeReply};
 use redis::{FromRedisValue, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
-use redis::streams::{StreamId, StreamRangeReply};
 
 // 统一应用返回值
 pub type AnyResult<T> = anyhow::Result<T>;
@@ -98,7 +98,10 @@ pub fn ui_hash_value(value: HashMap<Vec<u8>, Vec<u8>>) -> HashMap<String, String
 }
 
 pub fn ui_set_value(value: HashSet<Vec<u8>>) -> Vec<String> {
-    value.into_iter().map(|v| vec8_to_display_string(&v)).collect()
+    value
+        .into_iter()
+        .map(|v| vec8_to_display_string(&v))
+        .collect()
 }
 
 pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>) -> Vec<RedisZetItem> {
@@ -112,17 +115,24 @@ pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>) -> Vec<RedisZetItem> {
 }
 
 pub fn ui_stream_value(reply: StreamRangeReply) -> Vec<RedisStreamItem> {
-    reply.ids.into_iter().map(|sid| {
-        let StreamId { id, map, .. } = sid;
-        RedisStreamItem {
-            id,
-            value: ui_stream_id(map),
-        }
-    }).collect()
+    reply
+        .ids
+        .into_iter()
+        .map(|sid| {
+            let StreamId { id, map, .. } = sid;
+            RedisStreamItem {
+                id,
+                value: ui_stream_id(map),
+            }
+        })
+        .collect()
 }
 
-pub fn ui_stream_id(stream_id : HashMap<String, Value>) -> HashMap<String, String> {
-    stream_id.into_iter().map(|(k, v)| (k, redis_value_to_string(v, "\n"))).collect()
+pub fn ui_stream_id(stream_id: HashMap<String, Value>) -> HashMap<String, String> {
+    stream_id
+        .into_iter()
+        .map(|(k, v)| (k, redis_value_to_string(v, "\n")))
+        .collect()
 }
 
 // 字节数组转Base64字符串: RedisKey 的 bytes

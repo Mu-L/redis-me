@@ -163,7 +163,13 @@ impl RedisMeClient for RedisMeSingle {
         ttl0(self.get_conn()?, key, ttl)
     }
 
-    fn set(&self, key: RedisKey, value: String, ttl: i64, key_type: Option<String>) -> AnyResult<()> {
+    fn set(
+        &self,
+        key: RedisKey,
+        value: String,
+        ttl: i64,
+        key_type: Option<String>,
+    ) -> AnyResult<()> {
         set0(self.get_conn()?, key, value, ttl, key_type)
     }
 
@@ -364,6 +370,26 @@ impl RedisMeClient for RedisMeSingle {
         let mut conn = self.get_conn()?;
         let _: () = pipe.query(&mut conn)?;
         info!("batch delete finished: {}", size);
+        Ok(())
+    }
+
+    fn batch_ttl(&self, param: RedisBatchTtl) -> AnyResult<()> {
+        if param.key_list.is_empty() {
+            return Ok(());
+        }
+
+        let size = param.key_list.len();
+        let mut pipe = Pipeline::with_capacity(size);
+        for key in param.key_list {
+            if param.ttl > 0 {
+                pipe.expire(&key, param.ttl).ignore();
+            } else {
+                pipe.persist(&key).ignore();
+            }
+        }
+        let mut conn = self.get_conn()?;
+        let _: () = pipe.query(&mut conn)?;
+        info!("batch ttl finished: {}", size);
         Ok(())
     }
 

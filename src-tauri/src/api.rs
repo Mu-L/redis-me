@@ -78,6 +78,7 @@ api_commands!(
     subscribe_stop() -> ();                      // 订阅消息停止
     monitor_stop()   -> ();                      // 监控命令停止
     batch_del(param: RedisBatchKey) -> ();       // 批量删除
+    batch_ttl(param: RedisBatchTtl) -> ();       // 批量更新过期时间
     mock_data(count: u64) -> ();                 // 模拟数据
 );
 

@@ -1,5 +1,22 @@
 # 2.x Changelog
 
+## [2.4.0](https://mp.weixin.qq.com/s/rZYko6a9-T217pT8erSQ4w) (2026-03-28)
+
+- Key display: Overall design optimization
+  - **New checkboxes are added. After multiple selection, keys can be exported in batches/deleted/updated with
+    expiration time**.
+  - The implementation of tiled display is optimized. Tree display supports sorting by the number of keys and letters,
+    and the performance is optimized.
+  - Export data, import data, and simulate data are moved from the main menu to the key display extension menu.
+- Settings: New configuration for the default number of scanned keys, default key display mode, and default tree sorting
+  mode.
+- Terminal: **New shortcut key pop-up prompt is added**, and the pop-up speed of the command table is optimized.
+- JSON formatting and parsing optimization
+  - Value display: **Formatting supports non-standard JSON** (same as VSCode).
+  - New editing: **Supports input in JSON5 format** (keys can be without quotes, etc.).
+- Docs: Icons are added to the home page, the default font is optimized, and Apple troubleshooting is optimized.
+- Docs: New Redis client comparison, chart explanations, and other user manuals are added.
+
 ## [v2.3.0](https://mp.weixin.qq.com/s/WoZvSwyv-w4bxW0lzHh9OA) (2026-03-15)
 
 - **Key type support**: Added support for json and stream types.

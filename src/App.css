@@ -43,6 +43,8 @@ html.dark {
   --el-bg-color-overlay: var(--me-bg-color); /* el-tabs的背景色: Redis信息      */
   --el-fill-color-blank: var(--me-bg-color); /* el-select的填充颜色 */
   --el-fill-color-lighter: #2f2f2f; /* el-table表格斑马纹 */
+
+  --el-color-info-light-8: #333; /*树形节点的hover颜色, 改为--el-color-info-light-7*/
 }
 
 html,
@@ -128,7 +130,7 @@ svg {
 }
 
 .icon-btn :hover {
-  color: var(--el-color-primary);
+  color: var(--el-color-warning);
 }
 
 /*ElDialog新增的全屏按钮*/

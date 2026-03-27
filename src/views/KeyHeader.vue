@@ -1,26 +1,15 @@
 <script setup>
-import {
-  bus,
-  CONN_REFRESH,
-  EXPORT_DATA,
-  IMPORT_DATA,
-  meErr,
-  meInvoke,
-  meOk,
-  mePrompt,
-  sleep,
-} from '@/utils/util.js'
+import { bus, CONN_REFRESH, meErr, meInvoke, meOk } from '@/utils/util.js'
 import Setting from '@/views/ext/Setting.vue'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
 import { useI18n } from 'vue-i18n'
 import { nanoid } from 'nanoid'
 import { type } from '@tauri-apps/plugin-os'
-import { WebviewWindow, getAllWebviewWindows } from '@tauri-apps/api/webviewWindow'
+import { getAllWebviewWindows, WebviewWindow } from '@tauri-apps/api/webviewWindow'
 
 // 共享数据
 const share = inject('share')
-const canEdit = computed(() => !share.readonly)
 const { t } = useI18n()
 
 // 弹出框
@@ -45,59 +34,9 @@ async function handleCommand(command) {
     dialog.info = true
   } else if ('social' === command) {
     dialog.social = true
-  } else if ('mockData' === command) {
-    await mockData()
-  } else if ('exportData' === command) {
-    bus.emit(EXPORT_DATA)
-  } else if ('importData' === command) {
-    bus.emit(IMPORT_DATA)
   } else {
     meOk(`TODO: ${command}`)
   }
-}
-
-// 新增模拟数据
-async function mockData() {
-  mePrompt(
-    t('keyHeader.mockHint'),
-    {
-      inputValue: 100,
-      inputType: 'number',
-      inputValidator: (value) => {
-        if (value < 1 || value > 1000) {
-          return t('keyHeader.mockValidator')
-        }
-      },
-    },
-    async ({ value }) => {
-      let total = value
-      share.exportImportingPercentage = 0
-      share.exportImporting = true
-      share.exportImportingTip = t('keyHeader.mocking')
-
-      try {
-        while (value > 0) {
-          const count = Math.min(value, 10)
-          await meInvoke('mock_data', { id: share.conn.id, count })
-          value = value - count
-          share.exportImportingPercentage = Math.round(((total - value) / total) * 100)
-          await sleep(10) // 睡眠10ms以便其他动作可以获取到锁, 同时避免UI界面卡顿
-        }
-        meOk(t('keyHeader.mockOk'))
-      } finally {
-        share.exportImporting = false
-      }
-
-      //share.loading = true
-      //try {
-      //  await meInvoke('mock_data', {id: share.conn.id, count: parseInt(value)})
-      //  meOk(t('keyHeader.mockOk'))
-      //  bus.emit(CONN_REFRESH)
-      //} finally {
-      //  share.loading = false
-      //}
-    },
-  )
 }
 
 // 新建窗口: 便于同时查看多个Redis实例数据
@@ -166,16 +105,6 @@ async function newWindow() {
             </el-dropdown-item>
             <el-dropdown-item command="closeConn">
               <me-icon :name="t('keyHeader.closeConn')" icon="el-icon-circle-close" />
-            </el-dropdown-item>
-
-            <el-dropdown-item command="mockData" divided v-if="canEdit">
-              <me-icon :name="t('keyHeader.mockData')" icon="el-icon-coffee-cup" />
-            </el-dropdown-item>
-            <el-dropdown-item command="exportData">
-              <me-icon :name="t('keyHeader.exportData')" icon="el-icon-upload" />
-            </el-dropdown-item>
-            <el-dropdown-item command="importData" v-if="canEdit">
-              <me-icon :name="t('keyHeader.importData')" icon="el-icon-download" />
             </el-dropdown-item>
           </template>
 

@@ -240,6 +240,12 @@ api_model!(RedisBatchKey {
     key_list: Vec<RedisKey>,
 });
 
+// 批量更新过期时间
+api_model!(RedisBatchTtl {
+    key_list: Vec<RedisKey>,
+    ttl: i64
+});
+
 // 导出
 api_model!(RedisExportCsv {
     #[serde(rename = "match")]

@@ -8,6 +8,7 @@ import {
   DoNothing,
   meInvoke,
   meOk,
+  meJsonParse,
 } from '@/utils/util.js'
 import TabConn from '@/views/TabConn.vue'
 import KeyHeader from '@/views/KeyHeader.vue'
@@ -96,7 +97,7 @@ const connListToString = computed(() => JSON.stringify(share.connList))
 watch(
   connListToString,
   async (newConnList) => {
-    const connList = JSON.parse(newConnList)
+    const connList = meJsonParse(newConnList)
     meTauri.connList = connList // 保证导入导出连接时也进行持久化更新
 
     // 后端同步 和 多窗口同步

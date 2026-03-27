@@ -1,12 +1,10 @@
 <script setup>
-import KeyList from './key/KeyList.vue'
 import KeyTree from './key/KeyTree.vue'
 import { computed, ref } from 'vue'
 import {
   bus,
   CONN_REFRESH,
-  EXPORT_DATA,
-  IMPORT_DATA,
+  INFO_REFRESH,
   KEY_DELETE,
   KEY_REFRESH,
   KEY_TYPE_LIST,
@@ -14,8 +12,9 @@ import {
   meDeleteKey,
   meInvoke,
   meOk,
+  mePrompt,
   meRenameKey,
-  meType,
+  sleep,
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import KeyBatch from './key/KeyBatch.vue'
@@ -23,11 +22,13 @@ import KeyMemory from './key/KeyMemory.vue'
 import { useI18n } from 'vue-i18n'
 import { listen } from '@tauri-apps/api/event'
 import KeyImport from '@/views/key/KeyImport.vue'
+import { sortBy } from 'lodash'
+import TTLSet from '@/views/ext/TTLSet.vue'
 
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
-const canEdit = computed(() => true)
+const canEdit = computed(() => !share.readonly)
 
 // 监听刷新事件
 async function refresh() {
@@ -80,6 +81,9 @@ const filterKeyList = computed(() => {
 })
 
 async function scanKey(useCursor = false, loadAll = false) {
+  // 避免重复调用
+  if (loading.value) return
+
   loading.value = true
   try {
     if (!useCursor) {
@@ -89,16 +93,17 @@ async function scanKey(useCursor = false, loadAll = false) {
 
     const params = {
       match: match.value,
-      count: 1000,
+      count: meTauri.settings.keyScanCount,
       type: keyType.value === 'ALL' ? '' : keyType.value.toLowerCase(),
       loadAll: loadAll,
       cursor: cursor.value,
     }
     const data = await meInvoke('scan', { id: share.conn.id, param: params })
     cursor.value = data.cursor
-    keyList.value.push(...data.keyList)
+
     // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
-    keyList.value.sort((a, b) => a.key.toLowerCase().localeCompare(b.key.toLowerCase()))
+    const newKeyList = [...keyList.value, ...data.keyList]
+    keyList.value = sortBy(newKeyList, ['key'])
   } finally {
     loading.value = false
   }
@@ -107,24 +112,17 @@ async function scanKey(useCursor = false, loadAll = false) {
 onMounted(() => {
   bus.on(KEY_DELETE, deleteKey)
   bus.on(CONN_REFRESH, refresh)
-  bus.on(EXPORT_DATA, exportFolder)
-  bus.on(IMPORT_DATA, importData)
 })
 onUnmounted(() => {
   bus.off(KEY_DELETE, deleteKey)
   bus.off(CONN_REFRESH, refresh)
-  bus.off(EXPORT_DATA, exportFolder)
-  bus.off(IMPORT_DATA, importData)
 })
 
 function deleteKey(redisKey) {
   keyList.value = keyList.value.filter((rk) => rk.bytes !== redisKey.bytes)
   share.redisKey = null
+  bus.emit(INFO_REFRESH)
 }
-
-// 键显示类型
-const keyShowTypeList = ref(['tree', 'list'])
-const keyShowType = ref('tree')
 
 // 数据库列表
 const dbList = ref([])
@@ -208,6 +206,7 @@ function addKey() {
 function addKeyOk(redisKey) {
   keyList.value.unshift(redisKey)
   chooseKey(redisKey)
+  bus.emit(INFO_REFRESH)
 }
 
 // 批量导出键 和 批量删除键
@@ -222,6 +221,7 @@ function exportFolder(folder) {
 function batchKeyOk(mode) {
   if (mode === 'delete') {
     scanKey(false, false)
+    bus.emit(INFO_REFRESH)
   } else {
     share.exportImportingPercentage = 0
     share.exportImporting = true
@@ -261,7 +261,7 @@ async function tauriListen(eventName) {
 
       // 导入完成后刷新连接
       if (eventName === 'import') {
-        bus.emit(CONN_REFRESH) // 让info信息一并刷新(dbMap)
+        bus.emit(INFO_REFRESH)
       }
     }
   })
@@ -280,149 +280,203 @@ const keyMemoryRef = useTemplateRef('keyMemoryRef')
 function keyMemory(folder) {
   keyMemoryRef.value?.open({ match: folder + ':*' })
 }
+
+// 键显示类型: tree/list; 树形列表排序方式: 字母排序/数量排序
+const keyShowTree = computed({
+  get() {
+    return meTauri.settings.keyShow === 'tree'
+  },
+  set(newValue) {
+    meTauri.settings.keyShow = newValue ? 'tree' : 'list'
+  },
+})
+
+const sortByCount = computed({
+  get() {
+    return meTauri.settings.keySort === 'count'
+  },
+  set(newValue) {
+    meTauri.settings.keySort = newValue ? 'count' : 'alphabet'
+  },
+})
+// 更多选项按钮
+async function handleCommand(command) {
+  if (command === 'toggleKeyShow') {
+    keyShowTree.value = !keyShowTree.value
+  } else if (command === 'toggleKeySort') {
+    sortByCount.value = !sortByCount.value
+  } else if ('mockData' === command) {
+    await mockData()
+  } else if ('exportData' === command) {
+    exportFolder()
+  } else if ('importData' === command) {
+    importData()
+  }
+}
+
+// 新增模拟数据
+async function mockData() {
+  mePrompt(
+    t('keyHeader.mockHint'),
+    {
+      inputValue: 100,
+      inputType: 'number',
+      inputValidator: (value) => {
+        if (value < 1 || value > 1000) {
+          return t('keyHeader.mockValidator')
+        }
+      },
+    },
+    async ({ value }) => {
+      let total = value
+      share.exportImportingPercentage = 0
+      share.exportImporting = true
+      share.exportImportingTip = t('keyHeader.mocking')
+
+      try {
+        while (value > 0) {
+          const count = Math.min(value, 10)
+          await meInvoke('mock_data', { id: share.conn.id, count })
+          value = value - count
+          share.exportImportingPercentage = Math.round(((total - value) / total) * 100)
+          await sleep(10) // 睡眠10ms以便其他动作可以获取到锁, 同时避免UI界面卡顿
+        }
+        meOk(t('keyHeader.mockOk'))
+      } finally {
+        share.exportImporting = false
+      }
+    },
+  )
+}
+
+// 多选选择
+const showCheckbox = ref(false)
+const checkedKeyList = ref([])
+
+function toggleChecked() {
+  showCheckbox.value = !showCheckbox.value
+  checkedKeyList.value = []
+}
+
+function checkChange(redisKeys) {
+  checkedKeyList.value = redisKeys
+}
+
+// 多选后的批量操作
+const checkedDisabled = computed(() => checkedKeyList.value.length === 0 || share.exportImporting)
+const checkedBtnClass = computed(() =>
+  checkedDisabled.value ? ['footer-btn'] : ['icon-btn', 'footer-btn'],
+)
+function exportChecked() {
+  keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'export')
+}
+
+const ttlSetRef = useTemplateRef('ttlSetRef')
+function ttlChecked() {
+  ttlSetRef.value?.open({
+    keyList: checkedKeyList.value,
+  })
+}
+
+function deleteChecked() {
+  keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'delete')
+}
 </script>
 
 <template>
   <div class="key-main">
-    <el-input
-      class="key-search"
-      v-model="keyword"
-      :placeholder="t('keyMain.keyword')"
-      @keyup.enter="scanKey(false, false)"
-      clearable
-    >
-      <template #prepend>
-        <el-dropdown placement="bottom-start" @command="chooseKeyType">
-          <el-tag
-            :type="keyType.type"
-            effect="plain"
-            style="
-              width: 32px;
-              height: 32px;
-              font-weight: bold;
-              border-bottom-right-radius: 0;
-              border-top-right-radius: 0;
-            "
-          >
-            {{ keyType.slice(0, 1) }}
-          </el-tag>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="ALL">
-                <el-tag
-                  type="info"
-                  :effect="'ALL' === keyType ? 'dark' : 'plain'"
-                  style="font-weight: bold; width: 26px"
-                >
-                  A
-                </el-tag>
-                <el-text style="margin-left: 6px" type="info">ALL</el-text>
-              </el-dropdown-item>
-              <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
-                <el-tag
-                  :type="item.type"
-                  :effect="item.value === keyType ? 'dark' : 'plain'"
-                  style="font-weight: bold; width: 26px"
-                >
-                  {{ item.value.slice(0, 1) }}
-                </el-tag>
-                <el-text style="margin-left: 6px" :type="item.type">{{ item.value }}</el-text>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
-          <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
-        </el-tooltip>
-      </template>
-      <template #append>
-        <el-button-group>
-          <me-button
-            :info="t('keyMain.refreshKey')"
-            @click="scanKey(false, false)"
-            icon="el-icon-search"
-            placement="bottom"
-          />
-          <me-button
-            :info="t('keyMain.addKey')"
-            @click="addKey"
-            style="border-color: var(--el-button-border-color)"
-            v-if="canEdit"
-            icon="el-icon-plus"
-            placement="bottom"
-          />
-        </el-button-group>
-      </template>
-    </el-input>
+    <div class="key-header">
+      <el-input
+        v-model="keyword"
+        :placeholder="t('keyMain.keyword')"
+        @keyup.enter="scanKey(false, false)"
+        clearable
+      >
+        <template #prepend>
+          <el-dropdown placement="bottom-start" @command="chooseKeyType">
+            <el-tag
+              :type="keyType.type"
+              effect="plain"
+              style="
+                width: 32px;
+                height: 32px;
+                font-weight: bold;
+                border-bottom-right-radius: 0;
+                border-top-right-radius: 0;
+              "
+            >
+              {{ keyType.slice(0, 1) }}
+            </el-tag>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="ALL">
+                  <el-tag
+                    type="info"
+                    :effect="'ALL' === keyType ? 'dark' : 'plain'"
+                    style="font-weight: bold; width: 26px"
+                  >
+                    A
+                  </el-tag>
+                  <el-text style="margin-left: 6px" type="info">ALL</el-text>
+                </el-dropdown-item>
+                <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
+                  <el-tag
+                    :type="item.type"
+                    :effect="item.value === keyType ? 'dark' : 'plain'"
+                    style="font-weight: bold; width: 26px"
+                  >
+                    {{ item.value.slice(0, 1) }}
+                  </el-tag>
+                  <el-text style="margin-left: 6px" :type="item.type">{{ item.value }}</el-text>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
+            <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
+          </el-tooltip>
+        </template>
+        <template #append>
+          <el-button-group>
+            <me-button
+              :info="t('keyMain.refreshKey')"
+              @click="scanKey(false, false)"
+              icon="el-icon-search"
+              placement="bottom"
+            />
+            <me-button
+              :info="t('keyMain.addKey')"
+              @click="addKey"
+              style="border-color: var(--el-button-border-color)"
+              v-if="canEdit"
+              icon="el-icon-plus"
+              placement="bottom"
+            />
+          </el-button-group>
+        </template>
+      </el-input>
+    </div>
 
     <div class="key-list" v-loading="loading">
-      <KeyList
-        v-if="keyShowType === 'list'"
-        :filter-key-list="filterKeyList"
-        :redis-key="share.redisKey"
-        :color="share.color"
-        @chooseKey="chooseKey"
-        @contextKey="contextKey"
-      />
       <KeyTree
-        v-else
+        ref="keyTreeRef"
+        :show-checkbox="showCheckbox"
         :filter-key-list="filterKeyList"
         :redis-key="share.redisKey"
+        :key-show-tree="keyShowTree"
+        :sort-by-count="sortByCount"
         :color="share.color"
         @chooseKey="chooseKey"
         @contextKey="contextKey"
         @chooseFolder="chooseFolder"
         @contextFolder="contextFolder"
+        @checkChange="checkChange"
       />
     </div>
 
     <div class="key-footer">
-      <div class="me-flex" style="align-items: center">
-        <el-segmented v-model="keyShowType" :options="keyShowTypeList">
-          <template #default="scope">
-            <me-icon
-              :name="t('keyMain.listView')"
-              icon="me-icon-list"
-              hint
-              placement="top"
-              v-if="scope.item === 'list'"
-            />
-            <me-icon
-              :name="t('keyMain.treeView')"
-              icon="me-icon-tree"
-              hint
-              placement="top"
-              v-else
-            />
-          </template>
-        </el-segmented>
-      </div>
-
-      <el-text class="tip" size="large" type="primary"
-        >{{ filterKeyList.length }} / {{ keyList.length }}</el-text
-      >
-
-      <div class="me-flex">
-        <div class="btn-rb" v-if="!cursor?.finished">
-          <me-icon
-            :name="t('keyMain.loadMore')"
-            icon="me-icon-load-more"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, false)"
-          />
-          <me-icon
-            :name="t('keyMain.loadAll')"
-            icon="me-icon-load-all"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, true)"
-          />
-        </div>
-
-        <!-- 集群不显示数据库列表 -->
+      <!-- 左侧: 数据库|游标 -->
+      <div class="me-flex" v-if="!showCheckbox">
         <el-select
           v-model="share.conn.db"
           @change="selectDB"
@@ -436,6 +490,122 @@ function keyMemory(folder) {
             {{ `db${share.conn.db} (${share.dbSizeMap['db' + share.conn.db] || 0})` }}
           </template>
         </el-select>
+        <div class="me-flex" style="width: 50px; margin: 0 5px" v-if="!cursor?.finished">
+          <me-icon
+            :name="t('keyMain.loadMore')"
+            icon="me-icon-load-more"
+            hint
+            placement="top"
+            class="icon-btn footer-btn"
+            @click="scanKey(true, false)"
+          />
+          <me-icon
+            :name="t('keyMain.loadAll')"
+            icon="me-icon-load-all"
+            hint
+            placement="top"
+            class="icon-btn footer-btn"
+            @click="scanKey(true, true)"
+          />
+        </div>
+      </div>
+
+      <!-- 左侧: 导出|TTL|删除 （多选时显示） -->
+      <div class="me-flex" v-else style="width: 70px; margin-left: 10px">
+        <el-link underline="never" :disabled="checkedDisabled" @click="exportChecked">
+          <me-icon
+            :name="t('keyMain.exportChecked')"
+            icon="me-icon-export"
+            hint
+            :class="checkedBtnClass"
+            placement="top"
+          />
+        </el-link>
+        <el-link underline="never" :disabled="checkedDisabled" @click="ttlChecked" v-if="canEdit">
+          <me-icon
+            :name="t('keyMain.ttlChecked')"
+            icon="el-icon-timer"
+            hint
+            :class="checkedBtnClass"
+            placement="top"
+          />
+        </el-link>
+        <el-link
+          underline="never"
+          :disabled="checkedDisabled"
+          @click="deleteChecked"
+          v-if="canEdit"
+        >
+          <me-icon
+            :name="t('keyMain.deleteChecked')"
+            icon="el-icon-delete"
+            hint
+            :class="checkedBtnClass"
+            placement="top"
+          />
+        </el-link>
+      </div>
+
+      <!-- 中间: 选中/过滤, 过滤/总数 -->
+      <div class="center">
+        <el-text class="tip" size="large" type="primary">
+          <span v-if="showCheckbox">{{ checkedKeyList.length }} / {{ filterKeyList.length }}</span>
+          <span v-else>{{ filterKeyList.length }} / {{ keyList.length }}</span>
+        </el-text>
+      </div>
+
+      <!-- 右侧: 多选|扩展 -->
+      <div class="me-flex" v-if="!showCheckbox">
+        <me-icon
+          icon="me-icon-checked"
+          class="icon-btn footer-btn"
+          @click="toggleChecked"
+          placement="top"
+          :name="t('keyMain.checkedMode')"
+          hint
+          style="font-size: 24px"
+        />
+        <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
+          <me-icon icon="el-icon-more-filled" class="icon-btn footer-btn" />
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="exportData">
+                <me-icon :name="t('keyMain.exportData')" icon="me-icon-export" />
+              </el-dropdown-item>
+              <el-dropdown-item command="importData" v-if="canEdit">
+                <me-icon :name="t('keyMain.importData')" icon="me-icon-import" />
+              </el-dropdown-item>
+              <el-dropdown-item command="mockData" v-if="canEdit">
+                <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />
+              </el-dropdown-item>
+
+              <el-dropdown-item command="toggleKeyShow" divided>
+                <me-icon
+                  :name="keyShowTree ? t('keyMain.listView') : t('keyMain.treeView')"
+                  :icon="keyShowTree ? 'me-icon-list' : 'me-icon-tree'"
+                ></me-icon>
+              </el-dropdown-item>
+              <el-dropdown-item command="toggleKeySort" v-if="keyShowTree">
+                <me-icon
+                  :name="sortByCount ? t('keyMain.sortByAlphabet') : t('keyMain.sortByCount')"
+                  icon="me-icon-alphabet"
+                ></me-icon>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+
+      <!-- 右侧: 关闭多选 （多选时显示） -->
+      <div class="me-flex" v-else style="width: 30px">
+        <me-icon
+          :name="t('keyMain.exitCheckedMode')"
+          icon="el-icon-circle-close"
+          @click="toggleChecked"
+          hint
+          class="icon-btn footer-btn"
+          placement="top"
+        />
       </div>
     </div>
 
@@ -444,6 +614,7 @@ function keyMemory(folder) {
     <KeyBatch ref="keyBatchRef" @success="batchKeyOk" />
     <KeyImport ref="keyImportRef" @success="importStart" />
     <KeyMemory ref="keyMemoryRef" />
+    <TTLSet ref="ttlSetRef" />
   </div>
 </template>
 
@@ -457,7 +628,7 @@ function keyMemory(folder) {
     border: 1px solid var(--el-border-color);
   }
 
-  .key-search {
+  .key-header {
     :deep(.el-tag) {
       border-color: var(--el-border-color);
     }
@@ -491,16 +662,13 @@ function keyMemory(folder) {
     padding: 5px;
     overflow: hidden; // 隐藏水平滚动条，仅显示竖直滚动条
 
-    // 简单键列表和文件夹列表共享的属性
-    //font-size: 12px;
-    //color: var(--el-color-primary);
-
     :deep(.el-link) {
       font-size: 12px;
     }
   }
 
   .key-footer {
+    height: 32px;
     border: 1px solid var(--el-border-color);
     border-top: none;
 
@@ -520,14 +688,8 @@ function keyMemory(folder) {
       white-space: nowrap;
     }
 
-    .btn-rb {
-      width: 50px;
-      font-size: 22px;
-      display: flex;
-      justify-content: space-between;
-      color: var(--el-color-info);
-      cursor: pointer;
-      margin-right: 5px;
+    .footer-btn {
+      font-size: 20px;
     }
   }
 

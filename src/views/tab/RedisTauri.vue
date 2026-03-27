@@ -1,6 +1,7 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core'
 import { mockApiCommands } from '@/utils/mock.js'
+import { meJsonParse } from '@/utils/util.js'
 
 // 测试集群或单机
 let testClient = 'single'
@@ -30,7 +31,7 @@ function invokeCommand() {
   let paramJson = {}
   if (param.value) {
     try {
-      paramJson = JSON.parse(param.value)
+      paramJson = meJsonParse(param.value)
     } catch (e) {
       hint.value = '参数解析错误（确认是否Json格式）'
       result.value = '' + e

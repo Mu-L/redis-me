@@ -1,6 +1,14 @@
 <script setup>
 import { cloneDeep } from 'lodash'
-import { KEY_TYPE_LIST, meInvoke, meOk, meTtlSeconds, meType } from '@/utils/util.js'
+import {
+  KEY_TYPE_LIST,
+  meInvoke,
+  meOk,
+  meJsonParse,
+  meJsonNormal,
+  meTtlSeconds,
+  meType,
+} from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -63,7 +71,7 @@ const rules = computed(() => ({
       validator: (rule, value, callback) => {
         if (form.value.type === 'json') {
           try {
-            JSON.parse(value) // json合法性校验
+            meJsonParse(value) // json合法性校验
           } catch (e) {
             callback(new Error(t('fieldAdd.jsonValidator')))
           }
@@ -133,9 +141,11 @@ function submit() {
 
     isSaving.value = true
     try {
+      // json输入支持json5格式, 此处转换为正常json字符串
+      const value = form.value.type === 'json' ? meJsonNormal(form.value.value) : form.value.value
       const params = {
         id: share.conn.id,
-        param: { ...form.value, ttl: meTtlSeconds(form.value.ttl, ttlUnit.value) },
+        param: { ...form.value, value, ttl: meTtlSeconds(form.value.ttl, ttlUnit.value) },
       }
       await meInvoke('field_add', params)
       visible.value = false

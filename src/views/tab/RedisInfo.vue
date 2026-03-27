@@ -2,7 +2,7 @@
 import { useTemplateRef } from 'vue'
 import { infoTip as tips } from '@/utils/tip.js'
 import NodeList from '../ext/NodeList.vue'
-import { meInvoke } from '@/utils/util.js'
+import { bus, INFO_REFRESH, meInvoke } from '@/utils/util.js'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 import { useI18n } from 'vue-i18n'
@@ -113,6 +113,10 @@ function tagChange() {
 }
 
 const infoNode = ref('')
+
+// 新增键/删除键等操作可以调用进行自动刷新，以便保证db下拉框中的数量显示正确
+onMounted(() => bus.on(INFO_REFRESH, refresh))
+onUnmounted(() => bus.off(INFO_REFRESH, refresh))
 async function refresh() {
   loading.value = true
   try {

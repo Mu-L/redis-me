@@ -2,16 +2,26 @@
 // 共享数据
 import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
+import { nanoid } from 'nanoid'
 
 const { t } = useI18n()
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 
-const emit = defineEmits(['chooseKey', 'chooseFolder', 'contextKey', 'contextFolder'])
-const { filterKeyList } = defineProps({
+const emit = defineEmits([
+  'chooseKey',
+  'chooseFolder',
+  'contextKey',
+  'contextFolder',
+  'checkChange',
+])
+const { filterKeyList, showCheckbox, keyShowTree, sortByCount } = defineProps({
   color: { type: String, default: 'var(--el-color-primary)' },
   redisKey: { type: Object, default: null },
   filterKeyList: { type: Array, default: [] },
+  showCheckbox: { type: Boolean, default: false }, // 是否显示树形节点的复选框
+  keyShowTree: { type: Boolean, default: true }, // 列表或者树形
+  sortByCount: { type: Boolean, default: true }, // 文件夹按照键数量排序 或 字母顺序
 })
 
 // 左键点击
@@ -26,10 +36,14 @@ function nodeClick(_data, node) {
 // 右键点击
 const contextMenuNode = ref({})
 const meContextRef = useTemplateRef('meContextRef')
+
 function nodeContextMenu(e, _data, node) {
+  // db0根节点不显示上下文
+  if (node.data.isRootNode) return
   contextMenuNode.value = node
   meContextRef.value.showMenu(e)
 }
+
 function handleCommand(command) {
   if (contextMenuNode.value.isLeaf) {
     const redisKey = contextMenuNode.value.data.redisKey
@@ -44,13 +58,19 @@ function handleClose() {
   contextMenuNode.value = {}
 }
 
+// 右键选中的键, 加入样式
 function getNodeClass(node) {
   const clazz = []
   if (
-    (node.isLeaf && node.data.redisKey.key === contextMenuNode.value?.data?.redisKey?.key) ||
+    (node.isLeaf && node.data.redisKey?.key === contextMenuNode.value?.data?.redisKey?.key) ||
     (!node.isLeaf && node.key == contextMenuNode.value?.key)
   ) {
     clazz.push('context-key')
+  }
+
+  // 列表展示时左侧的空白较多处理
+  if (!keyShowTree && !showCheckbox && node.isLeaf) {
+    clazz.push('list-key')
   }
   return clazz
 }
@@ -58,16 +78,77 @@ function getNodeClass(node) {
 // 计算树的数据
 const emptyText = computed(() => t('keyTree.noData'))
 const treeData = computed(() => {
+  // 列表展示
+  if (!keyShowTree) {
+    return buildList(filterKeyList)
+  }
+
+  // 树形展示
   const root = buildTree(filterKeyList)
   root.forEach((node) => countLeaves(node))
-  root.sort((n1, n2) => {
+
+  // 根节点排序及其子节点排序
+  root.sort((n1, n2) => nodesSort(n1, n2))
+  root.forEach((node) => sortNodeChildrenLoop(node))
+  return root
+})
+
+// 循环方式排序节点的子节点（避免递归栈溢出）
+function sortNodeChildrenLoop(rootNode) {
+  // 初始化一个栈，将根节点压入栈中
+  const stack = [rootNode]
+  while (stack.length > 0) {
+    // 取出栈顶节点
+    const node = stack.pop()
+    if (node.children && node.children.length > 0) {
+      // 对当前节点的子节点进行排序
+      node.children.sort((n1, n2) => nodesSort(n1, n2))
+      // 将所有子节点压入栈中，以便后续处理
+      node.children.forEach((child) => stack.push(child))
+    }
+  }
+}
+
+function nodesSort(n1, n2) {
+  if (sortByCount) {
     // 文件夹在上面，叶子在下面（将叶子节点的数量归零，避免和只有1个键的文件夹混在一起）
     const n1Count = n1.children.length > 0 ? n1.keyCount : 0
     const n2Count = n2.children.length > 0 ? n2.keyCount : 0
     // 文件夹按照键数量排序, 键数量相同时按照名称排序
     return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
-  })
-  return root
+  } else {
+    // 保存文件夹在上面，叶子在下面（文件夹的数量为都设置为1）
+    const n1Count = n1.children.length > 0 ? 1 : 0
+    const n2Count = n2.children.length > 0 ? 1 : 0
+    // 文件夹按照名称排序
+    return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
+  }
+}
+
+// 显示复选框时补充根节点
+const rootId = nanoid() + Date.now()
+const treeRef = useTemplateRef('tree')
+const defaultExpandedKeys = computed(() => [rootId])
+watch(
+  () => [showCheckbox, filterKeyList],
+  () => {
+    treeRef.value?.setCheckedKeys([])
+  },
+)
+const rootTreeData = computed(() => {
+  if (showCheckbox) {
+    return [
+      {
+        id: rootId,
+        label: 'db' + share.conn?.db,
+        children: treeData.value,
+        keyCount: filterKeyList.length || 0,
+        isRootNode: true,
+      },
+    ]
+  } else {
+    return treeData.value
+  }
 })
 
 // 构建树：这个方法是由AI（豆包）生成的，非常不赖！ 但由BUG，还得亲自修复边界问题
@@ -140,6 +221,19 @@ function countLeaves(node) {
   // 返回根节点的叶子节点数量
   return keyCounts.get(node)
 }
+
+// 构建树: 仅仅叶子节点（即List显示）
+function buildList(keyList) {
+  return keyList.map((rk) => ({ id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk }))
+}
+
+// 获取选中的节点键
+function checkChange() {
+  emit(
+    'checkChange',
+    treeRef.value.getCheckedNodes(true).map((node) => node.redisKey),
+  )
+}
 </script>
 
 <template>
@@ -147,7 +241,9 @@ function countLeaves(node) {
     <template #default="{ height }">
       <el-tree-v2
         ref="tree"
-        :data="treeData"
+        :data="rootTreeData"
+        :default-expanded-keys="defaultExpandedKeys"
+        @check-change="checkChange"
         @node-click="nodeClick"
         @node-contextmenu="nodeContextMenu"
         highlight-current
@@ -158,6 +254,7 @@ function countLeaves(node) {
         :empty-text="emptyText"
         :height="height"
         :item-size="20"
+        :show-checkbox="showCheckbox"
       >
         <template #default="{ node }">
           <div style="width: 100%" v-if="node.isLeaf" :class="getNodeClass(node)">
@@ -166,7 +263,13 @@ function countLeaves(node) {
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
             <me-icon
               :name="node.label"
-              :icon="node.expanded ? 'el-icon-folderOpened' : 'el-icon-folder'"
+              :icon="
+                node.data.isRootNode
+                  ? 'me-icon-db'
+                  : node.expanded
+                    ? 'el-icon-folderOpened'
+                    : 'el-icon-folder'
+              "
             />
             <div style="color: var(--el-color-info); margin-right: 10px">
               [ {{ node.data.keyCount }} ]
@@ -229,5 +332,10 @@ function countLeaves(node) {
 :deep(.context-key) {
   outline: 1px dashed var(--el-color-primary);
   outline-offset: 1px;
+}
+
+/* 列表展示时左侧空白处理 */
+:deep(.list-key) {
+  margin-left: -20px;
 }
 </style>

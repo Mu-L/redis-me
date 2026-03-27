@@ -3,7 +3,7 @@ import {
   meConfirm,
   meDownloadUpdate,
   meErr,
-  meInvoke,
+  meJsonParse,
   meOk,
   PREDEFINE_COLORS,
 } from '@/utils/util.js'
@@ -147,7 +147,7 @@ async function importConn() {
 async function checkImportContent(content) {
   let connList
   try {
-    connList = JSON.parse(content)
+    connList = meJsonParse(content)
 
     // 导入的时候检查1次
     checkConnList(connList)
@@ -198,10 +198,10 @@ function clickNew() {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="export" :disabled="share.connList.length === 0">
-                <me-icon :name="t('conn.export')" icon="el-icon-upload" />
+                <me-icon :name="t('conn.export')" icon="me-icon-export" />
               </el-dropdown-item>
               <el-dropdown-item command="import">
-                <me-icon :name="t('conn.import')" icon="el-icon-download" />
+                <me-icon :name="t('conn.import')" icon="me-icon-import" />
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>

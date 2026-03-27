@@ -1,23 +1,26 @@
 use crate::utils::conn::set_client_name;
 use crate::utils::model::*;
 use crate::utils::util::*;
-use anyhow::{bail, Context};
-use base64::prelude::BASE64_STANDARD;
+use Ordering::Relaxed;
+use anyhow::{Context, bail};
 use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
 use chrono::{Local, Utc};
 use log::{info, warn};
 use parking_lot::MutexGuard;
-use redis::{from_redis_value, Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType};
+use redis::streams::StreamRangeReply;
+use redis::{
+    Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value,
+    ValueType, from_redis_value,
+};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
-use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
 use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
-use Ordering::Relaxed;
-use redis::streams::StreamRangeReply;
 
 // 抽取公共属性
 pub struct RedisMeBase {
@@ -78,7 +81,13 @@ pub trait RedisMeClient: Send + Sync {
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()>;
 
-    fn set(&self, key: RedisKey, value: String, ttl: i64, key_type: Option<String>) -> AnyResult<()>;
+    fn set(
+        &self,
+        key: RedisKey,
+        value: String,
+        ttl: i64,
+        key_type: Option<String>,
+    ) -> AnyResult<()>;
 
     fn del(&self, key: RedisKey) -> AnyResult<()>;
 
@@ -116,6 +125,7 @@ pub trait RedisMeClient: Send + Sync {
     fn monitor_stop(&self) -> AnyResult<()>;
 
     fn batch_del(&self, param: RedisBatchKey) -> AnyResult<()>;
+    fn batch_ttl(&self, param: RedisBatchTtl) -> AnyResult<()>;
     fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()>;
     fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()>;
 
@@ -179,7 +189,9 @@ pub fn get0(
             serde_json::to_value(ui_zset_value(value))
         }
         ValueType::Hash => {
-            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+            if let Some(hash_key) = hash_key
+                && !hash_key.is_empty()
+            {
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 match value {
                     Some(str) => serde_json::to_value(vec8_to_display_string(&str)),
@@ -189,10 +201,12 @@ pub fn get0(
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
                 serde_json::to_value(ui_hash_value(value))
             }
-        },
+        }
         ValueType::Stream => {
             // stream的id, 复用hash_key字段
-            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+            if let Some(hash_key) = hash_key
+                && !hash_key.is_empty()
+            {
                 let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
                 match reply.ids.pop() {
                     Some(entry) => serde_json::to_value(ui_stream_id(entry.map)),
@@ -202,11 +216,11 @@ pub fn get0(
                 let reply: StreamRangeReply = conn.xrange_all(&key)?;
                 serde_json::to_value(ui_stream_value(reply))
             }
-        },
+        }
         ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
-            let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
+            let value: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
             serde_json::from_str(&redis_value_to_string(value, "\n"))
-        },
+        }
         _ => Ok(handle_other_value_type(&key_type, &key)?),
     }?;
 
@@ -243,19 +257,21 @@ pub fn field_scan_0_get(
             Some(serde_json::to_value(value)?)
         }
         ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
-            let value : Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
+            let value: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
             cc.finished = true;
             //Some(serde_json::to_value(redis_value_to_string(value, "\n"))?)
             Some(serde_json::from_str(&redis_value_to_string(value, "\n"))?)
-        },
+        }
         ValueType::Hash => {
-            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+            if let Some(hash_key) = hash_key
+                && !hash_key.is_empty()
+            {
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 match value {
                     Some(str) => {
                         cc.finished = true;
                         Some(serde_json::to_value(vec8_to_display_string(&str))?)
-                    },
+                    }
                     None => bail!("HashKey Not Exists: 【{}】", hash_key),
                 }
             } else {
@@ -285,13 +301,15 @@ pub fn field_scan_0_get(
         }
         ValueType::Stream => {
             // stream的id, 复用hash_key字段
-            if let Some(hash_key) = hash_key && !hash_key.is_empty() {
+            if let Some(hash_key) = hash_key
+                && !hash_key.is_empty()
+            {
                 let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
                 match reply.ids.pop() {
                     Some(entry) => {
                         cc.finished = true;
                         Some(serde_json::to_value(ui_stream_id(entry.map))?)
-                    },
+                    }
                     None => bail!("StreamId Not Exists: 【{}】", hash_key),
                 }
             } else {
@@ -308,9 +326,17 @@ pub fn field_scan_0_get(
 
                 // 倒序: 更符合实际的使用习惯, 即查看最新的消息。TinyRDM/AnotherRDM都是倒序的
                 // XREVRANGE key end start [COUNT count]
-                let end = if cc.stream_cursor.is_empty() { "+" } else { &cc.stream_cursor };
+                let end = if cc.stream_cursor.is_empty() {
+                    "+"
+                } else {
+                    &cc.stream_cursor
+                };
                 let start = "-";
-                let count = if cc.stream_cursor.is_empty() { param.count + 1 } else { param.count };
+                let count = if cc.stream_cursor.is_empty() {
+                    param.count + 1
+                } else {
+                    param.count
+                };
 
                 let mut cmd = redis::cmd("XREVRANGE");
                 cmd.arg(key).arg(end).arg(start);
@@ -328,7 +354,7 @@ pub fn field_scan_0_get(
                 };
                 Some(serde_json::to_value(value)?)
             }
-        },
+        }
         // 注意此处SET/ZSET等是支持的，只是需要进行扫描，不能直接使用通用的: handle_other_value_type
         ValueType::Unknown(_) => {
             handle_other_value_type(&key_type, &key)?;
@@ -427,7 +453,6 @@ pub fn field_scan_4_return(
     })
 }
 
-
 pub fn ttl0(mut conn: MutexGuard<impl Commands>, key: RedisKey, ttl: i64) -> AnyResult<()> {
     if ttl > 0 {
         // 为 key 设置超时时间。超时时间到期后，该 key 将被自动删除。
@@ -450,11 +475,12 @@ pub fn set0(
     key: RedisKey,
     value: String,
     ttl: i64,
-    key_type: Option<String>
+    key_type: Option<String>,
 ) -> AnyResult<()> {
     if key_type.unwrap_or_default() == ME_JSON_TYPE_NAME {
         // json类型
-        let value: serde_json::Value = serde_json::from_str(&value).with_context(|| "json parse error")?;
+        let value: serde_json::Value =
+            serde_json::from_str(&value).with_context(|| "json parse error")?;
         let _: () = conn.json_set(&key, "$", &value)?;
         if ttl > 0 {
             let _: () = conn.expire(&key, ttl)?;
@@ -534,13 +560,17 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
             .into_iter()
             .try_for_each(|f| conn.zadd(&key, f.field_value, f.field_score))?,
         ValueType::Stream => {
-            let items: Vec<(String, String)> = fv_list.into_iter().map(|f| (f.field_key, f.field_value)).collect();
+            let items: Vec<(String, String)> = fv_list
+                .into_iter()
+                .map(|f| (f.field_key, f.field_value))
+                .collect();
             conn.xadd(&key, &param.stream_id, &items)?
-        },
+        }
         ValueType::Unknown(other) if other == ME_JSON_TYPE_NAME => {
-            let value: serde_json::Value = serde_json::from_str(&param.value).with_context(|| "json parse error")?;
+            let value: serde_json::Value =
+                serde_json::from_str(&param.value).with_context(|| "json parse error")?;
             conn.json_set(&key, "$", &value)?
-        },
+        }
         _ => {
             handle_other_value_type(&key_type, &key)?;
         }

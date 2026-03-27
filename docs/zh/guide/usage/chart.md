@@ -3,6 +3,7 @@
 [RedisME](https://www.hepengju.com) 图表基于Redis的`info`命令返回数据，使用[chart.js](https://www.chartjs.org)绘制实现，在性能压测与服务器监控排查中有重要作用
 
 ## 功能简述
+
 - **丰富数据图表**: 默认展示前3个，点击更多可显示另外5个扩展图表
   - 默认: 命令执行数/秒、已使用内存、网络输入输出
   - 扩展: 键数量、客户端连接数、缓存命中率、服务器接受的总连接数/总命令数
@@ -14,9 +15,10 @@
 ![chartjs.png](/images/chart/chartjs.png)
 
 ## 指标详情
+
 ```rust
 // 图表的计算指标说明
-struct RedisChart {  
+struct RedisChart {
     node: String,
 
     // db0:keys=1558,expires=0,avg_ttl=0,subexpiry=0; db1:keys=50,expires=0,avg_ttl=0,subexpiry=0
