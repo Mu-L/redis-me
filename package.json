@@ -38,7 +38,7 @@
     "chartjs-adapter-dayjs-4": "^1.0.4",
     "codemirror": "^6.0.2",
     "dayjs": "^1.11.20",
-    "element-plus": "^2.13.6",
+    "element-plus": "2.13.5",
     "json5": "^2.2.3",
     "jsonc-parser": "^3.3.1",
     "lodash": "^4.17.23",
