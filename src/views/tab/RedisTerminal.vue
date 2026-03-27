@@ -79,15 +79,6 @@ function openCommandDialog() {
   visible.value = true
 }
 
-// 合计列
-function getSummaries() {
-  return [
-    t('redisTerminal.total'),
-    filterDataList.value.length + ' / ' + commandHelp.value.length,
-    '',
-  ]
-}
-
 const keyShortVisible = ref(false)
 function openKeyShortDialog() {
   keyShortVisible.value = true
@@ -193,8 +184,6 @@ function openKeyShortDialog() {
             border
             stripe
             height="100%"
-            show-summary
-            :summary-method="getSummaries"
             :default-sort="{ prop: 'key', order: 'ascending' }"
           >
             <el-table-column

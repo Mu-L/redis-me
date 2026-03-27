@@ -439,7 +439,6 @@ export default {
     usage: '使用',
     summary: '概述',
     since: '版本',
-    total: '合计',
     keyShortHint: '查看快捷键',
     keyShortTitle: '快捷键',
     keyShortMore: `

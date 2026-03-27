@@ -440,7 +440,6 @@ export default {
     usage: 'Usage',
     summary: 'Summary',
     since: 'Since',
-    total: 'Total',
     keyShortHint: 'View KeyShort',
     keyShortTitle: 'KeyShort',
     keyShortMore: `
