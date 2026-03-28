@@ -405,6 +405,17 @@ function ttlChecked() {
 function deleteChecked() {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'delete')
 }
+
+// 自定义数据库名称
+function editDbName(db){
+  mePrompt(t('keyMain.editDbName', {index: db}), {
+    inputValue: share.conn?.meta?.['db' + db] || '',
+    inputPlaceholder: t('keyMain.editDbNamePlaceholder'),
+  }, ({value}) => {
+    share.conn.meta ??= {}  // meta为空则赋值为空对象
+    share.conn.meta['db' + db] = value
+  })
+}
 </script>
 
 <template>
@@ -508,7 +519,13 @@ function deleteChecked() {
           v-if="!share.conn.cluster"
         >
           <el-option v-for="item in dbList" :key="item.db" :value="item.db">
-            {{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}
+            <div class="me-flex" style="align-items: center">
+              <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
+              <div style="display: flex">
+                <el-text type="info" style="margin: 0 10px">{{share.conn?.meta?.['db' + item.db]}}</el-text>
+                <me-icon icon="el-icon-edit" class="icon-btn" @click.stop="editDbName(item.db)"/>
+              </div>
+            </div>
           </el-option>
           <template #label>
             {{ `db${share.conn.db} (${share.dbSizeMap['db' + share.conn.db] || 0})` }}
@@ -721,6 +738,10 @@ function deleteChecked() {
 
     .footer-btn {
       font-size: 20px;
+    }
+
+    :deep(.el-select-dropdown__item) {
+      padding: 0 20px 0 20px;
     }
   }
 

@@ -10,7 +10,6 @@ use std::collections::HashMap;
 // 数据库信息
 api_model!(RedisDB {
     db: u8,
-    name: String,
     size: u64,
 });
 

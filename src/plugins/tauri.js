@@ -82,6 +82,7 @@ try {
 
 // 配置保存
 watch(meTauri, async (newValue) => {
+  meLog('持久化连接和设置')
   await store.set('connList', newValue.connList)
   await store.set('settings', newValue.settings)
 })

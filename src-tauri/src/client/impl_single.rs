@@ -53,7 +53,6 @@ impl RedisMeClient for RedisMeSingle {
         for i in 0..db_count {
             db_list.push(RedisDB {
                 db: i,
-                name: "".to_string(),
                 size: 0,
             })
         }

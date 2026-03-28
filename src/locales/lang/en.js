@@ -541,6 +541,8 @@ export default {
     flushDb: 'Flush DB',
     flushDbConfirm: '【Danger】Confirm Flush DB ?',
     flushDbOk: 'Flush DB Done',
+    editDbName: 'Custom DB Name (db{index})',
+    editDbNamePlaceholder: 'input custom name',
   },
 
   ttlSet: {
