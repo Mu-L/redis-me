@@ -364,6 +364,8 @@ async function mockData() {
           await sleep(10) // 睡眠10ms以便其他动作可以获取到锁, 同时避免UI界面卡顿
         }
         meOk(t('keyHeader.mockOk'))
+        bus.emit(CONN_REFRESH)
+        bus.emit(INFO_REFRESH)
       } finally {
         share.exportImporting = false
       }
