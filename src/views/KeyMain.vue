@@ -7,7 +7,7 @@ import {
   INFO_REFRESH,
   KEY_DELETE,
   KEY_REFRESH,
-  KEY_TYPE_LIST,
+  KEY_TYPE_LIST, meConfirm,
   meCopy,
   meDeleteKey,
   meInvoke,
@@ -217,10 +217,12 @@ function addKeyOk(redisKey) {
 // 批量导出键 和 批量删除键
 const keyBatchRef = useTemplateRef('keyBatchRef')
 function deleteFolder(folder) {
-  keyBatchRef.value?.open({ match: folder + ':*', keyList: [] }, 'delete')
+  const match = folder === '*' ? '*' : folder + ':*'
+  keyBatchRef.value?.open({ match, keyList: [] }, 'delete')
 }
 function exportFolder(folder) {
-  keyBatchRef.value?.open({ match: folder ? folder + ':*' : '*', keyList: [] }, 'export')
+  const match = folder === '*' ? '*' : folder + ':*'
+  keyBatchRef.value?.open({ match, keyList: [] }, 'export')
 }
 
 function batchKeyOk(mode) {
@@ -313,10 +315,25 @@ async function handleCommand(command) {
   } else if ('mockData' === command) {
     await mockData()
   } else if ('exportData' === command) {
-    exportFolder()
+    exportFolder('*')
   } else if ('importData' === command) {
     importData()
+  } else if ('batchDelete' === command) {
+    deleteFolder('*')
+  } else if ('flushDb' === command) {
+    flushDb()
   }
+}
+
+// 清空数据库
+function flushDb(){
+  meConfirm(t('keyMain.flushDbConfirm'), async () => {
+    const param = {command: 'flushdb'}
+    await meInvoke('execute_command', { id: share.conn.id, param })
+    meOk(t('keyMain.flushDbOk'))
+    bus.emit(CONN_REFRESH)
+    bus.emit(INFO_REFRESH)
+  })
 }
 
 // 新增模拟数据
@@ -582,6 +599,13 @@ function deleteChecked() {
               </el-dropdown-item>
               <el-dropdown-item command="mockData" v-if="canEdit">
                 <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />
+              </el-dropdown-item>
+
+              <el-dropdown-item command="batchDelete" v-if="canEdit" divided>
+                <me-icon :name="t('keyMain.batchDelete')" icon="el-icon-delete" />
+              </el-dropdown-item>
+              <el-dropdown-item command="flushDb" v-if="canEdit">
+                <me-icon :name="t('keyMain.flushDb')" icon="el-icon-delete-filled" />
               </el-dropdown-item>
 
               <el-dropdown-item command="toggleKeyShow" divided>

@@ -534,6 +534,10 @@ export default {
     ttlChecked: '为所选项更新TTL',
     deleteChecked: '删除所选项',
     exitCheckedMode: '退出勾选模式',
+    batchDelete: '批量删除键',
+    flushDb: '清空当前库',
+    flushDbConfirm: '【危险】确定清空当前库吗？',
+    flushDbOk: '清空当前库完成',
   },
 
   ttlSet: {

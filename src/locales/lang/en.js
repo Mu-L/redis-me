@@ -537,6 +537,10 @@ export default {
     ttlChecked: 'TTL Checked',
     deleteChecked: 'Delete Checked',
     exitCheckedMode: 'Exit Checked',
+    batchDelete: 'Delete Keys',
+    flushDb: 'Flush DB',
+    flushDbConfirm: '【Danger】Confirm Flush DB ?',
+    flushDbOk: 'Flush DB Done',
   },
 
   ttlSet: {
