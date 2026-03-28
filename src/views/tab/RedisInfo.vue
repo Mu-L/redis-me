@@ -85,6 +85,8 @@ watchEffect(() => {
       }
     }
   })
+
+  share.serverVersion = dic.value[share.isValkey ? 'valkey_version' : 'redis_version']
 })
 
 // 表格数据
@@ -157,7 +159,7 @@ function goMemory() {
             <el-text size="large" style="margin-left: 5px">{{ infoNode }}</el-text>
             <el-tag style="margin-left: 10px"
               >{{ share.isValkey ? 'Valkey' : 'Redis' }}
-              {{ dic[share.isValkey ? 'valkey_version' : 'redis_version'] }}</el-tag
+              {{ share.serverVersion }}</el-tag
             >
             <el-tag
               type="success"
@@ -361,7 +363,7 @@ function goMemory() {
   >
     <RedisConfig
       :init-node="node || infoNode"
-      :init-version="dic[share.isValkey ? 'valkey_version' : 'redis_version']"
+      :init-version="share.serverVersion"
     />
   </me-dialog>
 </template>
