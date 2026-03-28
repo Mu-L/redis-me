@@ -39,7 +39,11 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
             let message = if source.is_empty() {
                 err.to_string()
             } else {
-                format!("{}: {}", err.to_string(), source)
+                if err.to_string() != source {
+                    format!("{}: {}", err.to_string(), source)
+                } else {
+                    err.to_string()
+                }
             };
             error!("错误: {}", message);
             Err(message)
