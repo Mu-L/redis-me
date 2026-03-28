@@ -98,6 +98,7 @@ export default {
     // 新增编辑
     addConn: '新增连接',
     editConn: '编辑连接',
+    deleteConn: '确认删除连接【{name}】吗？',
     host: '主机',
     port: '端口',
     username: '用户',

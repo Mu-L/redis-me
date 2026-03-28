@@ -97,6 +97,7 @@ export default {
     // 新增编辑
     addConn: 'Add Conn',
     editConn: 'Edit Conn',
+    deleteConn: 'Delete Connection 【{name}】?',
     host: 'Host',
     port: 'Port',
     username: 'User',

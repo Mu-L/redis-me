@@ -56,7 +56,7 @@ function editConn(conn) {
 
 // 删除连接
 function deleteConn(conn) {
-  meConfirm(`确定删除连接【${conn.name}】吗？`, () => {
+  meConfirm(t('conn.deleteConn', {name: conn.name}), () => {
     const index = share.connList.indexOf(conn)
     if (index > -1) {
       share.connList.splice(index, 1)
