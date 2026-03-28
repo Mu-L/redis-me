@@ -42,12 +42,6 @@ pub fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
     to_api_result(app_handle.disconnect(id))
 }
 
-// 导入连接（检查导入的JSON属性是否满足及去除多余属性）
-#[command]
-pub fn check_import_conn_list(conn_list: Vec<RedisConf>) -> Vec<RedisConf> {
-    conn_list
-}
-
 // 使用宏简化代码
 // to_api_result(app_handle.get_client(id).and_then(|client| client.$name($($param),*)))
 api_commands!(

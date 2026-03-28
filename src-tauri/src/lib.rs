@@ -75,7 +75,6 @@ pub fn run() {
             export_csv,
             import_csv,
             mock_data,
-            check_import_conn_list,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

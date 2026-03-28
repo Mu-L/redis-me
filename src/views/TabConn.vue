@@ -166,13 +166,6 @@ async function checkImportContent(content) {
       throw new Error(t('conn.importFormatErr'))
     }
   })
-
-  // 其他属性检查并且去掉无效属性（利用tauri的command参数检查） ==> 颜色、只读等仅前端属性会丢失，暂注释掉
-  // try {
-  //   connList = await meInvoke('check_import_conn_list', {connList}, false)
-  // } catch (e) {
-  //   throw new Error('文件连接格式错误')
-  // }
   return connList
 }
 
