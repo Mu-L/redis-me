@@ -128,6 +128,11 @@ function deleteKey(redisKey) {
 const dbList = ref([])
 async function refreshDbList() {
   dbList.value = await meInvoke('db_list', { id: share.conn.id })
+
+  // 超出范围后台连接忽略（即连接db0），前端也改为0
+  if (share.conn.db >= dbList.value.length) {
+    share.conn.db = 0
+  }
 }
 refreshDbList()
 

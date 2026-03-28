@@ -444,10 +444,12 @@ impl RedisMeSingle {
         conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
         conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
 
-        // 切换到当前的数据库
+        // 切换到当前的数据库(切换失败时忽略)
         if db != 0 {
-            let _: () = redis::cmd("select").arg(db).query(&mut conn)?;
             info!("select {db}");
+            let _: () = redis::cmd("select").arg(db).query(&mut conn).unwrap_or_else(|_| {
+                warn!("select {db} 失败，使用默认数据库0")
+            });
         }
         Ok(conn)
     }
