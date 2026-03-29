@@ -7,7 +7,7 @@ import {
   INFO_REFRESH,
   KEY_DELETE,
   KEY_REFRESH,
-  KEY_TYPE_LIST,
+  KEY_TYPE_LIST, meConfirm,
   meCopy,
   meDeleteKey,
   meInvoke,
@@ -128,6 +128,11 @@ function deleteKey(redisKey) {
 const dbList = ref([])
 async function refreshDbList() {
   dbList.value = await meInvoke('db_list', { id: share.conn.id })
+
+  // 超出范围后台连接忽略（即连接db0），前端也改为0
+  if (share.conn.db >= dbList.value.length) {
+    share.conn.db = 0
+  }
 }
 refreshDbList()
 
@@ -212,10 +217,12 @@ function addKeyOk(redisKey) {
 // 批量导出键 和 批量删除键
 const keyBatchRef = useTemplateRef('keyBatchRef')
 function deleteFolder(folder) {
-  keyBatchRef.value?.open({ match: folder + ':*', keyList: [] }, 'delete')
+  const match = folder === '*' ? '*' : folder + ':*'
+  keyBatchRef.value?.open({ match, keyList: [] }, 'delete')
 }
 function exportFolder(folder) {
-  keyBatchRef.value?.open({ match: folder ? folder + ':*' : '*', keyList: [] }, 'export')
+  const match = folder === '*' ? '*' : folder + ':*'
+  keyBatchRef.value?.open({ match, keyList: [] }, 'export')
 }
 
 function batchKeyOk(mode) {
@@ -308,10 +315,25 @@ async function handleCommand(command) {
   } else if ('mockData' === command) {
     await mockData()
   } else if ('exportData' === command) {
-    exportFolder()
+    exportFolder('*')
   } else if ('importData' === command) {
     importData()
+  } else if ('batchDelete' === command) {
+    deleteFolder('*')
+  } else if ('flushDb' === command) {
+    flushDb()
   }
+}
+
+// 清空数据库
+function flushDb(){
+  meConfirm(t('keyMain.flushDbConfirm'), async () => {
+    const param = {command: 'flushdb'}
+    await meInvoke('execute_command', { id: share.conn.id, param })
+    meOk(t('keyMain.flushDbOk'))
+    bus.emit(CONN_REFRESH)
+    bus.emit(INFO_REFRESH)
+  })
 }
 
 // 新增模拟数据
@@ -342,6 +364,8 @@ async function mockData() {
           await sleep(10) // 睡眠10ms以便其他动作可以获取到锁, 同时避免UI界面卡顿
         }
         meOk(t('keyHeader.mockOk'))
+        bus.emit(CONN_REFRESH)
+        bus.emit(INFO_REFRESH)
       } finally {
         share.exportImporting = false
       }
@@ -380,6 +404,17 @@ function ttlChecked() {
 
 function deleteChecked() {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'delete')
+}
+
+// 自定义数据库名称
+function editDbName(db){
+  mePrompt(t('keyMain.editDbName', {index: db}), {
+    inputValue: share.conn?.meta?.['db' + db] || '',
+    inputPlaceholder: t('keyMain.editDbNamePlaceholder'),
+  }, ({value}) => {
+    share.conn.meta ??= {}  // meta为空则赋值为空对象
+    share.conn.meta['db' + db] = value
+  })
 }
 </script>
 
@@ -484,7 +519,13 @@ function deleteChecked() {
           v-if="!share.conn.cluster"
         >
           <el-option v-for="item in dbList" :key="item.db" :value="item.db">
-            {{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}
+            <div class="me-flex" style="align-items: center">
+              <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
+              <div style="display: flex">
+                <el-text type="info" style="margin: 0 10px">{{share.conn?.meta?.['db' + item.db]}}</el-text>
+                <me-icon icon="el-icon-edit" class="icon-btn" @click.stop="editDbName(item.db)"/>
+              </div>
+            </div>
           </el-option>
           <template #label>
             {{ `db${share.conn.db} (${share.dbSizeMap['db' + share.conn.db] || 0})` }}
@@ -577,6 +618,13 @@ function deleteChecked() {
               </el-dropdown-item>
               <el-dropdown-item command="mockData" v-if="canEdit">
                 <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />
+              </el-dropdown-item>
+
+              <el-dropdown-item command="batchDelete" v-if="canEdit" divided>
+                <me-icon :name="t('keyMain.batchDelete')" icon="el-icon-delete" />
+              </el-dropdown-item>
+              <el-dropdown-item command="flushDb" v-if="canEdit">
+                <me-icon :name="t('keyMain.flushDb')" icon="el-icon-delete-filled" />
               </el-dropdown-item>
 
               <el-dropdown-item command="toggleKeyShow" divided>
@@ -690,6 +738,10 @@ function deleteChecked() {
 
     .footer-btn {
       font-size: 20px;
+    }
+
+    :deep(.el-select-dropdown__item) {
+      padding: 0 20px 0 20px;
     }
   }
 

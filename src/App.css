@@ -104,6 +104,11 @@ svg {
   max-width: 80vh;
 }
 
+/* 下拉框的左右间距保持一致（默认的右侧32px, 左侧20px） */
+.el-select-dropdown__item {
+  padding: 0 20px 0 20px;
+}
+
 /* 输入库的前缀和后缀去掉特殊颜色 */
 .el-input-group__append,
 .el-input-group__prepend {

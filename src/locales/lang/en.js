@@ -97,6 +97,7 @@ export default {
     // 新增编辑
     addConn: 'Add Conn',
     editConn: 'Edit Conn',
+    deleteConn: 'Delete Connection 【{name}】?',
     host: 'Host',
     port: 'Port',
     username: 'User',
@@ -536,6 +537,12 @@ export default {
     ttlChecked: 'TTL Checked',
     deleteChecked: 'Delete Checked',
     exitCheckedMode: 'Exit Checked',
+    batchDelete: 'Delete Keys',
+    flushDb: 'Flush DB',
+    flushDbConfirm: '【Danger】Confirm Flush DB ?',
+    flushDbOk: 'Flush DB Done',
+    editDbName: 'Custom DB Name (db{index})',
+    editDbNamePlaceholder: 'input custom name',
   },
 
   ttlSet: {

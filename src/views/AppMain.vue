@@ -39,6 +39,7 @@ const share = reactive({
 
   // 兼容valkey
   isValkey: false, // 默认不是valkey, 如果info信息中有valkey_version则设置为true
+  serverVersion: '', // 服务器版本, isValkey ? 'valkey_version' : 'redis_version'
 })
 provide('share', share)
 

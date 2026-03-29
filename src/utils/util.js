@@ -301,10 +301,9 @@ export async function meDownloadUpdate(quiet = true, update, app) {
       h(
         'a',
         {
-          type: 'primary',
           href: changelogUrl,
           target: '_blank',
-          style: 'text-decoration: none; margin-left: 5px',
+          style: 'color: var(--el-color-primary); text-decoration: none; margin-left: 5px; ',
           onClick: (e) => {
             e.preventDefault()
             void openUrl(changelogUrl) // a 和 el-link都无法打开外部链接，使用openUrl可以

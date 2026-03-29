@@ -117,6 +117,10 @@ const confirmSizeBtn = computed(() => {
     : t('keyBatch.confirmDeleteSize', count, { count })
 })
 const exportBtnEnabled = computed(() => (isExport.value ? !!form.value.file : true))
+
+// 导出文件名称添加服务器及版本（不同版本的redisdump命令可能不兼容，便于分析问题）
+const exportFilePrefix = computed(() =>
+    'redis-me-export_' + (share.isValkey ? 'Valkey' : 'Redis') + share.serverVersion)
 </script>
 
 <template>
@@ -138,7 +142,7 @@ const exportBtnEnabled = computed(() => (isExport.value ? !!form.value.file : tr
         <me-file-input
           v-model="form.file"
           :placeholder="t('keyBatch.exportFileTip')"
-          file-prefix="redis-me-export"
+          :file-prefix="exportFilePrefix"
           file-suffix="csv"
         />
       </el-form-item>

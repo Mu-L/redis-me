@@ -85,6 +85,8 @@ watchEffect(() => {
       }
     }
   })
+
+  share.serverVersion = dic.value[share.isValkey ? 'valkey_version' : 'redis_version']
 })
 
 // 表格数据
@@ -117,23 +119,26 @@ const infoNode = ref('')
 // 新增键/删除键等操作可以调用进行自动刷新，以便保证db下拉框中的数量显示正确
 onMounted(() => bus.on(INFO_REFRESH, refresh))
 onUnmounted(() => bus.off(INFO_REFRESH, refresh))
-async function refresh() {
+async function refresh(withConfigGet = false) {
   loading.value = true
   try {
     const data = await meInvoke('info', { id: share.conn.id, node: node.value })
     raw.value = data.info || ''
     infoNode.value = data.node || share.conn.host + ':' + share.conn.port
-    const data2 = await meInvoke('config_get', {
-      id: share.conn.id,
-      pattern: 'save',
-      node: node.value,
-    })
-    config.value = data2 || ''
+
+    if (withConfigGet) {
+      const data2 = await meInvoke('config_get', {
+        id: share.conn.id,
+        pattern: 'save',
+        node: node.value,
+      })
+      config.value = data2 || ''
+    }
   } finally {
     loading.value = false
   }
 }
-refresh()
+refresh(true)
 
 // 客户端、配置、内存
 function goClient() {
@@ -157,7 +162,7 @@ function goMemory() {
             <el-text size="large" style="margin-left: 5px">{{ infoNode }}</el-text>
             <el-tag style="margin-left: 10px"
               >{{ share.isValkey ? 'Valkey' : 'Redis' }}
-              {{ dic[share.isValkey ? 'valkey_version' : 'redis_version'] }}</el-tag
+              {{ share.serverVersion }}</el-tag
             >
             <el-tag
               type="success"
@@ -176,10 +181,10 @@ function goMemory() {
               icon="el-icon-refresh"
               placement="left"
               hint
-              @click="refresh"
+              @click="refresh(true)"
               :loading="loading"
             />
-            <node-list v-model="node" style="margin-left: 10px" @change="refresh" clearable />
+            <node-list v-model="node" style="margin-left: 10px" @change="refresh(true)" clearable />
           </div>
         </div>
       </template>
@@ -361,7 +366,7 @@ function goMemory() {
   >
     <RedisConfig
       :init-node="node || infoNode"
-      :init-version="dic[share.isValkey ? 'valkey_version' : 'redis_version']"
+      :init-version="share.serverVersion"
     />
   </me-dialog>
 </template>

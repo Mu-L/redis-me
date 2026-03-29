@@ -35,6 +35,14 @@ const form = reactive({
   masterName: '',
   masterUsername: '',
   masterPassword: '',
+
+  // 其他元信息补充: 复制连接时不保留
+  meta: {
+    // 数据库别名
+    // db0: '会话登录'
+
+    // 未来的其他扩展
+  }
 })
 
 const rules = {
@@ -51,10 +59,11 @@ function open(modeValue, data) {
   mode.value = modeValue
   if (data) {
     const newData = cloneDeep(data)
-    // 新增时给了数据，则是复制连接。id和name需要重置
+    // 新增时给了数据，则是复制连接。id和name需要重置, meta信息不复制
     if (modeValue === 'add') {
       newData.id = nanoid()
       newData.name = data.name + '-' + t('copy')
+      newData.meta = {}
     }
     Object.assign(form, newData)
   }

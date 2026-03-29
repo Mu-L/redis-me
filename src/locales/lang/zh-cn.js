@@ -98,6 +98,7 @@ export default {
     // 新增编辑
     addConn: '新增连接',
     editConn: '编辑连接',
+    deleteConn: '确认删除连接【{name}】吗？',
     host: '主机',
     port: '端口',
     username: '用户',
@@ -533,6 +534,12 @@ export default {
     ttlChecked: '为所选项更新TTL',
     deleteChecked: '删除所选项',
     exitCheckedMode: '退出勾选模式',
+    batchDelete: '批量删除键',
+    flushDb: '清空当前库',
+    flushDbConfirm: '【危险】确定清空当前库吗？',
+    flushDbOk: '清空当前库完成',
+    editDbName: '定制数据库名称 (db{index})',
+    editDbNamePlaceholder: '请输入定制名称',
   },
 
   ttlSet: {

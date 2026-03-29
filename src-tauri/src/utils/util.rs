@@ -34,12 +34,14 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
     match result {
         Ok(value) => Ok(value),
         Err(err) => {
-            //error!("{}", err.backtrace());
-            let source = err.source().map(|err| err.to_string()).unwrap_or_default();
-            let message = if source.is_empty() {
-                err.to_string()
-            } else {
-                format!("{}: {}", err.to_string(), source)
+            // 避免原始错误和source错误的字符串一致，提示两遍（比如connection timed out）
+            let message = match err.source() {
+                Some(source)
+                    if !source.to_string().is_empty() && err.to_string() != source.to_string() =>
+                {
+                    format!("{}: {}", err, source)
+                }
+                _ => err.to_string(),
             };
             error!("错误: {}", message);
             Err(message)
