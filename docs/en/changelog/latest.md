@@ -1,6 +1,18 @@
 # 2.x Changelog
 
-## [2.4.0](https://mp.weixin.qq.com/s/rZYko6a9-T217pT8erSQ4w) (2026-03-28)
+
+## [v2.5.0](https://mp.weixin.qq.com/s/dYXnLfvppK8HLAfU_RO32g) (2026-03-30)
+
+- Key Show: Support custom database names
+- Key Show: Add functions for batch deleting keys and clearing the database
+- Detail optimization
+  - Optimize error prompts: When the Rust error is the same as the source string, only a single one is displayed.
+  - Add service version information to the default file name when exporting data: The serialized value of the DUMP command includes the RDB version, and incompatible versions cannot be imported using RESTORE.
+  - Automatically switch to 0 when the connected DB index does not exist: In special scenarios where the number of single - machine databases decreases, the connection can be established normally.
+  - Update the color of the log link to avoid being too dark in the dark theme of the Mac system.
+  - Support i18n when deleting connections
+
+## [v2.4.0](https://mp.weixin.qq.com/s/rZYko6a9-T217pT8erSQ4w) (2026-03-28)
 
 - Key display: Overall design optimization
   - **New checkboxes are added. After multiple selection, keys can be exported in batches/deleted/updated with
