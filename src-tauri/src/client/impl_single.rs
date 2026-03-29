@@ -51,10 +51,7 @@ impl RedisMeClient for RedisMeSingle {
         info!("db_count: {}", db_count);
         let mut db_list = vec![];
         for i in 0..db_count {
-            db_list.push(RedisDB {
-                db: i,
-                size: 0,
-            })
+            db_list.push(RedisDB { db: i, size: 0 })
         }
         Ok(db_list)
     }
@@ -446,9 +443,10 @@ impl RedisMeSingle {
         // 切换到当前的数据库(切换失败时忽略)
         if db != 0 {
             info!("select {db}");
-            let _: () = redis::cmd("select").arg(db).query(&mut conn).unwrap_or_else(|_| {
-                warn!("select {db} 失败，使用默认数据库0")
-            });
+            let _: () = redis::cmd("select")
+                .arg(db)
+                .query(&mut conn)
+                .unwrap_or_else(|_| warn!("select {db} 失败，使用默认数据库0"));
         }
         Ok(conn)
     }
