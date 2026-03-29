@@ -2,9 +2,9 @@ use crate::utils::model::*;
 use anyhow::bail;
 use chrono::DateTime;
 use log::error;
-use rand::Rng;
 use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
+use rand::Rng;
 use redis::streams::{StreamId, StreamRangeReply};
 use redis::{FromRedisValue, Value, ValueType};
 use std::collections::{HashMap, HashSet};
@@ -34,16 +34,12 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
     match result {
         Ok(value) => Ok(value),
         Err(err) => {
-            //error!("{}", err.backtrace());
-            let source = err.source().map(|err| err.to_string()).unwrap_or_default();
-            let message = if source.is_empty() {
-                err.to_string()
-            } else {
-                if err.to_string() != source {
-                    format!("{}: {}", err.to_string(), source)
-                } else {
-                    err.to_string()
+            // 避免原始错误和source错误的字符串一致，提示两遍（比如connection timed out）
+            let message = match err.source() {
+                Some(source) if err.to_string() != source.to_string() => {
+                    format!("{}: {}", err, source)
                 }
+                _ => err.to_string(),
             };
             error!("错误: {}", message);
             Err(message)
@@ -336,8 +332,8 @@ pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
 mod tests {
     use super::*;
     use crate::utils::model::RedisKey;
-    use base64::Engine;
     use base64::prelude::BASE64_STANDARD;
+    use base64::Engine;
 
     #[test]
     fn test_serde() -> AnyResult<()> {
