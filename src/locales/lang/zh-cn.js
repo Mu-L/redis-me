@@ -64,9 +64,12 @@ export default {
 
     baseSetting: '基础设置',
     moreSetting: '更多设置',
-    extLabelWidth: '80',
+    extLabelWidth: '100',
     keyScanCount: '键扫描',
     fieldScanCount: '字段扫描',
+    keyScanCountTip: '每次扫描加载的key数量，设置过大可能会影响性能',
+    fieldScanCountTip: 'Hash等类型每次扫描加载的field数量',
+
     keyShow: '键展示',
     keyShowTree: '树形',
     keyShowList: '平铺',

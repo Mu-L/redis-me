@@ -158,7 +158,11 @@ const keySortList = computed(() => [
   <el-card :header="t('setting.moreSetting')" style="margin-top: 20px">
     <el-form inline label-position="right" :label-width="t('setting.extLabelWidth')">
       <el-row class="me-flex">
-        <el-form-item :label="t('setting.keyScanCount')">
+        <el-form-item>
+          <template #label>
+            <me-icon :name="t('setting.keyScanCount')" icon="el-icon-question-filled"
+                     :info="t('setting.keyScanCountTip')" placement="top"/>
+          </template>
           <el-input-number
             v-model="settings.keyScanCount"
             :min="1000"
@@ -168,11 +172,15 @@ const keySortList = computed(() => [
             align="left"
           />
         </el-form-item>
-        <el-form-item :label="t('setting.fieldScanCount')">
+        <el-form-item>
+          <template #label>
+            <me-icon :name="t('setting.fieldScanCount')" icon="el-icon-question-filled"
+                     :info="t('setting.fieldScanCountTip')" placement="top"/>
+          </template>
           <el-input-number
             v-model.number="settings.fieldScanCount"
             :min="10"
-            :max="1000"
+            :max="100"
             :controls="false"
             style="width: 100px"
             align="left"

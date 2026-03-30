@@ -66,6 +66,8 @@ export default {
     extLabelWidth: '100',
     keyScanCount: 'Key Scan',
     fieldScanCount: 'Field Scan',
+    keyScanCountTip: 'The number of keys loaded per scan. Setting it too large may affect performance',
+    fieldScanCountTip: 'The number of fields loaded by each scan for types such as Hash',
     keyShow: 'Key Show',
     keyShowTree: 'Tree',
     keyShowList: 'List',
