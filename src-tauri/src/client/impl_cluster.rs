@@ -297,8 +297,8 @@ impl RedisMeClient for RedisMeCluster {
         let mut logs = vec![];
         for redis_node in &self.node_list {
             // 如果参数中包含节点参数，则只返回指定节点的慢日志
-            if let Some(ref n) = node
-                && n != &redis_node.node
+            if let Some(ref n)  = node
+                && !n.is_empty() && n != &redis_node.node
             {
                 continue;
             }
