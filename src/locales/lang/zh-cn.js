@@ -39,6 +39,9 @@ export default {
   },
 
   setting: {
+    toDefault: '恢复默认',
+    confirmToDefault: '确认恢复【{name}】到默认值吗？',
+
     labelWidth: '60',
     title: '设置',
     appearance: '外观',

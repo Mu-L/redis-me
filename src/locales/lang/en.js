@@ -39,6 +39,9 @@ export default {
   },
 
   setting: {
+    toDefault: 'Restore Default',
+    confirmToDefault: 'Confirm Restore【{name}】To Default ?',
+
     labelWidth: '86px',
     title: 'Settings',
     appearance: 'Appearance',

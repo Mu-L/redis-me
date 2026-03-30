@@ -1,6 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { meCheckUpdate } from '@/utils/util.js'
+import {meCheckUpdate, meConfirm} from '@/utils/util.js'
 import { ref } from 'vue'
 import { getVersion } from '@tauri-apps/api/app'
 import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
@@ -78,10 +78,34 @@ const keySortList = computed(() => [
   { value: 'count', label: t('setting.sortByCount') },
   { value: 'alphabet', label: t('setting.sortByAlphabet') },
 ])
+
+// 恢复默认
+function toDefault(name) {
+  meConfirm(t('setting.confirmToDefault', {name: t('setting.' + name)}), () => {
+    if (name === 'baseSetting') {
+      settings.theme = 'system'
+      settings.language = 'system'
+      settings.uiFont = []
+      settings.codeFont = []
+      settings.autoUpdate = true
+    } else if (name === 'moreSetting') {
+      settings.keyScanCount = 1000
+      settings.fieldScanCount = 20
+      settings.keyShow = 'tree'
+      settings.keySort = 'count'
+    }
+  })
+}
 </script>
 
 <template>
-  <el-card :header="t('setting.baseSetting')">
+  <el-card>
+    <template #header>
+      <div class="me-flex" style="align-items: center">
+        <div>{{ t('setting.baseSetting') }}</div>
+        <el-text class="restore" type="info" @click="toDefault('baseSetting')">{{ t('setting.toDefault') }}</el-text>
+      </div>
+    </template>
     <el-form inline label-position="right" :label-width="t('setting.labelWidth')">
       <el-row class="me-flex">
         <el-form-item :label="t('setting.theme')">
@@ -155,7 +179,13 @@ const keySortList = computed(() => [
     </el-form>
   </el-card>
 
-  <el-card :header="t('setting.moreSetting')" style="margin-top: 20px">
+  <el-card style="margin-top: 20px">
+    <template #header>
+      <div class="me-flex" style="align-items: center">
+        <div>{{ t('setting.moreSetting') }}</div>
+        <el-text class="restore" type="info" @click="toDefault('moreSetting')">{{ t('setting.toDefault') }}</el-text>
+      </div>
+    </template>
     <el-form inline label-position="right" :label-width="t('setting.extLabelWidth')">
       <el-row class="me-flex">
         <el-form-item>
@@ -209,7 +239,11 @@ const keySortList = computed(() => [
   font-weight: bold;
 }
 
-.me-link {
-  margin-left: 10px;
+.restore {
+  cursor: pointer;
+
+  &:hover {
+    color: var(--el-color-primary);
+  }
 }
 </style>
