@@ -131,6 +131,7 @@ pub trait RedisMeClient: Send + Sync {
     fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()>;
 
     fn mock_data(&self, count: u64) -> AnyResult<()>;
+    fn key_type(&self, key: RedisKey) -> AnyResult<String>;
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -1068,6 +1069,12 @@ fn import_cmd(mut conn: &mut impl Commands, line: &str) -> AnyResult<()> {
     let (cmd, args) = parse_command(line)?;
     redis::cmd(cmd.as_str()).arg(args).exec(&mut conn)?;
     Ok(())
+}
+
+pub fn key_type0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<String> {
+    // 简单字符串回复：key 的类型，如果 key 不存在则返回 none
+    let key_type: ValueType = conn.key_type(&key)?;
+    Ok(ui_key_type(key_type))
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

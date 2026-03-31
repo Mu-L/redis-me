@@ -427,6 +427,10 @@ impl RedisMeClient for RedisMeSingle {
         Ok(())
     }
 
+    fn key_type(&self, key: RedisKey) -> AnyResult<String> {
+        key_type0(self.get_conn()?, key)
+    }
+    
     implement_pipeline_commands!(Pipeline);
 }
 
