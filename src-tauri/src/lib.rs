@@ -74,6 +74,7 @@ pub fn run() {
             batch_ttl,
             export_csv,
             import_csv,
+            import_cmd,
             mock_data,
         ])
         .run(tauri::generate_context!())

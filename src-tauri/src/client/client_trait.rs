@@ -128,6 +128,7 @@ pub trait RedisMeClient: Send + Sync {
     fn batch_ttl(&self, param: RedisBatchTtl) -> AnyResult<()>;
     fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()>;
     fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()>;
+    fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()>;
 
     fn mock_data(&self, count: u64) -> AnyResult<()>;
 }
@@ -875,11 +876,11 @@ pub fn import_csv_0_thread(
     app_handle: AppHandle,
     id: String,
 ) {
-    info!("import file: {}", &param.file);
+    info!("import csv file: {}", &param.file);
     let result = import_keys(conn, param, running.clone(), app_handle, id);
     match result {
-        Ok(_) => info!("import file ok"),
-        Err(e) => warn!("import file err: {e}"),
+        Ok(_) => info!("import csv file ok"),
+        Err(e) => warn!("import csv file err: {e}"),
     }
     running.store(false, Relaxed);
 }
@@ -992,6 +993,80 @@ fn import_restore_ttl(part_ttl: &str, ttl: i64, handle_ttl: &str) -> i64 {
 
     // 注意: 导出时TTL命令返回的单位是秒, restore的ttl参数是毫秒
     if ttl <= 0 { 0 } else { ttl * 1000 }
+}
+
+pub fn import_cmd_0_thread(
+    conn: &mut impl Commands,
+    file: String,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) {
+    info!("import cmd file: {}", &file);
+    let result = import_cmds(conn, file, running.clone(), app_handle, id);
+    match result {
+        Ok(_) => info!("import cmd file ok"),
+        Err(e) => warn!("import cmd file err: {e}"),
+    }
+    running.store(false, Relaxed);
+}
+
+fn import_cmds(
+    conn: &mut impl Commands,
+    file: String,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) -> AnyResult<()> {
+    let reader = BufReader::new(File::open(&file)?);
+    let total_count = reader.lines().count() as u64;
+    info!("import cmds lines: {}", total_count);
+
+    let mut ok_count = 0;
+    let mut err_count = 0;
+
+    let reader = BufReader::new(File::open(&file)?);
+    for line in reader.lines() {
+        let line = line?;
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        if running.load(Relaxed) {
+            let result = import_cmd(conn, line);
+            match result {
+                Ok(_) => ok_count += 1,
+                Err(e) => err_count += 1,
+            }
+            // 通知导入进度
+            let event = ExportImportEvent {
+                id: id.clone(),
+                ok_count,
+                err_count,
+                total_count,
+                ignore_count: 0,
+                finished: false,
+            };
+            let _ = &app_handle.emit(EVENT_IMPORT, event);
+        }
+    }
+
+    let event = ExportImportEvent {
+        id: id.clone(),
+        ok_count,
+        err_count,
+        total_count,
+        ignore_count: 0,
+        finished: true,
+    };
+    let _ = &app_handle.emit(EVENT_IMPORT, event);
+    Ok(())
+}
+
+fn import_cmd(mut conn: &mut impl Commands, line: &str) -> AnyResult<()> {
+    let (cmd, args) = parse_command(line)?;
+    redis::cmd(cmd.as_str()).arg(args).exec(&mut conn)?;
+    Ok(())
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

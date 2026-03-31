@@ -527,6 +527,15 @@ impl RedisMeClient for RedisMeCluster {
         Ok(())
     }
 
+    fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()> {
+        let mut conn = self.get_new_conn()?;
+        let running = self.export_import_running.clone();
+        let id = self.id.clone();
+        export_import_check_running(running.clone())?;
+        thread::spawn(move || import_cmd_0_thread(&mut conn, file, running, app_handle, id));
+        Ok(())
+    }
+
     implement_pipeline_commands!(ClusterPipeline);
 }
 

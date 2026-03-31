@@ -82,4 +82,5 @@ api_commands2!(
     subscribe(channel: Option<String>)-> ();     // 订阅消息
     export_csv(param: RedisExportCsv) -> ();     // 导出CSV
     import_csv(param: RedisImportCsv) -> ();     // 导入CSV
+    import_cmd(file: String) -> ();              // 导入命令
 );
