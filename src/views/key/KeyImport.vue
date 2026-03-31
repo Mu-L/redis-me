@@ -7,8 +7,9 @@ const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 
 defineExpose({ open })
-function open() {
+function open(_isCmdFile) {
   visible.value = true
+  isCmdFile.value = _isCmdFile
   Object.assign(form.value, cloneDeep(initForm))
 }
 
@@ -24,6 +25,10 @@ const initForm = readonly({
   handleTtl: 'parse',
   ttl: -1,
 })
+
+// 支持导入不同的文件类型
+const isCmdFile = ref(false)
+const fileSuffix = computed(() => isCmdFile.value ? 'txt' : 'csv')
 
 const form = ref(cloneDeep(initForm))
 const rules = computed(() => ({
@@ -46,7 +51,11 @@ function submit() {
 
     loading.value = true
     try {
-      await meInvoke('import_csv', { id: share.conn.id, param: form.value })
+      if (isCmdFile.value) {
+        await meInvoke('import_cmd', {id: share.conn.id, file: form.value.file})
+      } else {
+        await meInvoke('import_csv', {id: share.conn.id, param: form.value})
+      }
       emit('success')
       visible.value = false
     } finally {
@@ -68,12 +77,12 @@ function submit() {
       <el-form-item :label="t('keyImport.file')" prop="file">
         <me-file-input
           v-model="form.file"
-          :placeholder="t('keyImport.fileTip')"
-          file-suffix="csv"
+          :placeholder="t('keyImport.fileTip', {tip: fileSuffix})"
+          :file-suffix="fileSuffix"
         />
       </el-form-item>
 
-      <el-row :span="24">
+      <el-row :span="24" v-if="!isCmdFile">
         <el-col :span="12">
           <el-form-item :label="t('keyImport.handleConflict')">
             <el-segmented v-model="form.handleConflict" :options="handleConflictOptions" />

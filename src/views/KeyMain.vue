@@ -239,8 +239,8 @@ function batchKeyOk(mode) {
 
 // 导入数据
 const keyImportRef = useTemplateRef('keyImportRef')
-function importData() {
-  keyImportRef.value.open()
+function importData(isCmdFile = false) {
+  keyImportRef.value.open(isCmdFile)
 }
 function importStart() {
   share.exportImportingPercentage = 0
@@ -317,7 +317,9 @@ async function handleCommand(command) {
   } else if ('exportData' === command) {
     exportFolder('*')
   } else if ('importData' === command) {
-    importData()
+    importData(false)
+  } else if ('importCmd' === command) {
+    importData(true)
   } else if ('batchDelete' === command) {
     deleteFolder('*')
   } else if ('flushDb' === command) {
@@ -615,6 +617,9 @@ function editDbName(db){
               </el-dropdown-item>
               <el-dropdown-item command="importData" v-if="canEdit">
                 <me-icon :name="t('keyMain.importData')" icon="me-icon-import" />
+              </el-dropdown-item>
+              <el-dropdown-item command="importCmd" v-if="canEdit">
+                <me-icon :name="t('keyMain.importCmd')" icon="me-icon-import" />
               </el-dropdown-item>
               <el-dropdown-item command="mockData" v-if="canEdit">
                 <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />

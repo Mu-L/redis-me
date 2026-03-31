@@ -256,7 +256,7 @@ export default {
   keyImport: {
     title: '导入数据',
     file: '导入文件',
-    fileTip: '请选择需要导入的文件',
+    fileTip: '请选择需要导入的文件 ({tip})',
     fileRequired: '导入文件不能为空',
     handleConflict: '键冲突处理',
     replace: '覆盖',
@@ -531,6 +531,7 @@ export default {
     mockData: '模拟数据',
     exportData: '导出数据',
     importData: '导入数据',
+    importCmd: '导入命令',
     listView: '平铺展示',
     treeView: '树形展示',
     sortByCount: '数量排序',

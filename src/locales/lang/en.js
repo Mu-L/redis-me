@@ -254,7 +254,7 @@ export default {
   keyImport: {
     title: 'Import Data',
     file: 'Import File',
-    fileTip: 'Select file to import',
+    fileTip: 'select file to import ({tip})',
     fileRequired: 'import file required',
     handleConflict: 'On Key Conflict',
     replace: 'Replace',
@@ -533,6 +533,7 @@ export default {
     mockData: 'Mock Data',
     exportData: 'Export Data',
     importData: 'Import Data',
+    importCmd: 'Import CMD',
     listView: 'List View',
     treeView: 'Tree View',
     sortByCount: 'Key Count',

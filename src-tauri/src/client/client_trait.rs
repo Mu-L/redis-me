@@ -1036,7 +1036,7 @@ fn import_cmds(
             let result = import_cmd(conn, line);
             match result {
                 Ok(_) => ok_count += 1,
-                Err(e) => err_count += 1,
+                Err(_) => err_count += 1,
             }
             // 通知导入进度
             let event = ExportImportEvent {
@@ -1064,6 +1064,7 @@ fn import_cmds(
 }
 
 fn import_cmd(mut conn: &mut impl Commands, line: &str) -> AnyResult<()> {
+    info!("line: {}", line);
     let (cmd, args) = parse_command(line)?;
     redis::cmd(cmd.as_str()).arg(args).exec(&mut conn)?;
     Ok(())
