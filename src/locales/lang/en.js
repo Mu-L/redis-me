@@ -533,7 +533,7 @@ export default {
     mockData: 'Mock Data',
     exportData: 'Export Data',
     importData: 'Import Data',
-    importCmd: 'Import CMD',
+    importCmd: 'Import Cmd',
     listView: 'List View',
     treeView: 'Tree View',
     sortByCount: 'Key Count',

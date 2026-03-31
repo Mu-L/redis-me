@@ -18,6 +18,8 @@ import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 import { useI18n } from 'vue-i18n'
 import TTLSet from '@/views/ext/TTLSet.vue'
+import {parseInt} from 'lodash/string.js'
+import dayjs from 'dayjs'
 
 const { t } = useI18n()
 // 刷新键
@@ -317,6 +319,16 @@ async function fieldDel(row) {
   meOk(t('deleteOk'))
   await refreshKey()
 }
+
+// Stream的ID转换为字符串时间
+function streamIdToDate(id) {
+  try {
+    const timestamp = parseInt(id.split('-')[0])
+    return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')
+  } catch (e) {
+    return 'format err'
+  }
+}
 </script>
 
 <template>
@@ -509,7 +521,13 @@ async function fieldDel(row) {
                 prop="id"
                 show-overflow-tooltip
                 v-if="redisValue.type === 'stream'"
-              />
+              >
+                <template #default="scope">
+                  <el-tooltip :content="streamIdToDate(scope.row.id)" placement="right">
+                    {{ scope.row.id }}
+                  </el-tooltip>
+                </template>
+              </el-table-column>
               <el-table-column
                 :label="t('redisValue.key')"
                 prop="key"
