@@ -164,7 +164,7 @@ refresh()
         <el-table-column
             :label="t('redisSlow.cost')"
             prop="cost"
-            width="100"
+            width="90"
             sortable
             show-overflow-tooltip
         >
