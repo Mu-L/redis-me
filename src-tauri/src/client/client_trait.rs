@@ -329,11 +329,19 @@ pub fn field_scan_0_get(
                 // 倒序: 更符合实际的使用习惯, 即查看最新的消息。TinyRDM/AnotherRDM都是倒序的
                 // XREVRANGE key end start [COUNT count]
                 let end = if cc.stream_cursor.is_empty() {
-                    "+"
+                    match param.meta.as_ref() {
+                        Some(meta) if !meta.max_id.is_empty() => &meta.max_id,
+                        _ => "+",
+                    }
                 } else {
                     &cc.stream_cursor
                 };
-                let start = "-";
+
+                let start = match param.meta.as_ref() {
+                    Some(meta) if !meta.min_id.is_empty() => &meta.min_id,
+                    _ => "-",
+                };
+
                 let count = if cc.stream_cursor.is_empty() {
                     param.count + 1
                 } else {

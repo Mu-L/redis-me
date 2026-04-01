@@ -124,10 +124,16 @@ impl ScanParam {
 
 api_model!(FieldScanParam {
     key: RedisKey,
-    hash_key: Option<String>,
+    hash_key: Option<String>, // Hash键 或 StreamId
     count: u64,
     cursor: Option<ScanCursor>,
     load_all: bool,
+    meta: Option<FiledScanMeta>, // 扩展参数
+});
+
+api_model!(FiledScanMeta {
+   max_id: String,
+   min_id: String
 });
 
 api_model!(

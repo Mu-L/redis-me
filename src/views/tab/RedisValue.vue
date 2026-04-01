@@ -42,6 +42,12 @@ const redisValue = ref(null)
 const cursor = ref(null) // 新增游标，支持list/hash/set/zset的扫描，避免一次性获取所有数据
 const loading = ref(false)
 
+// 刷新值的扩展参数
+const meta = ref({
+  maxId: '',
+  minId: ''
+})
+
 // 计算属性
 
 const hashType = computed(() => 'hash' === redisValue.value?.type)
@@ -160,7 +166,9 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       count: meTauri.settings.fieldScanCount,
       cursor: cursor.value,
       loadAll,
+      meta: meta.value,
     }
+
     const data = await meInvoke('field_scan', { id: share.conn.id, param })
     cursor.value = data.cursor
     withHashKey.value = !!hashKey.value
@@ -335,6 +343,8 @@ function streamIdToDate(id) {
   <!-- 大部分Key都很快得到，element-loading-background设置为unset避免loading背景一闪而过，不友好  -->
   <div class="redis-value" v-loading="loading" element-loading-background="unset">
     <template v-if="share.redisKey && redisValue">
+
+      <!-- 上方键 -->
       <div class="key">
         <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
           <template #prepend>
@@ -404,6 +414,7 @@ function streamIdToDate(id) {
         </div>
       </div>
 
+      <!-- 下方值 -->
       <div class="value">
         <!-- json显示 -->
         <template v-if="viewType === 'json'">
@@ -462,13 +473,29 @@ function streamIdToDate(id) {
         <!-- 表格显示 -->
         <div class="me-flex" style="flex-direction: column; height: 100%" v-else>
           <div class="me-flex" style="width: 100%">
-            <el-input
-              v-model="tableKeyword"
-              :placeholder="t('redisValue.tableKeyword')"
-              clearable
-              style="width: 300px"
-            />
+            <!-- 左侧模糊筛选 -->
+            <div>
+              <el-input
+                  v-model="tableKeyword"
+                  :placeholder="t('redisValue.tableKeyword')"
+                  clearable
+                  :style="{width: streamType ? '160px' : '300px'}"
+              />
+              <el-input v-if="streamType" @keyup.enter="refreshKey(true)"
+                  v-model.trim="meta.maxId"
+                  placeholder="MaxId"
+                  clearable
+                  style="width: 160px; margin-left: 10px"
+              />
+              <el-input v-if="streamType" @keyup.enter="refreshKey(true)"
+                  v-model.trim="meta.minId"
+                  placeholder="MinId"
+                  clearable
+                  style="width: 160px; margin-left: 10px"
+              />
+            </div>
 
+            <!-- 右侧更多+插入行 -->
             <div>
               <el-button-group v-show="showMore">
                 <me-button
@@ -622,6 +649,8 @@ function streamIdToDate(id) {
         </div>
       </div>
     </template>
+
+    <!-- 未选择键时Empty显示 -->
     <el-empty v-else :description="t('redisValue.noKeySelected')"></el-empty>
 
     <!-- 更新TTL, 字段新增 -->
