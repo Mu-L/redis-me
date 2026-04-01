@@ -159,11 +159,10 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
 
   loading.value = true
   try {
-    //redisValue.value = await meInvoke('get', {id: share.conn.id, key: share.redisKey, hashKey: hashKey.value})
     const param = {
       key: share.redisKey,
       hashKey: hashKey.value,
-      count: meTauri.settings.fieldScanCount,
+      count: meTauri.settings.fieldScanCount ?? 10,
       cursor: cursor.value,
       loadAll,
       meta: meta.value,
@@ -337,6 +336,11 @@ function streamIdToDate(id) {
     return 'format err'
   }
 }
+
+// Stream显示Groups
+function showGroups() {
+
+}
 </script>
 
 <template>
@@ -481,6 +485,9 @@ function streamIdToDate(id) {
                   clearable
                   :style="{width: streamType ? '160px' : '300px'}"
               />
+              <el-button icon="el-icon-grid" @click="showGroups" style="margin-left: 10px">
+                  Groups
+              </el-button>
               <el-input v-if="streamType" @keyup.enter="refreshKey(true)"
                   v-model.trim="meta.maxId"
                   placeholder="MaxId"
