@@ -5,7 +5,7 @@ use log::error;
 use rand::Rng;
 use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
-use redis::streams::{StreamId, StreamRangeReply};
+use redis::streams::{StreamId, StreamInfoGroup, StreamRangeReply};
 use redis::{FromRedisValue, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
@@ -55,6 +55,17 @@ pub fn ui_key_type(key_type: ValueType) -> String {
         ME_JSON_TYPE_NAME.to_string()
     } else {
         key_type.to_string()
+    }
+}
+
+pub fn ui_xinfo_group(group: StreamInfoGroup) -> XInfoGroup {
+    XInfoGroup {
+        name: group.name,
+        consumners: group.consumers,
+        pending: group.pending,
+        last_delivered_id: group.last_delivered_id,
+        entries_read: group.entries_read,
+        lag: group.lag,
     }
 }
 

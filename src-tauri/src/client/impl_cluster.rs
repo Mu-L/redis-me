@@ -539,6 +539,11 @@ impl RedisMeClient for RedisMeCluster {
     fn key_type(&self, key: RedisKey) -> AnyResult<String> {
         key_type0(self.get_conn()?, key)
     }
+
+    fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>> {
+        xinfo_groups0(self.get_conn()?, key)
+    }
+
     implement_pipeline_commands!(ClusterPipeline);
 }
 

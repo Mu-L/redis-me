@@ -8,11 +8,8 @@ use base64::prelude::BASE64_STANDARD;
 use chrono::{Local, Utc};
 use log::{info, warn};
 use parking_lot::MutexGuard;
-use redis::streams::StreamRangeReply;
-use redis::{
-    Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value,
-    ValueType, from_redis_value,
-};
+use redis::streams::{StreamInfoGroupsReply, StreamRangeReply};
+use redis::{Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType, from_redis_value};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -132,6 +129,7 @@ pub trait RedisMeClient: Send + Sync {
 
     fn mock_data(&self, count: u64) -> AnyResult<()>;
     fn key_type(&self, key: RedisKey) -> AnyResult<String>;
+    fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>>;
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -1084,6 +1082,13 @@ pub fn key_type0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResul
     let key_type: ValueType = conn.key_type(&key)?;
     Ok(ui_key_type(key_type))
 }
+
+pub fn xinfo_groups0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<Vec<XInfoGroup>> {
+    let reply: StreamInfoGroupsReply = conn.xinfo_groups(&key)?;
+    Ok(reply.groups.into_iter().map(|x| ui_xinfo_group(x)).collect())
+}
+
+
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)
 #[macro_export]

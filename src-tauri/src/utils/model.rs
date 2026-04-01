@@ -132,8 +132,17 @@ api_model!(FieldScanParam {
 });
 
 api_model!(FiledScanMeta {
-   max_id: String,
-   min_id: String
+    max_id: String,
+    min_id: String
+});
+
+api_model!(XInfoGroup{
+    name: String,
+    consumners: usize,
+    pending: usize,
+    last_delivered_id: String,
+    entries_read: Option<usize>,
+    lag: Option<usize>
 });
 
 api_model!(
