@@ -130,8 +130,11 @@ export default {
     nameRequired: 'Please Input host',
     portRequired: 'Please Input port',
     testOk: 'Conn Success',
-
     downloading: 'Downloading',
+
+    readonlyTip: 'In read-only mode, all editing buttons are hidden (they can be dynamically switched to display)',
+    clusterTip: 'Select any node in the cluster to fill in, and other nodes will be identified automatically',
+    sentinelTip: 'Select any node of the multiple sentinels. Please fill in the sentinel configuration for the address, port, and password. The user password of the master node is the user password of the Master node monitored by the sentinel',
   },
 
   util: {

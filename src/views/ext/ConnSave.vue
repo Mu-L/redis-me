@@ -221,10 +221,16 @@ watch(
           </el-form-item>
         </el-col>
         <el-col :span="19">
-          <el-checkbox v-model="form.readonly">{{ t('conn.readonly') }}</el-checkbox>
-          <el-checkbox v-model="form.cluster">{{ t('conn.cluster') }}</el-checkbox>
-          <el-checkbox v-model="form.sentinel">{{ t('conn.sentinel') }}</el-checkbox>
           <el-checkbox v-model="form.ssl">SSL</el-checkbox>
+          <el-checkbox v-model="form.readonly">
+            <me-icon :name="t('conn.readonly')" icon="el-icon-question-filled" :info="t('conn.readonlyTip')" :icon-left="false"/>
+          </el-checkbox>
+          <el-checkbox v-model="form.cluster">
+            <me-icon :name="t('conn.cluster')" icon="el-icon-question-filled" :info="t('conn.clusterTip')" :icon-left="false"/>
+          </el-checkbox>
+          <el-checkbox v-model="form.sentinel">
+            <me-icon :name="t('conn.sentinel')" icon="el-icon-question-filled" :info="t('conn.sentinelTip')" :icon-left="false"/>
+          </el-checkbox>
         </el-col>
       </el-row>
 

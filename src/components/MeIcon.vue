@@ -2,6 +2,7 @@
 // 说明: 统一图标使用方式，支持el-icon-xxx图标和自定义的svg图标me-icon-xxx
 defineProps({
   icon: { type: String, default: '' }, // 图标
+  iconLeft: { type: Boolean, default: true },
   name: { type: String, default: '' }, // 文字
   hint: { type: Boolean, default: false }, // 文字是否显示为提示(tooltip)
   info: { type: String, default: '' }, // 图标 + 文字 + 额外的提示
@@ -15,6 +16,7 @@ defineProps({
   <div class="icon-main">
     <!-- 图标 + 文字 + 额外提示 -->
     <template v-if="info">
+      <span v-if="name && !iconLeft" style="margin-right: 5px">{{ name }}</span>
       <el-tooltip
         :placement="placement"
         :content="info"
@@ -26,7 +28,7 @@ defineProps({
         </el-icon>
         <SvgIcon v-else :name="icon" class="icon" />
       </el-tooltip>
-      <span class="name" v-if="name">{{ name }}</span>
+      <span v-if="name && iconLeft" style="margin-left: 5px">{{ name }}</span>
     </template>
 
     <!-- 图标 + 文字提示 -->
