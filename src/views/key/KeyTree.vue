@@ -264,7 +264,7 @@ function checkChange() {
                 <KeyTypeTag :conn-id="share.conn.id" :redis-key="node.data.redisKey" />
               </template>
               <template #fallback>
-                <el-tag size="small" disable-transitions type="info">?</el-tag>
+                <el-tag size="small" disable-transitions type="info" effect="plain" hit>?</el-tag>
               </template>
             </Suspense>
             {{ node.label }}
