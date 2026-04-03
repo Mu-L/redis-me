@@ -69,7 +69,8 @@ export default {
     extLabelWidth: '100',
     keyScanCount: 'Key Scan',
     fieldScanCount: 'Field Scan',
-    keyScanCountTip: 'The number of keys loaded per scan. Setting it too large may affect performance',
+    keyScanCountTip:
+      'The number of keys loaded per scan. Setting it too large may affect performance',
     fieldScanCountTip: 'The number of fields loaded by each scan for types such as Hash',
     keyShow: 'Key Show',
     keyShowTree: 'Tree',
@@ -132,9 +133,12 @@ export default {
     testOk: 'Conn Success',
     downloading: 'Downloading',
 
-    readonlyTip: 'In read-only mode, all editing buttons are hidden (they can be dynamically switched to display)',
-    clusterTip: 'Select any node in the cluster to fill in, and other nodes will be identified automatically',
-    sentinelTip: 'Select any node of the multiple sentinels. Please fill in the sentinel configuration for the address, port, and password. The user password of the master node is the user password of the Master node monitored by the sentinel',
+    readonlyTip:
+      'In read-only mode, all editing buttons are hidden (they can be dynamically switched to display)',
+    clusterTip:
+      'Select any node in the cluster to fill in, and other nodes will be identified automatically',
+    sentinelTip:
+      'Select any node of the multiple sentinels. Please fill in the sentinel configuration for the address, port, and password. The user password of the master node is the user password of the Master node monitored by the sentinel',
   },
 
   util: {
@@ -579,5 +583,5 @@ export default {
     lastDeliveredId: 'LastDeliveredId',
     entriesRead: 'EntriesRead',
     lag: 'Lag',
-  }
+  },
 }

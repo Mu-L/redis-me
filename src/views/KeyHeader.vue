@@ -46,7 +46,7 @@ async function newWindow() {
 
   // 获取所有窗口, 如果不包含main窗口则label设置为main (测试发现: 如果main窗口已关闭，创建新的窗口时, 会自动创建一个空白的main窗口)
   const windows = await getAllWebviewWindows()
-  const hasMainWindow = !!windows.find((item) => item.label === 'main')
+  const hasMainWindow = !!windows.find(item => item.label === 'main')
 
   const label = hasMainWindow ? 'Window' + nanoid() : 'main'
   const appWindow = new WebviewWindow(label, {

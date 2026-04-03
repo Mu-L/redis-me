@@ -7,7 +7,8 @@ import {
   INFO_REFRESH,
   KEY_DELETE,
   KEY_REFRESH,
-  KEY_TYPE_LIST, meConfirm,
+  KEY_TYPE_LIST,
+  meConfirm,
   meCopy,
   meDeleteKey,
   meInvoke,
@@ -77,7 +78,7 @@ const cursor = ref(null) // 扫描的游标
 const keyList = ref([]) // 键列表
 const filterKeyList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return keyList.value.filter((k) => k.key.toLowerCase().indexOf(key) > -1)
+  return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
 })
 
 async function scanKey(useCursor = false, loadAll = false) {
@@ -119,7 +120,7 @@ onUnmounted(() => {
 })
 
 function deleteKey(redisKey) {
-  keyList.value = keyList.value.filter((rk) => rk.bytes !== redisKey.bytes)
+  keyList.value = keyList.value.filter(rk => rk.bytes !== redisKey.bytes)
   share.redisKey = null
   bus.emit(INFO_REFRESH)
 }
@@ -253,7 +254,7 @@ function importStart() {
 // 监听消息
 let unlisten = null
 async function tauriListen(eventName) {
-  unlisten = await listen(eventName, (event) => {
+  unlisten = await listen(eventName, event => {
     const payload = event.payload
     if (payload.id !== share.conn.id) return
     share.exportImportingPercentage = Math.round(
@@ -328,9 +329,9 @@ async function handleCommand(command) {
 }
 
 // 清空数据库
-function flushDb(){
+function flushDb() {
   meConfirm(t('keyMain.flushDbConfirm'), async () => {
-    const param = {command: 'flushdb'}
+    const param = { command: 'flushdb' }
     await meInvoke('execute_command', { id: share.conn.id, param })
     meOk(t('keyMain.flushDbOk'))
     bus.emit(CONN_REFRESH)
@@ -345,7 +346,7 @@ async function mockData() {
     {
       inputValue: 100,
       inputType: 'number',
-      inputValidator: (value) => {
+      inputValidator: value => {
         if (value < 1 || value > 1000) {
           return t('keyHeader.mockValidator')
         }
@@ -409,14 +410,18 @@ function deleteChecked() {
 }
 
 // 自定义数据库名称
-function editDbName(db){
-  mePrompt(t('keyMain.editDbName', {index: db}), {
-    inputValue: share.conn?.meta?.['db' + db] || '',
-    inputPlaceholder: t('keyMain.editDbNamePlaceholder'),
-  }, ({value}) => {
-    share.conn.meta ??= {}  // meta为空则赋值为空对象
-    share.conn.meta['db' + db] = value
-  })
+function editDbName(db) {
+  mePrompt(
+    t('keyMain.editDbName', { index: db }),
+    {
+      inputValue: share.conn?.meta?.['db' + db] || '',
+      inputPlaceholder: t('keyMain.editDbNamePlaceholder'),
+    },
+    ({ value }) => {
+      share.conn.meta ??= {} // meta为空则赋值为空对象
+      share.conn.meta['db' + db] = value
+    },
+  )
 }
 </script>
 
@@ -524,8 +529,10 @@ function editDbName(db){
             <div class="me-flex" style="align-items: center">
               <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
               <div style="display: flex">
-                <el-text type="info" style="margin: 0 10px">{{share.conn?.meta?.['db' + item.db]}}</el-text>
-                <me-icon icon="el-icon-edit" class="icon-btn" @click.stop="editDbName(item.db)"/>
+                <el-text type="info" style="margin: 0 10px">{{
+                  share.conn?.meta?.['db' + item.db]
+                }}</el-text>
+                <me-icon icon="el-icon-edit" class="icon-btn" @click.stop="editDbName(item.db)" />
               </div>
             </div>
           </el-option>

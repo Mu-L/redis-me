@@ -31,7 +31,7 @@ const dirConfigList = ref([])
 onMounted(() => readConfigDir())
 async function readConfigDir() {
   const files = await readDir('resources/conf', { baseDir: BaseDirectory.Resource })
-  files.forEach((file) => {
+  files.forEach(file => {
     if (file.isFile && file.name.endsWith('.conf')) {
       dirConfigList.value.push(file.name.substring(0, file.name.length - 5))
     }
@@ -40,7 +40,7 @@ async function readConfigDir() {
 }
 
 const configVersionList = computed(() =>
-  dirConfigList.value.filter((d) => d.startsWith(serverType.value)),
+  dirConfigList.value.filter(d => d.startsWith(serverType.value)),
 )
 const configVersion = ref('') // 版本
 const configRaw = ref('')
@@ -85,7 +85,7 @@ const showType = ref('All')
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   return dataList.value.filter(
-    (row) =>
+    row =>
       (!key ||
         row.param?.toLowerCase().indexOf(key) > -1 ||
         row.value?.toLowerCase().indexOf(key) > -1 ||
@@ -148,7 +148,7 @@ async function editConfig(row) {
   })
 }
 async function configSet() {
-  formRef.value.validate(async (valid) => {
+  formRef.value.validate(async valid => {
     if (!valid) return
 
     editLoading.value = true

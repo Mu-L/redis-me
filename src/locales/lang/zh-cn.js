@@ -136,7 +136,8 @@ export default {
 
     readonlyTip: '只读模式下，所有编辑按钮隐藏（可动态切换显示）',
     clusterTip: '选择集群中任一节点配置填入即可，会自动识别其它节点',
-    sentinelTip: '多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置。主节点用户密码为哨兵监听的Master节点的用户密码',
+    sentinelTip:
+      '多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置。主节点用户密码为哨兵监听的Master节点的用户密码',
   },
 
   util: {
@@ -577,5 +578,5 @@ export default {
     lastDeliveredId: 'LastDeliveredId',
     entriesRead: 'EntriesRead',
     lag: 'Lag',
-  }
+  },
 }

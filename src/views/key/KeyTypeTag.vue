@@ -9,12 +9,10 @@ const props = defineProps({
 // 如果还没有类型，触发异步加载
 if (!props.redisKey.keyType) {
   try {
-    const data = await meInvoke('key_type', {id: share.conn.id, key: props.redisKey})
+    const data = await meInvoke('key_type', { id: share.conn.id, key: props.redisKey })
     props.redisKey.keyType = data?.toUpperCase()
-  } catch {
-  }
+  } catch {}
 }
-
 </script>
 
 <template>

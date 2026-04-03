@@ -16,9 +16,9 @@ import {
 } from '@/utils/util.js'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
-import {useI18n} from 'vue-i18n'
+import { useI18n } from 'vue-i18n'
 import TTLSet from '@/views/ext/TTLSet.vue'
-import {parseInt} from 'lodash/string.js'
+import { parseInt } from 'lodash/string.js'
 import dayjs from 'dayjs'
 import TableGroup from '@/views/ext/TableGroup.vue'
 
@@ -46,7 +46,7 @@ const loading = ref(false)
 // 刷新值的扩展参数
 const meta = ref({
   maxId: '',
-  minId: ''
+  minId: '',
 })
 
 // 计算属性
@@ -101,9 +101,9 @@ const dataList = computed(() => {
   if (rv.type === 'hash') {
     Object.entries(rv.value).forEach(([key, value]) => data.push({ key, value }))
   } else if (rv.type === 'list' || rv.type === 'set') {
-    rv.value.forEach((value) => data.push({ value }))
+    rv.value.forEach(value => data.push({ value }))
   } else if (rv.type === 'zset' || rv.type === 'stream') {
-    rv.value.forEach((value) => data.push(value)) // 返回的直接是[{score: '', value: ''}]
+    rv.value.forEach(value => data.push(value)) // 返回的直接是[{score: '', value: ''}]
   }
   return data
 })
@@ -111,7 +111,7 @@ const dataList = computed(() => {
 const filterDataList = computed(() => {
   const key = tableKeyword.value.toLowerCase()
   return dataList.value.filter(
-    (row) =>
+    row =>
       !key ||
       row.key?.toLowerCase().indexOf(key) > -1 ||
       row.id?.toLowerCase().indexOf(key) > -1 ||
@@ -342,7 +342,7 @@ function streamIdToDate(id) {
 const groupDataList = ref([])
 const tableGroupVisible = ref(false)
 async function showGroups() {
-  groupDataList.value = await meInvoke('xinfo_groups', {id: share.conn.id, key: share.redisKey})
+  groupDataList.value = await meInvoke('xinfo_groups', { id: share.conn.id, key: share.redisKey })
   tableGroupVisible.value = true
 }
 </script>
@@ -351,7 +351,6 @@ async function showGroups() {
   <!-- 大部分Key都很快得到，element-loading-background设置为unset避免loading背景一闪而过，不友好  -->
   <div class="redis-value" v-loading="loading" element-loading-background="unset">
     <template v-if="share.redisKey && redisValue">
-
       <!-- 上方键 -->
       <div class="key">
         <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
@@ -428,7 +427,7 @@ async function showGroups() {
         <template v-if="viewType === 'json'">
           <me-code
             :modelValue="showValue"
-            @update:modelValue="(newValue) => (redisValue.newValue = newValue)"
+            @update:modelValue="newValue => (redisValue.newValue = newValue)"
             :read-only="!canSave"
           />
 
@@ -484,23 +483,27 @@ async function showGroups() {
             <!-- 左侧模糊筛选 -->
             <div>
               <el-input
-                  v-model="tableKeyword"
-                  :placeholder="t('redisValue.tableKeyword')"
-                  clearable
-                  :style="{width: streamType ? '160px' : '300px'}"
+                v-model="tableKeyword"
+                :placeholder="t('redisValue.tableKeyword')"
+                clearable
+                :style="{ width: streamType ? '160px' : '300px' }"
               />
 
-              <el-input v-if="streamType" @keyup.enter="refreshKey(true)"
-                  v-model.trim="meta.maxId"
-                  placeholder="MaxId"
-                  clearable
-                  style="width: 160px; margin-left: 10px"
+              <el-input
+                v-if="streamType"
+                @keyup.enter="refreshKey(true)"
+                v-model.trim="meta.maxId"
+                placeholder="MaxId"
+                clearable
+                style="width: 160px; margin-left: 10px"
               />
-              <el-input v-if="streamType" @keyup.enter="refreshKey(true)"
-                  v-model.trim="meta.minId"
-                  placeholder="MinId"
-                  clearable
-                  style="width: 160px; margin-left: 10px"
+              <el-input
+                v-if="streamType"
+                @keyup.enter="refreshKey(true)"
+                v-model.trim="meta.minId"
+                placeholder="MinId"
+                clearable
+                style="width: 160px; margin-left: 10px"
               />
             </div>
 
@@ -520,7 +523,12 @@ async function showGroups() {
                   placement="top"
                 />
               </el-button-group>
-              <el-button icon="el-icon-grid" @click="showGroups" style="margin-left: 10px" v-if="streamType">
+              <el-button
+                icon="el-icon-grid"
+                @click="showGroups"
+                style="margin-left: 10px"
+                v-if="streamType"
+              >
                 Groups
               </el-button>
               <el-button icon="el-icon-plus" @click="fieldAdd" style="margin-left: 10px">{{
@@ -670,9 +678,8 @@ async function showGroups() {
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
 
     <!-- Stream消费者组 -->
-    <me-dialog title="Groups" icon="el-icon-coin"
-               v-model="tableGroupVisible" width="860">
-      <TableGroup :data-list="groupDataList"/>
+    <me-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="860">
+      <TableGroup :data-list="groupDataList" />
     </me-dialog>
   </div>
 </template>

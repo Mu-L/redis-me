@@ -1,9 +1,9 @@
 <script setup>
-import {useI18n} from 'vue-i18n'
+import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const {dataList} = defineProps({
-  dataList: {type: Array, default: () => []},
+const { dataList } = defineProps({
+  dataList: { type: Array, default: () => [] },
 })
 </script>
 
@@ -15,12 +15,7 @@ const {dataList} = defineProps({
     stripe
     :default-sort="{ prop: 'key', order: 'ascending' }"
   >
-    <el-table-column
-      :label="t('tableGroup.name')"
-      prop="name"
-      show-overflow-tooltip
-      sortable
-    />
+    <el-table-column :label="t('tableGroup.name')" prop="name" show-overflow-tooltip sortable />
     <el-table-column
       :label="t('tableGroup.consumers')"
       prop="consumers"

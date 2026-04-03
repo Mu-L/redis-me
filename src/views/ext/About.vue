@@ -5,8 +5,8 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const appVersion = ref('')
 getVersion()
-  .then((res) => (appVersion.value = res))
-  .catch((_) => {})
+  .then(res => (appVersion.value = res))
+  .catch(_ => {})
 </script>
 
 <template>

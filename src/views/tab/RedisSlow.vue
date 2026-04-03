@@ -26,7 +26,7 @@ watchEffect(() => {
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   const arr = dataList.value.filter(
-    (row) =>
+    row =>
       !key ||
       row.command?.toLowerCase().indexOf(key) > -1 ||
       row.client?.toLowerCase().indexOf(key) > -1 ||
@@ -35,8 +35,8 @@ const filterDataList = computed(() => {
 
   const prop = sortProperty.value
   const isAsc = sortOrder.value === 'ascending'
-  const arr01 = arr.filter((d) => d[prop])
-  const arr02 = arr.filter((d) => !d[prop])
+  const arr01 = arr.filter(d => d[prop])
+  const arr02 = arr.filter(d => !d[prop])
   arr01.sort((a, b) => (a[prop] < b[prop] ? -1 : 1) * (isAsc ? 1 : -1))
   return [...arr01, ...arr02]
 })
@@ -74,8 +74,6 @@ async function refresh() {
   }
 }
 refresh()
-
-
 </script>
 
 <template>
@@ -148,7 +146,7 @@ refresh()
         border
         stripe
       >
-      <!--
+        <!--
       <el-table-column :label="t('action')" width="80" align="center">
           <template #default="scope">
             <me-icon
@@ -162,11 +160,11 @@ refresh()
         </el-table-column>-->
         <el-table-column :label="t('redisSlow.time')" prop="time" width="170" sortable />
         <el-table-column
-            :label="t('redisSlow.cost')"
-            prop="cost"
-            width="90"
-            sortable
-            show-overflow-tooltip
+          :label="t('redisSlow.cost')"
+          prop="cost"
+          width="90"
+          sortable
+          show-overflow-tooltip
         >
           <template #default="scope"> {{ scope.row.cost.toFixed(2) }} ms </template>
         </el-table-column>
@@ -191,9 +189,14 @@ refresh()
           sortable
           show-overflow-tooltip
         />
-        <el-table-column :label="t('redisSlow.node')" prop="node" width="140"
-                         show-overflow-tooltip
-                         sortable v-if="share.nodeList.length > 0"/>
+        <el-table-column
+          :label="t('redisSlow.node')"
+          prop="node"
+          width="140"
+          show-overflow-tooltip
+          sortable
+          v-if="share.nodeList.length > 0"
+        />
       </me-table>
     </div>
   </div>

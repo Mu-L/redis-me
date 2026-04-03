@@ -28,7 +28,7 @@ const initForm = readonly({
 
 // 支持导入不同的文件类型
 const isCmdFile = ref(false)
-const fileSuffix = computed(() => isCmdFile.value ? 'txt' : 'csv')
+const fileSuffix = computed(() => (isCmdFile.value ? 'txt' : 'csv'))
 
 const form = ref(cloneDeep(initForm))
 const rules = computed(() => ({
@@ -46,15 +46,15 @@ const handleTtlOptions = computed(() => [
 // 提交数据
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async (valid) => {
+  formRef.value.validate(async valid => {
     if (!valid) return
 
     loading.value = true
     try {
       if (isCmdFile.value) {
-        await meInvoke('import_cmd', {id: share.conn.id, file: form.value.file})
+        await meInvoke('import_cmd', { id: share.conn.id, file: form.value.file })
       } else {
-        await meInvoke('import_csv', {id: share.conn.id, param: form.value})
+        await meInvoke('import_csv', { id: share.conn.id, param: form.value })
       }
       emit('success')
       visible.value = false
@@ -77,7 +77,7 @@ function submit() {
       <el-form-item :label="t('keyImport.file')" prop="file">
         <me-file-input
           v-model="form.file"
-          :placeholder="t('keyImport.fileTip', {tip: fileSuffix})"
+          :placeholder="t('keyImport.fileTip', { tip: fileSuffix })"
           :file-suffix="fileSuffix"
         />
       </el-form-item>

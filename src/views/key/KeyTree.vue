@@ -86,11 +86,11 @@ const treeData = computed(() => {
 
   // 树形展示
   const root = buildTree(filterKeyList)
-  root.forEach((node) => countLeaves(node))
+  root.forEach(node => countLeaves(node))
 
   // 根节点排序及其子节点排序
   root.sort((n1, n2) => nodesSort(n1, n2))
-  root.forEach((node) => sortNodeChildrenLoop(node))
+  root.forEach(node => sortNodeChildrenLoop(node))
   return root
 })
 
@@ -105,7 +105,7 @@ function sortNodeChildrenLoop(rootNode) {
       // 对当前节点的子节点进行排序
       node.children.sort((n1, n2) => nodesSort(n1, n2))
       // 将所有子节点压入栈中，以便后续处理
-      node.children.forEach((child) => stack.push(child))
+      node.children.forEach(child => stack.push(child))
     }
   }
 }
@@ -155,7 +155,7 @@ const rootTreeData = computed(() => {
 // 构建树：这个方法是由AI（豆包）生成的，非常不赖！ 但由BUG，还得亲自修复边界问题
 function buildTree(keyList) {
   const root = []
-  keyList.forEach((rk) => {
+  keyList.forEach(rk => {
     const parts = rk.key.split(/:+/)
     let nowLevel = root
     parts.forEach((part, index) => {
@@ -170,7 +170,7 @@ function buildTree(keyList) {
 
       // hepengju:
       // hepengju:string
-      let node = nowLevel.find((item) => item.label === part && item.redisKey === undefined) // 此处过滤去掉上面的叶子节点
+      let node = nowLevel.find(item => item.label === part && item.redisKey === undefined) // 此处过滤去掉上面的叶子节点
       if (!node) {
         // 避免叶子节点的id与部分非叶子节点一致
         node = { id: parts.slice(0, index + 1).join(':'), label: part, children: [] }
@@ -194,7 +194,7 @@ function countLeaves(node) {
     const nowNode = stack[stack.length - 1]
 
     // 如果当前节点的所有子节点都已经处理过
-    if (nowNode.children.every((child) => keyCounts.has(child))) {
+    if (nowNode.children.every(child => keyCounts.has(child))) {
       // 弹出栈顶节点
       stack.pop()
       if (nowNode.children.length === 0) {
@@ -203,7 +203,7 @@ function countLeaves(node) {
       } else {
         // 计算当前节点的叶子节点数量，等于所有子节点叶子节点数量之和
         let keyCount = 0
-        nowNode.children.forEach((child) => {
+        nowNode.children.forEach(child => {
           keyCount += keyCounts.get(child)
         })
         keyCounts.set(nowNode, keyCount)
@@ -212,7 +212,7 @@ function countLeaves(node) {
       nowNode.keyCount = keyCounts.get(nowNode)
     } else {
       // 如果当前节点的子节点还有未处理的，将未处理的子节点压入栈中
-      nowNode.children.forEach((child) => {
+      nowNode.children.forEach(child => {
         if (!keyCounts.has(child)) {
           stack.push(child)
         }
@@ -225,14 +225,14 @@ function countLeaves(node) {
 
 // 构建树: 仅仅叶子节点（即List显示）
 function buildList(keyList) {
-  return keyList.map((rk) => ({ id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk }))
+  return keyList.map(rk => ({ id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk }))
 }
 
 // 获取选中的节点键
 function checkChange() {
   emit(
     'checkChange',
-    treeRef.value.getCheckedNodes(true).map((node) => node.redisKey),
+    treeRef.value.getCheckedNodes(true).map(node => node.redisKey),
   )
 }
 </script>

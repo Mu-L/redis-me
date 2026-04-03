@@ -57,10 +57,10 @@ const dataList = ref([])
 
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return dataList.value.filter((row) => !key || row.key?.toLowerCase().indexOf(key) > -1)
+  return dataList.value.filter(row => !key || row.key?.toLowerCase().indexOf(key) > -1)
 })
 const filterTypes = computed(() => {
-  return [...new Set(dataList.value.map((d) => d.type))].map((d) => ({
+  return [...new Set(dataList.value.map(d => d.type))].map(d => ({
     text: d?.toUpperCase(),
     value: d,
   }))
@@ -68,7 +68,7 @@ const filterTypes = computed(() => {
 
 // 避免表格自动调整列宽时闪烁一下
 function humanTotalSize(list) {
-  return meHumanSize(list.value.map((d) => d.size).reduce((sum, cur) => sum + cur, 0) ?? 0)
+  return meHumanSize(list.value.map(d => d.size).reduce((sum, cur) => sum + cur, 0) ?? 0)
 }
 
 // 合计列
@@ -116,7 +116,7 @@ function chooseKey(redisKey) {
 // 删除键
 async function delKey(redisKey) {
   meDeleteKey(share.conn.id, redisKey, () => {
-    dataList.value = dataList.value.filter((rk) => rk.bytes !== redisKey.bytes)
+    dataList.value = dataList.value.filter(rk => rk.bytes !== redisKey.bytes)
   })
 }
 
@@ -133,12 +133,12 @@ function batchDelKey() {
     async () => {
       const param = {
         match: '',
-        keyList: selection.value.map((row) => ({ key: row.key, bytes: row.bytes })),
+        keyList: selection.value.map(row => ({ key: row.key, bytes: row.bytes })),
       }
       await meInvoke('batch_del', { id: share.conn.id, param })
       meOk(t('deleteOk'))
-      const keyBytesArr = param.keyList.map((rk) => rk.bytes)
-      dataList.value = dataList.value.filter((rk) => keyBytesArr.indexOf(rk.bytes) < 0)
+      const keyBytesArr = param.keyList.map(rk => rk.bytes)
+      dataList.value = dataList.value.filter(rk => keyBytesArr.indexOf(rk.bytes) < 0)
     },
   )
 }

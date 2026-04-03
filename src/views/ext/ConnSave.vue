@@ -40,9 +40,8 @@ const form = reactive({
   meta: {
     // 数据库别名
     // db0: '会话登录'
-
     // 未来的其他扩展
-  }
+  },
 })
 
 const rules = {
@@ -73,7 +72,7 @@ function open(modeValue, data) {
 const share = inject('share')
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate((valid) => {
+  formRef.value.validate(valid => {
     if (!valid) return
     //emit('success', form.value, mode.value)
     if (mode.value === 'add') {
@@ -84,7 +83,7 @@ function submit() {
       emit('success', form, mode.value)
     } else if (mode.value === 'edit') {
       autoGenName()
-      const conn = share.connList.filter((c) => c.id === form.id)[0]
+      const conn = share.connList.filter(c => c.id === form.id)[0]
       Object.assign(conn, cloneDeep(form))
       meOk(t('editOk'))
       emit('success', form, mode.value)
@@ -99,7 +98,7 @@ function autoGenName() {
     form.name = form.host + ':' + form.port
   }
 
-  if (share.connList.find((c) => c.name === form.name && c.id !== form.id)) {
+  if (share.connList.find(c => c.name === form.name && c.id !== form.id)) {
     form.name += ' (' + meRandomString(3) + ')'
   }
 }
@@ -107,7 +106,7 @@ function autoGenName() {
 // 测试连接
 const loading = ref(false)
 function testConn() {
-  formRef.value.validate(async (valid) => {
+  formRef.value.validate(async valid => {
     if (!valid) return
     loading.value = true
     try {
@@ -223,13 +222,28 @@ watch(
         <el-col :span="19">
           <el-checkbox v-model="form.ssl">SSL</el-checkbox>
           <el-checkbox v-model="form.readonly">
-            <me-icon :name="t('conn.readonly')" icon="el-icon-question-filled" :info="t('conn.readonlyTip')" :icon-left="false"/>
+            <me-icon
+              :name="t('conn.readonly')"
+              icon="el-icon-question-filled"
+              :info="t('conn.readonlyTip')"
+              :icon-left="false"
+            />
           </el-checkbox>
           <el-checkbox v-model="form.cluster">
-            <me-icon :name="t('conn.cluster')" icon="el-icon-question-filled" :info="t('conn.clusterTip')" :icon-left="false"/>
+            <me-icon
+              :name="t('conn.cluster')"
+              icon="el-icon-question-filled"
+              :info="t('conn.clusterTip')"
+              :icon-left="false"
+            />
           </el-checkbox>
           <el-checkbox v-model="form.sentinel">
-            <me-icon :name="t('conn.sentinel')" icon="el-icon-question-filled" :info="t('conn.sentinelTip')" :icon-left="false"/>
+            <me-icon
+              :name="t('conn.sentinel')"
+              icon="el-icon-question-filled"
+              :info="t('conn.sentinelTip')"
+              :icon-left="false"
+            />
           </el-checkbox>
         </el-col>
       </el-row>

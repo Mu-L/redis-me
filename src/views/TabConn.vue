@@ -24,7 +24,7 @@ const keyword = ref('')
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   return share.connList.filter(
-    (row) =>
+    row =>
       !key ||
       row.name?.toLowerCase().indexOf(key) > -1 ||
       row.host?.toLowerCase().indexOf(key) > -1,
@@ -56,7 +56,7 @@ function editConn(conn) {
 
 // 删除连接
 function deleteConn(conn) {
-  meConfirm(t('conn.deleteConn', {name: conn.name}), () => {
+  meConfirm(t('conn.deleteConn', { name: conn.name }), () => {
     const index = share.connList.indexOf(conn)
     if (index > -1) {
       share.connList.splice(index, 1)
@@ -65,7 +65,7 @@ function deleteConn(conn) {
 }
 
 // 选中连接: 添加防抖函数，避免连接不可用时多次点击导致的多次报错
-const selectConn = debounce(async (conn) => {
+const selectConn = debounce(async conn => {
   // 测试连接成功后再发送所有连接信息到后端，AppMain中监控连接变化自动处理
   // await meInvoke('test_conn', {redisConn: conn})
   share.conn = conn
@@ -129,10 +129,10 @@ async function importConn() {
     try {
       const content = await readTextFile(file)
       const impConnList = await checkImportContent(content)
-      const impIds = impConnList.map((conn) => conn.id)
+      const impIds = impConnList.map(conn => conn.id)
 
       const newConnList = []
-      newConnList.push(...share.connList.filter((conn) => !impIds.includes(conn.id)))
+      newConnList.push(...share.connList.filter(conn => !impIds.includes(conn.id)))
       newConnList.push(...impConnList)
 
       share.connList = newConnList
@@ -161,7 +161,7 @@ async function checkImportContent(content) {
   }
 
   // 属性检查（简单检查）
-  connList.forEach((conn) => {
+  connList.forEach(conn => {
     if (!conn.id || !conn.name || !conn.host || !conn.port) {
       throw new Error(t('conn.importFormatErr'))
     }

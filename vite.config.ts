@@ -12,8 +12,9 @@ export default defineConfig({
   lint: { options: { typeAware: true, typeCheck: true } },
   // 这个选项目前验证只能在ts文件中才会生效，否则报错（应该是vp的bug）
   fmt: {
-    semi: false,
-    singleQuote: true,
+    semi: false, // 去掉分号
+    singleQuote: true, // 使用单引号
+    arrowParens: 'avoid', // 单参数箭头函数去掉括号
   },
   resolve: {
     alias: {

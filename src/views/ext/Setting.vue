@@ -1,6 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
-import {meCheckUpdate, meConfirm} from '@/utils/util.js'
+import { meCheckUpdate, meConfirm } from '@/utils/util.js'
 import { ref } from 'vue'
 import { getVersion } from '@tauri-apps/api/app'
 import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
@@ -38,8 +38,8 @@ const loadFonts = async () => {
 
   if (localFonts.length > 0) {
     fonts.value = localFonts
-      .filter((f) => f.style === 'Regular')
-      .map((f) => f.fullName)
+      .filter(f => f.style === 'Regular')
+      .map(f => f.fullName)
       .sort()
   } else {
     // 用户未授权时采用rust获取字体（名称就没有中文了）, 但可以判断是否为等宽字体
@@ -48,7 +48,7 @@ const loadFonts = async () => {
     // 示例3: {"id":"4294967479","name":"Segoe UI Variable","fontName":"SegoeUIVariable","path":"C:\\Windows\\Fonts\\SegUIVar.ttf","weight":400,"style":"Normal","monospaced":false}
     const systemFonts = await getSystemFonts()
     //console.log('systemFonts:', systemFonts)
-    fonts.value = [...new Set(systemFonts.map((f) => f.name))].sort()
+    fonts.value = [...new Set(systemFonts.map(f => f.name))].sort()
   }
 }
 onMounted(loadFonts)
@@ -56,8 +56,8 @@ onMounted(loadFonts)
 // 检查更新
 const appVersion = ref('')
 getVersion()
-  .then((res) => (appVersion.value = res))
-  .catch((_) => {})
+  .then(res => (appVersion.value = res))
+  .catch(_ => {})
 const loading = ref(false)
 const app = inject('app')
 async function checkUpdate() {
@@ -85,7 +85,7 @@ const baseDefaultSettings = {
   language: 'system',
   uiFont: [],
   codeFont: [],
-  autoUpdate: true
+  autoUpdate: true,
 }
 
 const moreDefaultSettings = {
@@ -98,28 +98,28 @@ const moreDefaultSettings = {
 // 任何一个字段不同则视为不同
 // 判断设置是否与默认值不同
 const isBaseDiff = computed(() =>
-  Object.keys(baseDefaultSettings).some(key =>{
+  Object.keys(baseDefaultSettings).some(key => {
     const current = settings[key]
     const defaultValue = baseDefaultSettings[key]
 
     // 处理数组类型的比较
     if (Array.isArray(current) && Array.isArray(defaultValue)) {
-      return current.length !== defaultValue.length ||
+      return (
+        current.length !== defaultValue.length ||
         current.some((item, index) => item !== defaultValue[index])
+      )
     }
 
     return current !== defaultValue
-  })
+  }),
 )
 
 const isMoreDiff = computed(() =>
-  Object.keys(moreDefaultSettings).some(key =>
-    settings[key] !== moreDefaultSettings[key]
-  )
+  Object.keys(moreDefaultSettings).some(key => settings[key] !== moreDefaultSettings[key]),
 )
 // 恢复默认
 function toDefault(name) {
-  meConfirm(t('setting.confirmToDefault', {name: t('setting.' + name)}), () => {
+  meConfirm(t('setting.confirmToDefault', { name: t('setting.' + name) }), () => {
     Object.assign(settings, name === 'baseSetting' ? baseDefaultSettings : moreDefaultSettings)
   })
 }
@@ -130,7 +130,9 @@ function toDefault(name) {
     <template #header>
       <div class="me-flex" style="align-items: center">
         <div>{{ t('setting.baseSetting') }}</div>
-        <el-text class="restore" type="info" @click="toDefault('baseSetting')" v-if="isBaseDiff">{{ t('setting.toDefault') }}</el-text>
+        <el-text class="restore" type="info" @click="toDefault('baseSetting')" v-if="isBaseDiff">{{
+          t('setting.toDefault')
+        }}</el-text>
       </div>
     </template>
     <el-form inline label-position="right" :label-width="t('setting.labelWidth')">
@@ -210,15 +212,21 @@ function toDefault(name) {
     <template #header>
       <div class="me-flex" style="align-items: center">
         <div>{{ t('setting.moreSetting') }}</div>
-        <el-text class="restore" type="info" @click="toDefault('moreSetting')" v-if="isMoreDiff">{{ t('setting.toDefault') }}</el-text>
+        <el-text class="restore" type="info" @click="toDefault('moreSetting')" v-if="isMoreDiff">{{
+          t('setting.toDefault')
+        }}</el-text>
       </div>
     </template>
     <el-form inline label-position="right" :label-width="t('setting.extLabelWidth')">
       <el-row class="me-flex">
         <el-form-item>
           <template #label>
-            <me-icon :name="t('setting.keyScanCount')" icon="el-icon-question-filled"
-                     :info="t('setting.keyScanCountTip')" placement="top"/>
+            <me-icon
+              :name="t('setting.keyScanCount')"
+              icon="el-icon-question-filled"
+              :info="t('setting.keyScanCountTip')"
+              placement="top"
+            />
           </template>
           <el-input-number
             v-model="settings.keyScanCount"
@@ -231,8 +239,12 @@ function toDefault(name) {
         </el-form-item>
         <el-form-item>
           <template #label>
-            <me-icon :name="t('setting.fieldScanCount')" icon="el-icon-question-filled"
-                     :info="t('setting.fieldScanCountTip')" placement="top"/>
+            <me-icon
+              :name="t('setting.fieldScanCount')"
+              icon="el-icon-question-filled"
+              :info="t('setting.fieldScanCountTip')"
+              placement="top"
+            />
           </template>
           <el-input-number
             v-model.number="settings.fieldScanCount"

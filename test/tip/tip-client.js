@@ -75,7 +75,7 @@ const json = {}
 str
   .trim()
   .split('\n')
-  .forEach((item) => {
+  .forEach(item => {
     const [key, value] = item.split(': ')
     if (key) {
       json[_.camelCase(key)] = _.trim(value, '.')

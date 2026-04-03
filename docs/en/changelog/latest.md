@@ -1,6 +1,5 @@
 # 2.x Changelog
 
-
 ## [v2.5.0](https://mp.weixin.qq.com/s/dYXnLfvppK8HLAfU_RO32g) (2026-03-30)
 
 - Key Show: Support custom database names

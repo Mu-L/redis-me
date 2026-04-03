@@ -24,24 +24,24 @@
 
 ### 前端
 
-| 技术 | 说明 |
-|------|------|
-| Vue 3 | 前端框架（Composition API） |
-| Element Plus | UI 组件库 |
-| CodeMirror 6 | 代码编辑器 |
-| VueWebTerminal | 终端组件 |
-| Vue I18n | 国际化 |
-| Chart.js | 图表可视化 |
-| VueUse | Vue 组合式工具库 |
+| 技术           | 说明                        |
+| -------------- | --------------------------- |
+| Vue 3          | 前端框架（Composition API） |
+| Element Plus   | UI 组件库                   |
+| CodeMirror 6   | 代码编辑器                  |
+| VueWebTerminal | 终端组件                    |
+| Vue I18n       | 国际化                      |
+| Chart.js       | 图表可视化                  |
+| VueUse         | Vue 组合式工具库            |
 
 ### 后端 (Tauri/Rust)
 
-| 技术 | 说明 |
-|------|------|
-| Tauri 2 | 桌面应用框架 |
-| redis-rs | Redis 客户端（支持 cluster、sentinel、TLS） |
-| serde/serde_json | JSON 序列化 |
-| fern | 日志库 |
+| 技术             | 说明                                        |
+| ---------------- | ------------------------------------------- |
+| Tauri 2          | 桌面应用框架                                |
+| redis-rs         | Redis 客户端（支持 cluster、sentinel、TLS） |
+| serde/serde_json | JSON 序列化                                 |
+| fern             | 日志库                                      |
 
 ### 构建工具
 

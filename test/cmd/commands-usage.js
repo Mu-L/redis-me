@@ -27,7 +27,7 @@ import frontMatter from 'front-matter'
 const commands = []
 const summarys = []
 const dir = 'C:/Users/he_pe/Desktop/work/docs/content/commands/'
-fs.readdirSync(dir).forEach((file) => {
+fs.readdirSync(dir).forEach(file => {
   if (file.endsWith('.md')) {
     const content = fs.readFileSync(dir + file, 'utf8')
     const parsed = frontMatter(content)
