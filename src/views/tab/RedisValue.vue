@@ -486,7 +486,7 @@ async function showGroups() {
                 v-model="tableKeyword"
                 :placeholder="t('redisValue.tableKeyword')"
                 clearable
-                :style="{ width: streamType ? '160px' : '300px' }"
+                :style="{ width: streamType ? '120px' : '300px' }"
               />
 
               <el-input
@@ -678,9 +678,9 @@ async function showGroups() {
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
 
     <!-- Stream消费者组 -->
-    <me-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="860">
+    <el-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900">
       <TableGroup :data-list="groupDataList" />
-    </me-dialog>
+    </el-dialog>
   </div>
 </template>
 

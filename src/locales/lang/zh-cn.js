@@ -572,11 +572,14 @@ export default {
 
   // Stream Groups
   tableGroup: {
-    name: '消费者组名',
+    name: '消费者名称',
     consumers: '消费者数量',
-    pending: 'Pending',
-    lastDeliveredId: 'LastDeliveredId',
-    entriesRead: 'EntriesRead',
-    lag: 'Lag',
+    pending: '待处理消息',
+    lastDeliveredId: '最后投递ID',
+    entriesRead: '已读条目',
+    lag: '消息积压',
+    consumerName: '消费者名称',
+    consumerPending: '待处理消息',
+    consumerIdle: '空闲时长 (ms)',
   },
 }

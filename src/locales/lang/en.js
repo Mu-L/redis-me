@@ -577,11 +577,14 @@ export default {
 
   // Stream Groups
   tableGroup: {
-    name: 'GroupName',
+    name: 'Group Name',
     consumers: 'Consumers',
     pending: 'Pending',
-    lastDeliveredId: 'LastDeliveredId',
-    entriesRead: 'EntriesRead',
+    lastDeliveredId: 'Last Delivered Id',
+    entriesRead: 'Entries Read',
     lag: 'Lag',
+    consumerName: 'Consumer Name',
+    consumerPending: 'Pending',
+    consumerIdle: 'Idle (ms)',
   },
 }
