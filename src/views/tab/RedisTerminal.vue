@@ -87,6 +87,7 @@ function openKeyShortDialog() {
 
 <template>
   <div class="redis-terminal">
+    <!-- 命令输入 -->
     <me-xterm
       v-if="showCode"
       class="terminal"

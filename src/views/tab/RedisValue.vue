@@ -670,9 +670,10 @@ async function showGroups() {
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
 
     <!-- Stream消费者组 -->
-    <el-dialog title="Groups" v-model="tableGroupVisible" width="860" align-center draggable>
+    <me-dialog title="Groups" icon="el-icon-coin"
+               v-model="tableGroupVisible" width="860">
       <TableGroup :data-list="groupDataList"/>
-    </el-dialog>
+    </me-dialog>
   </div>
 </template>
 
