@@ -5,7 +5,7 @@ use log::error;
 use rand::Rng;
 use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
-use redis::streams::{StreamId, StreamInfoGroup, StreamRangeReply};
+use redis::streams::{StreamId, StreamInfoConsumer, StreamInfoGroup, StreamRangeReply};
 use redis::{FromRedisValue, Value, ValueType};
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
@@ -66,6 +66,14 @@ pub fn ui_xinfo_group(group: StreamInfoGroup) -> XInfoGroup {
         last_delivered_id: group.last_delivered_id,
         entries_read: group.entries_read,
         lag: group.lag,
+    }
+}
+
+pub fn ui_xinfo_consumer(consumer: StreamInfoConsumer) -> XInfoConsumer {
+    XInfoConsumer {
+        name: consumer.name,
+        pending: consumer.pending,
+        idle: consumer.idle,
     }
 }
 

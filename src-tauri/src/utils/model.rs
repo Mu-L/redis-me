@@ -145,6 +145,12 @@ api_model!(XInfoGroup{
     lag: Option<usize>
 });
 
+api_model!(XInfoConsumer{
+    name: String,
+    pending: usize,
+    idle: usize,
+});
+
 api_model!(
 #[derive(Default)]
 FieldScanValue {

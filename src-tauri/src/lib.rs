@@ -78,6 +78,7 @@ pub fn run() {
             mock_data,
             key_type,
             xinfo_groups,
+            xinfo_consumers,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

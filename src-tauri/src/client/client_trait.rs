@@ -8,7 +8,7 @@ use base64::prelude::BASE64_STANDARD;
 use chrono::{Local, Utc};
 use log::{info, warn};
 use parking_lot::MutexGuard;
-use redis::streams::{StreamInfoGroupsReply, StreamRangeReply};
+use redis::streams::{StreamInfoConsumersReply, StreamInfoGroupsReply, StreamRangeReply};
 use redis::{
     Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value,
     ValueType, from_redis_value,
@@ -133,6 +133,7 @@ pub trait RedisMeClient: Send + Sync {
     fn mock_data(&self, count: u64) -> AnyResult<()>;
     fn key_type(&self, key: RedisKey) -> AnyResult<String>;
     fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>>;
+    fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>>;
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -1095,6 +1096,19 @@ pub fn xinfo_groups0(
         .groups
         .into_iter()
         .map(|x| ui_xinfo_group(x))
+        .collect())
+}
+
+pub fn xinfo_consumers0(
+    mut conn: MutexGuard<impl Commands>,
+    key: RedisKey,
+    group: String,
+) -> AnyResult<Vec<XInfoConsumer>> {
+    let reply: StreamInfoConsumersReply = conn.xinfo_consumers(&key, &group)?;
+    Ok(reply
+        .consumers
+        .into_iter()
+        .map(|x| ui_xinfo_consumer(x))
         .collect())
 }
 
