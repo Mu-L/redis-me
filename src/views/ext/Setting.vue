@@ -79,21 +79,48 @@ const keySortList = computed(() => [
   { value: 'alphabet', label: t('setting.sortByAlphabet') },
 ])
 
+// 默认设置
+const baseDefaultSettings = {
+  theme: 'system',
+  language: 'system',
+  uiFont: [],
+  codeFont: [],
+  autoUpdate: true
+}
+
+const moreDefaultSettings = {
+  keyScanCount: 1000,
+  fieldScanCount: 20,
+  keyShow: 'tree',
+  keySort: 'count',
+}
+
+// 任何一个字段不同则视为不同
+// 判断设置是否与默认值不同
+const isBaseDiff = computed(() =>
+  Object.keys(baseDefaultSettings).some(key =>{
+    const current = settings[key]
+    const defaultValue = baseDefaultSettings[key]
+
+    // 处理数组类型的比较
+    if (Array.isArray(current) && Array.isArray(defaultValue)) {
+      return current.length !== defaultValue.length ||
+        current.some((item, index) => item !== defaultValue[index])
+    }
+
+    return current !== defaultValue
+  })
+)
+
+const isMoreDiff = computed(() =>
+  Object.keys(moreDefaultSettings).some(key =>
+    settings[key] !== moreDefaultSettings[key]
+  )
+)
 // 恢复默认
 function toDefault(name) {
   meConfirm(t('setting.confirmToDefault', {name: t('setting.' + name)}), () => {
-    if (name === 'baseSetting') {
-      settings.theme = 'system'
-      settings.language = 'system'
-      settings.uiFont = []
-      settings.codeFont = []
-      settings.autoUpdate = true
-    } else if (name === 'moreSetting') {
-      settings.keyScanCount = 1000
-      settings.fieldScanCount = 20
-      settings.keyShow = 'tree'
-      settings.keySort = 'count'
-    }
+    Object.assign(settings, name === 'baseSetting' ? baseDefaultSettings : moreDefaultSettings)
   })
 }
 </script>
@@ -103,7 +130,7 @@ function toDefault(name) {
     <template #header>
       <div class="me-flex" style="align-items: center">
         <div>{{ t('setting.baseSetting') }}</div>
-        <el-text class="restore" type="info" @click="toDefault('baseSetting')">{{ t('setting.toDefault') }}</el-text>
+        <el-text class="restore" type="info" @click="toDefault('baseSetting')" v-if="isBaseDiff">{{ t('setting.toDefault') }}</el-text>
       </div>
     </template>
     <el-form inline label-position="right" :label-width="t('setting.labelWidth')">
@@ -183,7 +210,7 @@ function toDefault(name) {
     <template #header>
       <div class="me-flex" style="align-items: center">
         <div>{{ t('setting.moreSetting') }}</div>
-        <el-text class="restore" type="info" @click="toDefault('moreSetting')">{{ t('setting.toDefault') }}</el-text>
+        <el-text class="restore" type="info" @click="toDefault('moreSetting')" v-if="isMoreDiff">{{ t('setting.toDefault') }}</el-text>
       </div>
     </template>
     <el-form inline label-position="right" :label-width="t('setting.extLabelWidth')">
