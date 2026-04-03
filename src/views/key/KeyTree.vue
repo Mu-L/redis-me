@@ -3,6 +3,7 @@
 import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import { nanoid } from 'nanoid'
+import KeyTypeTag from './KeyTypeTag.vue'
 
 const { t } = useI18n()
 const share = inject('share')
@@ -258,6 +259,14 @@ function checkChange() {
       >
         <template #default="{ node }">
           <div style="width: 100%" v-if="node.isLeaf" :class="getNodeClass(node)">
+            <Suspense>
+              <template #default>
+                <KeyTypeTag :conn-id="share.conn.id" :redis-key="node.data.redisKey" />
+              </template>
+              <template #fallback>
+                <el-tag size="small" disable-transitions type="info">?</el-tag>
+              </template>
+            </Suspense>
             {{ node.label }}
           </div>
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
@@ -337,5 +346,14 @@ function checkChange() {
 /* 列表展示时左侧空白处理 */
 :deep(.list-key) {
   margin-left: -20px;
+}
+
+/*  键类型TAG设置 */
+:deep(.el-tag--small) {
+  height: 16px;
+  width: 16px;
+  padding: 0 4px;
+
+  font-size: 10px;
 }
 </style>
