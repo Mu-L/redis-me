@@ -568,4 +568,14 @@ export default {
     ttlRequired: '请输入TTL',
     ttlValidator: '只允许-1(永久) 或 正整数',
   },
+
+  // Stream Groups
+  tableGroup: {
+    name: '消费者组名',
+    consumers: '消费者数量',
+    pending: 'Pending',
+    lastDeliveredId: 'LastDeliveredId',
+    entriesRead: 'EntriesRead',
+    lag: 'Lag',
+  }
 }

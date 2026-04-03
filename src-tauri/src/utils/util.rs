@@ -61,7 +61,7 @@ pub fn ui_key_type(key_type: ValueType) -> String {
 pub fn ui_xinfo_group(group: StreamInfoGroup) -> XInfoGroup {
     XInfoGroup {
         name: group.name,
-        consumners: group.consumers,
+        consumers: group.consumers,
         pending: group.pending,
         last_delivered_id: group.last_delivered_id,
         entries_read: group.entries_read,

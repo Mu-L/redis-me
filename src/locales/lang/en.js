@@ -570,4 +570,14 @@ export default {
     ttlRequired: 'Please input TTL',
     ttlValidator: '-1 (Forever) or positive integer',
   },
+
+  // Stream Groups
+  tableGroup: {
+    name: 'GroupName',
+    consumers: 'Consumers',
+    pending: 'Pending',
+    lastDeliveredId: 'LastDeliveredId',
+    entriesRead: 'EntriesRead',
+    lag: 'Lag',
+  }
 }

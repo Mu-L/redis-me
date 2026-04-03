@@ -138,7 +138,7 @@ api_model!(FiledScanMeta {
 
 api_model!(XInfoGroup{
     name: String,
-    consumners: usize,
+    consumers: usize,
     pending: usize,
     last_delivered_id: String,
     entries_read: Option<usize>,

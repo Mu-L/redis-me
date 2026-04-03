@@ -16,10 +16,11 @@ import {
 } from '@/utils/util.js'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
-import { useI18n } from 'vue-i18n'
+import {useI18n} from 'vue-i18n'
 import TTLSet from '@/views/ext/TTLSet.vue'
 import {parseInt} from 'lodash/string.js'
 import dayjs from 'dayjs'
+import TableGroup from '@/views/ext/TableGroup.vue'
 
 const { t } = useI18n()
 // 刷新键
@@ -338,8 +339,11 @@ function streamIdToDate(id) {
 }
 
 // Stream显示Groups
-function showGroups() {
-
+const groupDataList = ref([])
+const tableGroupVisible = ref(false)
+async function showGroups() {
+  groupDataList.value = await meInvoke('xinfo_groups', {id: share.conn.id, key: share.redisKey})
+  tableGroupVisible.value = true
 }
 </script>
 
@@ -485,9 +489,7 @@ function showGroups() {
                   clearable
                   :style="{width: streamType ? '160px' : '300px'}"
               />
-              <el-button icon="el-icon-grid" @click="showGroups" style="margin-left: 10px">
-                  Groups
-              </el-button>
+
               <el-input v-if="streamType" @keyup.enter="refreshKey(true)"
                   v-model.trim="meta.maxId"
                   placeholder="MaxId"
@@ -518,6 +520,9 @@ function showGroups() {
                   placement="top"
                 />
               </el-button-group>
+              <el-button icon="el-icon-grid" @click="showGroups" style="margin-left: 10px" v-if="streamType">
+                Groups
+              </el-button>
               <el-button icon="el-icon-plus" @click="fieldAdd" style="margin-left: 10px">{{
                 t('redisValue.insertRow')
               }}</el-button>
@@ -663,6 +668,11 @@ function showGroups() {
     <!-- 更新TTL, 字段新增 -->
     <TTLSet ref="ttlSetRef" @success="setTimer" />
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
+
+    <!-- Stream消费者组 -->
+    <el-dialog title="Groups" v-model="tableGroupVisible" width="860" align-center draggable>
+      <TableGroup :data-list="groupDataList"/>
+    </el-dialog>
   </div>
 </template>
 
