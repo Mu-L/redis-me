@@ -9,7 +9,10 @@ use chrono::{Local, Utc};
 use log::{info, warn};
 use parking_lot::MutexGuard;
 use redis::streams::{StreamInfoGroupsReply, StreamRangeReply};
-use redis::{Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType, from_redis_value};
+use redis::{
+    Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value,
+    ValueType, from_redis_value,
+};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -1083,12 +1086,17 @@ pub fn key_type0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResul
     Ok(ui_key_type(key_type))
 }
 
-pub fn xinfo_groups0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<Vec<XInfoGroup>> {
+pub fn xinfo_groups0(
+    mut conn: MutexGuard<impl Commands>,
+    key: RedisKey,
+) -> AnyResult<Vec<XInfoGroup>> {
     let reply: StreamInfoGroupsReply = conn.xinfo_groups(&key)?;
-    Ok(reply.groups.into_iter().map(|x| ui_xinfo_group(x)).collect())
+    Ok(reply
+        .groups
+        .into_iter()
+        .map(|x| ui_xinfo_group(x))
+        .collect())
 }
-
-
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)
 #[macro_export]
