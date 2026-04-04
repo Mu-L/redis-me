@@ -23,6 +23,7 @@
 
 ## v2.7.0
 - Set: 简称改为E，避免和String的S重复
+- Stream类型的Groups弹框优化，加图标、高度固定
 
 ## [v2.6.0](https://mp.weixin.qq.com/s/rhs5S14vhNMHkNFmf5KONg) (2026-04-04)
 

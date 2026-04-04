@@ -36,84 +36,91 @@ async function handleExpand(row, expandedRows) {
 </script>
 
 <template>
-  <el-table
-    ref="table"
-    :data="dataList"
-    border
-    stripe
-    :default-sort="{ prop: 'name', order: 'ascending' }"
-    @expand-change="handleExpand"
-  >
-    <el-table-column type="expand">
-      <template #default>
-        <div class="consumer-wrapper" v-loading="loading">
-          <el-table
-            :data="consumerData"
-            border
-            stripe
-            style="width: 80%"
-          >
-            <el-table-column
-              :label="t('tableGroup.consumerName')"
-              prop="name"
-              show-overflow-tooltip
-            />
-            <el-table-column
-              :label="t('tableGroup.consumerPending')"
-              prop="pending"
-              show-overflow-tooltip
-            />
-            <el-table-column
-              :label="t('tableGroup.consumerIdle')"
-              prop="idle"
-              show-overflow-tooltip
-            />
-          </el-table>
-        </div>
-      </template>
-    </el-table-column>
+  <div class="table-group">
+    <el-table
+      ref="table"
+      :data="dataList"
+      border
+      stripe
+      :default-sort="{ prop: 'name', order: 'ascending' }"
+      @expand-change="handleExpand"
+    >
+      <el-table-column type="expand">
+        <template #default>
+          <div class="consumer-wrapper" v-loading="loading">
+            <el-table
+              :data="consumerData"
+              border
+              stripe
+              style="width: 80%"
+            >
+              <el-table-column
+                :label="t('tableGroup.consumerName')"
+                prop="name"
+                show-overflow-tooltip
+              />
+              <el-table-column
+                :label="t('tableGroup.consumerPending')"
+                prop="pending"
+                show-overflow-tooltip
+              />
+              <el-table-column
+                :label="t('tableGroup.consumerIdle')"
+                prop="idle"
+                show-overflow-tooltip
+              />
+            </el-table>
+          </div>
+        </template>
+      </el-table-column>
 
-    <el-table-column :label="t('tableGroup.name')" prop="name" show-overflow-tooltip sortable />
-    <el-table-column
-      :label="t('tableGroup.consumers')"
-      prop="consumers"
-      width="140"
-      show-overflow-tooltip
-      sortable
-    />
-    <el-table-column
-      :label="t('tableGroup.pending')"
-      prop="pending"
-      width="120"
-      show-overflow-tooltip
-      sortable
-    />
-    <el-table-column
-      :label="t('tableGroup.lastDeliveredId')"
-      prop="last_delivered_id"
-      width="150"
-      show-overflow-tooltip
-    />
-    <el-table-column
-      :label="t('tableGroup.entriesRead')"
-      prop="entries_read"
-      width="150"
-      show-overflow-tooltip
-    />
-    <el-table-column
-      :label="t('tableGroup.lag')"
-      prop="lag"
-      width="120"
-      show-overflow-tooltip
-    />
-  </el-table>
+      <el-table-column :label="t('tableGroup.name')" prop="name" show-overflow-tooltip sortable />
+      <el-table-column
+        :label="t('tableGroup.consumers')"
+        prop="consumers"
+        width="140"
+        show-overflow-tooltip
+        sortable
+      />
+      <el-table-column
+        :label="t('tableGroup.pending')"
+        prop="pending"
+        width="120"
+        show-overflow-tooltip
+        sortable
+      />
+      <el-table-column
+        :label="t('tableGroup.lastDeliveredId')"
+        prop="last_delivered_id"
+        width="150"
+        show-overflow-tooltip
+      />
+      <el-table-column
+        :label="t('tableGroup.entriesRead')"
+        prop="entries_read"
+        width="150"
+        show-overflow-tooltip
+      />
+      <el-table-column
+        :label="t('tableGroup.lag')"
+        prop="lag"
+        width="120"
+        show-overflow-tooltip
+      />
+    </el-table>
+  </div>
 </template>
 
 <style scoped lang="scss">
-.consumer-wrapper {
-  padding: 20px;
-  background-color: var(--el-fill-color-lighter);
-  display: flex;
-  justify-content: center;
+.table-group {
+  height: 100%;
+  overflow: scroll;
+
+  .consumer-wrapper {
+    padding: 20px;
+    background-color: var(--el-fill-color-lighter);
+    display: flex;
+    justify-content: center;
+  }
 }
 </style>
