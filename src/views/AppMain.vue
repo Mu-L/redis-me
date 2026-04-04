@@ -159,7 +159,6 @@ function changeReadonly() {
             :icon="share.readonly ? 'me-icon-lock' : 'me-icon-unlock'"
             :name="share.readonly ? t('appMain.readonly') : t('appMain.writable')"
             :hint="true"
-            :show-after="0"
             @click="changeReadonly" />
 
           <!-- 导入导出 -->
@@ -200,15 +199,6 @@ function changeReadonly() {
     .el-splitter-bar__dragger-horizontal:before {
       width: 0; // 宽度为0，不显示原始的竖线
       background-color: transparent;
-    }
-  }
-
-  /* icon图标hover变色 */
-  :deep(.icon-btn) {
-    cursor: pointer;
-
-    &:hover {
-      color: var(--el-color-primary);
     }
   }
 

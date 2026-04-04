@@ -276,7 +276,7 @@ const rules = computed(() => ({
             <el-tooltip
               :content="t('redisConfig.autoBroadcastTip')"
               placement="top-end"
-              :show-after="500">
+              :show-after="1000">
               <el-checkbox
                 v-model="form.autoBroadcast"
                 :label="t('redisConfig.autoBroadcast')"

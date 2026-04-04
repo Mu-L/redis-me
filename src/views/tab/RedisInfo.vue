@@ -178,13 +178,12 @@ function goMemory() {
           </div>
           <div class="me-flex">
             <me-icon
-              class="refresh icon-btn"
+              class="refresh-btn"
               :name="t('refresh')"
               icon="el-icon-refresh"
               placement="left"
               hint
-              @click="refresh(true)"
-              :loading="loading" />
+              @click="refresh(true)" />
             <node-list v-model="node" style="margin-left: 10px" @change="refresh(true)" clearable />
           </div>
         </div>
@@ -292,8 +291,8 @@ function goMemory() {
           <div class="detail-header-right">
             <me-icon
               :info="t('redisInfo.rawInfo')"
-              icon="me-icon-raw"
-              class="raw-info icon-btn"
+              icon="el-icon-notebook"
+              class="icon-btn"
               @click="dialog.raw = true" />
             <el-select
               v-model="tagSelected"
@@ -332,7 +331,7 @@ function goMemory() {
     </el-card>
   </div>
 
-  <me-dialog v-model="dialog.raw" icon="me-icon-raw" title="Info" width="60vw">
+  <me-dialog v-model="dialog.raw" icon="el-icon-notebook" title="Info" width="60vw">
     <me-code :modelValue="raw" mode="properties" read-only />
   </me-dialog>
 
@@ -388,10 +387,16 @@ function goMemory() {
     padding: 0;
   }
 
-  .refresh {
+  .refresh-btn {
     font-size: 20px;
     color: var(--el-color-success);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--el-color-primary);
+    }
   }
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   .detail-card {
     margin-top: 10px;
@@ -407,11 +412,6 @@ function goMemory() {
 
       .detail-header-right {
         display: flex;
-
-        .raw-info {
-          font-size: 20px;
-          color: var(--el-color-success);
-        }
       }
     }
   }
