@@ -1,10 +1,10 @@
 # 2.x Changelog
 
-## [v2.6.0]() (2026-04-05)
+## [v2.6.0](https://mp.weixin.qq.com/s/rhs5S14vhNMHkNFmf5KONg) (2026-04-04)
 
-- Key Show: **Support batch import command**
 - Key Show: **Real-time retrieval and icon display for key types**
-- Value Show: Stream ID shows time on mouse hover, supports setting max/min ID, supports querying subscription groups and consumer groups
+- Key Show: **Support import command file**
+- Value Show: Stream ID shows time on mouse hover, supports setting max/min ID, supports querying consumer groups
 - Slow Log: Cluster mode supports specifying nodes, default sorting changed to reverse chronological order, optimized table order and width
 - Settings: **New "Restore Defaults" feature**, some settings added with tips
 - Connection: Tips added for read-only, cluster, and sentinel checkboxes
