@@ -11,7 +11,7 @@ import {
   meConfirm,
   meCopy,
   meDeleteKey,
-  meInvoke,
+  meInvoke, meKeyShort,
   meOk,
   mePrompt,
   meRenameKey,
@@ -447,7 +447,7 @@ function editDbName(db) {
                 border-top-right-radius: 0;
               "
             >
-              {{ keyType.slice(0, 1) }}
+              {{ meKeyShort(keyType, 'A') }}
             </el-tag>
             <template #dropdown>
               <el-dropdown-menu>
@@ -456,6 +456,7 @@ function editDbName(db) {
                     type="info"
                     :effect="'ALL' === keyType ? 'plain' : 'dark'"
                     style="font-weight: bold; width: 26px"
+                    :hit="'ALL' === keyType"
                   >
                     A
                   </el-tag>
@@ -466,8 +467,9 @@ function editDbName(db) {
                     :type="item.type"
                     :effect="item.value === keyType ? 'plain' : 'dark'"
                     style="font-weight: bold; width: 26px"
+                    :hit="item.value === keyType"
                   >
-                    {{ item.value.slice(0, 1) }}
+                    {{ meKeyShort(item.value) }}
                   </el-tag>
                   <el-text style="margin-left: 6px">{{ item.value }}</el-text>
                 </el-dropdown-item>

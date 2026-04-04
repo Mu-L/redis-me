@@ -21,6 +21,9 @@
 - 启动自动压缩是什么鬼？（RedisInsight/TinyRDM里面都有）
 - 支持配置分隔符
 
+## v2.7.0
+- Set: 简称改为E，避免和String的S重复
+
 ## [v2.6.0](https://mp.weixin.qq.com/s/rhs5S14vhNMHkNFmf5KONg) (2026-04-04)
 
 - 键显示: **键类型的实时获取与图标显示**

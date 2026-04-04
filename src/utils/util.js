@@ -33,22 +33,30 @@ export const PREDEFINE_COLORS = [
 // 键类型
 export const KEY_TYPE_LIST = [
   //{ value: 'ALL'   , type: 'info'},
-  { value: 'STRING', type: 'primary' },
-  { value: 'HASH', type: 'primary' },
-  { value: 'LIST', type: 'danger' },
-  { value: 'SET', type: 'danger' },
-  { value: 'ZSET', type: 'danger' },
-  { value: 'STREAM', type: 'warning' },
-  { value: 'JSON', type: 'warning' },
+  { short: 'S', value: 'STRING', type: 'primary' },
+  { short: 'H', value: 'HASH', type: 'primary' },
+  { short: 'L', value: 'LIST', type: 'danger' },
+  { short: 'E', value: 'SET', type: 'danger' },
+  { short: 'Z', value: 'ZSET', type: 'danger' },
+  { short: 'S', value: 'STREAM', type: 'warning' },
+  { short: 'J', value: 'JSON', type: 'warning' },
 ]
 
+const keyTypeMap  = new Map(KEY_TYPE_LIST.map(item => [item.value, item.type]))
+const keyShortMap = new Map(KEY_TYPE_LIST.map(item => [item.value, item.short]))
+
 /**
- * 键类型
- * @returns {string} value
- * @param {string} keyType
+ * 键类型: el-text, el-tag的type
  */
 export function meType(keyType) {
-  return KEY_TYPE_LIST.find(item => item.value === keyType?.toUpperCase())?.type || 'info'
+  return keyTypeMap.get(keyType?.toUpperCase()) || 'info'
+}
+
+/**
+ * 键类型短: 避免String、Set的简称都是S
+ */
+export function meKeyShort(keyType, defaultValue = '?') {
+  return keyShortMap.get(keyType?.toUpperCase()) || defaultValue
 }
 
 // 是否开发模式
