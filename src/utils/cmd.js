@@ -1,5 +1,6 @@
-import { isZh } from '@/utils/util.js'
 import { cloneDeep } from 'lodash'
+
+import { isZh } from '@/utils/util.js'
 
 // 英文命令
 const enCommands = [

@@ -1,4 +1,7 @@
 <script setup>
+import { capitalize } from 'lodash'
+import { useI18n } from 'vue-i18n'
+
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import {
   bus,
@@ -12,8 +15,6 @@ import {
   meOk,
   meType,
 } from '@/utils/util.js'
-import { capitalize } from 'lodash'
-import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 // 共享数据
@@ -157,8 +158,7 @@ function batchDelKey() {
                 <el-input
                   v-model="match"
                   style="width: 220px"
-                  :placeholder="t('redisMemory.fuzzy')"
-                >
+                  :placeholder="t('redisMemory.fuzzy')">
                   <template #prepend>{{ t('redisMemory.matchParam') }}</template>
                   <template #append>
                     <el-tooltip raw-content :content="hint" popper-style="max-width: 600px">
@@ -230,8 +230,7 @@ function batchDelKey() {
           v-model="keyword"
           :placeholder="t('redisMemory.keyword')"
           style="width: 240px; margin: 0 10px"
-          clearable
-        />
+          clearable />
         <el-button icon="el-icon-search" @click="memoryUsage" type="primary" :loading="loading">{{
           t('redisMemory.startScan')
         }}</el-button>
@@ -248,8 +247,7 @@ function batchDelKey() {
       @selection-change="selectionChange"
       border
       stripe
-      height="100%"
-    >
+      height="100%">
       <el-table-column type="selection" width="50" align="center" />
       <el-table-column
         :label="t('redisMemory.type')"
@@ -258,8 +256,7 @@ function batchDelKey() {
         show-overflow-tooltip
         sortable
         :filters="filterTypes"
-        :filter-method="meFilterHandler"
-      >
+        :filter-method="meFilterHandler">
         <template #default="scope">
           <el-text :type="meType(scope.row.type)"> {{ scope.row.type?.toUpperCase() }}</el-text>
         </template>
@@ -274,8 +271,7 @@ function batchDelKey() {
         prop="size"
         width="120"
         sortable
-        show-overflow-tooltip
-      >
+        show-overflow-tooltip>
         <template #default="scope">
           {{ meHumanSize(scope.row.size) }}
         </template>
@@ -284,29 +280,25 @@ function batchDelKey() {
         :label="t('action')"
         :width="canEdit ? 100 : 65"
         fixed="right"
-        align="center"
-      >
+        align="center">
         <template #default="scope">
           <div class="me-flex">
             <me-icon
               :info="t('copy')"
               icon="el-icon-document-copy"
               class="icon-btn"
-              @click="meCopy(scope.row.key)"
-            />
+              @click="meCopy(scope.row.key)" />
             <me-icon
               :info="t('redisMemory.chooseKey')"
               icon="el-icon-view"
               class="icon-btn"
-              @click="chooseKey(scope.row)"
-            />
+              @click="chooseKey(scope.row)" />
             <me-icon
               :info="t('delete')"
               icon="el-icon-delete"
               class="icon-btn"
               @click="delKey(scope.row)"
-              v-if="canEdit"
-            />
+              v-if="canEdit" />
           </div>
         </template>
       </el-table-column>

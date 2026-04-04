@@ -1,8 +1,9 @@
-import { defineConfig } from 'vite-plus'
-import vue from '@vitejs/plugin-vue'
-import UnpluginSvgComponent from 'unplugin-svg-component/vite'
-import AutoImport from 'unplugin-auto-import/vite'
 import * as path from 'path'
+
+import vue from '@vitejs/plugin-vue'
+import AutoImport from 'unplugin-auto-import/vite'
+import UnpluginSvgComponent from 'unplugin-svg-component/vite'
+import { defineConfig } from 'vite-plus'
 
 const host = process.env.TAURI_DEV_HOST
 
@@ -10,12 +11,19 @@ const host = process.env.TAURI_DEV_HOST
 export default defineConfig({
   staged: { '*': 'vp check --fix' },
   lint: { options: { typeAware: true, typeCheck: true } },
+
   // 这个选项目前验证只能在ts文件中才会生效，否则报错（应该是vp的bug）
+  // 配置选项: https://oxc.rs/docs/guide/usage/formatter/config-file-reference.html
   fmt: {
+    arrowParens: 'avoid', // 单参数箭头函数去掉括号
+    bracketSameLine: true, // 把html的>放在同一行
+    objectWrap: 'collapse', // 可以显示在一行的对象字面量不要换行
     semi: false, // 去掉分号
     singleQuote: true, // 使用单引号
-    arrowParens: 'avoid', // 单参数箭头函数去掉括号
+    jsxSingleQuote: true, // jsx使用单引号
+    sortImports: true,
   },
+
   resolve: {
     alias: {
       // 配置绝对路径别名@
@@ -49,13 +57,7 @@ export default defineConfig({
     port: 2222,
     strictPort: true,
     host: host || false,
-    hmr: host
-      ? {
-          protocol: 'ws',
-          host,
-          port: 2221,
-        }
-      : undefined,
+    hmr: host ? { protocol: 'ws', host, port: 2221 } : undefined,
     watch: {
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ['**/dist/**', '**/src-tauri/**'],

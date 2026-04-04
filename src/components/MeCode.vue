@@ -1,10 +1,11 @@
 <script setup>
-import { useDark } from '@vueuse/core'
-import CodeMirror from 'vue-codemirror6'
 import { json } from '@codemirror/lang-json'
 import { python } from '@codemirror/lang-python'
-import { isZh } from '@/utils/util.js'
+import { useDark } from '@vueuse/core'
+import CodeMirror from 'vue-codemirror6'
+
 import { meBasicSetup, zhPhrases } from '@/plugins/codemirror.js'
+import { isZh } from '@/utils/util.js'
 
 const { mode, readOnly } = defineProps({
   mode: { type: String, default: 'json' },
@@ -26,8 +27,7 @@ const extensions = [meBasicSetup] // 不使用默认的basicSetup，自己定义
     :phrases
     :readonly="readOnly"
     :extensions
-    :class="readOnly ? ['codemirror-opacity', 'is-disabled'] : []"
-  />
+    :class="readOnly ? ['codemirror-opacity', 'is-disabled'] : []" />
 </template>
 
 <style scoped lang="scss">

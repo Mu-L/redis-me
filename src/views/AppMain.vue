@@ -1,6 +1,10 @@
 <script setup>
-import TabMain from './TabMain.vue'
+import { getCurrentWindow } from '@tauri-apps/api/window'
+import { check } from '@tauri-apps/plugin-updater'
 import { sortBy } from 'lodash'
+import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 import {
   bus,
   CONN_LIST_WINDOWS_SYNC,
@@ -10,13 +14,11 @@ import {
   meOk,
   meJsonParse,
 } from '@/utils/util.js'
-import TabConn from '@/views/TabConn.vue'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
-import { onMounted, ref } from 'vue'
-import { check } from '@tauri-apps/plugin-updater'
-import { useI18n } from 'vue-i18n'
-import { getCurrentWindow } from '@tauri-apps/api/window'
+import TabConn from '@/views/TabConn.vue'
+
+import TabMain from './TabMain.vue'
 
 const { t } = useI18n()
 
@@ -158,8 +160,7 @@ function changeReadonly() {
             :name="share.readonly ? t('appMain.readonly') : t('appMain.writable')"
             :hint="true"
             :show-after="0"
-            @click="changeReadonly"
-          />
+            @click="changeReadonly" />
 
           <!-- 导入导出 -->
           <el-progress
@@ -167,8 +168,7 @@ function changeReadonly() {
             type="dashboard"
             status="success"
             :percentage="share.exportImportingPercentage"
-            v-if="share.exportImporting"
-          >
+            v-if="share.exportImporting">
             <template #default="{ percentage }">
               <div class="percentage-value">{{ percentage }}%</div>
               <div class="percentage-label">{{ share.exportImportingTip }}</div>

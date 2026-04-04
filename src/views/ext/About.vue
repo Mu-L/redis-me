@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue'
 import { getVersion } from '@tauri-apps/api/app'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const appVersion = ref('')

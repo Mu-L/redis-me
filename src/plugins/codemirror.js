@@ -10,7 +10,7 @@ import {
 } from '@codemirror/view'
 
 export { EditorView } from '@codemirror/view'
-import { EditorState } from '@codemirror/state'
+import { history, defaultKeymap, historyKeymap } from '@codemirror/commands'
 import {
   foldGutter,
   indentOnInput,
@@ -19,8 +19,8 @@ import {
   bracketMatching,
   foldKeymap,
 } from '@codemirror/language'
-import { history, defaultKeymap, historyKeymap } from '@codemirror/commands'
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search'
+import { EditorState } from '@codemirror/state'
 // import {closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap} from '@codemirror/autocomplete'
 // import {lintKeymap} from '@codemirror/lint'
 

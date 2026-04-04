@@ -185,10 +185,7 @@ export default {
     about: 'About',
   },
 
-  about: {
-    sourceCode: 'Source Code',
-    officialWebsite: 'Official Website',
-  },
+  about: { sourceCode: 'Source Code', officialWebsite: 'Official Website' },
 
   fieldAdd: {
     append: 'Append',
@@ -230,11 +227,7 @@ export default {
     value: 'Value',
   },
 
-  nodeList: {
-    placeholder: 'Node [Optional]',
-    master: 'M',
-    slave: 'S',
-  },
+  nodeList: { placeholder: 'Node [Optional]', master: 'M', slave: 'S' },
 
   keyBatch: {
     matchRequired: 'Key match expression required',
@@ -279,12 +272,7 @@ export default {
     limit: '(Data has reached limit：${limit})',
   },
 
-  keyList: {
-    refreshKey: 'Reload',
-    copyKey: 'Copy',
-    deleteKey: 'Delete',
-    renameKey: 'Rename',
-  },
+  keyList: { refreshKey: 'Reload', copyKey: 'Copy', deleteKey: 'Delete', renameKey: 'Rename' },
 
   keyTree: {
     noData: 'No Data',

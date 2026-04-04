@@ -1,6 +1,3 @@
-import { Window } from '@tauri-apps/api/window'
-import { locale } from '@tauri-apps/plugin-os'
-import { LazyStore } from '@tauri-apps/plugin-store'
 import {
   appConfigDir,
   appDataDir,
@@ -8,9 +5,13 @@ import {
   appLogDir,
   BaseDirectory,
 } from '@tauri-apps/api/path'
-import { meLog } from '@/utils/util.js'
+import { Window } from '@tauri-apps/api/window'
 import { exists } from '@tauri-apps/plugin-fs'
 import { openUrl } from '@tauri-apps/plugin-opener'
+import { locale } from '@tauri-apps/plugin-os'
+import { LazyStore } from '@tauri-apps/plugin-store'
+
+import { meLog } from '@/utils/util.js'
 
 // 打包后关闭右键菜单
 if (import.meta.env.PROD) {

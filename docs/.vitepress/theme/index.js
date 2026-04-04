@@ -1,7 +1,9 @@
-import { h } from 'vue'
 import DefaultTheme from 'vitepress/theme'
+import { h } from 'vue'
+
 import AppPreview from './components/AppPreview.vue'
 import HeroActions from './components/HeroActions.vue'
+
 import './styles.css'
 
 export default {

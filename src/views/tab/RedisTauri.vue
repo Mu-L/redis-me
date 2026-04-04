@@ -1,5 +1,6 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core'
+
 import { mockApiCommands } from '@/utils/mock.js'
 import { meJsonParse } from '@/utils/util.js'
 
@@ -64,19 +65,16 @@ function invokeCommand() {
             value-key="command"
             @change="selectChange"
             filterable
-            allow-create
-          >
+            allow-create>
             <el-option
               key="greet"
               label="greet"
-              :value="{ command: 'greet', param: { name: 'RedisME' } }"
-            ></el-option>
+              :value="{ command: 'greet', param: { name: 'RedisME' } }"></el-option>
             <el-option
               v-for="item in apiCommands"
               :key="item.command"
               :label="item.command"
-              :value="item"
-            />
+              :value="item" />
           </el-select>
         </el-form-item>
         <el-form-item label="参数">

@@ -1,7 +1,8 @@
 <script setup>
 import { cloneDeep } from 'lodash'
-import { meInvoke } from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
+
+import { meInvoke } from '@/utils/util.js'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
@@ -71,15 +72,13 @@ function submit() {
     v-model="visible"
     :width="600"
     @closed="emit('closed')"
-    destroy-on-close
-  >
+    destroy-on-close>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
       <el-form-item :label="t('keyImport.file')" prop="file">
         <me-file-input
           v-model="form.file"
           :placeholder="t('keyImport.fileTip', { tip: fileSuffix })"
-          :file-suffix="fileSuffix"
-        />
+          :file-suffix="fileSuffix" />
       </el-form-item>
 
       <el-row :span="24" v-if="!isCmdFile">

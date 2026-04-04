@@ -1,6 +1,9 @@
 <script setup>
-import KeyTree from './key/KeyTree.vue'
+import { listen } from '@tauri-apps/api/event'
+import { sortBy } from 'lodash'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 import {
   bus,
   CONN_REFRESH,
@@ -11,20 +14,20 @@ import {
   meConfirm,
   meCopy,
   meDeleteKey,
-  meInvoke, meKeyShort,
+  meInvoke,
+  meKeyShort,
   meOk,
   mePrompt,
   meRenameKey,
   sleep,
 } from '@/utils/util.js'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
+import TTLSet from '@/views/ext/TTLSet.vue'
+import KeyImport from '@/views/key/KeyImport.vue'
+
 import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
-import { useI18n } from 'vue-i18n'
-import { listen } from '@tauri-apps/api/event'
-import KeyImport from '@/views/key/KeyImport.vue'
-import { sortBy } from 'lodash'
-import TTLSet from '@/views/ext/TTLSet.vue'
+import KeyTree from './key/KeyTree.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -432,8 +435,7 @@ function editDbName(db) {
         v-model="keyword"
         :placeholder="t('keyMain.keyword')"
         @keyup.enter="scanKey(false, false)"
-        clearable
-      >
+        clearable>
         <template #prepend>
           <el-dropdown placement="bottom-start" @command="chooseKeyType">
             <el-tag
@@ -445,8 +447,7 @@ function editDbName(db) {
                 font-weight: bold;
                 border-bottom-right-radius: 0;
                 border-top-right-radius: 0;
-              "
-            >
+              ">
               {{ meKeyShort(keyType, 'A') }}
             </el-tag>
             <template #dropdown>
@@ -456,8 +457,7 @@ function editDbName(db) {
                     type="info"
                     :effect="'ALL' === keyType ? 'plain' : 'dark'"
                     style="width: 26px"
-                    :hit="'ALL' === keyType"
-                  >
+                    :hit="'ALL' === keyType">
                     A
                   </el-tag>
                   <el-text style="margin-left: 6px" type="info">ALL</el-text>
@@ -467,8 +467,7 @@ function editDbName(db) {
                     :type="item.type"
                     :effect="item.value === keyType ? 'plain' : 'dark'"
                     style="width: 26px"
-                    :hit="item.value === keyType"
-                  >
+                    :hit="item.value === keyType">
                     {{ meKeyShort(item.value) }}
                   </el-tag>
                   <el-text style="margin-left: 6px">{{ item.value }}</el-text>
@@ -486,16 +485,14 @@ function editDbName(db) {
               :info="t('keyMain.refreshKey')"
               @click="scanKey(false, false)"
               icon="el-icon-search"
-              placement="bottom"
-            />
+              placement="bottom" />
             <me-button
               :info="t('keyMain.addKey')"
               @click="addKey"
               style="border-color: var(--el-button-border-color)"
               v-if="canEdit"
               icon="el-icon-plus"
-              placement="bottom"
-            />
+              placement="bottom" />
           </el-button-group>
         </template>
       </el-input>
@@ -514,8 +511,7 @@ function editDbName(db) {
         @contextKey="contextKey"
         @chooseFolder="chooseFolder"
         @contextFolder="contextFolder"
-        @checkChange="checkChange"
-      />
+        @checkChange="checkChange" />
     </div>
 
     <div class="key-footer">
@@ -525,8 +521,7 @@ function editDbName(db) {
           v-model="share.conn.db"
           @change="selectDB"
           style="width: 120px"
-          v-if="!share.conn.cluster"
-        >
+          v-if="!share.conn.cluster">
           <el-option v-for="item in dbList" :key="item.db" :value="item.db">
             <div class="me-flex" style="align-items: center">
               <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
@@ -549,16 +544,14 @@ function editDbName(db) {
             hint
             placement="top"
             class="icon-btn footer-btn"
-            @click="scanKey(true, false)"
-          />
+            @click="scanKey(true, false)" />
           <me-icon
             :name="t('keyMain.loadAll')"
             icon="me-icon-load-all"
             hint
             placement="top"
             class="icon-btn footer-btn"
-            @click="scanKey(true, true)"
-          />
+            @click="scanKey(true, true)" />
         </div>
       </div>
 
@@ -570,8 +563,7 @@ function editDbName(db) {
             icon="me-icon-export"
             hint
             :class="checkedBtnClass"
-            placement="top"
-          />
+            placement="top" />
         </el-link>
         <el-link underline="never" :disabled="checkedDisabled" @click="ttlChecked" v-if="canEdit">
           <me-icon
@@ -579,22 +571,19 @@ function editDbName(db) {
             icon="el-icon-timer"
             hint
             :class="checkedBtnClass"
-            placement="top"
-          />
+            placement="top" />
         </el-link>
         <el-link
           underline="never"
           :disabled="checkedDisabled"
           @click="deleteChecked"
-          v-if="canEdit"
-        >
+          v-if="canEdit">
           <me-icon
             :name="t('keyMain.deleteChecked')"
             icon="el-icon-delete"
             hint
             :class="checkedBtnClass"
-            placement="top"
-          />
+            placement="top" />
         </el-link>
       </div>
 
@@ -615,8 +604,7 @@ function editDbName(db) {
           placement="top"
           :name="t('keyMain.checkedMode')"
           hint
-          style="font-size: 24px"
-        />
+          style="font-size: 24px" />
         <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
           <me-icon icon="el-icon-more-filled" class="icon-btn footer-btn" />
           <template #dropdown>
@@ -644,14 +632,12 @@ function editDbName(db) {
               <el-dropdown-item command="toggleKeyShow" divided>
                 <me-icon
                   :name="keyShowTree ? t('keyMain.listView') : t('keyMain.treeView')"
-                  :icon="keyShowTree ? 'me-icon-list' : 'me-icon-tree'"
-                ></me-icon>
+                  :icon="keyShowTree ? 'me-icon-list' : 'me-icon-tree'"></me-icon>
               </el-dropdown-item>
               <el-dropdown-item command="toggleKeySort" v-if="keyShowTree">
                 <me-icon
                   :name="sortByCount ? t('keyMain.sortByAlphabet') : t('keyMain.sortByCount')"
-                  icon="me-icon-alphabet"
-                ></me-icon>
+                  icon="me-icon-alphabet"></me-icon>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -666,8 +652,7 @@ function editDbName(db) {
           @click="toggleChecked"
           hint
           class="icon-btn footer-btn"
-          placement="top"
-        />
+          placement="top" />
       </div>
     </div>
 

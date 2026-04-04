@@ -20,18 +20,11 @@ export default defineConfig({
         locales: {
           zh: {
             translations: {
-              button: {
-                buttonText: '搜索文档',
-                buttonAriaLabel: '搜索文档',
-              },
+              button: { buttonText: '搜索文档', buttonAriaLabel: '搜索文档' },
               modal: {
                 noResultsText: '无法找到相关结果',
                 resetButtonTitle: '清除查询条件',
-                footer: {
-                  selectText: '选择',
-                  navigateText: '切换',
-                  closeText: '关闭',
-                },
+                footer: { selectText: '选择', navigateText: '切换', closeText: '关闭' },
               },
             },
           },
@@ -45,9 +38,7 @@ export default defineConfig({
     root: { label: 'English', lang: 'en-US' },
     zh: { label: '简体中文', lang: 'zh-Hans' }, // zh-Hans 简体中文
   },
-  rewrites: {
-    'en/:rest*': ':rest*',
-  },
+  rewrites: { 'en/:rest*': ':rest*' },
 
   // 显示最后更新时间
   lastUpdated: false,

@@ -1,15 +1,16 @@
-import mitt from 'mitt'
-import { sampleSize } from 'lodash'
+import { invoke } from '@tauri-apps/api/core'
+import { openUrl } from '@tauri-apps/plugin-opener'
+import { type } from '@tauri-apps/plugin-os'
+import { relaunch } from '@tauri-apps/plugin-process'
+import { check } from '@tauri-apps/plugin-updater'
 import { useClipboard, useDark } from '@vueuse/core'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { invoke } from '@tauri-apps/api/core'
-import { check } from '@tauri-apps/plugin-updater'
-import { relaunch } from '@tauri-apps/plugin-process'
-import i18n from '@/locales'
-import { type } from '@tauri-apps/plugin-os'
-import { openUrl } from '@tauri-apps/plugin-opener'
-import { applyEdits, format } from 'jsonc-parser'
 import JSON5 from 'json5'
+import { applyEdits, format } from 'jsonc-parser'
+import { sampleSize } from 'lodash'
+import mitt from 'mitt'
+
+import i18n from '@/locales'
 
 // 全局事件总线: setup直接导入，app全局属性也添加
 export const bus = mitt()
@@ -42,7 +43,7 @@ export const KEY_TYPE_LIST = [
   { short: 'J', value: 'JSON', type: 'warning' },
 ]
 
-const keyTypeMap  = new Map(KEY_TYPE_LIST.map(item => [item.value, item.type]))
+const keyTypeMap = new Map(KEY_TYPE_LIST.map(item => [item.value, item.type]))
 const keyShortMap = new Map(KEY_TYPE_LIST.map(item => [item.value, item.short]))
 
 /**
@@ -254,10 +255,7 @@ export function meDeleteKey(id, redisKey, thenFn) {
 export function meRenameKey(id, redisKey) {
   mePrompt(
     t('util.renameKey'),
-    {
-      inputValue: redisKey.key,
-      inputType: 'text',
-    },
+    { inputValue: redisKey.key, inputType: 'text' },
     async ({ value }) => {
       const newKey = { key: value, bytes: '' }
       const params = { id, key: redisKey, newKey }
@@ -375,13 +373,7 @@ export function sleep(ms) {
 
 // 支持注释等非标格式（vscode 同款）- genericFastjson格式化Set时不是标准的json
 export function meJsonFormat(jsonString) {
-  return applyEdits(
-    jsonString,
-    format(jsonString, undefined, {
-      insertSpaces: true,
-      tabSize: 2,
-    }),
-  )
+  return applyEdits(jsonString, format(jsonString, undefined, { insertSpaces: true, tabSize: 2 }))
 }
 
 // 支持json5格式的输入(key可以不加引号，key-value可以为单引号，允许注释等)

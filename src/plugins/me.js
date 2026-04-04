@@ -1,14 +1,14 @@
 import '@/App.css'
 import MeButton from '@/components/MeButton.vue'
 import MeCode from '@/components/MeCode.vue'
-import MeIcon from '@/components/MeIcon.vue'
-import MeFileInput from '@/components/MeFileInput.vue'
-import MeXterm from '@/components/MeXterm.vue'
 import MeContext from '@/components/MeContext.vue'
-import MeTable from '@/components/MeTable.vue'
 import MeDialog from '@/components/MeDialog.vue'
+import MeFileInput from '@/components/MeFileInput.vue'
+import MeIcon from '@/components/MeIcon.vue'
+import MeTable from '@/components/MeTable.vue'
 import MeTabPane from '@/components/MeTabPane.vue'
 import MeWebsite from '@/components/MeWebsite.vue'
+import MeXterm from '@/components/MeXterm.vue'
 
 export default function (app) {
   app.component('me-icon', MeIcon)

@@ -1,6 +1,7 @@
 <script setup>
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { type } from '@tauri-apps/plugin-os'
+
 import { meOk } from '@/utils/util.js'
 
 // 模拟窗口操作
@@ -50,33 +51,28 @@ const toggleName = () => {
         icon="me-icon-redis-me"
         class="icon-btn"
         style="font-size: 16px"
-        @click="toggleIcon"
-      />
+        @click="toggleIcon" />
       <div style="margin-left: 5px; font-size: 12px" @click="toggleName">RedisME</div>
     </div>
     <div style="font-size: 12px" v-if="!isMacOS">
       <me-icon
         icon="me-icon-window-minimize"
         class="title-button normal-btn"
-        @click="appWindow.minimize()"
-      />
+        @click="appWindow.minimize()" />
       <me-icon
         icon="me-icon-window-maximize"
         class="title-button normal-btn"
         @click="appWindow.toggleMaximize()"
-        v-show="!isMaximized"
-      />
+        v-show="!isMaximized" />
       <me-icon
         icon="me-icon-window-restore"
         class="title-button normal-btn"
         @click="appWindow.toggleMaximize()"
-        v-show="isMaximized"
-      />
+        v-show="isMaximized" />
       <me-icon
         icon="me-icon-window-close"
         class="title-button danger-btn"
-        @click="appWindow.close()"
-      />
+        @click="appWindow.close()" />
     </div>
   </div>
 </template>

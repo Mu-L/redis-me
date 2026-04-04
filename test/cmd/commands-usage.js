@@ -22,6 +22,7 @@ type Command = {
 */
 
 import fs from 'fs'
+
 import frontMatter from 'front-matter'
 
 const commands = []
@@ -38,14 +39,7 @@ fs.readdirSync(dir).forEach(file => {
       return
     }
 
-    commands.push({
-      key: title,
-      title,
-      group,
-      summary,
-      since,
-      usage: syntax_fmt,
-    })
+    commands.push({ key: title, title, group, summary, since, usage: syntax_fmt })
 
     summarys.push(summary)
   }

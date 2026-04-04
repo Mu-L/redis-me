@@ -1,6 +1,7 @@
 <script setup>
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+
 import { meInvoke } from '@/utils/util.js'
 
 const { t } = useI18n()
@@ -43,32 +44,23 @@ async function handleExpand(row, expandedRows) {
       border
       stripe
       :default-sort="{ prop: 'name', order: 'ascending' }"
-      @expand-change="handleExpand"
-    >
+      @expand-change="handleExpand">
       <el-table-column type="expand">
         <template #default>
           <div class="consumer-wrapper" v-loading="loading">
-            <el-table
-              :data="consumerData"
-              border
-              stripe
-              style="width: 80%"
-            >
+            <el-table :data="consumerData" border stripe style="width: 80%">
               <el-table-column
                 :label="t('tableGroup.consumerName')"
                 prop="name"
-                show-overflow-tooltip
-              />
+                show-overflow-tooltip />
               <el-table-column
                 :label="t('tableGroup.consumerPending')"
                 prop="pending"
-                show-overflow-tooltip
-              />
+                show-overflow-tooltip />
               <el-table-column
                 :label="t('tableGroup.consumerIdle')"
                 prop="idle"
-                show-overflow-tooltip
-              />
+                show-overflow-tooltip />
             </el-table>
           </div>
         </template>
@@ -80,33 +72,24 @@ async function handleExpand(row, expandedRows) {
         prop="consumers"
         width="140"
         show-overflow-tooltip
-        sortable
-      />
+        sortable />
       <el-table-column
         :label="t('tableGroup.pending')"
         prop="pending"
         width="120"
         show-overflow-tooltip
-        sortable
-      />
+        sortable />
       <el-table-column
         :label="t('tableGroup.lastDeliveredId')"
         prop="last_delivered_id"
         width="150"
-        show-overflow-tooltip
-      />
+        show-overflow-tooltip />
       <el-table-column
         :label="t('tableGroup.entriesRead')"
         prop="entries_read"
         width="150"
-        show-overflow-tooltip
-      />
-      <el-table-column
-        :label="t('tableGroup.lag')"
-        prop="lag"
-        width="120"
-        show-overflow-tooltip
-      />
+        show-overflow-tooltip />
+      <el-table-column :label="t('tableGroup.lag')" prop="lag" width="120" show-overflow-tooltip />
     </el-table>
   </div>
 </template>

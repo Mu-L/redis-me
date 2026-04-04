@@ -1,10 +1,11 @@
 <script setup>
-import { computed } from 'vue'
 import { useData } from 'vitepress'
-import Windows from './icon/Windows.vue'
+import { computed } from 'vue'
+
+import { version } from '../../../../package.json'
 import Apple from './icon/Apple.vue'
 import Linux from './icon/Linux.vue'
-import { version } from '../../../../package.json'
+import Windows from './icon/Windows.vue'
 
 const { lang } = useData()
 const isZh = computed(() => lang.value.startsWith('zh'))
@@ -76,8 +77,7 @@ const downloadMenu = computed(() => {
         class="action-button alt"
         href="https://github.com/hepengju/redis-me"
         rel="noreferrer"
-        target="_blank"
-      >
+        target="_blank">
         <span class="github-icon" />
         <span>{{ viewText }}</span>
       </a>

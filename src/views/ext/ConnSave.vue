@@ -2,8 +2,9 @@
 import { cloneDeep } from 'lodash'
 import { nanoid } from 'nanoid'
 import { ref, useTemplateRef } from 'vue'
-import { meInvoke, PREDEFINE_COLORS, meRandomString, meOk, meErr } from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
+
+import { meInvoke, PREDEFINE_COLORS, meRandomString, meOk, meErr } from '@/utils/util.js'
 const { t } = useI18n()
 
 const emit = defineEmits(['success', 'closed'])
@@ -166,8 +167,7 @@ watch(
     width="600"
     append-to-body
     destroy-on-close
-    align-center
-  >
+    align-center>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="right" label-width="60">
       <el-form-item :label="t('conn.name')" prop="name">
         <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
@@ -188,8 +188,7 @@ watch(
               :controls="false"
               align="left"
               style="width: 100%"
-              placeholder="6379"
-            />
+              placeholder="6379" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -207,8 +206,7 @@ watch(
               v-model.trim="form.password"
               placeholder="password"
               clearable
-              show-password
-            />
+              show-password />
           </el-form-item>
         </el-col>
       </el-row>
@@ -226,24 +224,21 @@ watch(
               :name="t('conn.readonly')"
               icon="el-icon-question-filled"
               :info="t('conn.readonlyTip')"
-              :icon-left="false"
-            />
+              :icon-left="false" />
           </el-checkbox>
           <el-checkbox v-model="form.cluster">
             <me-icon
               :name="t('conn.cluster')"
               icon="el-icon-question-filled"
               :info="t('conn.clusterTip')"
-              :icon-left="false"
-            />
+              :icon-left="false" />
           </el-checkbox>
           <el-checkbox v-model="form.sentinel">
             <me-icon
               :name="t('conn.sentinel')"
               icon="el-icon-question-filled"
               :info="t('conn.sentinelTip')"
-              :icon-left="false"
-            />
+              :icon-left="false" />
           </el-checkbox>
         </el-col>
       </el-row>
@@ -258,8 +253,7 @@ watch(
               filterable
               allow-create
               style="flex: 1"
-              placeholder="mymaster"
-            >
+              placeholder="mymaster">
               <el-option v-for="item in masters" :key="item.name" :value="item.name">
                 <span style="float: left">{{ item.name }}</span>
                 <span style="float: right; color: var(--el-text-color-secondary)">{{
@@ -274,23 +268,20 @@ watch(
           <el-col :span="12">
             <el-form-item
               :label="t('conn.masterUsername')"
-              :label-width="t('conn.sentinelLabelWidth')"
-            >
+              :label-width="t('conn.sentinelLabelWidth')">
               <el-input v-model.trim="form.masterUsername" placeholder="username" clearable />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item
               :label="t('conn.masterPassword')"
-              :label-width="t('conn.sentinelLabelWidth')"
-            >
+              :label-width="t('conn.sentinelLabelWidth')">
               <el-input
                 v-model.trim="form.masterPassword"
                 placeholder="password"
                 type="password"
                 clearable
-                show-password
-              />
+                show-password />
             </el-form-item>
           </el-col>
         </el-row>

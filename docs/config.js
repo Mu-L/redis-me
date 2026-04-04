@@ -1,4 +1,5 @@
 import { defineAdditionalConfig } from 'vitepress'
+
 import { version } from '../package.json'
 
 export default defineAdditionalConfig({

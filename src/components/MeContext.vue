@@ -44,8 +44,7 @@ function handleClose(isOpen) {
     virtual-triggering
     :show-arrow="false"
     trigger="contextmenu"
-    placement="bottom-start"
-  >
+    placement="bottom-start">
     <template #dropdown>
       <slot></slot>
     </template>

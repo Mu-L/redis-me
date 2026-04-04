@@ -1,4 +1,13 @@
 <script setup>
+import { open, save } from '@tauri-apps/plugin-dialog'
+import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
+import dayjs from 'dayjs'
+import { debounce } from 'lodash'
+import { Sortable } from 'sortablejs'
+import { nextTick, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+import { checkConnList } from '@/plugins/tauri.js'
 import {
   meConfirm,
   meDownloadUpdate,
@@ -8,14 +17,6 @@ import {
   PREDEFINE_COLORS,
 } from '@/utils/util.js'
 import ConnSave from '@/views/ext/ConnSave.vue'
-import { nextTick, useTemplateRef } from 'vue'
-import { debounce } from 'lodash'
-import { Sortable } from 'sortablejs'
-import { open, save } from '@tauri-apps/plugin-dialog'
-import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
-import dayjs from 'dayjs'
-import { useI18n } from 'vue-i18n'
-import { checkConnList } from '@/plugins/tauri.js'
 
 const { t } = useI18n()
 const share = inject('share')
@@ -203,8 +204,7 @@ function clickNew() {
           v-model="keyword"
           :placeholder="t('conn.keyword')"
           style="width: 300px; margin-right: 10px"
-          clearable
-        />
+          clearable />
       </div>
     </div>
     <el-table
@@ -215,8 +215,7 @@ function clickNew() {
       @row-dblclick="selectConn"
       border
       stripe
-      height="100%"
-    >
+      height="100%">
       <el-table-column label="#" type="index" width="50" align="center" class-name="drag-handle" />
       <el-table-column :label="t('conn.color')" prop="color" width="64" align="center">
         <template #default="scope">
@@ -230,8 +229,7 @@ function clickNew() {
               underline="never"
               type="primary"
               @click="selectConn(scope.row)"
-              :style="{ '--el-link-text-color': scope.row.color }"
-            >
+              :style="{ '--el-link-text-color': scope.row.color }">
               <me-icon icon="el-icon-connection" :name="scope.row.name" />
             </el-link>
           </div>
@@ -260,20 +258,17 @@ function clickNew() {
               :info="t('copy')"
               icon="el-icon-document-copy"
               class="icon-btn"
-              @click="copyConn(scope.row)"
-            />
+              @click="copyConn(scope.row)" />
             <me-icon
               :info="t('edit')"
               icon="el-icon-edit"
               class="icon-btn"
-              @click="editConn(scope.row)"
-            />
+              @click="editConn(scope.row)" />
             <me-icon
               :info="t('delete')"
               icon="el-icon-delete"
               class="icon-btn"
-              @click="deleteConn(scope.row)"
-            />
+              @click="deleteConn(scope.row)" />
           </div>
         </template>
       </el-table-column>
@@ -286,8 +281,7 @@ function clickNew() {
       class="downloading"
       type="dashboard"
       :percentage="app.downloadPercentage"
-      v-if="app.downloading"
-    >
+      v-if="app.downloading">
       <template #default="{ percentage }">
         <div class="percentage-value">{{ percentage }}%</div>
         <div class="percentage-label">{{ t('conn.downloading') }}</div>

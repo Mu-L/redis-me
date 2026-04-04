@@ -1,7 +1,8 @@
 <script setup>
 import { computed } from 'vue'
-import { isDark } from '@/utils/util.js'
 import { Terminal } from 'vue-web-terminal'
+
+import { isDark } from '@/utils/util.js'
 
 const { welcome, prefix, execCommand, commandHelp } = defineProps({
   welcome: {
@@ -77,8 +78,7 @@ function onKeydown(e) {
     cursor-style="bar"
     context=""
     :command-store="commandHelp"
-    :context-suffix="prefix"
-  >
+    :context-suffix="prefix">
   </terminal>
 </template>
 

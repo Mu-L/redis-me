@@ -1,13 +1,15 @@
 <script setup>
-import { configTip as tips } from '@/utils/tip.js'
-import { redisConfDict, valkeyConfDict } from '@/utils/redis.js'
-import NodeList from '../ext/NodeList.vue'
-import { meInvoke, meOk } from '@/utils/util.js'
-import { sortBy } from 'lodash'
-import { useI18n } from 'vue-i18n'
 import { BaseDirectory } from '@tauri-apps/api/path'
 import { readDir, readTextFile } from '@tauri-apps/plugin-fs'
+import { sortBy } from 'lodash'
+import { useI18n } from 'vue-i18n'
+
 import MeWebsite from '@/components/MeWebsite.vue'
+import { redisConfDict, valkeyConfDict } from '@/utils/redis.js'
+import { configTip as tips } from '@/utils/tip.js'
+import { meInvoke, meOk } from '@/utils/util.js'
+
+import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -203,8 +205,7 @@ const rules = computed(() => ({
           v-model="keyword"
           :placeholder="t('redisConfig.keyword')"
           style="width: 250px; margin-right: 10px"
-          clearable
-        />
+          clearable />
         <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading" />
       </div>
     </div>
@@ -219,20 +220,17 @@ const rules = computed(() => ({
       :summary-method="getSummaries"
       border
       stripe
-      height="100%"
-    >
+      height="100%">
       <el-table-column
         :label="t('redisConfig.param')"
         prop="param"
         sortable
-        show-overflow-tooltip
-      />
+        show-overflow-tooltip />
       <el-table-column :label="t('redisConfig.value')" prop="value" show-overflow-tooltip />
       <el-table-column
         :label="dictVersion + ' ' + t('redisConfig.defaultConfig')"
         prop="value"
-        show-overflow-tooltip
-      >
+        show-overflow-tooltip>
         <template #default="scope">
           {{ dictRaw[scope.row.param] }}
         </template>
@@ -250,8 +248,7 @@ const rules = computed(() => ({
             icon="el-icon-edit"
             class="icon-btn"
             @click="editConfig(scope.row)"
-            style="justify-content: center"
-          />
+            style="justify-content: center" />
         </template>
       </el-table-column>
     </el-table>
@@ -260,8 +257,7 @@ const rules = computed(() => ({
       icon="me-icon-redis"
       :title="`${configVersion} ${t('redisConfig.defaultConfig')}`"
       v-model="dialog.raw"
-      width="60vw"
-    >
+      width="60vw">
       <me-code :modelValue="configRaw" mode="properties" read-only />
     </me-dialog>
 
@@ -276,19 +272,16 @@ const rules = computed(() => ({
               v-model="form.value"
               :placeholder="t('redisConfig.value')"
               clearable
-              style="flex: 1"
-            />
+              style="flex: 1" />
             <el-tooltip
               :content="t('redisConfig.autoBroadcastTip')"
               placement="top-end"
-              :show-after="500"
-            >
+              :show-after="500">
               <el-checkbox
                 v-model="form.autoBroadcast"
                 :label="t('redisConfig.autoBroadcast')"
                 style="margin-left: 20px"
-                v-if="share.nodeList.length > 0"
-              />
+                v-if="share.nodeList.length > 0" />
             </el-tooltip>
           </div>
         </el-form-item>

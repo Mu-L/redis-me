@@ -15,16 +15,14 @@ defineProps({
     :fullscreen="fullscreen"
     @closed="fullscreen = false"
     destroy-on-close
-    append-to-body
-  >
+    append-to-body>
     <template #header>
       <div class="me-flex">
         <me-icon :name="title" :icon="icon" />
         <me-icon
           :icon="fullscreen ? 'me-icon-window-restore' : 'me-icon-window-maximize'"
           class="fullscreen-icon"
-          @click="fullscreen = !fullscreen"
-        />
+          @click="fullscreen = !fullscreen" />
       </div>
     </template>
 

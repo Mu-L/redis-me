@@ -1,8 +1,9 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+import { isDark } from '@/utils/util.js'
 import AppMain from '@/views/AppMain.vue'
 import AppTitle from '@/views/ext/AppTitle.vue'
-import { useI18n } from 'vue-i18n'
-import { isDark } from '@/utils/util.js'
 
 const { locale: i18nLocale } = useI18n()
 

@@ -23,13 +23,7 @@ export default {
   deleteOk: '删除成功',
   actionOk: '操作成功',
 
-  timeUnit: {
-    width: '80',
-    second: '秒',
-    minute: '分',
-    hour: '小时',
-    day: '天',
-  },
+  timeUnit: { width: '80', second: '秒', minute: '分', hour: '小时', day: '天' },
 
   appMain: {
     readonly: '只读',
@@ -184,10 +178,7 @@ export default {
     about: '关于',
   },
 
-  about: {
-    sourceCode: '源码地址',
-    officialWebsite: '官方网站',
-  },
+  about: { sourceCode: '源码地址', officialWebsite: '官方网站' },
 
   fieldAdd: {
     append: '尾部追加',
@@ -229,11 +220,7 @@ export default {
     value: '值',
   },
 
-  nodeList: {
-    placeholder: '指定节点【可选】',
-    master: '主',
-    slave: '从',
-  },
+  nodeList: { placeholder: '指定节点【可选】', master: '主', slave: '从' },
 
   keyBatch: {
     matchRequired: '键名表达式不能为空',
