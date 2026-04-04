@@ -454,7 +454,7 @@ function editDbName(db) {
                 <el-dropdown-item command="ALL">
                   <el-tag
                     type="info"
-                    :effect="'ALL' === keyType ? 'dark' : 'plain'"
+                    :effect="'ALL' === keyType ? 'plain' : 'dark'"
                     style="font-weight: bold; width: 26px"
                   >
                     A
@@ -464,12 +464,12 @@ function editDbName(db) {
                 <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
                   <el-tag
                     :type="item.type"
-                    :effect="item.value === keyType ? 'dark' : 'plain'"
+                    :effect="item.value === keyType ? 'plain' : 'dark'"
                     style="font-weight: bold; width: 26px"
                   >
                     {{ item.value.slice(0, 1) }}
                   </el-tag>
-                  <el-text style="margin-left: 6px" :type="item.type">{{ item.value }}</el-text>
+                  <el-text style="margin-left: 6px">{{ item.value }}</el-text>
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>

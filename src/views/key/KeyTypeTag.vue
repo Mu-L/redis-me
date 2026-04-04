@@ -16,7 +16,7 @@ if (!props.redisKey.keyType) {
 </script>
 
 <template>
-  <el-tag size="small" disable-transitions :type="meType(redisKey.keyType)" effect="plain" hit>
+  <el-tag size="small" disable-transitions :type="meType(redisKey.keyType)" effect="dark">
     {{ redisKey.keyType.slice(0, 1) || '?' }}
   </el-tag>
 </template>
