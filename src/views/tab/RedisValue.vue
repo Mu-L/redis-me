@@ -411,8 +411,7 @@ async function showGroups() {
               icon="el-icon-delete"
               placement="top"
               @click="delKey"
-              v-if="canEdit"
-              type="danger" />
+              v-if="canEdit" />
           </el-button-group>
         </div>
       </div>
@@ -430,7 +429,7 @@ async function showGroups() {
             <me-button
               class="save"
               :info="t('save')"
-              type="danger"
+              type="primary"
               icon="me-icon-save"
               @click="setValue"
               placement="top" />
@@ -461,7 +460,7 @@ async function showGroups() {
                 :info="t('redisValue.prettyHint')"
                 placement="bottom-end"
                 icon="el-icon-magic-stick"
-                :type="isPretty ? 'info' : ''"
+                :style="{color: isPretty? 'var(--el-color-primary)' : ''}"
                 @click="isPretty = !isPretty" />
             </el-button-group>
           </div>
