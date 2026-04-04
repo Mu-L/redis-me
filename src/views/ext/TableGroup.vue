@@ -51,7 +51,6 @@ async function handleExpand(row, expandedRows) {
             :data="consumerData"
             border
             stripe
-            size="small"
             style="width: 80%"
           >
             <el-table-column
@@ -112,7 +111,7 @@ async function handleExpand(row, expandedRows) {
 
 <style scoped lang="scss">
 .consumer-wrapper {
-  padding: 16px 20px 8px;
+  padding: 20px;
   background-color: var(--el-fill-color-lighter);
   display: flex;
   justify-content: center;

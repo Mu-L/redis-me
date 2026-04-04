@@ -574,12 +574,12 @@ export default {
   tableGroup: {
     name: '消费者名称',
     consumers: '消费者数量',
-    pending: '待处理消息',
+    pending: 'Pending',
     lastDeliveredId: '最后投递ID',
     entriesRead: '已读条目',
     lag: '消息积压',
     consumerName: '消费者名称',
-    consumerPending: '待处理消息',
+    consumerPending: 'Pending',
     consumerIdle: '空闲时长 (ms)',
   },
 }

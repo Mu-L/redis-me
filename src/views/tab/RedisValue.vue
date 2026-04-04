@@ -595,14 +595,14 @@ async function showGroups() {
 
               <el-table-column
                 :label="t('action')"
-                :width="canEdit ? (streamType ? 66 : 100) : 60"
+                :width="canEdit ? (streamType ? 80 : 100) : 80"
                 fixed="right"
                 align="center"
               >
                 <template #default="scope">
                   <div
                     class="me-flex"
-                    :style="{ justifyContent: canEdit ? 'space-between' : 'center' }"
+                    style="justify-content: space-around"
                   >
                     <me-icon
                       :info="t('copy')"
