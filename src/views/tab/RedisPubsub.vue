@@ -15,7 +15,7 @@ const dataList = ref([])
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   return dataList.value.filter(
-    (row) =>
+    row =>
       !key ||
       row.channel?.toLowerCase().indexOf(key) > -1 ||
       row.message?.toLowerCase().indexOf(key) > -1,
@@ -69,7 +69,7 @@ function clearData() {
 // 监听消息
 let unlisten = null
 async function tauriListen() {
-  unlisten = await listen('subscribe', (event) => {
+  unlisten = await listen('subscribe', event => {
     const payload = event.payload
     if (payload.id !== share.conn.id) return
     dataList.value.push(event.payload)

@@ -41,7 +41,7 @@ async function keyMemory() {
 }
 
 const totalSize = computed(() =>
-  keyList.value.map((item) => item.size).reduce((sum, cur) => sum + cur, 0),
+  keyList.value.map(item => item.size).reduce((sum, cur) => sum + cur, 0),
 )
 
 // 虚拟列表

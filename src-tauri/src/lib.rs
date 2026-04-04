@@ -74,7 +74,11 @@ pub fn run() {
             batch_ttl,
             export_csv,
             import_csv,
+            import_cmd,
             mock_data,
+            key_type,
+            xinfo_groups,
+            xinfo_consumers,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -14,7 +14,7 @@ const { welcome, prefix, execCommand, commandHelp } = defineProps({
   },
   execCommand: {
     type: Function,
-    default: async (command) => `TODO 后台运行命令: ${command}`,
+    default: async command => `TODO 后台运行命令: ${command}`,
   },
   commandHelp: {
     type: Array,

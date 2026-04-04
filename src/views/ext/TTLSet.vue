@@ -40,7 +40,7 @@ const rules = computed(() => ({
 }))
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async (valid) => {
+  formRef.value.validate(async valid => {
     if (!valid) return
 
     loading.value = true

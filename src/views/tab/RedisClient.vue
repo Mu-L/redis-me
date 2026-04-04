@@ -23,7 +23,7 @@ const sortOrder = ref('ascending')
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   const arr = dataList.value.filter(
-    (row) =>
+    row =>
       !key ||
       row.addr?.toLowerCase().indexOf(key) > -1 ||
       row.name?.toLowerCase().indexOf(key) > -1,
@@ -31,8 +31,8 @@ const filterDataList = computed(() => {
 
   const prop = sortProperty.value
   const isAsc = sortOrder.value === 'ascending'
-  const arr01 = arr.filter((d) => d[prop])
-  const arr02 = arr.filter((d) => !d[prop])
+  const arr01 = arr.filter(d => d[prop])
+  const arr02 = arr.filter(d => !d[prop])
   arr01.sort((a, b) => (a[prop] < b[prop] ? -1 : 1) * (isAsc ? 1 : -1))
   return [...arr01, ...arr02]
 })
@@ -106,7 +106,7 @@ const totalProps = [
   'totCmds',
 ]
 const mainProps = ['id', 'addr', 'name', 'age', 'idle', 'cmd']
-const otherProps = totalProps.filter((p) => !mainProps.includes(p))
+const otherProps = totalProps.filter(p => !mainProps.includes(p))
 function propWidth(item) {
   if (item === 'laddr') return 180
   if (item.length == 2) return 70
@@ -192,7 +192,7 @@ function propWidth(item) {
           sortable
           width="140"
           align="right"
-          :formatter="(row) => meHumanSeconds(row.age)"
+          :formatter="row => meHumanSeconds(row.age)"
         >
           <template #header>
             <el-tooltip :content="tips['age'] || 'age'" placement="top">
@@ -206,7 +206,7 @@ function propWidth(item) {
           sortable
           width="120"
           align="right"
-          :formatter="(row) => meHumanSeconds(row.idle)"
+          :formatter="row => meHumanSeconds(row.idle)"
         >
           <template #header>
             <el-tooltip :content="tips['idle'] || 'idle'" placement="top">

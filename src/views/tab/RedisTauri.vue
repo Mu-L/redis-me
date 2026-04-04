@@ -5,7 +5,7 @@ import { meJsonParse } from '@/utils/util.js'
 
 // 测试集群或单机
 let testClient = 'single'
-let apiCommands = mockApiCommands.map((c) => {
+let apiCommands = mockApiCommands.map(c => {
   c.param.id = testClient
   return c
 })
@@ -41,12 +41,12 @@ function invokeCommand() {
 
   loading.value = true
   invoke(apiCommand.value.command, paramJson)
-    .then((data) => {
+    .then(data => {
       loading.value = false
       hint.value = '命令执行成功'
       result.value = data ? JSON.stringify(data, null, 2) : ''
     })
-    .catch((error) => {
+    .catch(error => {
       loading.value = false
       hint.value = '命令执行报错'
       result.value = error

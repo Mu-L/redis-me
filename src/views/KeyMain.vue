@@ -7,7 +7,8 @@ import {
   INFO_REFRESH,
   KEY_DELETE,
   KEY_REFRESH,
-  KEY_TYPE_LIST, meConfirm,
+  KEY_TYPE_LIST,
+  meConfirm,
   meCopy,
   meDeleteKey,
   meInvoke,
@@ -77,7 +78,7 @@ const cursor = ref(null) // 扫描的游标
 const keyList = ref([]) // 键列表
 const filterKeyList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return keyList.value.filter((k) => k.key.toLowerCase().indexOf(key) > -1)
+  return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
 })
 
 async function scanKey(useCursor = false, loadAll = false) {
@@ -119,7 +120,7 @@ onUnmounted(() => {
 })
 
 function deleteKey(redisKey) {
-  keyList.value = keyList.value.filter((rk) => rk.bytes !== redisKey.bytes)
+  keyList.value = keyList.value.filter(rk => rk.bytes !== redisKey.bytes)
   share.redisKey = null
   bus.emit(INFO_REFRESH)
 }
@@ -239,8 +240,8 @@ function batchKeyOk(mode) {
 
 // 导入数据
 const keyImportRef = useTemplateRef('keyImportRef')
-function importData() {
-  keyImportRef.value.open()
+function importData(isCmdFile = false) {
+  keyImportRef.value.open(isCmdFile)
 }
 function importStart() {
   share.exportImportingPercentage = 0
@@ -253,7 +254,7 @@ function importStart() {
 // 监听消息
 let unlisten = null
 async function tauriListen(eventName) {
-  unlisten = await listen(eventName, (event) => {
+  unlisten = await listen(eventName, event => {
     const payload = event.payload
     if (payload.id !== share.conn.id) return
     share.exportImportingPercentage = Math.round(
@@ -317,7 +318,9 @@ async function handleCommand(command) {
   } else if ('exportData' === command) {
     exportFolder('*')
   } else if ('importData' === command) {
-    importData()
+    importData(false)
+  } else if ('importCmd' === command) {
+    importData(true)
   } else if ('batchDelete' === command) {
     deleteFolder('*')
   } else if ('flushDb' === command) {
@@ -326,9 +329,9 @@ async function handleCommand(command) {
 }
 
 // 清空数据库
-function flushDb(){
+function flushDb() {
   meConfirm(t('keyMain.flushDbConfirm'), async () => {
-    const param = {command: 'flushdb'}
+    const param = { command: 'flushdb' }
     await meInvoke('execute_command', { id: share.conn.id, param })
     meOk(t('keyMain.flushDbOk'))
     bus.emit(CONN_REFRESH)
@@ -343,7 +346,7 @@ async function mockData() {
     {
       inputValue: 100,
       inputType: 'number',
-      inputValidator: (value) => {
+      inputValidator: value => {
         if (value < 1 || value > 1000) {
           return t('keyHeader.mockValidator')
         }
@@ -407,14 +410,18 @@ function deleteChecked() {
 }
 
 // 自定义数据库名称
-function editDbName(db){
-  mePrompt(t('keyMain.editDbName', {index: db}), {
-    inputValue: share.conn?.meta?.['db' + db] || '',
-    inputPlaceholder: t('keyMain.editDbNamePlaceholder'),
-  }, ({value}) => {
-    share.conn.meta ??= {}  // meta为空则赋值为空对象
-    share.conn.meta['db' + db] = value
-  })
+function editDbName(db) {
+  mePrompt(
+    t('keyMain.editDbName', { index: db }),
+    {
+      inputValue: share.conn?.meta?.['db' + db] || '',
+      inputPlaceholder: t('keyMain.editDbNamePlaceholder'),
+    },
+    ({ value }) => {
+      share.conn.meta ??= {} // meta为空则赋值为空对象
+      share.conn.meta['db' + db] = value
+    },
+  )
 }
 </script>
 
@@ -447,7 +454,7 @@ function editDbName(db){
                 <el-dropdown-item command="ALL">
                   <el-tag
                     type="info"
-                    :effect="'ALL' === keyType ? 'dark' : 'plain'"
+                    :effect="'ALL' === keyType ? 'plain' : 'dark'"
                     style="font-weight: bold; width: 26px"
                   >
                     A
@@ -457,12 +464,12 @@ function editDbName(db){
                 <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
                   <el-tag
                     :type="item.type"
-                    :effect="item.value === keyType ? 'dark' : 'plain'"
+                    :effect="item.value === keyType ? 'plain' : 'dark'"
                     style="font-weight: bold; width: 26px"
                   >
                     {{ item.value.slice(0, 1) }}
                   </el-tag>
-                  <el-text style="margin-left: 6px" :type="item.type">{{ item.value }}</el-text>
+                  <el-text style="margin-left: 6px">{{ item.value }}</el-text>
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -522,8 +529,10 @@ function editDbName(db){
             <div class="me-flex" style="align-items: center">
               <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
               <div style="display: flex">
-                <el-text type="info" style="margin: 0 10px">{{share.conn?.meta?.['db' + item.db]}}</el-text>
-                <me-icon icon="el-icon-edit" class="icon-btn" @click.stop="editDbName(item.db)"/>
+                <el-text type="info" style="margin: 0 10px">{{
+                  share.conn?.meta?.['db' + item.db]
+                }}</el-text>
+                <me-icon icon="el-icon-edit" class="icon-btn" @click.stop="editDbName(item.db)" />
               </div>
             </div>
           </el-option>
@@ -615,6 +624,9 @@ function editDbName(db){
               </el-dropdown-item>
               <el-dropdown-item command="importData" v-if="canEdit">
                 <me-icon :name="t('keyMain.importData')" icon="me-icon-import" />
+              </el-dropdown-item>
+              <el-dropdown-item command="importCmd" v-if="canEdit">
+                <me-icon :name="t('keyMain.importCmd')" icon="me-icon-import" />
               </el-dropdown-item>
               <el-dropdown-item command="mockData" v-if="canEdit">
                 <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />

@@ -48,7 +48,7 @@ export const KEY_TYPE_LIST = [
  * @param {string} keyType
  */
 export function meType(keyType) {
-  return KEY_TYPE_LIST.find((item) => item.value === keyType?.toUpperCase())?.type || 'info'
+  return KEY_TYPE_LIST.find(item => item.value === keyType?.toUpperCase())?.type || 'info'
 }
 
 // 是否开发模式
@@ -304,7 +304,7 @@ export async function meDownloadUpdate(quiet = true, update, app) {
           href: changelogUrl,
           target: '_blank',
           style: 'color: var(--el-color-primary); text-decoration: none; margin-left: 5px; ',
-          onClick: (e) => {
+          onClick: e => {
             e.preventDefault()
             void openUrl(changelogUrl) // a 和 el-link都无法打开外部链接，使用openUrl可以
           },
@@ -323,7 +323,7 @@ export async function meDownloadUpdate(quiet = true, update, app) {
 
         let downloaded = 0
         let contentLength = 0
-        const downloadingHandle = (event) => {
+        const downloadingHandle = event => {
           switch (event.event) {
             case 'Started':
               contentLength = event.data.contentLength
@@ -362,7 +362,7 @@ export async function meDownloadUpdate(quiet = true, update, app) {
 
 // 休眠
 export function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 // 支持注释等非标格式（vscode 同款）- genericFastjson格式化Set时不是标准的json

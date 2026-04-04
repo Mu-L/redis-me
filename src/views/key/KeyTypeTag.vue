@@ -1,0 +1,22 @@
+<script setup>
+import { meInvoke, meType } from '@/utils/util.js'
+
+const share = inject('share')
+const props = defineProps({
+  redisKey: { type: Object, required: true },
+})
+
+// 如果还没有类型，触发异步加载
+if (!props.redisKey.keyType) {
+  try {
+    const data = await meInvoke('key_type', { id: share.conn.id, key: props.redisKey })
+    props.redisKey.keyType = data?.toUpperCase()
+  } catch {}
+}
+</script>
+
+<template>
+  <el-tag size="small" disable-transitions :type="meType(redisKey.keyType)" effect="dark">
+    {{ redisKey.keyType.slice(0, 1) || '?' }}
+  </el-tag>
+</template>

@@ -298,6 +298,7 @@ impl RedisMeClient for RedisMeCluster {
         for redis_node in &self.node_list {
             // 如果参数中包含节点参数，则只返回指定节点的慢日志
             if let Some(ref n) = node
+                && !n.is_empty()
                 && n != &redis_node.node
             {
                 continue;
@@ -525,6 +526,27 @@ impl RedisMeClient for RedisMeCluster {
         export_import_check_running(running.clone())?;
         thread::spawn(move || import_csv_0_thread(&mut conn, param, running, app_handle, id));
         Ok(())
+    }
+
+    fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()> {
+        let mut conn = self.get_new_conn()?;
+        let running = self.export_import_running.clone();
+        let id = self.id.clone();
+        export_import_check_running(running.clone())?;
+        thread::spawn(move || import_cmd_0_thread(&mut conn, file, running, app_handle, id));
+        Ok(())
+    }
+
+    fn key_type(&self, key: RedisKey) -> AnyResult<String> {
+        key_type0(self.get_conn()?, key)
+    }
+
+    fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>> {
+        xinfo_groups0(self.get_conn()?, key)
+    }
+
+    fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>> {
+        xinfo_consumers0(self.get_conn()?, key, group)
     }
 
     implement_pipeline_commands!(ClusterPipeline);

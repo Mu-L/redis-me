@@ -2,6 +2,7 @@
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import { meCopy, meInvoke } from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
+import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -15,6 +16,7 @@ const loading = ref(false)
 const dataList = ref([])
 const sortProperty = ref('cost')
 const sortOrder = ref('descending')
+const node = ref('')
 
 // 最小为1
 watchEffect(() => {
@@ -24,7 +26,7 @@ watchEffect(() => {
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   const arr = dataList.value.filter(
-    (row) =>
+    row =>
       !key ||
       row.command?.toLowerCase().indexOf(key) > -1 ||
       row.client?.toLowerCase().indexOf(key) > -1 ||
@@ -33,8 +35,8 @@ const filterDataList = computed(() => {
 
   const prop = sortProperty.value
   const isAsc = sortOrder.value === 'ascending'
-  const arr01 = arr.filter((d) => d[prop])
-  const arr02 = arr.filter((d) => !d[prop])
+  const arr01 = arr.filter(d => d[prop])
+  const arr02 = arr.filter(d => !d[prop])
   arr01.sort((a, b) => (a[prop] < b[prop] ? -1 : 1) * (isAsc ? 1 : -1))
   return [...arr01, ...arr02]
 })
@@ -44,29 +46,21 @@ function sortChange({ prop, order }) {
     sortProperty.value = prop
     sortOrder.value = order
   } else {
-    sortProperty.value = 'cost'
+    sortProperty.value = 'time'
     sortOrder.value = 'descending'
   }
 }
 
-// const filterNodes = computed(() => {
-//   return sortBy([...new Set(dataList.value.map(d => d.node))].map(d => ({text: d, value: d})), 'value')
-// })
-// const filterClients = computed(() => {
-//   return sortBy([...new Set(dataList.value.map(d => d.client).filter(d => d))].map(d => ({text: d, value: d})), 'value')
-// })
-// const filterClientNames = computed(() => {
-//   return sortBy([...new Set(dataList.value.map(d => d.clientName).filter(d => d))].map(d => ({text: d, value: d})), 'value')
-// })
-
 async function apiConfigGet() {
-  const data = await meInvoke('config_get', { id: share.conn.id, pattern: 'slowlog*' })
+  const params = { id: share.conn.id, pattern: 'slowlog*', node: node.value }
+  const data = await meInvoke('config_get', params)
   slowerThan.value = data['slowlog-log-slower-than']
   slowerMaxLen.value = data['slowlog-max-len']
 }
 
 async function apiSlowLog() {
-  const data = await meInvoke('slow_log', { id: share.conn.id, count: slowerGetCount.value })
+  const params = { id: share.conn.id, count: slowerGetCount.value, node: node.value }
+  const data = await meInvoke('slow_log', params)
   dataList.value = data || []
 }
 
@@ -129,6 +123,7 @@ refresh()
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+        <node-list v-model="node" clearable style="margin-left: 10px" @change="refresh" />
       </div>
 
       <div>
@@ -146,37 +141,40 @@ refresh()
         :data="filterDataList"
         ref="table"
         v-loading="loading"
-        :default-sort="{ prop: 'cost', order: 'descending' }"
+        :default-sort="{ prop: 'time', order: 'descending' }"
         @sort-change="sortChange"
         border
         stripe
       >
-        <el-table-column
-          :label="t('redisSlow.command')"
-          prop="command"
-          sortable
-          show-overflow-tooltip
-        />
-        <el-table-column :label="t('action')" width="80" align="center">
+        <!--
+      <el-table-column :label="t('action')" width="80" align="center">
           <template #default="scope">
             <me-icon
-              :info="t('copy')"
-              icon="el-icon-document-copy"
-              class="icon-btn"
-              @click="meCopy(scope.row.command)"
-              style="justify-content: center"
+                :info="t('copy')"
+                icon="el-icon-document-copy"
+                class="icon-btn"
+                @click="meCopy(scope.row.command)"
+                style="justify-content: center"
             />
           </template>
-        </el-table-column>
+        </el-table-column>-->
+        <el-table-column :label="t('redisSlow.time')" prop="time" width="170" sortable />
         <el-table-column
           :label="t('redisSlow.cost')"
           prop="cost"
-          width="100"
+          width="90"
           sortable
           show-overflow-tooltip
         >
           <template #default="scope"> {{ scope.row.cost.toFixed(2) }} ms </template>
         </el-table-column>
+        <el-table-column
+          :label="t('redisSlow.command')"
+          prop="command"
+          min-width="120"
+          sortable
+          show-overflow-tooltip
+        />
         <el-table-column
           :label="t('redisSlow.clientName')"
           prop="clientName"
@@ -184,14 +182,20 @@ refresh()
           sortable
           show-overflow-tooltip
         />
-        <el-table-column :label="t('redisSlow.time')" prop="time" width="170" sortable />
-        <!--<el-table-column :label="t('redisSlow.node')" prop="node" width="160" sortable/>-->
         <el-table-column
           :label="t('redisSlow.client')"
           prop="client"
-          width="160"
+          width="140"
           sortable
           show-overflow-tooltip
+        />
+        <el-table-column
+          :label="t('redisSlow.node')"
+          prop="node"
+          width="140"
+          show-overflow-tooltip
+          sortable
+          v-if="share.nodeList.length > 0"
         />
       </me-table>
     </div>

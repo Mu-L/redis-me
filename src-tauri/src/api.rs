@@ -74,6 +74,9 @@ api_commands!(
     batch_del(param: RedisBatchKey) -> ();       // 批量删除
     batch_ttl(param: RedisBatchTtl) -> ();       // 批量更新过期时间
     mock_data(count: u64) -> ();                 // 模拟数据
+    key_type(key: RedisKey) -> String;           // 获取键类型
+    xinfo_groups(key: RedisKey) -> Vec<XInfoGroup>; // 获取Stream类型的组信息
+    xinfo_consumers(key: RedisKey, group: String) -> Vec<XInfoConsumer>; // 获取Stream类型的消费者信息
 );
 
 // 需要将app_handle传递过去的命令
@@ -82,4 +85,5 @@ api_commands2!(
     subscribe(channel: Option<String>)-> ();     // 订阅消息
     export_csv(param: RedisExportCsv) -> ();     // 导出CSV
     import_csv(param: RedisImportCsv) -> ();     // 导入CSV
+    import_cmd(file: String) -> ();              // 导入命令
 );

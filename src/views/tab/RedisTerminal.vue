@@ -64,11 +64,11 @@ watch(commandHelp, () => {
 const visible = ref(false)
 const keyword = ref('')
 const group = ref('')
-const groupList = computed(() => new Set(commandHelp.value.map((row) => row.group)))
+const groupList = computed(() => new Set(commandHelp.value.map(row => row.group)))
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   return commandHelp.value.filter(
-    (row) =>
+    row =>
       (!key || row.title.toLowerCase().indexOf(key) > -1) &&
       (!group.value || row.group === group.value),
   )
@@ -87,6 +87,7 @@ function openKeyShortDialog() {
 
 <template>
   <div class="redis-terminal">
+    <!-- 命令输入 -->
     <me-xterm
       v-if="showCode"
       class="terminal"
@@ -140,12 +141,7 @@ function openKeyShortDialog() {
       :show-close="false"
       style="--el-dialog-bg-color: unset; box-shadow: unset"
     >
-      <el-text
-        type="warning"
-        size="large"
-        v-html="t('redisTerminal.keyShortMore')"
-      >
-      </el-text>
+      <el-text type="warning" size="large" v-html="t('redisTerminal.keyShortMore')"> </el-text>
     </el-dialog>
 
     <!-- 命令表格 -->

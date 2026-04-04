@@ -39,6 +39,9 @@ export default {
   },
 
   setting: {
+    toDefault: '恢复默认',
+    confirmToDefault: '确认恢复【{name}】到默认值吗？',
+
     labelWidth: '60',
     title: '设置',
     appearance: '外观',
@@ -64,9 +67,12 @@ export default {
 
     baseSetting: '基础设置',
     moreSetting: '更多设置',
-    extLabelWidth: '80',
+    extLabelWidth: '100',
     keyScanCount: '键扫描',
     fieldScanCount: '字段扫描',
+    keyScanCountTip: '每次扫描加载的key数量，设置过大可能会影响性能',
+    fieldScanCountTip: 'Hash等类型每次扫描加载的field数量',
+
     keyShow: '键展示',
     keyShowTree: '树形',
     keyShowList: '平铺',
@@ -126,8 +132,12 @@ export default {
     nameRequired: '请输入主机',
     portRequired: '请输入端口',
     testOk: '测试连接成功',
-
     downloading: '下载中...',
+
+    readonlyTip: '只读模式下，所有编辑按钮隐藏（可动态切换显示）',
+    clusterTip: '选择集群中任一节点配置填入即可，会自动识别其它节点',
+    sentinelTip:
+      '多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置。主节点用户密码为哨兵监听的Master节点的用户密码',
   },
 
   util: {
@@ -250,7 +260,7 @@ export default {
   keyImport: {
     title: '导入数据',
     file: '导入文件',
-    fileTip: '请选择需要导入的文件',
+    fileTip: '请选择需要导入的文件 ({tip})',
     fileRequired: '导入文件不能为空',
     handleConflict: '键冲突处理',
     replace: '覆盖',
@@ -525,6 +535,7 @@ export default {
     mockData: '模拟数据',
     exportData: '导出数据',
     importData: '导入数据',
+    importCmd: '导入命令',
     listView: '平铺展示',
     treeView: '树形展示',
     sortByCount: '数量排序',
@@ -557,5 +568,18 @@ export default {
     ttlOkBatch: '批量设置TTL成功',
     ttlRequired: '请输入TTL',
     ttlValidator: '只允许-1(永久) 或 正整数',
+  },
+
+  // Stream Groups
+  tableGroup: {
+    name: '消费者名称',
+    consumers: '消费者数量',
+    pending: 'Pending',
+    lastDeliveredId: '最后投递ID',
+    entriesRead: '已读条目',
+    lag: '消息积压',
+    consumerName: '消费者名称',
+    consumerPending: 'Pending',
+    consumerIdle: '空闲时长 (ms)',
   },
 }

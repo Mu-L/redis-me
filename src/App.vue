@@ -9,7 +9,7 @@ const { locale: i18nLocale } = useI18n()
 // 主题切换
 watch(
   () => meTauri.settings.theme,
-  (newValue) => {
+  newValue => {
     const newTheme = newValue === 'system' ? meTauri.systemTheme : newValue
     isDark.value = newTheme === 'dark'
   },
@@ -20,7 +20,7 @@ watch(
 let locale = null
 watch(
   () => meTauri.settings.language,
-  (newValue) => {
+  newValue => {
     const language = newValue === 'system' ? meTauri.systemLanguage : newValue
     locale = window.ElementPlusLanguageMap[language] // ElementPlus的语言切换
     i18nLocale.value = language // RedisME的语言切换, 只能在组件中使用

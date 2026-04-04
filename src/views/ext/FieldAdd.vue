@@ -85,7 +85,7 @@ const rules = computed(() => ({
       validator: (rule, value, callback) => {
         if (form.value.type === 'hash' || form.value.type === 'stream') {
           const count = form.value.fieldValueList.filter(
-            (d) => d.fieldKey === '' || d.fieldValue === '',
+            d => d.fieldKey === '' || d.fieldValue === '',
           ).length
           if (count > 0) {
             callback(
@@ -97,7 +97,7 @@ const rules = computed(() => ({
             )
           }
         } else {
-          const count = form.value.fieldValueList.filter((d) => d.fieldValue === '').length
+          const count = form.value.fieldValueList.filter(d => d.fieldValue === '').length
           if (count > 0) {
             callback(new Error(t('fieldAdd.valueRequired')))
           }
@@ -136,7 +136,7 @@ function newElement(index) {
 const ttlUnit = ref('second')
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async (valid) => {
+  formRef.value.validate(async valid => {
     if (!valid) return
 
     isSaving.value = true

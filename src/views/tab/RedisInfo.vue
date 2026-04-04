@@ -55,7 +55,7 @@ watchEffect(() => {
   let tagKey = ''
 
   share.isValkey = false
-  lines.forEach((line) => {
+  lines.forEach(line => {
     if (line.startsWith('#')) {
       tagKey = line.substring(1).trim()
       tagList.value.push(tagKey)
@@ -91,12 +91,12 @@ watchEffect(() => {
 
 // 表格数据
 const dataList = computed(() => {
-  return tagTable.value.filter((d) => !tagSelected.value || d.tag === tagSelected.value)
+  return tagTable.value.filter(d => !tagSelected.value || d.tag === tagSelected.value)
 })
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   return dataList.value.filter(
-    (d) =>
+    d =>
       !key ||
       d.key?.toLowerCase().indexOf(key) > -1 ||
       d.value?.toLowerCase().indexOf(key) > -1 ||
@@ -161,8 +161,7 @@ function goMemory() {
           <div>
             <el-text size="large" style="margin-left: 5px">{{ infoNode }}</el-text>
             <el-tag style="margin-left: 10px"
-              >{{ share.isValkey ? 'Valkey' : 'Redis' }}
-              {{ share.serverVersion }}</el-tag
+              >{{ share.isValkey ? 'Valkey' : 'Redis' }} {{ share.serverVersion }}</el-tag
             >
             <el-tag
               type="success"
@@ -364,10 +363,7 @@ function goMemory() {
     :close-on-press-escape="false"
     :close-on-click-modal="false"
   >
-    <RedisConfig
-      :init-node="node || infoNode"
-      :init-version="share.serverVersion"
-    />
+    <RedisConfig :init-node="node || infoNode" :init-version="share.serverVersion" />
   </me-dialog>
 </template>
 

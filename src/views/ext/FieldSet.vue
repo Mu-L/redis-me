@@ -51,7 +51,7 @@ function cancel() {
 // 提交
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async (valid) => {
+  formRef.value.validate(async valid => {
     if (!valid) return
 
     isSaving.value = true

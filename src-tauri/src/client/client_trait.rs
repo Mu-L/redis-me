@@ -8,7 +8,7 @@ use base64::prelude::BASE64_STANDARD;
 use chrono::{Local, Utc};
 use log::{info, warn};
 use parking_lot::MutexGuard;
-use redis::streams::StreamRangeReply;
+use redis::streams::{StreamInfoConsumersReply, StreamInfoGroupsReply, StreamRangeReply};
 use redis::{
     Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value,
     ValueType, from_redis_value,
@@ -128,8 +128,12 @@ pub trait RedisMeClient: Send + Sync {
     fn batch_ttl(&self, param: RedisBatchTtl) -> AnyResult<()>;
     fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()>;
     fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()>;
+    fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()>;
 
     fn mock_data(&self, count: u64) -> AnyResult<()>;
+    fn key_type(&self, key: RedisKey) -> AnyResult<String>;
+    fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>>;
+    fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>>;
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -327,11 +331,19 @@ pub fn field_scan_0_get(
                 // 倒序: 更符合实际的使用习惯, 即查看最新的消息。TinyRDM/AnotherRDM都是倒序的
                 // XREVRANGE key end start [COUNT count]
                 let end = if cc.stream_cursor.is_empty() {
-                    "+"
+                    match param.meta.as_ref() {
+                        Some(meta) if !meta.max_id.is_empty() => &meta.max_id,
+                        _ => "+",
+                    }
                 } else {
                     &cc.stream_cursor
                 };
-                let start = "-";
+
+                let start = match param.meta.as_ref() {
+                    Some(meta) if !meta.min_id.is_empty() => &meta.min_id,
+                    _ => "-",
+                };
+
                 let count = if cc.stream_cursor.is_empty() {
                     param.count + 1
                 } else {
@@ -875,11 +887,11 @@ pub fn import_csv_0_thread(
     app_handle: AppHandle,
     id: String,
 ) {
-    info!("import file: {}", &param.file);
+    info!("import csv file: {}", &param.file);
     let result = import_keys(conn, param, running.clone(), app_handle, id);
     match result {
-        Ok(_) => info!("import file ok"),
-        Err(e) => warn!("import file err: {e}"),
+        Ok(_) => info!("import csv file ok"),
+        Err(e) => warn!("import csv file err: {e}"),
     }
     running.store(false, Relaxed);
 }
@@ -992,6 +1004,112 @@ fn import_restore_ttl(part_ttl: &str, ttl: i64, handle_ttl: &str) -> i64 {
 
     // 注意: 导出时TTL命令返回的单位是秒, restore的ttl参数是毫秒
     if ttl <= 0 { 0 } else { ttl * 1000 }
+}
+
+pub fn import_cmd_0_thread(
+    conn: &mut impl Commands,
+    file: String,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) {
+    info!("import cmd file: {}", &file);
+    let result = import_cmds(conn, file, running.clone(), app_handle, id);
+    match result {
+        Ok(_) => info!("import cmd file ok"),
+        Err(e) => warn!("import cmd file err: {e}"),
+    }
+    running.store(false, Relaxed);
+}
+
+fn import_cmds(
+    conn: &mut impl Commands,
+    file: String,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) -> AnyResult<()> {
+    let reader = BufReader::new(File::open(&file)?);
+    let total_count = reader.lines().count() as u64;
+    info!("import cmds lines: {}", total_count);
+
+    let mut ok_count = 0;
+    let mut err_count = 0;
+
+    let reader = BufReader::new(File::open(&file)?);
+    for line in reader.lines() {
+        let line = line?;
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        if running.load(Relaxed) {
+            let result = import_cmd(conn, line);
+            match result {
+                Ok(_) => ok_count += 1,
+                Err(_) => err_count += 1,
+            }
+            // 通知导入进度
+            let event = ExportImportEvent {
+                id: id.clone(),
+                ok_count,
+                err_count,
+                total_count,
+                ignore_count: 0,
+                finished: false,
+            };
+            let _ = &app_handle.emit(EVENT_IMPORT, event);
+        }
+    }
+
+    let event = ExportImportEvent {
+        id: id.clone(),
+        ok_count,
+        err_count,
+        total_count,
+        ignore_count: 0,
+        finished: true,
+    };
+    let _ = &app_handle.emit(EVENT_IMPORT, event);
+    Ok(())
+}
+
+fn import_cmd(mut conn: &mut impl Commands, line: &str) -> AnyResult<()> {
+    info!("line: {}", line);
+    let (cmd, args) = parse_command(line)?;
+    redis::cmd(cmd.as_str()).arg(args).exec(&mut conn)?;
+    Ok(())
+}
+
+pub fn key_type0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<String> {
+    // 简单字符串回复：key 的类型，如果 key 不存在则返回 none
+    let key_type: ValueType = conn.key_type(&key)?;
+    Ok(ui_key_type(key_type))
+}
+
+pub fn xinfo_groups0(
+    mut conn: MutexGuard<impl Commands>,
+    key: RedisKey,
+) -> AnyResult<Vec<XInfoGroup>> {
+    let reply: StreamInfoGroupsReply = conn.xinfo_groups(&key)?;
+    Ok(reply
+        .groups
+        .into_iter()
+        .map(|x| ui_xinfo_group(x))
+        .collect())
+}
+
+pub fn xinfo_consumers0(
+    mut conn: MutexGuard<impl Commands>,
+    key: RedisKey,
+    group: String,
+) -> AnyResult<Vec<XInfoConsumer>> {
+    let reply: StreamInfoConsumersReply = conn.xinfo_consumers(&key, &group)?;
+    Ok(reply
+        .consumers
+        .into_iter()
+        .map(|x| ui_xinfo_consumer(x))
+        .collect())
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

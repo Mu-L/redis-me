@@ -14,7 +14,7 @@ import { openUrl } from '@tauri-apps/plugin-opener'
 
 // 打包后关闭右键菜单
 if (import.meta.env.PROD) {
-  document.addEventListener('contextmenu', (event) => event.preventDefault())
+  document.addEventListener('contextmenu', event => event.preventDefault())
 }
 
 // 系统主题、语言、存储等
@@ -81,14 +81,14 @@ try {
 } catch {}
 
 // 配置保存
-watch(meTauri, async (newValue) => {
+watch(meTauri, async newValue => {
   meLog('持久化连接和设置')
   await store.set('connList', newValue.connList)
   await store.set('settings', newValue.settings)
 })
 
 export function checkConnList() {
-  connList.forEach((conn) => {
+  connList.forEach(conn => {
     // 兼容旧版本，补充哨兵模式的属性
     if (!('sentinel' in conn) || typeof conn.sentinel != 'boolean') conn.sentinel = false
     if (!('masterName' in conn)) conn.masterName = ''

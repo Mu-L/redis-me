@@ -57,7 +57,7 @@ const rules = computed(() => {
 // 提交数据
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async (valid) => {
+  formRef.value.validate(async valid => {
     if (!valid) return
 
     loading.value = true
@@ -119,8 +119,9 @@ const confirmSizeBtn = computed(() => {
 const exportBtnEnabled = computed(() => (isExport.value ? !!form.value.file : true))
 
 // 导出文件名称添加服务器及版本（不同版本的redisdump命令可能不兼容，便于分析问题）
-const exportFilePrefix = computed(() =>
-    'redis-me-export_' + (share.isValkey ? 'Valkey' : 'Redis') + share.serverVersion)
+const exportFilePrefix = computed(
+  () => 'redis-me-export_' + (share.isValkey ? 'Valkey' : 'Redis') + share.serverVersion,
+)
 </script>
 
 <template>

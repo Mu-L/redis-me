@@ -14,7 +14,7 @@ const monitoring = ref(false)
 const dataList = ref([])
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return dataList.value.filter((item) => !key || item.toLowerCase().indexOf(key) > -1)
+  return dataList.value.filter(item => !key || item.toLowerCase().indexOf(key) > -1)
 })
 
 // 监控函数防抖
@@ -48,7 +48,7 @@ function clearData() {
 // 监听消息
 let unlisten = null
 async function tauriListen() {
-  unlisten = await listen('monitor', (event) => {
+  unlisten = await listen('monitor', event => {
     const payload = event.payload
     if (payload.id !== share.conn.id) return
     dataList.value.push(event.payload)

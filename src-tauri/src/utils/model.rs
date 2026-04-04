@@ -124,10 +124,31 @@ impl ScanParam {
 
 api_model!(FieldScanParam {
     key: RedisKey,
-    hash_key: Option<String>,
+    hash_key: Option<String>, // Hash键 或 StreamId
     count: u64,
     cursor: Option<ScanCursor>,
     load_all: bool,
+    meta: Option<FiledScanMeta>, // 扩展参数
+});
+
+api_model!(FiledScanMeta {
+    max_id: String,
+    min_id: String
+});
+
+api_model!(XInfoGroup{
+    name: String,
+    consumers: usize,
+    pending: usize,
+    last_delivered_id: String,
+    entries_read: Option<usize>,
+    lag: Option<usize>
+});
+
+api_model!(XInfoConsumer{
+    name: String,
+    pending: usize,
+    idle: usize,
 });
 
 api_model!(

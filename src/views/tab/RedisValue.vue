@@ -18,6 +18,9 @@ import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 import { useI18n } from 'vue-i18n'
 import TTLSet from '@/views/ext/TTLSet.vue'
+import { parseInt } from 'lodash/string.js'
+import dayjs from 'dayjs'
+import TableGroup from '@/views/ext/TableGroup.vue'
 
 const { t } = useI18n()
 // 刷新键
@@ -39,6 +42,12 @@ const tableKeyword = ref('')
 const redisValue = ref(null)
 const cursor = ref(null) // 新增游标，支持list/hash/set/zset的扫描，避免一次性获取所有数据
 const loading = ref(false)
+
+// 刷新值的扩展参数
+const meta = ref({
+  maxId: '',
+  minId: '',
+})
 
 // 计算属性
 
@@ -92,9 +101,9 @@ const dataList = computed(() => {
   if (rv.type === 'hash') {
     Object.entries(rv.value).forEach(([key, value]) => data.push({ key, value }))
   } else if (rv.type === 'list' || rv.type === 'set') {
-    rv.value.forEach((value) => data.push({ value }))
+    rv.value.forEach(value => data.push({ value }))
   } else if (rv.type === 'zset' || rv.type === 'stream') {
-    rv.value.forEach((value) => data.push(value)) // 返回的直接是[{score: '', value: ''}]
+    rv.value.forEach(value => data.push(value)) // 返回的直接是[{score: '', value: ''}]
   }
   return data
 })
@@ -102,7 +111,7 @@ const dataList = computed(() => {
 const filterDataList = computed(() => {
   const key = tableKeyword.value.toLowerCase()
   return dataList.value.filter(
-    (row) =>
+    row =>
       !key ||
       row.key?.toLowerCase().indexOf(key) > -1 ||
       row.id?.toLowerCase().indexOf(key) > -1 ||
@@ -151,14 +160,15 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
 
   loading.value = true
   try {
-    //redisValue.value = await meInvoke('get', {id: share.conn.id, key: share.redisKey, hashKey: hashKey.value})
     const param = {
       key: share.redisKey,
       hashKey: hashKey.value,
-      count: meTauri.settings.fieldScanCount,
+      count: meTauri.settings.fieldScanCount ?? 10,
       cursor: cursor.value,
       loadAll,
+      meta: meta.value,
     }
+
     const data = await meInvoke('field_scan', { id: share.conn.id, param })
     cursor.value = data.cursor
     withHashKey.value = !!hashKey.value
@@ -317,12 +327,31 @@ async function fieldDel(row) {
   meOk(t('deleteOk'))
   await refreshKey()
 }
+
+// Stream的ID转换为字符串时间
+function streamIdToDate(id) {
+  try {
+    const timestamp = parseInt(id.split('-')[0])
+    return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')
+  } catch (e) {
+    return 'format err'
+  }
+}
+
+// Stream显示Groups
+const groupDataList = ref([])
+const tableGroupVisible = ref(false)
+async function showGroups() {
+  groupDataList.value = await meInvoke('xinfo_groups', { id: share.conn.id, key: share.redisKey })
+  tableGroupVisible.value = true
+}
 </script>
 
 <template>
   <!-- 大部分Key都很快得到，element-loading-background设置为unset避免loading背景一闪而过，不友好  -->
   <div class="redis-value" v-loading="loading" element-loading-background="unset">
     <template v-if="share.redisKey && redisValue">
+      <!-- 上方键 -->
       <div class="key">
         <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
           <template #prepend>
@@ -392,12 +421,13 @@ async function fieldDel(row) {
         </div>
       </div>
 
+      <!-- 下方值 -->
       <div class="value">
         <!-- json显示 -->
         <template v-if="viewType === 'json'">
           <me-code
             :modelValue="showValue"
-            @update:modelValue="(newValue) => (redisValue.newValue = newValue)"
+            @update:modelValue="newValue => (redisValue.newValue = newValue)"
             :read-only="!canSave"
           />
 
@@ -450,13 +480,34 @@ async function fieldDel(row) {
         <!-- 表格显示 -->
         <div class="me-flex" style="flex-direction: column; height: 100%" v-else>
           <div class="me-flex" style="width: 100%">
-            <el-input
-              v-model="tableKeyword"
-              :placeholder="t('redisValue.tableKeyword')"
-              clearable
-              style="width: 300px"
-            />
+            <!-- 左侧模糊筛选 -->
+            <div>
+              <el-input
+                v-model="tableKeyword"
+                :placeholder="t('redisValue.tableKeyword')"
+                clearable
+                :style="{ width: streamType ? '120px' : '300px' }"
+              />
 
+              <el-input
+                v-if="streamType"
+                @keyup.enter="refreshKey(true)"
+                v-model.trim="meta.maxId"
+                placeholder="MaxId"
+                clearable
+                style="width: 160px; margin-left: 10px"
+              />
+              <el-input
+                v-if="streamType"
+                @keyup.enter="refreshKey(true)"
+                v-model.trim="meta.minId"
+                placeholder="MinId"
+                clearable
+                style="width: 160px; margin-left: 10px"
+              />
+            </div>
+
+            <!-- 右侧更多+插入行 -->
             <div>
               <el-button-group v-show="showMore">
                 <me-button
@@ -472,6 +523,14 @@ async function fieldDel(row) {
                   placement="top"
                 />
               </el-button-group>
+              <el-button
+                icon="el-icon-grid"
+                @click="showGroups"
+                style="margin-left: 10px"
+                v-if="streamType"
+              >
+                Groups
+              </el-button>
               <el-button icon="el-icon-plus" @click="fieldAdd" style="margin-left: 10px">{{
                 t('redisValue.insertRow')
               }}</el-button>
@@ -509,7 +568,13 @@ async function fieldDel(row) {
                 prop="id"
                 show-overflow-tooltip
                 v-if="redisValue.type === 'stream'"
-              />
+              >
+                <template #default="scope">
+                  <el-tooltip :content="streamIdToDate(scope.row.id)" placement="right">
+                    {{ scope.row.id }}
+                  </el-tooltip>
+                </template>
+              </el-table-column>
               <el-table-column
                 :label="t('redisValue.key')"
                 prop="key"
@@ -530,14 +595,14 @@ async function fieldDel(row) {
 
               <el-table-column
                 :label="t('action')"
-                :width="canEdit ? (streamType ? 66 : 100) : 60"
+                :width="canEdit ? (streamType ? 80 : 100) : 80"
                 fixed="right"
                 align="center"
               >
                 <template #default="scope">
                   <div
                     class="me-flex"
-                    :style="{ justifyContent: canEdit ? 'space-between' : 'center' }"
+                    style="justify-content: space-around"
                   >
                     <me-icon
                       :info="t('copy')"
@@ -604,11 +669,18 @@ async function fieldDel(row) {
         </div>
       </div>
     </template>
+
+    <!-- 未选择键时Empty显示 -->
     <el-empty v-else :description="t('redisValue.noKeySelected')"></el-empty>
 
     <!-- 更新TTL, 字段新增 -->
     <TTLSet ref="ttlSetRef" @success="setTimer" />
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
+
+    <!-- Stream消费者组 -->
+    <el-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900" draggable>
+      <TableGroup :data-list="groupDataList" />
+    </el-dialog>
   </div>
 </template>
 

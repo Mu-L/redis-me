@@ -418,6 +418,27 @@ impl RedisMeClient for RedisMeSingle {
         Ok(())
     }
 
+    fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()> {
+        let mut conn = self.get_new_conn()?;
+        let running = self.export_import_running.clone();
+        let id = self.id.clone();
+        export_import_check_running(running.clone())?;
+        thread::spawn(move || import_cmd_0_thread(&mut conn, file, running, app_handle, id));
+        Ok(())
+    }
+
+    fn key_type(&self, key: RedisKey) -> AnyResult<String> {
+        key_type0(self.get_conn()?, key)
+    }
+
+    fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>> {
+        xinfo_groups0(self.get_conn()?, key)
+    }
+
+    fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>> {
+        xinfo_consumers0(self.get_conn()?, key, group)
+    }
+
     implement_pipeline_commands!(Pipeline);
 }
 

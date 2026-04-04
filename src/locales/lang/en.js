@@ -39,6 +39,9 @@ export default {
   },
 
   setting: {
+    toDefault: 'Restore Default',
+    confirmToDefault: 'Confirm Restore【{name}】To Default ?',
+
     labelWidth: '86px',
     title: 'Settings',
     appearance: 'Appearance',
@@ -66,6 +69,9 @@ export default {
     extLabelWidth: '100',
     keyScanCount: 'Key Scan',
     fieldScanCount: 'Field Scan',
+    keyScanCountTip:
+      'The number of keys loaded per scan. Setting it too large may affect performance',
+    fieldScanCountTip: 'The number of fields loaded by each scan for types such as Hash',
     keyShow: 'Key Show',
     keyShowTree: 'Tree',
     keyShowList: 'List',
@@ -125,8 +131,14 @@ export default {
     nameRequired: 'Please Input host',
     portRequired: 'Please Input port',
     testOk: 'Conn Success',
-
     downloading: 'Downloading',
+
+    readonlyTip:
+      'In read-only mode, all editing buttons are hidden (they can be dynamically switched to display)',
+    clusterTip:
+      'Select any node in the cluster to fill in, and other nodes will be identified automatically',
+    sentinelTip:
+      'Select any node of the multiple sentinels. Please fill in the sentinel configuration for the address, port, and password. The user password of the master node is the user password of the Master node monitored by the sentinel',
   },
 
   util: {
@@ -249,7 +261,7 @@ export default {
   keyImport: {
     title: 'Import Data',
     file: 'Import File',
-    fileTip: 'Select file to import',
+    fileTip: 'select file to import ({tip})',
     fileRequired: 'import file required',
     handleConflict: 'On Key Conflict',
     replace: 'Replace',
@@ -528,6 +540,7 @@ export default {
     mockData: 'Mock Data',
     exportData: 'Export Data',
     importData: 'Import Data',
+    importCmd: 'Import Cmd',
     listView: 'List View',
     treeView: 'Tree View',
     sortByCount: 'Key Count',
@@ -560,5 +573,18 @@ export default {
     ttlOkBatch: 'Batch Set TTL Success',
     ttlRequired: 'Please input TTL',
     ttlValidator: '-1 (Forever) or positive integer',
+  },
+
+  // Stream Groups
+  tableGroup: {
+    name: 'Group Name',
+    consumers: 'Consumers',
+    pending: 'Pending',
+    lastDeliveredId: 'Last Delivered Id',
+    entriesRead: 'Entries Read',
+    lag: 'Lag',
+    consumerName: 'Consumer Name',
+    consumerPending: 'Pending',
+    consumerIdle: 'Idle (ms)',
   },
 }

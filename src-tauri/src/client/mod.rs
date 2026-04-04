@@ -183,6 +183,7 @@ mod tests {
             count: 150,
             cursor: None,
             load_all: false,
+            meta: None,
         }
     }
 

@@ -4862,10 +4862,10 @@ for (let i = 0; i < zhCommands.length; i++) {
 }
 
 // description: summary + since + group
-enCommands.forEach((command) => {
+enCommands.forEach(command => {
   command.description = `${command.summary} @since ${command.since} [${command.group}]`
 })
-zhCommands.forEach((command) => {
+zhCommands.forEach(command => {
   command.description = `${command.summary} @since ${command.since} 【${command.group}】`
 })
 
