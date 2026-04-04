@@ -97,7 +97,7 @@ async function handleExpand(row, expandedRows) {
 <style scoped lang="scss">
 .table-group {
   height: 100%;
-  overflow: scroll;
+  overflow: auto;
 
   .consumer-wrapper {
     padding: 20px;
