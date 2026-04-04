@@ -162,16 +162,17 @@ function goMemory() {
         <div class="me-flex" style="align-items: center">
           <div>
             <el-text size="large" style="margin-left: 5px">{{ infoNode }}</el-text>
-            <el-tag style="margin-left: 10px"
-              >{{ share.isValkey ? 'Valkey' : 'Redis' }} {{ share.serverVersion }}</el-tag
-            >
+            <el-tag style="margin-left: 10px" effect="plain">
+              {{ share.isValkey ? 'Valkey' : 'Redis' }} {{ share.serverVersion }}
+            </el-tag>
             <el-tag
               type="success"
               style="margin-left: 10px"
+              effect="plain"
               v-if="dic[share.isValkey ? 'server_mode' : 'redis_mode']"
               >{{ dic[share.isValkey ? 'server_mode' : 'redis_mode'] }}</el-tag
             >
-            <el-tag type="success" style="margin-left: 10px" v-if="dic['role']">{{
+            <el-tag type="success" style="margin-left: 10px" v-if="dic['role']" effect="plain">{{
               dic['role']
             }}</el-tag>
           </div>

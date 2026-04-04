@@ -457,7 +457,7 @@ function editDbName(db) {
                     type="info"
                     :effect="'ALL' === keyType ? 'plain' : 'dark'"
                     style="width: 26px"
-                    :hit="'ALL' === keyType">
+                    hit>
                     A
                   </el-tag>
                   <el-text style="margin-left: 6px" type="info">ALL</el-text>
@@ -467,7 +467,7 @@ function editDbName(db) {
                     :type="item.type"
                     :effect="item.value === keyType ? 'plain' : 'dark'"
                     style="width: 26px"
-                    :hit="item.value === keyType">
+                    hit>
                     {{ meKeyShort(item.value) }}
                   </el-tag>
                   <el-text style="margin-left: 6px">{{ item.value }}</el-text>
