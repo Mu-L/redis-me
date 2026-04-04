@@ -230,7 +230,7 @@ function clickNew() {
               type="primary"
               @click="selectConn(scope.row)"
               :style="{ '--el-link-text-color': scope.row.color }">
-              <me-icon icon="el-icon-connection" :name="scope.row.name" />
+              <me-icon :icon="scope.row.cluster ? 'me-icon-cluster' : 'el-icon-monitor'" :name="scope.row.name" />
             </el-link>
           </div>
         </template>
