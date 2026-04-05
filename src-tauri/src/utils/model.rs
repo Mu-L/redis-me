@@ -28,15 +28,15 @@ RedisConf {
 
     // SSL连接
     ssl: bool,
-    ssl_option: Option<SslOption>,
+    ssl_option: SslOption,
 
     // 哨兵模式
     sentinel: bool,
-    sentinel_option: Option<SentinelOption>,
+    sentinel_option: SentinelOption,
 
     // SSH隧道
     ssh: bool,
-    ssh_option: Option<SshOption>
+    ssh_option: SshOption
 });
 
 api_model!(

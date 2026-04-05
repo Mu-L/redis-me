@@ -48,7 +48,7 @@ pub fn get_client_single(conf: &RedisConf) -> AnyResult<Client> {
 fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
     let certs = get_tls_certs(conf.ssl_option.clone())?;
     let conf = conf.clone();
-    let sentinel_option = conf.sentinel_option.clone().unwrap_or_default();
+    let sentinel_option = conf.sentinel_option.clone();
     let client = if conf.ssl
         && let Some(tls) = certs
     {
@@ -133,11 +133,7 @@ pub fn get_client_cluster(conf: &RedisConf) -> AnyResult<ClusterClient> {
 }
 
 // 获取证书
-fn get_tls_certs(ssl_option: Option<SslOption>) -> AnyResult<Option<TlsCertificates>> {
-    if ssl_option.is_none() {
-        return Ok(None);
-    }
-    let ssl_option = ssl_option.unwrap_or_default();
+fn get_tls_certs(ssl_option: SslOption) -> AnyResult<Option<TlsCertificates>> {
     if ssl_option.key.is_empty() && ssl_option.cert.is_empty() && ssl_option.ca.is_empty() {
         return Ok(None);
     };
