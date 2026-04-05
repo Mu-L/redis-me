@@ -17,7 +17,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16, Ordering};
 use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
@@ -26,7 +26,7 @@ use tauri::{AppHandle, Emitter};
 pub struct RedisMeBase {
     pub id: String,
     pub conf: RedisConf,
-    pub db: Arc<AtomicU8>,
+    pub db: Arc<AtomicU16>,
     pub subscribe_running: Arc<AtomicBool>,
     pub monitor_running: Arc<AtomicBool>,
     pub export_import_running: Arc<AtomicBool>,
@@ -38,7 +38,7 @@ impl From<&RedisConf> for RedisMeBase {
         RedisMeBase {
             id: conf.id.clone(),
             conf: conf.clone(),
-            db: Arc::new(AtomicU8::new(conf.db)),
+            db: Arc::new(AtomicU16::new(conf.db)),
             subscribe_running: Arc::new(AtomicBool::new(false)),
             monitor_running: Arc::new(AtomicBool::new(false)),
             export_import_running: Arc::new(AtomicBool::new(false)),
@@ -53,7 +53,7 @@ pub trait RedisMeClient: Send + Sync {
 
     fn db_list(&self) -> AnyResult<Vec<RedisDB>>;
 
-    fn select_db(&self, db: u8) -> AnyResult<()>;
+    fn select_db(&self, db: u16) -> AnyResult<()>;
 
     fn info(&self, node: Option<String>) -> AnyResult<RedisInfo>;
 

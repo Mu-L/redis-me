@@ -56,7 +56,7 @@ impl RedisMeClient for RedisMeSingle {
         Ok(db_list)
     }
 
-    fn select_db(&self, db: u8) -> AnyResult<()> {
+    fn select_db(&self, db: u16) -> AnyResult<()> {
         if self.db.load(Relaxed) == db {
             return Ok(());
         }
@@ -455,7 +455,7 @@ impl RedisMeSingle {
         }))
     }
 
-    fn new_conn(client: &Client, db: u8) -> AnyResult<Connection> {
+    fn new_conn(client: &Client, db: u16) -> AnyResult<Connection> {
         let mut conn = client.get_connection()?;
         set_client_name(&mut conn)?;
         conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;

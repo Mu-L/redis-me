@@ -46,7 +46,7 @@ pub fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
 // to_api_result(app_handle.get_client(id).and_then(|client| client.$name($($param),*)))
 api_commands!(
     db_list() -> Vec<RedisDB>;                 // 数据库列表
-    select_db(db: u8) -> ();                   // 切换数据库
+    select_db(db: u16) -> ();                  // 切换数据库
     info(node: Option<String>)  -> RedisInfo;  // 信息
     info_list() -> Vec<RedisInfo>;             // 信息列表
     chart(node: Option<String>) -> RedisChart; // 图表

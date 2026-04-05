@@ -52,7 +52,7 @@ impl RedisMeClient for RedisMeCluster {
         Ok(vec![])
     }
 
-    fn select_db(&self, db: u8) -> AnyResult<()> {
+    fn select_db(&self, db: u16) -> AnyResult<()> {
         if self.db.load(Relaxed) == db {
             return Ok(());
         }
