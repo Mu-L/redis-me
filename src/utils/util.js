@@ -122,6 +122,10 @@ export function meOk(message, isAlert = false, title = '') {
   }
 }
 
+export function meWarn(message) {
+  ElMessage.warning(message)
+}
+
 export function meErr(message, title = t('error')) {
   if (message instanceof Error) {
     message = message.message

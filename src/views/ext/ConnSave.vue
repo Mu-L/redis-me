@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 import { ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke, PREDEFINE_COLORS, meRandomString, meOk, meErr } from '@/utils/util.js'
+import {meInvoke, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn} from '@/utils/util.js'
 const { t } = useI18n()
 
 const emit = defineEmits(['success', 'closed'])
@@ -226,11 +226,17 @@ async function autoDiscover(alert = false) {
   }
 }
 
+// 哨兵模式自动发现 + 与SSH互斥
 watch(
   () => form.sentinel,
   (newValue, _oldValue) => {
     if (newValue) {
       autoDiscover()
+      // 与SSH互斥
+      if (form.ssh) {
+        meOk(t('conn.sshModeTip'))
+        form.ssh = false
+      }
     }
   },
 )
@@ -240,6 +246,30 @@ watch(
   (newValue, _oldValue) => {
     if (newValue === undefined) {
       form.sentinelOption.masterName = ''
+    }
+  },
+)
+
+// SSH与集群/哨兵互斥
+watch(
+  () => form.ssh,
+  (newValue) => {
+    if (newValue) {
+      if (form.cluster || form.sentinel) {
+        meWarn(t('conn.sshModeTip'))
+        form.cluster = false
+        form.sentinel = false
+      }
+    }
+  },
+)
+
+watch(
+  () => form.cluster,
+  (newValue) => {
+    if (newValue && form.ssh) {
+      meWarn(t('conn.sshModeTip'))
+      form.ssh = false
     }
   },
 )
@@ -309,26 +339,38 @@ watch(
           </el-form-item>
         </el-col>
         <el-col :span="18" style="padding-left: 0; padding-right: 0">
-          <el-checkbox v-model="form.ssh">SSH</el-checkbox>
-          <el-checkbox v-model="form.ssl">SSL</el-checkbox>
+          <el-checkbox v-model="form.ssh">
+            <me-icon
+              name="SSH"
+              icon="el-icon-question-filled" placement="top"
+              :info="t('conn.sshTip')"
+              :icon-left="false" />
+          </el-checkbox>
+          <el-checkbox v-model="form.ssl">
+            <me-icon
+                name="SSL"
+                icon="el-icon-question-filled" placement="top"
+                :info="t('conn.sslTip')"
+                :icon-left="false" />
+          </el-checkbox>
           <el-checkbox v-model="form.readonly">
             <me-icon
               :name="t('conn.readonly')"
-              icon="el-icon-question-filled"
+              icon="el-icon-question-filled" placement="top"
               :info="t('conn.readonlyTip')"
               :icon-left="false" />
           </el-checkbox>
           <el-checkbox v-model="form.cluster">
             <me-icon
               :name="t('conn.cluster')"
-              icon="el-icon-question-filled"
+              icon="el-icon-question-filled" placement="top"
               :info="t('conn.clusterTip')"
               :icon-left="false" />
           </el-checkbox>
           <el-checkbox v-model="form.sentinel">
             <me-icon
               :name="t('conn.sentinel')"
-              icon="el-icon-question-filled"
+              icon="el-icon-question-filled" placement="top"
               :info="t('conn.sentinelTip')"
               :icon-left="false" />
           </el-checkbox>
@@ -498,6 +540,6 @@ watch(
 
 <style scoped lang="scss">
 :deep(.el-checkbox) {
-  margin-right: 20px;
+  margin-right: 12px;
 }
 </style>

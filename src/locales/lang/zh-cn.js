@@ -117,7 +117,9 @@ export default {
     autoDiscover: '自动查询组名',
     autoDiscoverOk: '查询到{count}个主节点',
 
-    ssh: 'SSH隧道',
+    sshTip: '只支持单机模式（不支持集群/哨兵）',
+    sshModeTip: 'SSH 隧道不支持集群/哨兵模式',
+    sslTip: '当服务端开启 tls-port 时使用 SSL 加密连接',
     loginType: '登录',
     sshOption: {
       host: '主机',
