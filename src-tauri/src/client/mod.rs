@@ -66,6 +66,7 @@ mod tests {
         let mut conf = conf_single();
         conf.ssh = true;
         conf.ssh_option.host = "ali.hepengju.com".into();
+        conf.ssh_option.login_type = "pwd".into();
         conf.ssh_option.port = 22;
         conf.ssh_option.username ="root".into();
         conf.ssh_option.password = "He736458!".into();
@@ -74,7 +75,10 @@ mod tests {
 
     #[test]
     fn test_info() {
-        let result = client_single_ssh().info(None).unwrap();
+        let client = client_single_ssh();
+        let result = client.info(None).unwrap();
+        println!("{result:#?}");
+        let result = client.info(None).unwrap();
         println!("{result:#?}");
     }
 
