@@ -21,7 +21,12 @@ const form = reactive({
   db: 0,
 
   readonly: false,
+  color: '#409eff',
+
+  // 集群模式
   cluster: false,
+
+  // SSL连接
   ssl: false,
   sslOption: {
     key: '',
@@ -29,13 +34,24 @@ const form = reactive({
     ca: '',
   },
 
-  color: '#409eff',
-
-  // 哨兵模式补充
+  // 哨兵模式
   sentinel: false,
-  masterName: '',
-  masterUsername: '',
-  masterPassword: '',
+  sentinelOption: {
+    masterName: '',
+    masterUsername: '',
+    masterPassword: '',
+  },
+
+  // SSH隧道
+  ssh: false,
+  sshOption: {
+    host: '',
+    port: 22,
+    loginType: 'pwd', // pwd 用户名/密码, pkfile 私钥文件
+    username: '',
+    password: '',
+    pkfile: '', // 私钥文件
+  },
 
   // 其他元信息补充: 复制连接时不保留
   meta: {
@@ -124,8 +140,8 @@ const masters = ref([])
 async function autoDiscover(alert = false) {
   try {
     masters.value = await meInvoke('masters', { conf: form }, false)
-    if (!form.masterName && masters.value.length > 0) {
-      form.masterName = masters.value[0].name
+    if (!form.sentinelOption.masterName && masters.value.length > 0) {
+      form.sentinelOption.masterName = masters.value[0].name
     }
 
     if (alert) {
@@ -149,10 +165,10 @@ watch(
 )
 
 watch(
-  () => form.masterName,
+  () => form.sentinelOption.masterName,
   (newValue, _oldValue) => {
     if (newValue === undefined) {
-      form.masterName = ''
+      form.sentinelOption.masterName = ''
     }
   },
 )
@@ -248,7 +264,7 @@ watch(
         <el-form-item :label="t('conn.masterName')" :label-width="t('conn.sentinelLabelWidth')">
           <div class="me-flex" style="width: 100%">
             <el-select
-              v-model="form.masterName"
+              v-model="form.sentinelOption.masterName"
               clearable
               filterable
               allow-create
@@ -269,7 +285,7 @@ watch(
             <el-form-item
               :label="t('conn.masterUsername')"
               :label-width="t('conn.sentinelLabelWidth')">
-              <el-input v-model.trim="form.masterUsername" placeholder="username" clearable />
+              <el-input v-model.trim="form.sentinelOption.masterUsername" placeholder="username" clearable />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -277,7 +293,7 @@ watch(
               :label="t('conn.masterPassword')"
               :label-width="t('conn.sentinelLabelWidth')">
               <el-input
-                v-model.trim="form.masterPassword"
+                v-model.trim="form.sentinelOption.masterPassword"
                 placeholder="password"
                 type="password"
                 clearable

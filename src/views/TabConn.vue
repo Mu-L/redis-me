@@ -12,7 +12,7 @@ import {
   meConfirm,
   meDownloadUpdate,
   meErr,
-  meJsonParse,
+  meJsonParse, meLog,
   meOk,
   PREDEFINE_COLORS,
 } from '@/utils/util.js'
@@ -130,12 +130,14 @@ async function importConn() {
     try {
       const content = await readTextFile(file)
       const impConnList = await checkImportContent(content)
+      meLog('impConnList', impConnList)
       const impIds = impConnList.map(conn => conn.id)
 
       const newConnList = []
       newConnList.push(...share.connList.filter(conn => !impIds.includes(conn.id)))
       newConnList.push(...impConnList)
 
+      meLog('newConnList', newConnList)
       share.connList = newConnList
       meOk(t('conn.importOk'))
     } catch (e) {

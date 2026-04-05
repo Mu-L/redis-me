@@ -45,7 +45,7 @@ meLog('应用商店应用(AppData目录下appStore.txt):', isAppStore)
 const store = new LazyStore('store.json')
 const connList = (await store.get('connList')) || []
 meLog('读取连接:', connList)
-checkConnList() // 初始化的时候就检查1次，以便兼容旧版本数据
+checkConnList(connList) // 初始化的时候就检查1次，以便兼容旧版本数据
 
 const storeSettings = await store.get('settings')
 meLog('读取设置:', storeSettings)
@@ -88,13 +88,36 @@ watch(meTauri, async newValue => {
   await store.set('settings', newValue.settings)
 })
 
-export function checkConnList() {
+export function checkConnList(connList) {
   connList.forEach(conn => {
-    // 兼容旧版本，补充哨兵模式的属性
+    // 兼容旧版本，补充哨兵模式属性; 20260405 属性移动到sentinelOption中
     if (!('sentinel' in conn) || typeof conn.sentinel != 'boolean') conn.sentinel = false
-    if (!('masterName' in conn)) conn.masterName = ''
-    if (!('masterUsername' in conn)) conn.masterUsername = ''
-    if (!('masterPassword' in conn)) conn.masterPassword = ''
+    if (!('sentinelOption' in conn)) conn.sentinelOption = {
+      masterName: '',
+      masterUsername: '',
+      masterPassword: '',
+    }
+
+    if (!conn.sentinelOption.masterName && conn.masterName)     conn.sentinelOption.masterName = conn.masterName
+    if (!conn.sentinelOption.masterUsername && conn.masterUsername) conn.sentinelOption.masterUsername = conn.masterUsername
+    if (!conn.sentinelOption.masterPassword && conn.masterPassword) conn.sentinelOption.masterPassword = conn.masterPassword
+    if ('masterName' in conn) delete conn.masterName
+    if ('masterUsername' in conn) delete conn.masterUsername
+    if ('masterPassword' in conn) delete conn.masterPassword
+
+    // 兼容旧版本，补充meta属性
+    if (!('meta' in conn) ) conn.meta = {}
+
+    // 兼容旧版本，补充SSH属性
+    if (!('ssh' in conn) || typeof conn.ssh != 'boolean') conn.ssh = false
+    if (!('sshOption' in conn)) conn.sshOption = {
+      host: '',
+      port: 22,
+      loginType: 'pwd', // pwd 用户名/密码, pkfile 私钥文件
+      username: '',
+      password: '',
+      pkfile: '', // 私钥文件
+    }
   })
 }
 
