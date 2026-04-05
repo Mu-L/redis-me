@@ -121,6 +121,18 @@ export default {
     autoDiscover: 'Auto Discover',
     autoDiscoverOk: 'Discover {count} Master | Discover {count} Masters',
 
+    ssh: 'SSH Tunnel',
+    sshOption: {
+      host: 'Host',
+      port: 'Port',
+      username: 'Username',
+      password: 'Password',
+      loginTypePwd: 'Password',
+      loginTypePkfile: 'Private Key File',
+      pkfile: 'Private Key File',
+      passphrase: 'Passphrase',
+    },
+
     nameHint: '[Optional] Automatically generated based on Host and Port',
     certHint: 'Public Key File format',
     keyHint: 'Private Key File in PEM format',

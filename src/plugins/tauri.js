@@ -90,7 +90,8 @@ watch(meTauri, async newValue => {
 
 export function checkConnList(connList) {
   connList.forEach(conn => {
-    // 兼容旧版本，补充哨兵模式属性; 20260405 属性移动到sentinelOption中
+    // v1.6.0 兼容旧版本，补充哨兵模式属性;
+    // v2.7.0 属性移动到sentinelOption中
     if (!('sentinel' in conn) || typeof conn.sentinel != 'boolean') conn.sentinel = false
     if (!('sentinelOption' in conn)) conn.sentinelOption = {
       masterName: '',
@@ -105,10 +106,10 @@ export function checkConnList(connList) {
     if ('masterUsername' in conn) delete conn.masterUsername
     if ('masterPassword' in conn) delete conn.masterPassword
 
-    // 兼容旧版本，补充meta属性
+    // v2.5.0 兼容旧版本，补充meta属性
     if (!('meta' in conn) ) conn.meta = {}
 
-    // 兼容旧版本，补充SSH属性
+    // v2.7.0 兼容旧版本，补充SSH属性
     if (!('ssh' in conn) || typeof conn.ssh != 'boolean') conn.ssh = false
     if (!('sshOption' in conn)) conn.sshOption = {
       host: '',
@@ -116,7 +117,8 @@ export function checkConnList(connList) {
       loginType: 'pwd', // pwd 用户名/密码, pkfile 私钥文件
       username: '',
       password: '',
-      pkfile: '', // 私钥文件
+      pkfile: '',     // 私钥文件
+      passphrase: '', // 私钥密码
     }
   })
 }

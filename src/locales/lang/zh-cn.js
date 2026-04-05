@@ -116,6 +116,18 @@ export default {
     autoDiscover: '自动查询组名',
     autoDiscoverOk: '查询到{count}个主节点',
 
+    ssh: 'SSH隧道',
+    sshOption: {
+      host: '主机',
+      port: '端口',
+      username: '用户',
+      password: '密码',
+      loginTypePwd: '密码',
+      loginTypePkfile: '私钥',
+      pkfile: '私钥文件',
+      passphrase: '私钥密码',
+    },
+
     nameHint: '【可选】默认自动根据主机和端口生成',
     certHint: 'PEM格式公钥文件 (Cert)',
     keyHint: 'PEM格式私钥文件 (Key)',

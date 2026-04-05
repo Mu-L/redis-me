@@ -50,7 +50,8 @@ const form = reactive({
     loginType: 'pwd', // pwd 用户名/密码, pkfile 私钥文件
     username: '',
     password: '',
-    pkfile: '', // 私钥文件
+    pkfile: '',     // 私钥文件
+    passphrase: '', // 私钥密码
   },
 
   // 其他元信息补充: 复制连接时不保留
@@ -264,10 +265,27 @@ watch(
         </el-col>
       </el-row>
 
+      <!-- SSH隧道 -->
       <div v-show="form.ssh">
+        <el-divider content-position="left">{{ t('conn.ssh') }}</el-divider>
 
       </div>
 
+      <!-- SSL加密 -->
+      <div v-show="form.ssl">
+        <el-divider content-position="left">{{ t('conn.ssl') }}</el-divider>
+        <el-form-item :label="t('conn.cert')">
+          <me-file-input v-model="form.sslOption.cert" :placeholder="t('conn.certHint')" />
+        </el-form-item>
+        <el-form-item :label="t('conn.key')">
+          <me-file-input v-model="form.sslOption.key" :placeholder="t('conn.keyHint')" />
+        </el-form-item>
+        <el-form-item :label="t('conn.ca')">
+          <me-file-input v-model="form.sslOption.ca" :placeholder="t('conn.caHint')" />
+        </el-form-item>
+      </div>
+
+      <!-- 哨兵模式 -->
       <div v-show="form.sentinel">
         <el-divider content-position="left">{{ t('conn.sentinelConfig') }}</el-divider>
         <el-form-item :label="t('conn.masterName')" :label-width="t('conn.sentinelLabelWidth')">
@@ -310,19 +328,6 @@ watch(
             </el-form-item>
           </el-col>
         </el-row>
-      </div>
-
-      <div v-show="form.ssl">
-        <el-divider content-position="left">{{ t('conn.ssl') }}</el-divider>
-        <el-form-item :label="t('conn.cert')">
-          <me-file-input v-model="form.sslOption.cert" :placeholder="t('conn.certHint')" />
-        </el-form-item>
-        <el-form-item :label="t('conn.key')">
-          <me-file-input v-model="form.sslOption.key" :placeholder="t('conn.keyHint')" />
-        </el-form-item>
-        <el-form-item :label="t('conn.ca')">
-          <me-file-input v-model="form.sslOption.ca" :placeholder="t('conn.caHint')" />
-        </el-form-item>
       </div>
     </el-form>
     <template #footer>
