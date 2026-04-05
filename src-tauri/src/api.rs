@@ -14,19 +14,19 @@ pub fn greet(name: &str) -> String {
 
 // 测试连接
 #[command]
-pub fn test_conn(conf: RedisConf) -> ApiResult<()> {
+pub fn test_conn(conf: ConnConfig) -> ApiResult<()> {
     to_api_result(conf.test())
 }
 
 // 哨兵模式获取主节点列表
 #[command]
-pub fn masters(conf: RedisConf) -> ApiResult<Vec<HashMap<String, String>>> {
+pub fn masters(conf: ConnConfig) -> ApiResult<Vec<HashMap<String, String>>> {
     to_api_result(conf.masters())
 }
 
 // 连接信息发送到后端
 #[command]
-pub fn conn_list(app_handle: AppHandle, conn_list: Vec<RedisConf>) -> ApiResult<()> {
+pub fn conn_list(app_handle: AppHandle, conn_list: Vec<ConnConfig>) -> ApiResult<()> {
     to_api_result(app_handle.conn_list(conn_list))
 }
 

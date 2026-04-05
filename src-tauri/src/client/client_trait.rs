@@ -23,9 +23,9 @@ use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
 
 // 抽取公共属性
-pub struct RedisMeBase {
+pub struct MeBase {
     pub id: String,
-    pub conf: RedisConf,
+    pub conf: ConnConfig,
     pub db: Arc<AtomicU16>,
     pub subscribe_running: Arc<AtomicBool>,
     pub monitor_running: Arc<AtomicBool>,
@@ -33,9 +33,9 @@ pub struct RedisMeBase {
     pub last_check_time: Arc<AtomicI64>,
 }
 
-impl From<&RedisConf> for RedisMeBase {
-    fn from(conf: &RedisConf) -> Self {
-        RedisMeBase {
+impl From<&ConnConfig> for MeBase {
+    fn from(conf: &ConnConfig) -> Self {
+        MeBase {
             id: conf.id.clone(),
             conf: conf.clone(),
             db: Arc::new(AtomicU16::new(conf.db)),
@@ -48,7 +48,7 @@ impl From<&RedisConf> for RedisMeBase {
 }
 
 // RedisME服务接口
-pub trait RedisMeClient: Send + Sync {
+pub trait MeClient: Send + Sync {
     fn name(&self) -> String;
 
     fn db_list(&self) -> AnyResult<Vec<RedisDB>>;
@@ -756,7 +756,7 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
 }
 
 pub fn batch_key0(
-    rmc: &impl RedisMeClient,
+    rmc: &impl MeClient,
     param: RedisBatchKey,
     assert_not_empty: bool,
 ) -> AnyResult<Vec<RedisKey>> {

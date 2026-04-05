@@ -1,7 +1,7 @@
-use crate::client::client_trait::RedisMeClient;
-use crate::client::impl_cluster::RedisMeCluster;
-use crate::client::impl_single::RedisMeSingle;
-use crate::utils::model::RedisConf;
+use crate::client::client_trait::MeClient;
+use crate::client::impl_cluster::MeCluster;
+use crate::client::impl_single::MeSingle;
+use crate::utils::model::ConnConfig;
 use crate::utils::util::AnyResult;
 use anyhow::anyhow;
 use log::{debug, info};
@@ -12,21 +12,21 @@ use tauri::{AppHandle, Manager, State};
 #[derive(Default)]
 pub struct AppState {
     // 初始化连接列表
-    pub connections: Mutex<HashMap<String, RedisConf>>,
+    pub connections: Mutex<HashMap<String, ConnConfig>>,
 
     // 缓存连接客户端
-    pub clients: RwLock<HashMap<String, Arc<Box<dyn RedisMeClient>>>>,
+    pub clients: RwLock<HashMap<String, Arc<Box<dyn MeClient>>>>,
 }
 
 pub trait ClientAccess {
-    fn conn_list(&self, conn_list: Vec<RedisConf>) -> AnyResult<()>;
-    fn get_client(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>>;
-    fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>>;
+    fn conn_list(&self, conn_list: Vec<ConnConfig>) -> AnyResult<()>;
+    fn get_client(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>>;
+    fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>>;
     fn disconnect(&self, id: &str) -> AnyResult<()>;
 }
 
 impl ClientAccess for AppHandle {
-    fn conn_list(&self, conn_list: Vec<RedisConf>) -> AnyResult<()> {
+    fn conn_list(&self, conn_list: Vec<ConnConfig>) -> AnyResult<()> {
         let state: State<AppState> = self.state();
         let mut map = state.connections.lock().unwrap();
         map.clear();
@@ -37,7 +37,7 @@ impl ClientAccess for AppHandle {
         Ok(())
     }
 
-    fn get_client(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>> {
+    fn get_client(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>> {
         let state: State<AppState> = self.state();
         {
             // Read lock在此代码块内，自动释放锁
@@ -50,16 +50,16 @@ impl ClientAccess for AppHandle {
         self.connect(id)
     }
 
-    fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn RedisMeClient>>> {
+    fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>> {
         let state: State<AppState> = self.state();
         let map = state.connections.lock().unwrap();
         let conn = map.get(id).ok_or(anyhow!("no connection found: {}", id))?;
 
         let mut clients = state.clients.write().unwrap();
         let client = Arc::new(if conn.cluster {
-            RedisMeCluster::init(conn)?
+            MeCluster::init(conn)?
         } else {
-            RedisMeSingle::init(conn)?
+            MeSingle::init(conn)?
         });
 
         clients.insert(id.to_string(), Arc::clone(&client));

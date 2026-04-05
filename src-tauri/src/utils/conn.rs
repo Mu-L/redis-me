@@ -1,4 +1,4 @@
-use crate::utils::model::{RedisConf, SslOption};
+use crate::utils::model::{ConnConfig, SslOption};
 use crate::utils::util::{AnyResult, CONNECTION_CHECK_TIMEOUT};
 use anyhow::Context;
 use log::info;
@@ -10,7 +10,7 @@ use redis::{
 use std::fs;
 
 // 获取单机连接
-pub fn get_client_single(conf: &RedisConf) -> AnyResult<Client> {
+pub fn get_client_single(conf: &ConnConfig) -> AnyResult<Client> {
     let prefix = if conf.ssl { "rediss" } else { "redis" };
     let suffix = if conf.ssl { "/#insecure" } else { "" };
 
@@ -45,7 +45,7 @@ pub fn get_client_single(conf: &RedisConf) -> AnyResult<Client> {
     Ok(client)
 }
 
-fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
+fn get_client_sentinel(conf: &ConnConfig) -> AnyResult<Client> {
     let certs = get_tls_certs(conf.ssl_option.clone())?;
     let conf = conf.clone();
     let sentinel_option = conf.sentinel_option.clone();
@@ -104,7 +104,7 @@ fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
 }
 
 // 获取集群连接
-pub fn get_client_cluster(conf: &RedisConf) -> AnyResult<ClusterClient> {
+pub fn get_client_cluster(conf: &ConnConfig) -> AnyResult<ClusterClient> {
     let prefix = if conf.ssl { "rediss" } else { "redis" };
     let suffix = if conf.ssl { "/#insecure" } else { "" };
     let redis_url = format!("{}://{}:{}{}", prefix, conf.host, conf.port, suffix);

@@ -15,21 +15,21 @@ use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
 
-pub struct RedisMeSingle {
-    base: RedisMeBase,
+pub struct MeSingle {
+    base: MeBase,
     client: Client,
     conn: Mutex<Connection>,
 }
 
-impl Deref for RedisMeSingle {
-    type Target = RedisMeBase;
+impl Deref for MeSingle {
+    type Target = MeBase;
 
     fn deref(&self) -> &Self::Target {
         &self.base
     }
 }
 
-impl Drop for RedisMeSingle {
+impl Drop for MeSingle {
     fn drop(&mut self) {
         self.subscribe_stop().unwrap_or(());
         self.monitor_stop().unwrap_or(());
@@ -37,7 +37,7 @@ impl Drop for RedisMeSingle {
     }
 }
 
-impl RedisMeClient for RedisMeSingle {
+impl MeClient for MeSingle {
     fn name(&self) -> String {
         self.conf.name.clone()
     }
@@ -443,13 +443,13 @@ impl RedisMeClient for RedisMeSingle {
 }
 
 // 个性化方法
-impl RedisMeSingle {
-    pub fn init(redis_conn: &RedisConf) -> AnyResult<Box<dyn RedisMeClient>> {
+impl MeSingle {
+    pub fn init(redis_conn: &ConnConfig) -> AnyResult<Box<dyn MeClient>> {
         let client = get_client_single(redis_conn)?;
         let conn = Self::new_conn(&client, redis_conn.db)?;
         info!("Redis单机连接初始化成功: {}", redis_conn.name);
-        Ok(Box::new(RedisMeSingle {
-            base: RedisMeBase::from(redis_conn),
+        Ok(Box::new(MeSingle {
+            base: MeBase::from(redis_conn),
             client,
             conn: Mutex::new(conn),
         }))

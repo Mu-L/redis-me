@@ -6,16 +6,16 @@ pub mod state;
 // ~~~~~~~~~~~~~~~~~~~~~模块测试~~~~~~~~~~~~~~~~~~~~~
 #[cfg(test)]
 mod tests {
-    use crate::client::client_trait::RedisMeClient;
-    use crate::client::impl_cluster::RedisMeCluster;
-    use crate::client::impl_single::RedisMeSingle;
+    use crate::client::client_trait::MeClient;
+    use crate::client::impl_cluster::MeCluster;
+    use crate::client::impl_single::MeSingle;
     use crate::utils::conn::{get_client_cluster, get_client_single};
     use crate::utils::model::*;
     use crate::utils::util::AnyResult;
     use redis::TlsMode;
     use redis::cluster::{ClusterClient, ClusterPipeline};
 
-    fn client() -> Box<dyn RedisMeClient> {
+    fn client() -> Box<dyn MeClient> {
         // default_provider().install_default()
         //     .expect("Failed to install rustls crypto provider");
         client_single()
@@ -23,21 +23,21 @@ mod tests {
     }
 
     #[allow(unused)]
-    fn conf_single() -> RedisConf {
-        RedisConf {
+    fn conf_single() -> ConnConfig {
+        ConnConfig {
             id: "test".into(),
             name: "test".into(),
             host: "ali.hepengju.com".into(),
             port: 6379,
             username: "".into(),
             password: "hepengju".into(),
-            ..RedisConf::default()
+            ..ConnConfig::default()
         }
     }
 
     #[allow(unused)]
-    fn conf_cluster() -> RedisConf {
-        RedisConf {
+    fn conf_cluster() -> ConnConfig {
+        ConnConfig {
             id: "test".into(),
             name: "test".into(),
             host: "ali.hepengju.com".into(),
@@ -45,20 +45,20 @@ mod tests {
             username: "".into(),
             password: "hepengju".into(),
             db: 0,
-            ..RedisConf::default()
+            ..ConnConfig::default()
         }
     }
 
     #[allow(unused)]
-    fn client_single() -> Box<dyn RedisMeClient> {
+    fn client_single() -> Box<dyn MeClient> {
         let conf = conf_single();
-        RedisMeSingle::init(&conf).unwrap()
+        MeSingle::init(&conf).unwrap()
     }
 
     #[allow(unused)]
-    fn client_cluster() -> Box<dyn RedisMeClient> {
+    fn client_cluster() -> Box<dyn MeClient> {
         let conf = conf_cluster();
-        RedisMeCluster::init(&conf).unwrap()
+        MeCluster::init(&conf).unwrap()
     }
 
     #[test]

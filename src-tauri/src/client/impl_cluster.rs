@@ -20,22 +20,22 @@ use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
 
-pub struct RedisMeCluster {
-    base: RedisMeBase,
+pub struct MeCluster {
+    base: MeBase,
     client: ClusterClient,
     conn: Mutex<ClusterConnection>,
     node_list: Vec<RedisNode>,
 }
 
-impl Deref for RedisMeCluster {
-    type Target = RedisMeBase;
+impl Deref for MeCluster {
+    type Target = MeBase;
 
     fn deref(&self) -> &Self::Target {
         &self.base
     }
 }
 
-impl Drop for RedisMeCluster {
+impl Drop for MeCluster {
     fn drop(&mut self) {
         self.subscribe_stop().unwrap_or(());
         self.monitor_stop().unwrap_or(());
@@ -43,7 +43,7 @@ impl Drop for RedisMeCluster {
     }
 }
 
-impl RedisMeClient for RedisMeCluster {
+impl MeClient for MeCluster {
     fn name(&self) -> String {
         self.conf.name.clone()
     }
@@ -553,8 +553,8 @@ impl RedisMeClient for RedisMeCluster {
 }
 
 // 个性化方法
-impl RedisMeCluster {
-    pub fn init(redis_conn: &RedisConf) -> AnyResult<Box<dyn RedisMeClient>> {
+impl MeCluster {
+    pub fn init(redis_conn: &ConnConfig) -> AnyResult<Box<dyn MeClient>> {
         let client = get_client_cluster(redis_conn)?;
         let mut conn = Self::new_conn(&client)?;
 
@@ -563,8 +563,8 @@ impl RedisMeCluster {
         let node_list = Self::parse_node_list(cluster_nodes)?;
         info!("Redis集群连接初始化成功: {}", redis_conn.name);
 
-        Ok(Box::new(RedisMeCluster {
-            base: RedisMeBase::from(redis_conn),
+        Ok(Box::new(MeCluster {
+            base: MeBase::from(redis_conn),
             client,
             conn: Mutex::new(conn),
             node_list,

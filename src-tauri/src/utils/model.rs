@@ -13,7 +13,7 @@ api_model!(RedisDB { db: u8, size: u64 });
 // 连接信息
 api_model!(
 #[derive(Default)]
-RedisConf {
+ConnConfig {
     id: String,
     name: String,
 
@@ -67,7 +67,7 @@ SshOption {
     pkfile: String,
 });
 
-impl RedisConf {
+impl ConnConfig {
     pub fn test(&self) -> AnyResult<()> {
         if self.cluster {
             get_client_cluster(self)?;
