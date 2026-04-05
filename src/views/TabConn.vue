@@ -12,7 +12,8 @@ import {
   meConfirm,
   meDownloadUpdate,
   meErr,
-  meJsonParse, meLog,
+  meJsonParse,
+  meLog,
   meOk,
   PREDEFINE_COLORS,
 } from '@/utils/util.js'
@@ -232,7 +233,9 @@ function clickNew() {
               type="primary"
               @click="selectConn(scope.row)"
               :style="{ '--el-link-text-color': scope.row.color }">
-              <me-icon :icon="scope.row.cluster ? 'me-icon-cluster' : 'el-icon-monitor'" :name="scope.row.name" />
+              <me-icon
+                :icon="scope.row.cluster ? 'me-icon-cluster' : 'el-icon-monitor'"
+                :name="scope.row.name" />
             </el-link>
           </div>
         </template>

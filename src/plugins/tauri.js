@@ -93,33 +93,34 @@ export function checkConnList(connList) {
     // v1.6.0 兼容旧版本，补充哨兵模式属性;
     // v2.7.0 属性移动到sentinelOption中
     if (!('sentinel' in conn) || typeof conn.sentinel != 'boolean') conn.sentinel = false
-    if (!('sentinelOption' in conn)) conn.sentinelOption = {
-      masterName: '',
-      masterUsername: '',
-      masterPassword: '',
-    }
+    if (!('sentinelOption' in conn))
+      conn.sentinelOption = { masterName: '', masterUsername: '', masterPassword: '' }
 
-    if (!conn.sentinelOption.masterName && conn.masterName)     conn.sentinelOption.masterName = conn.masterName
-    if (!conn.sentinelOption.masterUsername && conn.masterUsername) conn.sentinelOption.masterUsername = conn.masterUsername
-    if (!conn.sentinelOption.masterPassword && conn.masterPassword) conn.sentinelOption.masterPassword = conn.masterPassword
+    if (!conn.sentinelOption.masterName && conn.masterName)
+      conn.sentinelOption.masterName = conn.masterName
+    if (!conn.sentinelOption.masterUsername && conn.masterUsername)
+      conn.sentinelOption.masterUsername = conn.masterUsername
+    if (!conn.sentinelOption.masterPassword && conn.masterPassword)
+      conn.sentinelOption.masterPassword = conn.masterPassword
     if ('masterName' in conn) delete conn.masterName
     if ('masterUsername' in conn) delete conn.masterUsername
     if ('masterPassword' in conn) delete conn.masterPassword
 
     // v2.5.0 兼容旧版本，补充meta属性
-    if (!('meta' in conn) ) conn.meta = {}
+    if (!('meta' in conn)) conn.meta = {}
 
     // v2.7.0 兼容旧版本，补充SSH属性
     if (!('ssh' in conn) || typeof conn.ssh != 'boolean') conn.ssh = false
-    if (!('sshOption' in conn)) conn.sshOption = {
-      host: '',
-      port: 22,
-      loginType: 'pwd', // pwd 用户名/密码, pkfile 私钥文件
-      username: '',
-      password: '',
-      pkfile: '',     // 私钥文件
-      passphrase: '', // 私钥密码
-    }
+    if (!('sshOption' in conn))
+      conn.sshOption = {
+        host: '',
+        port: 22,
+        loginType: 'pwd', // pwd 用户名/密码, pkfile 私钥文件
+        username: '',
+        password: '',
+        pkfile: '', // 私钥文件
+        passphrase: '', // 私钥密码
+      }
   })
 }
 

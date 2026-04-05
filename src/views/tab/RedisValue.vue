@@ -460,7 +460,7 @@ async function showGroups() {
                 :info="t('redisValue.prettyHint')"
                 placement="bottom-end"
                 icon="el-icon-magic-stick"
-                :style="{color: isPretty? 'var(--el-color-primary)' : ''}"
+                :style="{ color: isPretty ? 'var(--el-color-primary)' : '' }"
                 @click="isPretty = !isPretty" />
             </el-button-group>
           </div>

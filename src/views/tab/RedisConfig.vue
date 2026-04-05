@@ -182,9 +182,7 @@ const rules = computed(() => ({
         <div class="me-flex">
           <node-list v-model="node" style="margin-right: 10px" @change="refresh" />
           <el-dropdown @command="handleCommand">
-            <el-button plain icon="el-icon-notebook">{{
-              t('redisConfig.reference')
-            }}</el-button>
+            <el-button plain icon="el-icon-notebook">{{ t('redisConfig.reference') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item :command="item" v-for="item in configVersionList">{{
