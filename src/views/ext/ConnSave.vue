@@ -303,12 +303,12 @@ watch(
 
       <!-- 颜色、复选框 -->
       <el-row :gutter="24" justify="space-between">
-        <el-col :span="5">
+        <el-col :span="6">
           <el-form-item :label="t('conn.color')">
             <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS" />
           </el-form-item>
         </el-col>
-        <el-col :span="19" style="padding-left: 0;">
+        <el-col :span="18" style="padding-left: 0; padding-right: 0">
           <el-checkbox v-model="form.ssh">SSH</el-checkbox>
           <el-checkbox v-model="form.ssl">SSL</el-checkbox>
           <el-checkbox v-model="form.readonly">
@@ -408,7 +408,7 @@ watch(
             <el-input
               v-model.trim="form.sshOption.passphrase"
               type="password"
-              placeholder="Passphrase (optional)"
+              :placeholder="t('conn.sshOption.passphraseHint')"
               clearable
               show-password />
           </el-form-item>

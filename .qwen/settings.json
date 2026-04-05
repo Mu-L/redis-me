@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vp *)",
+      "Bash(cargo check)",
+      "Bash(del *)",
+      "Bash(rm *)",
+      "Bash(select-string *)"
+    ]
+  },
+  "$version": 3
+}

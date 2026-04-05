@@ -129,6 +129,7 @@ export default {
       pkfile: '私钥',
       passphrase: '密码',
       pkfileHint: '选择私钥文件',
+      passphraseHint: '私钥文件密码（可选）',
       hostRequired: '请输入SSH主机',
       portRequired: '请输入SSH端口',
       usernameRequired: '请输入SSH用户名',

@@ -134,6 +134,7 @@ export default {
       pkfile: 'KeyFile',
       passphrase: 'Passphrase',
       pkfileHint: 'Select private key file',
+      passphraseHint: 'Password for private key (Optional)',
       hostRequired: 'Please input SSH host',
       portRequired: 'Please input SSH port',
       usernameRequired: 'Please input SSH username',
