@@ -1,4 +1,5 @@
 use crate::utils::model::{ConnConfig, SslOption};
+use crate::utils::ssh_tunnel::SshTunnel;
 use crate::utils::util::{AnyResult, CONNECTION_CHECK_TIMEOUT};
 use anyhow::Context;
 use log::info;
@@ -10,19 +11,39 @@ use redis::{
 use std::fs;
 
 // 获取单机连接
-pub fn get_client_single(conf: &ConnConfig) -> AnyResult<Client> {
+pub fn get_client_single(conf: &ConnConfig) -> AnyResult<(Client, Option<SshTunnel>)> {
+    // SSH 隧道不支持哨兵模式
+    if conf.ssh && conf.sentinel {
+        anyhow::bail!("SSH 隧道暂不支持哨兵模式");
+    }
+
+    // 如果启用 SSH 隧道，先建立隧道
+    let ssh_tunnel = if conf.ssh {
+        let tunnel = SshTunnel::start(&conf.ssh_option, &conf.host, conf.port)?;
+        info!("SSH 隧道已建立，本地端口: {}", tunnel.local_port);
+        Some(tunnel)
+    } else {
+        None
+    };
+
+    // 决定连接目标
+    let (target_host, target_port) = if conf.ssh {
+        ("127.0.0.1", ssh_tunnel.as_ref().unwrap().local_port)
+    } else {
+        (conf.host.as_str(), conf.port)
+    };
+
     let prefix = if conf.ssl { "rediss" } else { "redis" };
     let suffix = if conf.ssl { "/#insecure" } else { "" };
 
     let redis_url = format!(
         "{}://{}:{}@{}:{}{}",
-        prefix, conf.username, conf.password, conf.host, conf.port, suffix
+        prefix, conf.username, conf.password, target_host, target_port, suffix
     );
     let redis_url_log = format!(
         "{}://{}:{}@{}:{}{}",
-        prefix, conf.username, "******", conf.host, conf.port, suffix
+        prefix, conf.username, "******", target_host, target_port, suffix
     );
-    // 日志打印中去除密码显示
     info!("redis_url: {redis_url_log}");
 
     let certs = get_tls_certs(conf.ssl_option.clone())?;
@@ -42,7 +63,7 @@ pub fn get_client_single(conf: &ConnConfig) -> AnyResult<Client> {
     if conf.sentinel {
         client = get_client_sentinel(conf)?;
     }
-    Ok(client)
+    Ok((client, ssh_tunnel))
 }
 
 fn get_client_sentinel(conf: &ConnConfig) -> AnyResult<Client> {
@@ -105,6 +126,11 @@ fn get_client_sentinel(conf: &ConnConfig) -> AnyResult<Client> {
 
 // 获取集群连接
 pub fn get_client_cluster(conf: &ConnConfig) -> AnyResult<ClusterClient> {
+    // SSH 隧道不支持集群模式
+    if conf.ssh {
+        anyhow::bail!("SSH 隧道暂不支持集群模式");
+    }
+
     let prefix = if conf.ssl { "rediss" } else { "redis" };
     let suffix = if conf.ssl { "/#insecure" } else { "" };
     let redis_url = format!("{}://{}:{}{}", prefix, conf.host, conf.port, suffix);

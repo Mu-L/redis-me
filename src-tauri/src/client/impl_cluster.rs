@@ -437,7 +437,7 @@ impl MeClient for MeCluster {
     }
 
     fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
-        let conn = get_client_single(&self.conf)?.get_connection()?;
+        let conn = get_client_single(&self.conf)?.0.get_connection()?;
         let running = self.subscribe_running.clone();
         subscribe0(conn, running, app_handle, channel, self.id.clone())
     }
@@ -453,7 +453,7 @@ impl MeClient for MeCluster {
             conf.host = host.to_string();
             conf.port = port.parse::<u16>()?;
         }
-        let conn = get_client_single(&conf)?.get_connection()?;
+        let conn = get_client_single(&conf)?.0.get_connection()?;
         let running = self.monitor_running.clone();
         monitor0(conn, running, app_handle, self.id.clone())
     }

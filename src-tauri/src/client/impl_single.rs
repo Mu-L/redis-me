@@ -2,6 +2,7 @@ use crate::client::client_trait::*;
 use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_single, set_client_name};
 use crate::utils::model::*;
+use crate::utils::ssh_tunnel::SshTunnel;
 use crate::utils::util::*;
 use anyhow::bail;
 use chrono::Utc;
@@ -19,6 +20,9 @@ pub struct MeSingle {
     base: MeBase,
     client: Client,
     conn: Mutex<Connection>,
+    // SSH 隧道，在 Drop 时自动关闭
+    #[allow(dead_code)]
+    ssh_tunnel: Option<SshTunnel>,
 }
 
 impl Deref for MeSingle {
@@ -31,8 +35,9 @@ impl Deref for MeSingle {
 
 impl Drop for MeSingle {
     fn drop(&mut self) {
-        self.subscribe_stop().unwrap_or(());
-        self.monitor_stop().unwrap_or(());
+        // Drop 时静默忽略错误（连接可能已关闭）
+        let _ = self.subscribe_stop();
+        let _ = self.monitor_stop();
         self.export_import_running.store(false, Relaxed);
     }
 }
@@ -445,13 +450,14 @@ impl MeClient for MeSingle {
 // 个性化方法
 impl MeSingle {
     pub fn init(redis_conn: &ConnConfig) -> AnyResult<Box<dyn MeClient>> {
-        let client = get_client_single(redis_conn)?;
+        let (client, ssh_tunnel) = get_client_single(redis_conn)?;
         let conn = Self::new_conn(&client, redis_conn.db)?;
         info!("Redis单机连接初始化成功: {}", redis_conn.name);
         Ok(Box::new(MeSingle {
             base: MeBase::from(redis_conn),
             client,
             conn: Mutex::new(conn),
+            ssh_tunnel,
         }))
     }
 

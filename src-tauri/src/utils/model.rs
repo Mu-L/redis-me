@@ -65,6 +65,7 @@ SshOption {
     username: String,
     password: String,
     pkfile: String,
+    passphrase: String,
 });
 
 impl ConnConfig {
@@ -74,13 +75,15 @@ impl ConnConfig {
         } else {
             get_client_single(self)?;
         };
+        // 单机模式返回的元组在测试后丢弃，SSH 隧道随之关闭
+        // 集群模式不支持 SSH
         Ok(())
     }
 
     pub fn masters(&self) -> AnyResult<Vec<HashMap<String, String>>> {
         let mut conf = self.clone();
         conf.sentinel = false;
-        let client = get_client_single(&conf)?;
+        let (client, _) = get_client_single(&conf)?;
         let mut conn = client.get_connection()?;
         let masters: Vec<HashMap<String, String>> =
             redis::cmd("sentinel").arg("masters").query(&mut conn)?;

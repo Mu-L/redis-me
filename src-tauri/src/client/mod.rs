@@ -61,9 +61,20 @@ mod tests {
         MeCluster::init(&conf).unwrap()
     }
 
+    #[allow(unused)]
+    fn client_single_ssh() -> Box<dyn MeClient> {
+        let mut conf = conf_single();
+        conf.ssh = true;
+        conf.ssh_option.host = "ali.hepengju.com".into();
+        conf.ssh_option.port = 22;
+        conf.ssh_option.username ="root".into();
+        conf.ssh_option.password = "He736458!".into();
+        MeSingle::init(&conf).unwrap()
+    }
+
     #[test]
     fn test_info() {
-        let result = client().info(None).unwrap();
+        let result = client_single_ssh().info(None).unwrap();
         println!("{result:#?}");
     }
 
@@ -112,7 +123,7 @@ mod tests {
     #[test]
     fn test_field_scan_mock() -> AnyResult<()> {
         let conn_single = conf_single();
-        let client = get_client_single(&conn_single)?;
+        let (client, _) = get_client_single(&conn_single)?;
         let mut conn = client.get_connection()?;
 
         let mut pipe = redis::pipe();
