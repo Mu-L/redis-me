@@ -185,10 +185,12 @@ watch(
     destroy-on-close
     align-center>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="right" label-width="60">
+      <!-- 连接名称 -->
       <el-form-item :label="t('conn.name')" prop="name">
         <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
       </el-form-item>
 
+      <!-- 主机、端口 -->
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item :label="t('conn.host')" prop="host">
@@ -209,6 +211,7 @@ watch(
         </el-col>
       </el-row>
 
+      <!-- 用户名、密码 -->
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item :label="t('conn.username')">
@@ -227,13 +230,15 @@ watch(
         </el-col>
       </el-row>
 
+      <!-- 颜色、复选框 -->
       <el-row :gutter="24">
         <el-col :span="5">
           <el-form-item :label="t('conn.color')">
             <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS" />
           </el-form-item>
         </el-col>
-        <el-col :span="19">
+        <el-col :span="19" style="padding-left: 0">
+          <el-checkbox v-model="form.ssh">SSH</el-checkbox>
           <el-checkbox v-model="form.ssl">SSL</el-checkbox>
           <el-checkbox v-model="form.readonly">
             <me-icon
@@ -258,6 +263,10 @@ watch(
           </el-checkbox>
         </el-col>
       </el-row>
+
+      <div v-show="form.ssh">
+
+      </div>
 
       <div v-show="form.sentinel">
         <el-divider content-position="left">{{ t('conn.sentinelConfig') }}</el-divider>
@@ -334,3 +343,9 @@ watch(
     </template>
   </el-dialog>
 </template>
+
+<style scoped lang="scss">
+:deep(.el-checkbox) {
+  margin-right: 20px;
+}
+</style>

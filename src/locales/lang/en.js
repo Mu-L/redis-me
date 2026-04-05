@@ -126,7 +126,7 @@ export default {
     keyHint: 'Private Key File in PEM format',
     caHint: 'Certificate Authority File in PEM format',
     testConn: 'Test Conn',
-    readonly: 'Read Only',
+    readonly: 'RO',
     readonlyShort: 'RO',
     nameRequired: 'Please Input host',
     portRequired: 'Please Input port',
@@ -134,7 +134,7 @@ export default {
     downloading: 'Downloading',
 
     readonlyTip:
-      'In read-only mode, all editing buttons are hidden (they can be dynamically switched to display)',
+      'In Read-Only mode, all editing buttons are hidden (they can be dynamically switched to display)',
     clusterTip:
       'Select any node in the cluster to fill in, and other nodes will be identified automatically',
     sentinelTip:
