@@ -96,6 +96,7 @@ export default {
     importFormatErr: '文件连接格式错误',
 
     // 新增编辑
+    labelWidth: '60',
     addConn: '新增连接',
     editConn: '编辑连接',
     deleteConn: '确认删除连接【{name}】吗？',
@@ -117,6 +118,7 @@ export default {
     autoDiscoverOk: '查询到{count}个主节点',
 
     ssh: 'SSH隧道',
+    loginType: '登录',
     sshOption: {
       host: '主机',
       port: '端口',
@@ -124,8 +126,14 @@ export default {
       password: '密码',
       loginTypePwd: '密码',
       loginTypePkfile: '私钥',
-      pkfile: '私钥文件',
-      passphrase: '私钥密码',
+      pkfile: '私钥',
+      passphrase: '密码',
+      pkfileHint: '选择私钥文件',
+      hostRequired: '请输入SSH主机',
+      portRequired: '请输入SSH端口',
+      usernameRequired: '请输入SSH用户名',
+      passwordRequired: '请输入SSH密码',
+      pkfileRequired: '请选择私钥文件',
     },
 
     nameHint: '【可选】默认自动根据主机和端口生成',

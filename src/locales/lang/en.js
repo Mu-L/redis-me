@@ -101,6 +101,7 @@ export default {
     importFormatErr: 'Invalid Format',
 
     // 新增编辑
+    labelWidth: '80',
     addConn: 'Add Conn',
     editConn: 'Edit Conn',
     deleteConn: 'Delete Connection 【{name}】?',
@@ -122,15 +123,22 @@ export default {
     autoDiscoverOk: 'Discover {count} Master | Discover {count} Masters',
 
     ssh: 'SSH Tunnel',
+    loginType: 'Login',
     sshOption: {
       host: 'Host',
       port: 'Port',
-      username: 'Username',
+      username: 'User',
       password: 'Password',
       loginTypePwd: 'Password',
-      loginTypePkfile: 'Private Key File',
-      pkfile: 'Private Key File',
+      loginTypePkfile: 'Private Key',
+      pkfile: 'KeyFile',
       passphrase: 'Passphrase',
+      pkfileHint: 'Select private key file',
+      hostRequired: 'Please input SSH host',
+      portRequired: 'Please input SSH port',
+      usernameRequired: 'Please input SSH username',
+      passwordRequired: 'Please input SSH password',
+      pkfileRequired: 'Please select private key file',
     },
 
     nameHint: '[Optional] Automatically generated based on Host and Port',
