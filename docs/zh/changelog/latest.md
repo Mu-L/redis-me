@@ -19,13 +19,14 @@
 - 应用层面的快捷键
 - 启动自动压缩是什么鬼？（RedisInsight/TinyRDM里面都有）
 - 支持配置分隔符
-- 连接: SSH隧道支持
 
 ## v2.7.0
 
+- 连接: SSH隧道支持
 - 连接: 单机和集群使用不同图标
 - Set: 简称改为E，避免和String的S重复
 - Stream类型的Groups弹框优化，加图标、高度固定
+- 信息刷新/Tag、键值删除/保存等细节样式优化
 
 ## [v2.6.0](https://mp.weixin.qq.com/s/rhs5S14vhNMHkNFmf5KONg) (2026-04-04)
 

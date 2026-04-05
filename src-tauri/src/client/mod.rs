@@ -31,14 +31,7 @@ mod tests {
             port: 6379,
             username: "".into(),
             password: "hepengju".into(),
-            db: 0,
-            cluster: false,
-            ssl: false,
-            ssl_option: None,
-            sentinel: false,
-            master_name: "".to_string(),
-            master_username: "".to_string(),
-            master_password: "".to_string(),
+            ..RedisConf::default()
         }
     }
 
@@ -52,13 +45,7 @@ mod tests {
             username: "".into(),
             password: "hepengju".into(),
             db: 0,
-            cluster: true,
-            ssl: false,
-            ssl_option: None,
-            sentinel: false,
-            master_name: "".to_string(),
-            master_username: "".to_string(),
-            master_password: "".to_string(),
+            ..RedisConf::default()
         }
     }
 

@@ -11,7 +11,9 @@ use std::collections::HashMap;
 api_model!(RedisDB { db: u8, size: u64 });
 
 // 连接信息
-api_model!(RedisConf {
+api_model!(
+#[derive(Default)]
+RedisConf {
     id: String,
     name: String,
 
@@ -19,17 +21,50 @@ api_model!(RedisConf {
     port: u16,
     username: String,
     password: String,
-    db: u8,
+    db: u16,
 
+    // 集群模式
     cluster: bool,
+
+    // SSL连接
     ssl: bool,
     ssl_option: Option<SslOption>,
 
     // 哨兵模式
     sentinel: bool,
+    sentinel_option: Option<SentinelOption>,
+
+    // SSH隧道
+    ssh: bool,
+    ssh_option: Option<SshOption>
+});
+
+api_model!(
+#[derive(Default)]
+SslOption {
+    key: String,
+    cert: String,
+    ca: String,
+});
+
+api_model!(
+#[derive(Default)]
+SentinelOption {
     master_name: String,
     master_username: String,
     master_password: String,
+});
+
+api_model!(
+#[derive(Default)]
+SshOption {
+    host: String,
+    port: u16,
+
+    login_type: String, // pwd 用户名/密码, pkfile 私钥文件
+    username: String,
+    password: String,
+    pkfile: String,
 });
 
 impl RedisConf {
@@ -52,12 +87,6 @@ impl RedisConf {
         Ok(masters)
     }
 }
-
-api_model!(SslOption {
-    key: String,
-    cert: String,
-    ca: String,
-});
 
 // 信息 图形
 api_model!(

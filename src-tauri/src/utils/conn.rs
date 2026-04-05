@@ -48,6 +48,7 @@ pub fn get_client_single(conf: &RedisConf) -> AnyResult<Client> {
 fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
     let certs = get_tls_certs(conf.ssl_option.clone())?;
     let conf = conf.clone();
+    let sentinel_option = conf.sentinel_option.clone().unwrap_or_default();
     let client = if conf.ssl
         && let Some(tls) = certs
     {
@@ -58,7 +59,7 @@ fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
             tls_params: None,
         };
         let mut builder =
-            SentinelClientBuilder::new(vec![addr], conf.master_name, SentinelServerType::Master)?
+            SentinelClientBuilder::new(vec![addr], sentinel_option.master_name, SentinelServerType::Master)?
                 .set_client_to_redis_db(conf.db as i64)
                 .set_client_to_redis_tls_mode(TlsMode::Secure)
                 .set_client_to_redis_certificates(tls.clone())
@@ -73,17 +74,17 @@ fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
         if !conf.password.is_empty() {
             builder = builder.set_client_to_sentinel_password(conf.password);
         };
-        if !conf.master_username.is_empty() {
-            builder = builder.set_client_to_redis_password(conf.master_username);
+        if !sentinel_option.master_username.is_empty() {
+            builder = builder.set_client_to_redis_password(sentinel_option.master_username);
         }
-        if !conf.master_password.is_empty() {
-            builder = builder.set_client_to_redis_password(conf.master_password);
+        if !sentinel_option.master_password.is_empty() {
+            builder = builder.set_client_to_redis_password(sentinel_option.master_password);
         }
         builder.build()?.get_client()?
     } else {
         let addr = ConnectionAddr::Tcp(conf.host, conf.port);
         let mut builder =
-            SentinelClientBuilder::new(vec![addr], conf.master_name, SentinelServerType::Master)?
+            SentinelClientBuilder::new(vec![addr], sentinel_option.master_name, SentinelServerType::Master)?
                 .set_client_to_redis_db(conf.db as i64);
         if !conf.username.is_empty() {
             builder = builder.set_client_to_sentinel_username(conf.username);
@@ -91,11 +92,11 @@ fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
         if !conf.password.is_empty() {
             builder = builder.set_client_to_sentinel_password(conf.password);
         };
-        if !conf.master_username.is_empty() {
-            builder = builder.set_client_to_redis_password(conf.master_username);
+        if !sentinel_option.master_username.is_empty() {
+            builder = builder.set_client_to_redis_password(sentinel_option.master_username);
         }
-        if !conf.master_password.is_empty() {
-            builder = builder.set_client_to_redis_password(conf.master_password);
+        if !sentinel_option.master_password.is_empty() {
+            builder = builder.set_client_to_redis_password(sentinel_option.master_password);
         }
         builder.build()?.get_client()?
     };
@@ -136,7 +137,7 @@ fn get_tls_certs(ssl_option: Option<SslOption>) -> AnyResult<Option<TlsCertifica
     if ssl_option.is_none() {
         return Ok(None);
     }
-    let ssl_option = ssl_option.unwrap();
+    let ssl_option = ssl_option.unwrap_or_default();
     if ssl_option.key.is_empty() && ssl_option.cert.is_empty() && ssl_option.ca.is_empty() {
         return Ok(None);
     };
