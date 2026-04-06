@@ -1,11 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(vp *)",
-      "Bash(cargo check)",
-      "Bash(del *)",
-      "Bash(rm *)",
-      "Bash(select-string *)"
+      "Bash(* *)",
+      "WebSearch",
+      "WebFetch(* *)"
     ]
   },
   "$version": 3
