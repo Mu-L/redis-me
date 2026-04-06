@@ -130,6 +130,7 @@ export default {
     autoDiscover: 'Auto Discover',
     autoDiscoverOk: 'Discover {count} Master | Discover {count} Masters',
 
+    ssh: 'SSH Tunnel',
     sshTip: 'Only standalone mode is supported (no cluster/sentinel)',
     sshModeTip: 'SSH tunnel does not support cluster/sentinel mode',
     sslTip: 'Use SSL encrypted connection when server has tls-port enabled',
