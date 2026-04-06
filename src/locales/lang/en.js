@@ -158,7 +158,7 @@ export default {
     readonlyShort: 'RO',
     nameRequired: 'Please Input host',
     portRequired: 'Please Input port',
-    testOk: 'Conn Success',
+    testOk: 'Test Conn Success',
     downloading: 'Downloading',
 
     readonlyTip:
@@ -602,5 +602,31 @@ export default {
     consumerName: 'Consumer Name',
     consumerPending: 'Pending',
     consumerIdle: 'Idle (ms)',
+  },
+
+  // Backend error code translations
+  errors: {
+    connection_not_found: 'Connection {id} not found',
+    connection_lock_timeout: 'Connection lock timeout, please try again later',
+    sentinel_not_supported: 'SSH tunnel does not support sentinel mode',
+    cluster_not_supported: 'SSH tunnel does not support cluster mode',
+    key_not_found: 'Key "{key}" not found',
+    key_already_exists: 'Key "{key}" already exists',
+    key_type_unsupported: 'Unsupported value type: {value_type}',
+    key_type_unknown: 'Unknown value type: {value_type}',
+    field_not_found: 'Hash key "{hash_key}" not found',
+    field_not_found_stream: 'Stream ID "{stream_id}" not found',
+    field_operation_not_supported: 'Unsupported operation mode: {mode}',
+    field_scan_not_supported: 'Field scan does not support type: {value_type}',
+    invalid_node_format: 'Invalid node format: {node}',
+    export_import_running: 'Export/Import task is already running',
+    empty_key_list: 'Key list is empty',
+    empty_parameters: 'Parameters cannot be empty',
+    import_invalid_line: 'Invalid import line: {line}',
+    ssh_key_file_empty: 'SSH private key file path is empty',
+    ssh_login_method_not_supported: 'Unsupported SSH login method: {method}',
+    ssh_auth_failed: 'SSH authentication failed',
+    file_read_failed: 'File read failed: {filename} ({detail})',
+    file_write_failed: 'File write failed: {filename} ({detail})',
   },
 }

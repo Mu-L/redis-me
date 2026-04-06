@@ -1,6 +1,7 @@
 use crate::client::client_trait::*;
 use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_single, set_client_name};
+use crate::utils::error::AppError;
 use crate::utils::model::*;
 use crate::utils::ssh_tunnel::SshTunnel;
 use crate::utils::util::*;
@@ -515,7 +516,7 @@ impl MeSingle {
                     }
                 }
             }),
-            None => bail!("connection acquisition lock timeout"),
+            None => bail!(AppError::ConnectionLockTimeout),
         }
     }
 

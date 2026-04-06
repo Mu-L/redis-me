@@ -1,3 +1,4 @@
+use crate::utils::error::AppError;
 use crate::utils::model::SshOption;
 use crate::utils::util::AnyResult;
 use log::{info, warn};
@@ -140,7 +141,7 @@ impl SshTunnel {
             "pwd" | "" => { sess.userauth_password(username, &ssh_option.password)?; }
             "pkfile" => {
                 if ssh_option.pkfile.is_empty() {
-                    anyhow::bail!("私钥文件路径为空");
+                    anyhow::bail!(AppError::SshKeyFileEmpty);
                 }
                 let passphrase = if ssh_option.passphrase.is_empty() {
                     None
@@ -149,9 +150,9 @@ impl SshTunnel {
                 };
                 sess.userauth_pubkey_file(username, None, Path::new(&ssh_option.pkfile), passphrase)?;
             }
-            other => anyhow::bail!("不支持的 SSH 登录方式: {}", other),
+            other => anyhow::bail!(AppError::SshLoginMethodNotSupported { method: other.into() }),
         }
-        if !sess.authenticated() { anyhow::bail!("SSH 认证失败"); }
+        if !sess.authenticated() { anyhow::bail!(AppError::SshAuthFailed); }
         info!("SSH 认证成功，用户: {}", username);
         Ok(())
     }

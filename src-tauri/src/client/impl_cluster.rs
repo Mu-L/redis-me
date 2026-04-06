@@ -1,6 +1,7 @@
 use crate::client::client_trait::*;
 use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name};
+use crate::utils::error::AppError;
 use crate::utils::model::*;
 use crate::utils::util::*;
 use Ordering::Relaxed;
@@ -610,7 +611,7 @@ impl MeCluster {
                     }
                 }
             }),
-            None => bail!("connection acquisition lock timeout"),
+            None => bail!(AppError::ConnectionLockTimeout),
         }
     }
 
@@ -652,7 +653,7 @@ impl MeCluster {
             });
             Ok((route, node))
         } else {
-            bail!("invalid node format: {}", node)
+            bail!(AppError::InvalidNodeFormat { node })
         }
     }
 

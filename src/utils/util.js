@@ -81,6 +81,36 @@ export const isZh = computed(() => {
 // 是否黑色主题
 export const isDark = useDark()
 
+// ~~~~~~~~~~~~~ 后端错误码国际化处理
+/**
+ * 尝试解析后端 AppError JSON
+ */
+function tryParseAppError(errorStr) {
+  try {
+    const parsed = JSON.parse(errorStr)
+    if (parsed && typeof parsed.code === 'string') {
+      return parsed
+    }
+  } catch {
+    // 不是 JSON 格式
+  }
+  return null
+}
+
+/**
+ * 翻译 AppError 为用户可见的消息
+ */
+function translateAppError(appError) {
+  const { code, ...params } = appError
+  const translationKey = `errors.${code}`
+  const message = t(translationKey, params)
+  // 如果找不到翻译，返回 code + 参数
+  if (message === translationKey) {
+    return `${code}: ${JSON.stringify(params)}`
+  }
+  return message
+}
+
 // invoke命令: 打印日志
 let retryCount = 0
 export async function meInvoke(command, params, alert = true) {
@@ -101,7 +131,15 @@ export async function meInvoke(command, params, alert = true) {
     }
 
     if (alert) {
-      meErr(error, t('error') + (isDev ? ': ' + command : ''))
+      // 尝试解析为结构化错误（AppError JSON）
+      const appError = tryParseAppError(error)
+      if (appError) {
+        // 使用 i18n 翻译错误
+        meErr(translateAppError(appError), t('error') + (isDev ? ': ' + command : ''))
+      } else {
+        // 回退到原始错误消息
+        meErr(error, t('error') + (isDev ? ': ' + command : ''))
+      }
     }
 
     meLog(`命令: ${command}, 参数:`, params, `, 错误: ${error}`)

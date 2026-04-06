@@ -1,7 +1,8 @@
+use crate::utils::error::AppError;
 use crate::utils::model::{ConnConfig, SslOption};
 use crate::utils::ssh_tunnel::SshTunnel;
 use crate::utils::util::{AnyResult, CONNECTION_CHECK_TIMEOUT};
-use anyhow::Context;
+use anyhow::{bail, Context};
 use log::info;
 use redis::cluster::{ClusterClient, ClusterConfig};
 use redis::sentinel::{SentinelClientBuilder, SentinelServerType};
@@ -14,7 +15,7 @@ use std::fs;
 pub fn get_client_single(conf: &ConnConfig) -> AnyResult<(Client, Option<SshTunnel>)> {
     // SSH 隧道不支持哨兵模式
     if conf.ssh && conf.sentinel {
-        anyhow::bail!("SSH 隧道暂不支持哨兵模式");
+        bail!(AppError::SentinelNotSupported);
     }
 
     // 如果启用 SSH 隧道，先建立隧道
@@ -128,7 +129,7 @@ fn get_client_sentinel(conf: &ConnConfig) -> AnyResult<Client> {
 pub fn get_client_cluster(conf: &ConnConfig) -> AnyResult<ClusterClient> {
     // SSH 隧道不支持集群模式
     if conf.ssh {
-        anyhow::bail!("SSH 隧道暂不支持集群模式");
+        bail!(AppError::ClusterNotSupported);
     }
 
     let prefix = if conf.ssl { "rediss" } else { "redis" };

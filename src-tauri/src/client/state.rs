@@ -1,9 +1,9 @@
 use crate::client::client_trait::MeClient;
 use crate::client::impl_cluster::MeCluster;
 use crate::client::impl_single::MeSingle;
+use crate::utils::error::AppError;
 use crate::utils::model::ConnConfig;
 use crate::utils::util::AnyResult;
-use anyhow::anyhow;
 use log::{debug, info};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
@@ -53,7 +53,7 @@ impl ClientAccess for AppHandle {
     fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>> {
         let state: State<AppState> = self.state();
         let map = state.connections.lock().unwrap();
-        let conn = map.get(id).ok_or(anyhow!("no connection found: {}", id))?;
+        let conn = map.get(id).ok_or(AppError::ConnectionNotFound { id: id.into() })?;
 
         let mut clients = state.clients.write().unwrap();
         let client = Arc::new(if conn.cluster {

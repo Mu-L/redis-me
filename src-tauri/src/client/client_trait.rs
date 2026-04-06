@@ -1,4 +1,5 @@
 use crate::utils::conn::set_client_name;
+use crate::utils::error::AppError;
 use crate::utils::model::*;
 use crate::utils::util::*;
 use Ordering::Relaxed;
@@ -199,7 +200,7 @@ pub fn get0(
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 match value {
                     Some(str) => serde_json::to_value(vec8_to_display_string(&str)),
-                    None => bail!("HashKey Not Exists: 【{}】", hash_key),
+                    None => bail!(AppError::FieldNotFound { hash_key: hash_key.into() }),
                 }
             } else {
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
@@ -214,7 +215,7 @@ pub fn get0(
                 let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
                 match reply.ids.pop() {
                     Some(entry) => serde_json::to_value(ui_stream_id(entry.map)),
-                    None => bail!("StreamId Not Exists: 【{}】", hash_key),
+                    None => bail!(AppError::FieldNotFoundStream { stream_id: hash_key.into() }),
                 }
             } else {
                 let reply: StreamRangeReply = conn.xrange_all(&key)?;
@@ -276,7 +277,7 @@ pub fn field_scan_0_get(
                         cc.finished = true;
                         Some(serde_json::to_value(vec8_to_display_string(&str))?)
                     }
-                    None => bail!("HashKey Not Exists: 【{}】", hash_key),
+                    None => bail!(AppError::FieldNotFound { hash_key: hash_key.into() }),
                 }
             } else {
                 None
@@ -314,7 +315,7 @@ pub fn field_scan_0_get(
                         cc.finished = true;
                         Some(serde_json::to_value(ui_stream_id(entry.map))?)
                     }
-                    None => bail!("StreamId Not Exists: 【{}】", hash_key),
+                    None => bail!(AppError::FieldNotFoundStream { stream_id: hash_key.into() }),
                 }
             } else {
                 // https://redis.ac.cn/docs/latest/commands/xrange/
@@ -387,7 +388,10 @@ pub fn field_scan_1_cmd(
         ValueType::Hash => "hscan",
         ValueType::Set => "sscan",
         ValueType::ZSet => "zscan",
-        _ => bail!("field scan not support now"),
+        _ => {
+            let value_type_str = format!("{:?}", key_type);
+            bail!(AppError::FieldScanNotSupported { value_type: value_type_str })
+        }
     };
 
     // SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
@@ -425,7 +429,10 @@ pub fn field_scan_2_value(
             scan_value.zset.extend(ui_zset_value(value));
             new_count
         }
-        _ => bail!("field scan not support now"),
+        _ => {
+            let value_type_str = format!("{:?}", key_type);
+            bail!(AppError::FieldScanNotSupported { value_type: value_type_str })
+        }
     };
     Ok(new_count)
 }
@@ -434,11 +441,12 @@ pub fn field_scan_3_json(
     key_type: &ValueType,
     scan_value: &FieldScanValue,
 ) -> AnyResult<serde_json::value::Value> {
+    let value_type_str = format!("{:?}", key_type);
     let value = match key_type {
         ValueType::Hash => serde_json::to_value(&scan_value.hash)?,
         ValueType::Set => serde_json::to_value(&scan_value.set)?,
         ValueType::ZSet => serde_json::to_value(&scan_value.zset)?,
-        _ => bail!("field scan not support now"),
+        _ => bail!(AppError::FieldScanNotSupported { value_type: value_type_str }),
     };
     Ok(value)
 }
@@ -531,18 +539,14 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
     if "key" == mode {
         // 新增键
         let exists: bool = conn.exists(&key)?;
-        assert_is_true(
-            !exists,
-            format!(
-                "Key ready exits: {}",
-                vec8_to_display_string(key.to_bytes())
-            ),
-        )?
+        if exists {
+            bail!(AppError::KeyAlreadyExists { key: vec8_to_display_string(key.to_bytes()) })
+        }
     } else if "field" == mode {
         // 新增字段
         key_type = conn.key_type(&key)?
     } else {
-        bail!("mode: {} unsupported now", mode)
+        bail!(AppError::FieldOperationNotSupported { mode: mode.into() })
     }
 
     let fv_list = param.field_value_list;
@@ -742,16 +746,13 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
     match value_type {
         ValueType::Unknown(other) => {
             if "none" == other {
-                bail!(
-                    "Key Not Exists: 【{}】",
-                    vec8_to_display_string(key.to_bytes())
-                )
+                bail!(AppError::KeyNotFound { key: vec8_to_display_string(key.to_bytes()) })
             } else {
-                bail!("Unknown ValueType: {other}")
+                bail!(AppError::KeyTypeUnknown { value_type: other.into() })
             }
         }
         //ValueType::Stream => bail!("Unsupported Type: Stream"),
-        _ => bail!("Unsupported Type: {value_type:?}"),
+        _ => bail!(AppError::KeyTypeUnsupported { value_type: format!("{:?}", value_type) }),
     }
 }
 
@@ -762,7 +763,7 @@ pub fn batch_key0(
 ) -> AnyResult<Vec<RedisKey>> {
     let key_list = if param.key_list.is_empty() {
         if param.pattern.is_empty() {
-            bail!("key list and pattern parameters cannot both be empty")
+            bail!(AppError::EmptyParameters)
         }
         let scan_result = rmc.scan(ScanParam::all(param.pattern))?;
         info!("scan key count: {}", scan_result.key_list.len());
@@ -772,7 +773,7 @@ pub fn batch_key0(
     };
 
     if assert_not_empty && key_list.is_empty() {
-        bail!("key list is empty")
+        bail!(AppError::EmptyKeyList)
     }
 
     Ok(key_list)
@@ -780,7 +781,7 @@ pub fn batch_key0(
 
 pub fn export_import_check_running(running: Arc<AtomicBool>) -> AnyResult<()> {
     if running.load(Relaxed) {
-        bail!("export/import is running");
+        bail!(AppError::ExportImportRunning)
     }
     running.store(true, Relaxed);
     Ok(())
@@ -973,7 +974,7 @@ fn import_key(
 ) -> AnyResult<()> {
     let parts: Vec<&str> = line.split(',').collect();
     if parts.len() != 2 && parts.len() != 3 {
-        bail!("invalid line: {}", line)
+        bail!(AppError::ImportInvalidLine { line: line.into() })
     }
 
     let ttl_part = if parts.len() == 3 { parts[2] } else { "-1" };
