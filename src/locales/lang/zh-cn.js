@@ -126,9 +126,7 @@ export default {
     autoDiscoverOk: '查询到{count}个主节点',
 
     ssh: 'SSH 隧道',
-    sshTip: '只支持单机模式（不支持集群/哨兵）',
     sshModeTip: 'SSH 隧道不支持集群/哨兵模式',
-    sslTip: '当服务端开启 tls-port 时使用 SSL 加密连接',
     loginType: '登录',
     sshOption: {
       host: '主机',
@@ -157,10 +155,15 @@ export default {
     testOk: '测试连接成功',
     downloading: '下载中...',
 
-    readonlyTip: '只读模式下，所有编辑按钮隐藏（可动态切换显示）',
-    clusterTip: '选择集群中任一节点配置填入即可，会自动识别其它节点',
+    sshTip: `通过SSH隧道连接Redis服务器，适用于以下场景<br/>• Redis服务器在内网，无法直接访问<br/>• 需要通过跳板机/堡垒机访问Redis<br/>• 需要加密传输通道保障安全<br/><b>注意：</b>SSH隧道目前仅支持单机模式`,
+    sslTip:
+      '当Redis服务器开启了TLS/SSL端口时使用<br/>• 需要在Redis配置中设置 tls-port 而非 port<br/>• 可能需要提供客户端证书和私钥<br/>• 用于加密传输通道，防止数据被窃听',
+    readonlyTip:
+      '启用只读模式后<br/>• 所有编辑、删除、写入按钮被隐藏<br/>• 仅允许查看和读取Redis数据<br/>• 可通过顶部状态栏动态切换只读/可写模式',
+    clusterTip:
+      '适用于Redis Cluster集群模式<br/>• 自动识别集群中的所有节点<br/>• 只需填写任一节点的地址，系统自动发现其他节点',
     sentinelTip:
-      '多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置。主节点用户密码为哨兵监听的Master节点的用户密码',
+      '多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置<br/>主节点用户密码为哨兵监听的Master节点的用户密码',
   },
 
   util: {
