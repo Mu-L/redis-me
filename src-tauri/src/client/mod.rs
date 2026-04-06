@@ -73,6 +73,11 @@ mod tests {
         conf.ssh_option.password =
             std::env::var("SSH_PASSWORD")
                 .expect("SSH_PASSWORD environment variable not set");
+
+        // 秘钥方式登录
+        //conf.ssh_option.login_type = "pkfile".into();
+        //conf.ssh_option.pkfile = "C:\\Users\\he_pe\\.ssh\\id_rsa".into();
+        //conf.ssh_option.passphrase = "".into();
         MeSingle::init(&conf).unwrap()
     }
 
