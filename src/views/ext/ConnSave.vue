@@ -255,7 +255,7 @@ watch(
 // SSH与集群/哨兵互斥
 watch(
   () => form.ssh,
-  (newValue) => {
+  newValue => {
     if (newValue) {
       if (form.cluster || form.sentinel) {
         meWarn(t('conn.sshModeTip'))
@@ -267,7 +267,7 @@ watch(
 
 watch(
   () => form.cluster,
-  (newValue) => {
+  newValue => {
     if (newValue && form.ssh) {
       meWarn(t('conn.sshModeTip'))
       form.cluster = false
@@ -286,7 +286,12 @@ watch(
     append-to-body
     destroy-on-close
     align-center>
-    <el-form ref="formRef" :model="form" :rules="rules" label-position="right" :label-width="t('conn.labelWidth')">
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-position="right"
+      :label-width="t('conn.labelWidth')">
       <!-- 连接名称 -->
       <el-form-item :label="t('conn.name')" prop="name">
         <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
@@ -343,35 +348,40 @@ watch(
           <el-checkbox v-model="form.ssh">
             <me-icon
               name="SSH"
-              icon="el-icon-question-filled" placement="top"
+              icon="el-icon-question-filled"
+              placement="top"
               :info="t('conn.sshTip')"
               :icon-left="false" />
           </el-checkbox>
           <el-checkbox v-model="form.ssl">
             <me-icon
-                name="SSL"
-                icon="el-icon-question-filled" placement="top"
-                :info="t('conn.sslTip')"
-                :icon-left="false" />
+              name="SSL"
+              icon="el-icon-question-filled"
+              placement="top"
+              :info="t('conn.sslTip')"
+              :icon-left="false" />
           </el-checkbox>
           <el-checkbox v-model="form.readonly">
             <me-icon
               :name="t('conn.readonly')"
-              icon="el-icon-question-filled" placement="top"
+              icon="el-icon-question-filled"
+              placement="top"
               :info="t('conn.readonlyTip')"
               :icon-left="false" />
           </el-checkbox>
           <el-checkbox v-model="form.cluster">
             <me-icon
               :name="t('conn.cluster')"
-              icon="el-icon-question-filled" placement="top"
+              icon="el-icon-question-filled"
+              placement="top"
               :info="t('conn.clusterTip')"
               :icon-left="false" />
           </el-checkbox>
           <el-checkbox v-model="form.sentinel">
             <me-icon
               :name="t('conn.sentinel')"
-              icon="el-icon-question-filled" placement="top"
+              icon="el-icon-question-filled"
+              placement="top"
               :info="t('conn.sentinelTip')"
               :icon-left="false" />
           </el-checkbox>
@@ -461,21 +471,25 @@ watch(
       <!-- SSL加密 -->
       <div v-show="form.ssl">
         <el-divider content-position="left">{{ t('conn.ssl') }}</el-divider>
-        <el-form-item :label="t('conn.cert')">
-          <me-file-input v-model="form.sslOption.cert" :placeholder="t('conn.certHint')" />
+        <el-form-item :label="t('conn.sslOption.cert')">
+          <me-file-input
+            v-model="form.sslOption.cert"
+            :placeholder="t('conn.sslOption.certHint')" />
         </el-form-item>
-        <el-form-item :label="t('conn.key')">
-          <me-file-input v-model="form.sslOption.key" :placeholder="t('conn.keyHint')" />
+        <el-form-item :label="t('conn.sslOption.key')">
+          <me-file-input v-model="form.sslOption.key" :placeholder="t('conn.sslOption.keyHint')" />
         </el-form-item>
-        <el-form-item :label="t('conn.ca')">
-          <me-file-input v-model="form.sslOption.ca" :placeholder="t('conn.caHint')" />
+        <el-form-item :label="t('conn.sslOption.ca')">
+          <me-file-input v-model="form.sslOption.ca" :placeholder="t('conn.sslOption.caHint')" />
         </el-form-item>
       </div>
 
       <!-- 哨兵模式 -->
       <div v-show="form.sentinel">
         <el-divider content-position="left">{{ t('conn.sentinelConfig') }}</el-divider>
-        <el-form-item :label="t('conn.masterName')" :label-width="t('conn.sentinelLabelWidth')">
+        <el-form-item
+          :label="t('conn.sentinelOption.masterName')"
+          :label-width="t('conn.sentinelLabelWidth')">
           <div class="me-flex" style="width: 100%">
             <el-select
               v-model="form.sentinelOption.masterName"
@@ -483,7 +497,7 @@ watch(
               filterable
               allow-create
               style="flex: 1"
-              placeholder="mymaster">
+              :placeholder="t('conn.sentinelOption.masterNameHint')">
               <el-option v-for="item in masters" :key="item.name" :value="item.name">
                 <span style="float: left">{{ item.name }}</span>
                 <span style="float: right; color: var(--el-text-color-secondary)">{{
@@ -497,21 +511,21 @@ watch(
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item
-              :label="t('conn.masterUsername')"
+              :label="t('conn.sentinelOption.masterUsername')"
               :label-width="t('conn.sentinelLabelWidth')">
               <el-input
                 v-model.trim="form.sentinelOption.masterUsername"
-                placeholder="username"
+                :placeholder="t('conn.sentinelOption.masterUsername')"
                 clearable />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item
-              :label="t('conn.masterPassword')"
+              :label="t('conn.sentinelOption.masterPassword')"
               :label-width="t('conn.sentinelLabelWidth')">
               <el-input
                 v-model.trim="form.sentinelOption.masterPassword"
-                placeholder="password"
+                :placeholder="t('conn.sentinelOption.masterPassword')"
                 type="password"
                 clearable
                 show-password />
