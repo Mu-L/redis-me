@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 import { ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import {meInvoke, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn} from '@/utils/util.js'
+import { meInvoke, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util.js'
 const { t } = useI18n()
 
 const emit = defineEmits(['success', 'closed'])
@@ -231,12 +231,14 @@ watch(
   () => form.sentinel,
   (newValue, _oldValue) => {
     if (newValue) {
-      autoDiscover()
       // 与SSH互斥
       if (form.ssh) {
-        meOk(t('conn.sshModeTip'))
-        form.ssh = false
+        meWarn(t('conn.sshModeTip'))
+        form.sentinel = false
+        return
       }
+
+      autoDiscover()
     }
   },
 )
@@ -257,8 +259,7 @@ watch(
     if (newValue) {
       if (form.cluster || form.sentinel) {
         meWarn(t('conn.sshModeTip'))
-        form.cluster = false
-        form.sentinel = false
+        form.ssh = false
       }
     }
   },
@@ -269,7 +270,7 @@ watch(
   (newValue) => {
     if (newValue && form.ssh) {
       meWarn(t('conn.sshModeTip'))
-      form.ssh = false
+      form.cluster = false
     }
   },
 )
