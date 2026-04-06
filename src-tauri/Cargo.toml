@@ -50,7 +50,7 @@ chrono-tz = "0.8"
 fern = { version = "0.7", features = ["colored"] }
 
 # SSH 隧道支持（使用 russh 支持现代密钥格式）
-russh = { version = "0.60", default-features = false, features = ["ring"] }
+russh = { version = "0.60", default-features = false, features = ["flate2", "ring", "rsa"] }
 tokio = { version = "1", features = ["full"] }
 tauri-plugin-dialog = "2"
 tauri-plugin-opener = "2"

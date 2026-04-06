@@ -77,6 +77,7 @@ mod tests {
         // 秘钥方式登录
         conf.ssh_option.login_type = "pkfile".into();
         conf.ssh_option.pkfile = "C:\\Users\\he_pe\\.ssh\\id_rsa".into();
+        // conf.ssh_option.pkfile = "C:\\Users\\he_pe\\.ssh\\id_ed25519".into();
         conf.ssh_option.passphrase = "".into();
         MeSingle::init(&conf).unwrap()
     }
