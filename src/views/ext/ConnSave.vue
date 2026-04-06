@@ -351,7 +351,8 @@ watch(
               icon="el-icon-question-filled"
               placement="top"
               :info="t('conn.sshTip')"
-              :icon-left="false" />
+              :icon-left="false"
+              raw-content />
           </el-checkbox>
           <el-checkbox v-model="form.ssl">
             <me-icon
@@ -359,7 +360,8 @@ watch(
               icon="el-icon-question-filled"
               placement="top"
               :info="t('conn.sslTip')"
-              :icon-left="false" />
+              :icon-left="false"
+              raw-content />
           </el-checkbox>
           <el-checkbox v-model="form.readonly">
             <me-icon
@@ -367,7 +369,8 @@ watch(
               icon="el-icon-question-filled"
               placement="top"
               :info="t('conn.readonlyTip')"
-              :icon-left="false" />
+              :icon-left="false"
+              raw-content />
           </el-checkbox>
           <el-checkbox v-model="form.cluster">
             <me-icon
@@ -375,7 +378,8 @@ watch(
               icon="el-icon-question-filled"
               placement="top"
               :info="t('conn.clusterTip')"
-              :icon-left="false" />
+              :icon-left="false"
+              raw-content />
           </el-checkbox>
           <el-checkbox v-model="form.sentinel">
             <me-icon
@@ -383,7 +387,8 @@ watch(
               icon="el-icon-question-filled"
               placement="top"
               :info="t('conn.sentinelTip')"
-              :icon-left="false" />
+              :icon-left="false"
+              raw-content />
           </el-checkbox>
         </el-col>
       </el-row>
