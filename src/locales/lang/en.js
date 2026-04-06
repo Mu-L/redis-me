@@ -131,9 +131,7 @@ export default {
     autoDiscoverOk: 'Discover {count} Master | Discover {count} Masters',
 
     ssh: 'SSH Tunnel',
-    sshTip: 'Only standalone mode is supported (no cluster/sentinel)',
     sshModeTip: 'SSH tunnel does not support cluster/sentinel mode',
-    sslTip: 'Use SSL encrypted connection when server has tls-port enabled',
     loginType: 'Login',
     nameHint: '[Optional] Automatically generated based on Host and Port',
     testConn: 'Test Conn',
@@ -162,12 +160,16 @@ export default {
     testOk: 'Test Conn Success',
     downloading: 'Downloading',
 
+    sshTip:
+      'Connect to Redis server via SSH tunnel, applicable to the following scenarios<br/>• Redis server is on intranet and cannot be accessed directly<br/>• Need to access Redis through jump server/bastion host<br/>• Need encrypted transmission channel for security<br/><b>Note:</b> SSH tunnel currently only supports standalone mode',
+    sslTip:
+      'Used when Redis server has TLS/SSL port enabled<br/>• Need to set tls-port instead of port in Redis configuration<br/>• May need to provide client certificate and private key<br/>• Used to encrypt transmission channel and prevent data theft',
     readonlyTip:
-      'In Read-Only mode, all editing buttons are hidden (they can be dynamically switched to display)',
+      'After enabling read-only mode<br/>• All edit, delete, and write buttons are hidden<br/>• Only allows viewing and reading Redis data<br/>• Can dynamically switch read-only/writable mode from the top status bar',
     clusterTip:
-      'Select any node in the cluster to fill in, and other nodes will be identified automatically',
+      'Applicable to Redis Cluster mode<br/>• Only need to fill in the address of any node<br/>• Automatically identifies all nodes in the cluster',
     sentinelTip:
-      'Select any node of the multiple sentinels. Please fill in the sentinel configuration for the address, port, and password. The user password of the master node is the user password of the Master node monitored by the sentinel',
+      'Choose any one of multiple sentinels, please fill in sentinel configuration for address, port, and password<br/>Master node username and password are for the Master node monitored by the sentinel',
   },
 
   util: {
