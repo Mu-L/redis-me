@@ -100,7 +100,7 @@ fn get_client_sentinel(conf: &ConnConfig) -> AnyResult<Client> {
             builder = builder.set_client_to_sentinel_password(conf.password);
         };
         if !sentinel_option.master_username.is_empty() {
-            builder = builder.set_client_to_redis_password(sentinel_option.master_username);
+            builder = builder.set_client_to_redis_username(sentinel_option.master_username);
         }
         if !sentinel_option.master_password.is_empty() {
             builder = builder.set_client_to_redis_password(sentinel_option.master_password);
@@ -121,7 +121,7 @@ fn get_client_sentinel(conf: &ConnConfig) -> AnyResult<Client> {
             builder = builder.set_client_to_sentinel_password(conf.password);
         };
         if !sentinel_option.master_username.is_empty() {
-            builder = builder.set_client_to_redis_password(sentinel_option.master_username);
+            builder = builder.set_client_to_redis_username(sentinel_option.master_username);
         }
         if !sentinel_option.master_password.is_empty() {
             builder = builder.set_client_to_redis_password(sentinel_option.master_password);
