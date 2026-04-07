@@ -1,12 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(* *)",
-      "WebSearch",
-      "WebFetch(* *)",
-      "WebFetch(crates.io)",
-      "WebFetch(docs.rs)"
-    ]
+    "allow": ["Bash(* *)", "WebSearch", "WebFetch(* *)", "WebFetch(crates.io)", "WebFetch(docs.rs)"]
   },
   "$version": 3
 }

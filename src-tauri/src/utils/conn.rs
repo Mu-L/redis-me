@@ -2,7 +2,7 @@ use crate::utils::error::AppError;
 use crate::utils::model::{ConnConfig, SslOption};
 use crate::utils::ssh_tunnel::SshTunnel;
 use crate::utils::util::{AnyResult, CONNECTION_CHECK_TIMEOUT};
-use anyhow::{bail, Context};
+use anyhow::{Context, bail};
 use log::info;
 use redis::cluster::{ClusterClient, ClusterConfig};
 use redis::sentinel::{SentinelClientBuilder, SentinelServerType};
@@ -80,13 +80,16 @@ fn get_client_sentinel(conf: &ConnConfig) -> AnyResult<Client> {
             insecure: true,
             tls_params: None,
         };
-        let mut builder =
-            SentinelClientBuilder::new(vec![addr], sentinel_option.master_name, SentinelServerType::Master)?
-                .set_client_to_redis_db(conf.db as i64)
-                .set_client_to_redis_tls_mode(TlsMode::Secure)
-                .set_client_to_redis_certificates(tls.clone())
-                .set_client_to_sentinel_tls_mode(TlsMode::Secure)
-                .set_client_to_sentinel_certificates(tls);
+        let mut builder = SentinelClientBuilder::new(
+            vec![addr],
+            sentinel_option.master_name,
+            SentinelServerType::Master,
+        )?
+        .set_client_to_redis_db(conf.db as i64)
+        .set_client_to_redis_tls_mode(TlsMode::Secure)
+        .set_client_to_redis_certificates(tls.clone())
+        .set_client_to_sentinel_tls_mode(TlsMode::Secure)
+        .set_client_to_sentinel_certificates(tls);
         // TODO ==> danger_accept_invalid_hostnames 改为 true（目前没有这个属性）
         // https://github.com/redis-rs/redis-rs/issues/1931
 
@@ -105,9 +108,12 @@ fn get_client_sentinel(conf: &ConnConfig) -> AnyResult<Client> {
         builder.build()?.get_client()?
     } else {
         let addr = ConnectionAddr::Tcp(conf.host, conf.port);
-        let mut builder =
-            SentinelClientBuilder::new(vec![addr], sentinel_option.master_name, SentinelServerType::Master)?
-                .set_client_to_redis_db(conf.db as i64);
+        let mut builder = SentinelClientBuilder::new(
+            vec![addr],
+            sentinel_option.master_name,
+            SentinelServerType::Master,
+        )?
+        .set_client_to_redis_db(conf.db as i64);
         if !conf.username.is_empty() {
             builder = builder.set_client_to_sentinel_username(conf.username);
         };

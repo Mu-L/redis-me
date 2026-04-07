@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// 应用错误 - 参数直接存在枚举中
-/// 
+///
 /// 序列化示例:
 /// ```json
 /// {
@@ -9,9 +9,9 @@ use serde::{Deserialize, Serialize};
 ///   "key": "user:1001"
 /// }
 /// ```
-/// 
+///
 /// 前端根据 `code` 字段获取翻译模板，其他字段用于插值
-/// 
+///
 /// 使用方式:
 /// ```rust
 /// bail!(AppError::KeyNotFound { key: "user:1001".into() })
@@ -72,7 +72,9 @@ mod tests {
 
     #[test]
     fn test_error_serialization() {
-        let err = AppError::KeyNotFound { key: "user:1001".into() };
+        let err = AppError::KeyNotFound {
+            key: "user:1001".into(),
+        };
         let json = serde_json::to_string(&err).unwrap();
         println!("Error JSON: {}", json);
 

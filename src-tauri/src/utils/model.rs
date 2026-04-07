@@ -12,61 +12,65 @@ api_model!(RedisDB { db: u8, size: u64 });
 
 // 连接信息
 api_model!(
-#[derive(Default)]
-ConnConfig {
-    id: String,
-    name: String,
+    #[derive(Default)]
+    ConnConfig {
+        id: String,
+        name: String,
 
-    host: String,
-    port: u16,
-    username: String,
-    password: String,
-    db: u16,
+        host: String,
+        port: u16,
+        username: String,
+        password: String,
+        db: u16,
 
-    // 集群模式
-    cluster: bool,
+        // 集群模式
+        cluster: bool,
 
-    // SSL连接
-    ssl: bool,
-    ssl_option: SslOption,
+        // SSL连接
+        ssl: bool,
+        ssl_option: SslOption,
 
-    // 哨兵模式
-    sentinel: bool,
-    sentinel_option: SentinelOption,
+        // 哨兵模式
+        sentinel: bool,
+        sentinel_option: SentinelOption,
 
-    // SSH隧道
-    ssh: bool,
-    ssh_option: SshOption
-});
-
-api_model!(
-#[derive(Default)]
-SslOption {
-    key: String,
-    cert: String,
-    ca: String,
-});
+        // SSH隧道
+        ssh: bool,
+        ssh_option: SshOption
+    }
+);
 
 api_model!(
-#[derive(Default)]
-SentinelOption {
-    master_name: String,
-    master_username: String,
-    master_password: String,
-});
+    #[derive(Default)]
+    SslOption {
+        key: String,
+        cert: String,
+        ca: String,
+    }
+);
 
 api_model!(
-#[derive(Default)]
-SshOption {
-    host: String,
-    port: u16,
+    #[derive(Default)]
+    SentinelOption {
+        master_name: String,
+        master_username: String,
+        master_password: String,
+    }
+);
 
-    login_type: String, // pwd 用户名/密码, pkfile 私钥文件
-    username: String,
-    password: String,
-    pkfile: String,
-    passphrase: String,
-});
+api_model!(
+    #[derive(Default)]
+    SshOption {
+        host: String,
+        port: u16,
+
+        login_type: String, // pwd 用户名/密码, pkfile 私钥文件
+        username: String,
+        password: String,
+        pkfile: String,
+        passphrase: String,
+    }
+);
 
 impl ConnConfig {
     pub fn test(&self) -> AnyResult<()> {
@@ -177,7 +181,7 @@ api_model!(XInfoGroup{
     lag: Option<usize>
 });
 
-api_model!(XInfoConsumer{
+api_model!(XInfoConsumer {
     name: String,
     pending: usize,
     idle: usize,

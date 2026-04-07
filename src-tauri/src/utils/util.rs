@@ -41,7 +41,7 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
                 // 返回序列化的 AppError JSON
                 return Err(serde_json::to_string(&app_error).unwrap_or_else(|_| error_message));
             }
-            
+
             // 避免原始错误和source错误的字符串一致，提示两遍（比如connection timed out）
             let message = match err.source() {
                 Some(source)

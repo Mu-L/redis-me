@@ -5,8 +5,8 @@ use log::{info, warn};
 use russh::client;
 use russh::keys::key::PrivateKeyWithHashAlg;
 use std::future::Future;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tokio::io::copy_bidirectional;
 use tokio::net::TcpListener;
@@ -37,11 +37,7 @@ impl client::Handler for ClientHandler {
 
 impl SshTunnel {
     /// 启动 SSH 隧道，返回本地监听端口
-    pub fn start(
-        ssh_option: &SshOption,
-        target_host: &str,
-        target_port: u16,
-    ) -> AnyResult<Self> {
+    pub fn start(ssh_option: &SshOption, target_host: &str, target_port: u16) -> AnyResult<Self> {
         info!("SSH 隧道 {}:{}", ssh_option.host, ssh_option.port);
 
         let stop_flag = Arc::new(AtomicBool::new(false));
@@ -131,10 +127,7 @@ impl SshTunnel {
         target_host: &str,
         target_port: u16,
     ) -> AnyResult<()> {
-        info!(
-            "SSH 隧道新连接，目标: {}:{}",
-            target_host, target_port
-        );
+        info!("SSH 隧道新连接，目标: {}:{}", target_host, target_port);
 
         // 连接到 SSH 服务器
         let ssh_config = client::Config::default();
@@ -216,9 +209,7 @@ impl SshTunnel {
 
                 let key_pair = PrivateKeyWithHashAlg::new(Arc::new(key_pair), None);
 
-                session
-                    .authenticate_publickey(username, key_pair)
-                    .await?;
+                session.authenticate_publickey(username, key_pair).await?;
             }
             other => {
                 anyhow::bail!(AppError::SshLoginMethodNotSupported {

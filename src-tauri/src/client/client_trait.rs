@@ -200,7 +200,9 @@ pub fn get0(
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 match value {
                     Some(str) => serde_json::to_value(vec8_to_display_string(&str)),
-                    None => bail!(AppError::FieldNotFound { hash_key: hash_key.into() }),
+                    None => bail!(AppError::FieldNotFound {
+                        hash_key: hash_key.into()
+                    }),
                 }
             } else {
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
@@ -215,7 +217,9 @@ pub fn get0(
                 let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
                 match reply.ids.pop() {
                     Some(entry) => serde_json::to_value(ui_stream_id(entry.map)),
-                    None => bail!(AppError::FieldNotFoundStream { stream_id: hash_key.into() }),
+                    None => bail!(AppError::FieldNotFoundStream {
+                        stream_id: hash_key.into()
+                    }),
                 }
             } else {
                 let reply: StreamRangeReply = conn.xrange_all(&key)?;
@@ -277,7 +281,9 @@ pub fn field_scan_0_get(
                         cc.finished = true;
                         Some(serde_json::to_value(vec8_to_display_string(&str))?)
                     }
-                    None => bail!(AppError::FieldNotFound { hash_key: hash_key.into() }),
+                    None => bail!(AppError::FieldNotFound {
+                        hash_key: hash_key.into()
+                    }),
                 }
             } else {
                 None
@@ -315,7 +321,9 @@ pub fn field_scan_0_get(
                         cc.finished = true;
                         Some(serde_json::to_value(ui_stream_id(entry.map))?)
                     }
-                    None => bail!(AppError::FieldNotFoundStream { stream_id: hash_key.into() }),
+                    None => bail!(AppError::FieldNotFoundStream {
+                        stream_id: hash_key.into()
+                    }),
                 }
             } else {
                 // https://redis.ac.cn/docs/latest/commands/xrange/
@@ -388,7 +396,9 @@ pub fn field_scan_1_cmd(
         ValueType::Hash => "hscan",
         ValueType::Set => "sscan",
         ValueType::ZSet => "zscan",
-        _ => bail!(AppError::FieldScanNotSupported { value_type: ui_key_type(key_type.clone()) })
+        _ => bail!(AppError::FieldScanNotSupported {
+            value_type: ui_key_type(key_type.clone())
+        }),
     };
 
     // SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
@@ -426,7 +436,9 @@ pub fn field_scan_2_value(
             scan_value.zset.extend(ui_zset_value(value));
             new_count
         }
-        _ => bail!(AppError::FieldScanNotSupported { value_type: ui_key_type(key_type.clone()) })
+        _ => bail!(AppError::FieldScanNotSupported {
+            value_type: ui_key_type(key_type.clone())
+        }),
     };
     Ok(new_count)
 }
@@ -439,7 +451,9 @@ pub fn field_scan_3_json(
         ValueType::Hash => serde_json::to_value(&scan_value.hash)?,
         ValueType::Set => serde_json::to_value(&scan_value.set)?,
         ValueType::ZSet => serde_json::to_value(&scan_value.zset)?,
-        _ => bail!(AppError::FieldScanNotSupported { value_type: ui_key_type(key_type.clone()) }),
+        _ => bail!(AppError::FieldScanNotSupported {
+            value_type: ui_key_type(key_type.clone())
+        }),
     };
     Ok(value)
 }
@@ -533,7 +547,9 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         // 新增键
         let exists: bool = conn.exists(&key)?;
         if exists {
-            bail!(AppError::KeyAlreadyExists { key: vec8_to_display_string(key.to_bytes()) })
+            bail!(AppError::KeyAlreadyExists {
+                key: vec8_to_display_string(key.to_bytes())
+            })
         }
     } else if "field" == mode {
         // 新增字段
@@ -739,13 +755,19 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
     match value_type {
         ValueType::Unknown(other) => {
             if "none" == other {
-                bail!(AppError::KeyNotFound { key: vec8_to_display_string(key.to_bytes()) })
+                bail!(AppError::KeyNotFound {
+                    key: vec8_to_display_string(key.to_bytes())
+                })
             } else {
-                bail!(AppError::KeyTypeUnknown { value_type: other.into() })
+                bail!(AppError::KeyTypeUnknown {
+                    value_type: other.into()
+                })
             }
         }
         //ValueType::Stream => bail!("Unsupported Type: Stream"),
-        _ => bail!(AppError::KeyTypeUnsupported { value_type: format!("{:?}", value_type) }),
+        _ => bail!(AppError::KeyTypeUnsupported {
+            value_type: format!("{:?}", value_type)
+        }),
     }
 }
 

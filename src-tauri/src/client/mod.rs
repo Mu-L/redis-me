@@ -71,8 +71,7 @@ mod tests {
         conf.ssh_option.username = "root".into();
         // 从环境变量获取SSH密码，避免硬编码安全风险
         conf.ssh_option.password =
-            std::env::var("SSH_PASSWORD")
-                .expect("SSH_PASSWORD environment variable not set");
+            std::env::var("SSH_PASSWORD").expect("SSH_PASSWORD environment variable not set");
 
         // 秘钥方式登录
         conf.ssh_option.login_type = "pkfile".into();

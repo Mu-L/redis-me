@@ -53,7 +53,9 @@ impl ClientAccess for AppHandle {
     fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>> {
         let state: State<AppState> = self.state();
         let map = state.connections.lock().unwrap();
-        let conn = map.get(id).ok_or(AppError::ConnectionNotFound { id: id.into() })?;
+        let conn = map
+            .get(id)
+            .ok_or(AppError::ConnectionNotFound { id: id.into() })?;
 
         let mut clients = state.clients.write().unwrap();
         let client = Arc::new(if conn.cluster {
