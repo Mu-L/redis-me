@@ -165,11 +165,11 @@ export default {
     sslTip:
       'Used when Redis server has TLS/SSL port enabled<br/>• Need to set tls-port instead of port in Redis configuration<br/>• May need to provide client certificate and private key<br/>• Used to encrypt transmission channel and prevent data theft',
     readonlyTip:
-      'After enabling read-only mode<br/>• All edit, delete, and write buttons are hidden<br/>• Only allows viewing and reading Redis data<br/>• Can dynamically switch read-only/writable mode from the top status bar',
+      'After enabling read-only mode<br/>• All edit, delete, and write buttons are hidden<br/>• Only allows viewing and reading Redis data<br/>• Can dynamically switch read-only/writable mode by the lock icon',
     clusterTip:
-      'Applicable to Redis Cluster mode<br/>• Only need to fill in the address of any node<br/>• Automatically identifies all nodes in the cluster',
+      'Redis Cluster Mode<br/>• Only need to fill in the address of any node<br/>• Automatically identifies all nodes in the cluster',
     sentinelTip:
-      'Choose any one of multiple sentinels, please fill in sentinel configuration for address, port, and password<br/>Master node username and password are for the Master node monitored by the sentinel',
+      'Redis Cluster Mode<br/>• Choose any one of multiple sentinels, please fill in sentinel configuration for address, port, and password<br/>• Master node username and password are for the Master node monitored by the sentinel',
   },
 
   util: {
