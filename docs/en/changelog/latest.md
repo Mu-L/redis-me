@@ -13,7 +13,7 @@
 ### 🎨 Interface Optimization
 - Set type abbreviation changed to E to avoid conflict with String's S
 - Stream consumer group dialog enhanced with icons and fixed height
-- UI details optimized for info refresh, key deletion, and saving interactions
+- UI details optimized for info refresh, key deletion, and saving btn
 
 ## [v2.6.0](https://mp.weixin.qq.com/s/rhs5S14vhNMHkNFmf5KONg) (2026-04-04)
 
