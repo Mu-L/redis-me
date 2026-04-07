@@ -3,6 +3,7 @@ use crate::utils::model::SshOption;
 use crate::utils::util::AnyResult;
 use log::{info, warn};
 use russh::client;
+use russh::client::AuthResult;
 use russh::keys::key::PrivateKeyWithHashAlg;
 use std::future::Future;
 use std::sync::Arc;
@@ -40,10 +41,19 @@ impl SshTunnel {
     pub fn start(ssh_option: &SshOption, target_host: &str, target_port: u16) -> AnyResult<Self> {
         info!("SSH 隧道 {}:{}", ssh_option.host, ssh_option.port);
 
-        let stop_flag = Arc::new(AtomicBool::new(false));
         let runtime = Runtime::new()?;
 
-        // 在运行时中绑定端口并获取端口号
+        // 首先进行 SSH 认证测试，确保认证可以通过
+        runtime.block_on(async {
+            let session = Self::connect_and_auth(ssh_option).await?;
+            drop(session); // 关闭测试连接
+            info!("SSH 认证测试通过");
+            Ok::<_, anyhow::Error>(())
+        })?;
+
+        let stop_flag = Arc::new(AtomicBool::new(false));
+
+        // 绑定本地端口
         let local_port = runtime.block_on(async {
             let listener = TcpListener::bind("127.0.0.1:0").await?;
             Ok::<_, std::io::Error>(listener.local_addr()?.port())
@@ -55,7 +65,7 @@ impl SshTunnel {
         let target_host = target_host.to_string();
         let stop_flag_clone = stop_flag.clone();
 
-        // 在后台线程中运行异步任务
+        // 后台监听连接
         runtime.spawn(async move {
             if let Err(e) = Self::run_listener(
                 stop_flag_clone,
@@ -129,34 +139,21 @@ impl SshTunnel {
     ) -> AnyResult<()> {
         info!("SSH 隧道新连接，目标: {}:{}", target_host, target_port);
 
-        // 连接到 SSH 服务器
-        let ssh_config = client::Config::default();
-        let ssh_config = Arc::new(ssh_config);
+        let session = Self::connect_and_auth(ssh_option).await?;
 
-        let handler = ClientHandler;
-        let mut session = client::connect(
-            ssh_config,
-            format!("{}:{}", ssh_option.host, ssh_option.port),
-            handler,
-        )
-        .await?;
+        info!("SSH 认证完成，准备打开 TCP 转发通道");
 
-        // 认证
-        Self::authenticate(&mut session, ssh_option).await?;
-
-        // 打开 TCP 转发通道
         let channel = session
             .channel_open_direct_tcpip(
                 target_host,
                 target_port as u32,
                 "127.0.0.1",
-                0, // 本地端口，russh 会忽略这个值
+                0,
             )
             .await?;
 
         let mut ssh_stream = channel.into_stream();
 
-        // 双向数据转发
         match copy_bidirectional(local_stream, &mut ssh_stream).await {
             Ok((to_remote, to_local)) => {
                 info!(
@@ -172,6 +169,21 @@ impl SshTunnel {
         Ok(())
     }
 
+    /// 连接 SSH 服务器并完成认证
+    async fn connect_and_auth(ssh_option: &SshOption) -> AnyResult<client::Handle<ClientHandler>> {
+        let ssh_config = Arc::new(client::Config::default());
+        let handler = ClientHandler;
+        let mut session = client::connect(
+            ssh_config,
+            format!("{}:{}", ssh_option.host, ssh_option.port),
+            handler,
+        )
+        .await?;
+
+        Self::authenticate(&mut session, ssh_option).await?;
+        Ok(session)
+    }
+
     async fn authenticate(
         session: &mut client::Handle<ClientHandler>,
         ssh_option: &SshOption,
@@ -184,13 +196,15 @@ impl SshTunnel {
 
         match ssh_option.login_type.as_str() {
             "pwd" | "" => {
-                // 密码认证
-                session
-                    .authenticate_password(username, &ssh_option.password)
-                    .await?;
+                info!("开始 SSH 密码认证，用户: {}", username);
+                let result = timeout(
+                    Duration::from_secs(10),
+                    session.authenticate_password(username, &ssh_option.password),
+                )
+                .await;
+                Self::check_auth_result(result, username)?;
             }
             "pkfile" => {
-                // 私钥文件认证
                 if ssh_option.pkfile.is_empty() {
                     anyhow::bail!(AppError::SshKeyFileEmpty);
                 }
@@ -201,15 +215,19 @@ impl SshTunnel {
                     Some(ssh_option.passphrase.as_str())
                 };
 
-                // 加载私钥文件
                 let key_pair = russh::keys::load_secret_key(
                     std::path::Path::new(&ssh_option.pkfile),
                     passphrase,
                 )?;
-
                 let key_pair = PrivateKeyWithHashAlg::new(Arc::new(key_pair), None);
 
-                session.authenticate_publickey(username, key_pair).await?;
+                info!("开始 SSH 公钥认证，用户: {}", username);
+                let result = timeout(
+                    Duration::from_secs(10),
+                    session.authenticate_publickey(username, key_pair),
+                )
+                .await;
+                Self::check_auth_result(result, username)?;
             }
             other => {
                 anyhow::bail!(AppError::SshLoginMethodNotSupported {
@@ -220,6 +238,31 @@ impl SshTunnel {
 
         info!("SSH 认证成功，用户: {}", username);
         Ok(())
+    }
+
+    /// 检查认证结果
+    fn check_auth_result(
+        result: Result<Result<AuthResult, russh::Error>, tokio::time::error::Elapsed>,
+        username: &str,
+    ) -> AnyResult<()> {
+        match result {
+            Ok(Ok(AuthResult::Success)) => Ok(()),
+            Ok(Ok(AuthResult::Failure { remaining_methods, partial_success })) => {
+                info!(
+                    "SSH 认证失败，用户: {}, 剩余方法: {:?}, 部分成功: {}",
+                    username, remaining_methods, partial_success
+                );
+                anyhow::bail!(AppError::SshAuthFailed);
+            }
+            Ok(Err(e)) => {
+                info!("SSH 认证异常，用户: {}, 错误: {}", username, e);
+                anyhow::bail!(AppError::SshAuthFailed);
+            }
+            Err(_) => {
+                info!("SSH 认证超时，用户: {}", username);
+                anyhow::bail!(AppError::SshAuthFailed);
+            }
+        }
     }
 }
 
