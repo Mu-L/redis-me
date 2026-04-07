@@ -175,7 +175,7 @@ pub fn get0(
 ) -> AnyResult<RedisValue> {
     let key_type: ValueType = conn.key_type(&key)?;
 
-    let value: serde_json::Value = match key_type.clone() {
+    let value: serde_json::Value = match key_type {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             serde_json::to_value(vec8_to_display_string(&value))
@@ -222,7 +222,7 @@ pub fn get0(
                 serde_json::to_value(ui_stream_value(reply))
             }
         }
-        ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
+        ValueType::JSON => {
             let value: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
             serde_json::from_str(&redis_value_to_string(value, "\n"))
         }
@@ -254,14 +254,14 @@ pub fn field_scan_0_get(
     let mut cc = param.cursor.unwrap_or_default();
 
     // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
-    let value: Option<serde_json::Value> = match key_type.clone() {
+    let value: Option<serde_json::Value> = match key_type {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             let value: String = vec8_to_display_string(&value);
             cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
-        ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
+        ValueType::JSON => {
             let value: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
             cc.finished = true;
             //Some(serde_json::to_value(redis_value_to_string(value, "\n"))?)
