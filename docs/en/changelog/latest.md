@@ -1,5 +1,20 @@
 # 2.x Changelog
 
+## v2.7.0
+
+### 🔗 Connection Management
+- Added SSH tunnel support with password and private key authentication
+- Different icons for standalone and cluster connections for better visual distinction
+- Checkbox options now include usage scenario descriptions
+
+### 🌍 Internationalization
+- Backend error messages now fully support multi-language (Chinese and English)
+
+### 🎨 Interface Optimization
+- Set type abbreviation changed to E to avoid conflict with String's S
+- Stream consumer group dialog enhanced with icons and fixed height
+- UI details optimized for info refresh, key deletion, and saving interactions
+
 ## [v2.6.0](https://mp.weixin.qq.com/s/rhs5S14vhNMHkNFmf5KONg) (2026-04-04)
 
 - Key Show: **Real-time retrieval and icon display for key types**
