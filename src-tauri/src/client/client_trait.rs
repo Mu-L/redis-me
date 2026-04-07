@@ -388,10 +388,7 @@ pub fn field_scan_1_cmd(
         ValueType::Hash => "hscan",
         ValueType::Set => "sscan",
         ValueType::ZSet => "zscan",
-        _ => {
-            let value_type_str = format!("{:?}", key_type);
-            bail!(AppError::FieldScanNotSupported { value_type: value_type_str })
-        }
+        _ => bail!(AppError::FieldScanNotSupported { value_type: ui_key_type(key_type.clone()) })
     };
 
     // SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
@@ -429,10 +426,7 @@ pub fn field_scan_2_value(
             scan_value.zset.extend(ui_zset_value(value));
             new_count
         }
-        _ => {
-            let value_type_str = format!("{:?}", key_type);
-            bail!(AppError::FieldScanNotSupported { value_type: value_type_str })
-        }
+        _ => bail!(AppError::FieldScanNotSupported { value_type: ui_key_type(key_type.clone()) })
     };
     Ok(new_count)
 }
@@ -441,12 +435,11 @@ pub fn field_scan_3_json(
     key_type: &ValueType,
     scan_value: &FieldScanValue,
 ) -> AnyResult<serde_json::value::Value> {
-    let value_type_str = format!("{:?}", key_type);
     let value = match key_type {
         ValueType::Hash => serde_json::to_value(&scan_value.hash)?,
         ValueType::Set => serde_json::to_value(&scan_value.set)?,
         ValueType::ZSet => serde_json::to_value(&scan_value.zset)?,
-        _ => bail!(AppError::FieldScanNotSupported { value_type: value_type_str }),
+        _ => bail!(AppError::FieldScanNotSupported { value_type: ui_key_type(key_type.clone()) }),
     };
     Ok(value)
 }
