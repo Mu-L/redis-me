@@ -308,11 +308,11 @@ api_model!(RedisExportCsv {
     with_ttl: bool,
 });
 
-impl Into<RedisBatchKey> for RedisExportCsv {
-    fn into(self) -> RedisBatchKey {
+impl From<RedisExportCsv> for RedisBatchKey {
+    fn from(value: RedisExportCsv) -> Self {
         RedisBatchKey {
-            pattern: self.pattern,
-            key_list: self.key_list,
+            pattern: value.pattern,
+            key_list: value.key_list,
         }
     }
 }

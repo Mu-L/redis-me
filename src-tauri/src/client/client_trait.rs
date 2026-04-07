@@ -68,7 +68,7 @@ pub trait MeClient: Send + Sync {
         let info_list = self.info_list()?;
         info_list
             .into_iter()
-            .map(|info| info_to_chart(info))
+            .map(info_to_chart)
             .collect()
     }
 
@@ -200,9 +200,7 @@ pub fn get0(
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 match value {
                     Some(str) => serde_json::to_value(vec8_to_display_string(&str)),
-                    None => bail!(AppError::FieldNotFound {
-                        hash_key: hash_key.into()
-                    }),
+                    None => bail!(AppError::FieldNotFound { hash_key }),
                 }
             } else {
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
@@ -218,7 +216,7 @@ pub fn get0(
                 match reply.ids.pop() {
                     Some(entry) => serde_json::to_value(ui_stream_id(entry.map)),
                     None => bail!(AppError::FieldNotFoundStream {
-                        stream_id: hash_key.into()
+                        stream_id: hash_key
                     }),
                 }
             } else {
@@ -281,9 +279,7 @@ pub fn field_scan_0_get(
                         cc.finished = true;
                         Some(serde_json::to_value(vec8_to_display_string(&str))?)
                     }
-                    None => bail!(AppError::FieldNotFound {
-                        hash_key: hash_key.into()
-                    }),
+                    None => bail!(AppError::FieldNotFound { hash_key}),
                 }
             } else {
                 None
@@ -322,7 +318,7 @@ pub fn field_scan_0_get(
                         Some(serde_json::to_value(ui_stream_id(entry.map))?)
                     }
                     None => bail!(AppError::FieldNotFoundStream {
-                        stream_id: hash_key.into()
+                        stream_id: hash_key
                     }),
                 }
             } else {
@@ -555,7 +551,7 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         // 新增字段
         key_type = conn.key_type(&key)?
     } else {
-        bail!(AppError::FieldOperationNotSupported { mode: mode.into() })
+        bail!(AppError::FieldOperationNotSupported { mode })
     }
 
     let fv_list = param.field_value_list;
@@ -1111,7 +1107,7 @@ pub fn xinfo_groups0(
     Ok(reply
         .groups
         .into_iter()
-        .map(|x| ui_xinfo_group(x))
+        .map(ui_xinfo_group)
         .collect())
 }
 
@@ -1124,7 +1120,7 @@ pub fn xinfo_consumers0(
     Ok(reply
         .consumers
         .into_iter()
-        .map(|x| ui_xinfo_consumer(x))
+        .map(ui_xinfo_consumer)
         .collect())
 }
 

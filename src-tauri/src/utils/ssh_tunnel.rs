@@ -5,7 +5,6 @@ use log::{info, warn};
 use russh::client;
 use russh::client::AuthResult;
 use russh::keys::key::PrivateKeyWithHashAlg;
-use std::future::Future;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
@@ -27,12 +26,12 @@ struct ClientHandler;
 impl client::Handler for ClientHandler {
     type Error = russh::Error;
 
-    fn check_server_key(
+    async fn check_server_key(
         &mut self,
         _server_public_key: &russh::keys::ssh_key::PublicKey,
-    ) -> impl Future<Output = Result<bool, Self::Error>> + Send {
+    ) -> Result<bool, Self::Error> {
         // 接受所有服务器密钥（生产环境应该验证服务器密钥）
-        async { Ok(true) }
+        Ok(true)
     }
 }
 

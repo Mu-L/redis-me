@@ -39,7 +39,7 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
             let error_message = err.to_string();
             if let Ok(app_error) = serde_json::from_str::<AppError>(&error_message) {
                 // 返回序列化的 AppError JSON
-                return Err(serde_json::to_string(&app_error).unwrap_or_else(|_| error_message));
+                return Err(serde_json::to_string(&app_error).unwrap_or(error_message));
             }
 
             // 避免原始错误和source错误的字符串一致，提示两遍（比如connection timed out）
@@ -110,8 +110,8 @@ pub fn ui_key_list(keys: Vec<Vec<u8>>) -> Vec<RedisKey> {
 
 pub fn ui_list_value(value: &[Vec<u8>]) -> Vec<String> {
     value
-        .into_iter()
-        .map(|v| vec8_to_display_string(&v))
+        .iter()
+        .map(|v| vec8_to_display_string(v))
         .collect()
 }
 
