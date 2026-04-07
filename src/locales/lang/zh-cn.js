@@ -126,7 +126,7 @@ export default {
     autoDiscoverOk: '查询到{count}个主节点',
 
     ssh: 'SSH 隧道',
-    sshModeTip: 'SSH 隧道不支持集群/哨兵模式',
+    sshModeTip: 'SSH 隧道暂不支持集群/哨兵模式',
     loginType: '登录',
     sshOption: {
       host: '主机',

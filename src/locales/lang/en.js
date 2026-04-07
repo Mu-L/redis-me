@@ -131,7 +131,7 @@ export default {
     autoDiscoverOk: 'Discover {count} Master | Discover {count} Masters',
 
     ssh: 'SSH Tunnel',
-    sshModeTip: 'SSH tunnel does not support cluster/sentinel mode',
+    sshModeTip: 'SSH tunnel does not support cluster/sentinel mode now',
     loginType: 'Login',
     nameHint: '[Optional] Automatically generated based on Host and Port',
     testConn: 'Test Conn',
