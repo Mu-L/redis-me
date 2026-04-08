@@ -1,6 +1,14 @@
 name: Release
 
 on:
+  # 手动触发
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本号（如 1.0.0，不带 v 前缀）'
+        required: true
+        type: string
+  # 推送标签触发
   push:
     tags:
       - 'v*.*.*'
@@ -58,8 +66,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
-          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: '__VERSION__ 🌈'
+          tagName: 'v${{ inputs.version || '__VERSION__' }}' # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          releaseName: 'v${{ inputs.version || '__VERSION__' }} 🌈'
           releaseBody: 'See www.hepengju.com for more info'
           releaseDraft: true
           prerelease: false
