@@ -114,12 +114,15 @@ function translateAppError(appError) {
 // invoke命令: 打印日志
 let retryCount = 0
 export async function meInvoke(command, params, alert = true) {
+  const start = Date.now()
   try {
     const data = await invoke(command, params)
-    meLog(`命令: ${command}, 参数: `, params, '结果: ', data)
+    const end = Date.now()
+    meLog(`命令: ${command}, 耗时: ${end - start}ms, 参数: `, params, '结果: ', data)
     retryCount = 0 // 一旦调用成功则重置重试次数
     return data
   } catch (e) {
+    const end = Date.now()
     const error = e.toString()
     // 客户端断开后的自动重连(后端处理大部分，前端仅处理立刻的场景, 优化用户体验。避免无限递归，最多重试3次)
     if (error === 'unexpected end of file') {
@@ -142,7 +145,7 @@ export async function meInvoke(command, params, alert = true) {
       }
     }
 
-    meLog(`命令: ${command}, 参数:`, params, `, 错误: ${error}`)
+    meLog(`命令: ${command}, 耗时: ${end - start}ms, 参数:`, params, `, 错误: ${error}`)
     throw error
   }
 }
