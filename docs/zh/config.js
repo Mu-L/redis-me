@@ -72,7 +72,7 @@ function sidebarGuide() {
       items: [
         { text: '特色功能', link: '/usage/special' },
         // {text: '应用设置', link: '/usage/setting'},
-        { text: '连接列表', link: '/usage/connection' },
+        { text: '连接', link: '/usage/connection' },
         { text: '信息', link: '/usage/info' },
         // {text: '客户端', link: '/usage/client'},
         // {text: '配置', link: '/usage/config'},
