@@ -1,15 +1,16 @@
-import mitt from 'mitt'
-import { sampleSize } from 'lodash'
+import { invoke } from '@tauri-apps/api/core'
+import { openUrl } from '@tauri-apps/plugin-opener'
+import { type } from '@tauri-apps/plugin-os'
+import { relaunch } from '@tauri-apps/plugin-process'
+import { check } from '@tauri-apps/plugin-updater'
 import { useClipboard, useDark } from '@vueuse/core'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { invoke } from '@tauri-apps/api/core'
-import { check } from '@tauri-apps/plugin-updater'
-import { relaunch } from '@tauri-apps/plugin-process'
-import i18n from '@/locales'
-import { type } from '@tauri-apps/plugin-os'
-import { openUrl } from '@tauri-apps/plugin-opener'
-import { applyEdits, format } from 'jsonc-parser'
 import JSON5 from 'json5'
+import { applyEdits, format } from 'jsonc-parser'
+import { sampleSize } from 'lodash'
+import mitt from 'mitt'
+
+import i18n from '@/locales'
 
 // 全局事件总线: setup直接导入，app全局属性也添加
 export const bus = mitt()
@@ -33,22 +34,30 @@ export const PREDEFINE_COLORS = [
 // 键类型
 export const KEY_TYPE_LIST = [
   //{ value: 'ALL'   , type: 'info'},
-  { value: 'STRING', type: 'primary' },
-  { value: 'HASH', type: 'primary' },
-  { value: 'LIST', type: 'danger' },
-  { value: 'SET', type: 'danger' },
-  { value: 'ZSET', type: 'danger' },
-  { value: 'STREAM', type: 'warning' },
-  { value: 'JSON', type: 'warning' },
+  { short: 'S', value: 'STRING', type: 'primary' },
+  { short: 'H', value: 'HASH', type: 'primary' },
+  { short: 'L', value: 'LIST', type: 'danger' },
+  { short: 'E', value: 'SET', type: 'danger' },
+  { short: 'Z', value: 'ZSET', type: 'danger' },
+  { short: 'S', value: 'STREAM', type: 'warning' },
+  { short: 'J', value: 'JSON', type: 'warning' },
 ]
 
+const keyTypeMap = new Map(KEY_TYPE_LIST.map(item => [item.value, item.type]))
+const keyShortMap = new Map(KEY_TYPE_LIST.map(item => [item.value, item.short]))
+
 /**
- * 键类型
- * @returns {string} value
- * @param {string} keyType
+ * 键类型: el-text, el-tag的type
  */
 export function meType(keyType) {
-  return KEY_TYPE_LIST.find(item => item.value === keyType?.toUpperCase())?.type || 'info'
+  return keyTypeMap.get(keyType?.toUpperCase()) || 'info'
+}
+
+/**
+ * 键类型短: 避免String、Set的简称都是S
+ */
+export function meKeyShort(keyType, defaultValue = '?') {
+  return keyShortMap.get(keyType?.toUpperCase()) || defaultValue
 }
 
 // 是否开发模式
@@ -72,15 +81,48 @@ export const isZh = computed(() => {
 // 是否黑色主题
 export const isDark = useDark()
 
+// ~~~~~~~~~~~~~ 后端错误码国际化处理
+/**
+ * 尝试解析后端 AppError JSON
+ */
+function tryParseAppError(errorStr) {
+  try {
+    const parsed = JSON.parse(errorStr)
+    if (parsed && typeof parsed.code === 'string') {
+      return parsed
+    }
+  } catch {
+    // 不是 JSON 格式
+  }
+  return null
+}
+
+/**
+ * 翻译 AppError 为用户可见的消息
+ */
+function translateAppError(appError) {
+  const { code, ...params } = appError
+  const translationKey = `errors.${code}`
+  const message = t(translationKey, params)
+  // 如果找不到翻译，返回 code + 参数
+  if (message === translationKey) {
+    return `${code}: ${JSON.stringify(params)}`
+  }
+  return message
+}
+
 // invoke命令: 打印日志
 let retryCount = 0
 export async function meInvoke(command, params, alert = true) {
+  const start = Date.now()
   try {
     const data = await invoke(command, params)
-    meLog(`命令: ${command}, 参数: `, params, '结果: ', data)
+    const end = Date.now()
+    meLog(`命令: ${command}, 耗时: ${end - start}ms, 参数: `, params, '结果: ', data)
     retryCount = 0 // 一旦调用成功则重置重试次数
     return data
   } catch (e) {
+    const end = Date.now()
     const error = e.toString()
     // 客户端断开后的自动重连(后端处理大部分，前端仅处理立刻的场景, 优化用户体验。避免无限递归，最多重试3次)
     if (error === 'unexpected end of file') {
@@ -92,10 +134,18 @@ export async function meInvoke(command, params, alert = true) {
     }
 
     if (alert) {
-      meErr(error, t('error') + (isDev ? ': ' + command : ''))
+      // 尝试解析为结构化错误（AppError JSON）
+      const appError = tryParseAppError(error)
+      if (appError) {
+        // 使用 i18n 翻译错误
+        meErr(translateAppError(appError), t('error') + (isDev ? ': ' + command : ''))
+      } else {
+        // 回退到原始错误消息
+        meErr(error, t('error') + (isDev ? ': ' + command : ''))
+      }
     }
 
-    meLog(`命令: ${command}, 参数:`, params, `, 错误: ${error}`)
+    meLog(`命令: ${command}, 耗时: ${end - start}ms, 参数:`, params, `, 错误: ${error}`)
     throw error
   }
 }
@@ -111,6 +161,10 @@ export function meOk(message, isAlert = false, title = '') {
     // 提示后自动消失
     ElMessage.success(message)
   }
+}
+
+export function meWarn(message) {
+  ElMessage.warning(message)
 }
 
 export function meErr(message, title = t('error')) {
@@ -246,10 +300,7 @@ export function meDeleteKey(id, redisKey, thenFn) {
 export function meRenameKey(id, redisKey) {
   mePrompt(
     t('util.renameKey'),
-    {
-      inputValue: redisKey.key,
-      inputType: 'text',
-    },
+    { inputValue: redisKey.key, inputType: 'text' },
     async ({ value }) => {
       const newKey = { key: value, bytes: '' }
       const params = { id, key: redisKey, newKey }
@@ -367,13 +418,7 @@ export function sleep(ms) {
 
 // 支持注释等非标格式（vscode 同款）- genericFastjson格式化Set时不是标准的json
 export function meJsonFormat(jsonString) {
-  return applyEdits(
-    jsonString,
-    format(jsonString, undefined, {
-      insertSpaces: true,
-      tabSize: 2,
-    }),
-  )
+  return applyEdits(jsonString, format(jsonString, undefined, { insertSpaces: true, tabSize: 2 }))
 }
 
 // 支持json5格式的输入(key可以不加引号，key-value可以为单引号，允许注释等)

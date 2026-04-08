@@ -1,6 +1,7 @@
 use crate::client::client_trait::*;
 use crate::implement_pipeline_commands;
 use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name};
+use crate::utils::error::AppError;
 use crate::utils::model::*;
 use crate::utils::util::*;
 use Ordering::Relaxed;
@@ -20,22 +21,22 @@ use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
 
-pub struct RedisMeCluster {
-    base: RedisMeBase,
+pub struct MeCluster {
+    base: MeBase,
     client: ClusterClient,
     conn: Mutex<ClusterConnection>,
     node_list: Vec<RedisNode>,
 }
 
-impl Deref for RedisMeCluster {
-    type Target = RedisMeBase;
+impl Deref for MeCluster {
+    type Target = MeBase;
 
     fn deref(&self) -> &Self::Target {
         &self.base
     }
 }
 
-impl Drop for RedisMeCluster {
+impl Drop for MeCluster {
     fn drop(&mut self) {
         self.subscribe_stop().unwrap_or(());
         self.monitor_stop().unwrap_or(());
@@ -43,7 +44,7 @@ impl Drop for RedisMeCluster {
     }
 }
 
-impl RedisMeClient for RedisMeCluster {
+impl MeClient for MeCluster {
     fn name(&self) -> String {
         self.conf.name.clone()
     }
@@ -52,7 +53,7 @@ impl RedisMeClient for RedisMeCluster {
         Ok(vec![])
     }
 
-    fn select_db(&self, db: u8) -> AnyResult<()> {
+    fn select_db(&self, db: u16) -> AnyResult<()> {
         if self.db.load(Relaxed) == db {
             return Ok(());
         }
@@ -437,7 +438,7 @@ impl RedisMeClient for RedisMeCluster {
     }
 
     fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
-        let conn = get_client_single(&self.conf)?.get_connection()?;
+        let conn = get_client_single(&self.conf)?.0.get_connection()?;
         let running = self.subscribe_running.clone();
         subscribe0(conn, running, app_handle, channel, self.id.clone())
     }
@@ -453,7 +454,7 @@ impl RedisMeClient for RedisMeCluster {
             conf.host = host.to_string();
             conf.port = port.parse::<u16>()?;
         }
-        let conn = get_client_single(&conf)?.get_connection()?;
+        let conn = get_client_single(&conf)?.0.get_connection()?;
         let running = self.monitor_running.clone();
         monitor0(conn, running, app_handle, self.id.clone())
     }
@@ -553,8 +554,8 @@ impl RedisMeClient for RedisMeCluster {
 }
 
 // 个性化方法
-impl RedisMeCluster {
-    pub fn init(redis_conn: &RedisConf) -> AnyResult<Box<dyn RedisMeClient>> {
+impl MeCluster {
+    pub fn init(redis_conn: &ConnConfig) -> AnyResult<Box<dyn MeClient>> {
         let client = get_client_cluster(redis_conn)?;
         let mut conn = Self::new_conn(&client)?;
 
@@ -563,8 +564,8 @@ impl RedisMeCluster {
         let node_list = Self::parse_node_list(cluster_nodes)?;
         info!("Redis集群连接初始化成功: {}", redis_conn.name);
 
-        Ok(Box::new(RedisMeCluster {
-            base: RedisMeBase::from(redis_conn),
+        Ok(Box::new(MeCluster {
+            base: MeBase::from(redis_conn),
             client,
             conn: Mutex::new(conn),
             node_list,
@@ -610,7 +611,7 @@ impl RedisMeCluster {
                     }
                 }
             }),
-            None => bail!("connection acquisition lock timeout"),
+            None => bail!(AppError::ConnectionLockTimeout),
         }
     }
 
@@ -652,7 +653,7 @@ impl RedisMeCluster {
             });
             Ok((route, node))
         } else {
-            bail!("invalid node format: {}", node)
+            bail!(AppError::InvalidNodeFormat { node })
         }
     }
 

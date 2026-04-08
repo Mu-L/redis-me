@@ -1,7 +1,8 @@
 <script setup>
-import { meCopy, meInvoke, meOk } from '@/utils/util.js'
 import { listen } from '@tauri-apps/api/event'
 import { useI18n } from 'vue-i18n'
+
+import { meCopy, meInvoke, meOk } from '@/utils/util.js'
 
 const { t } = useI18n()
 // 共享数据
@@ -93,8 +94,7 @@ onUnmounted(() => tauriUnlisten())
           style="width: 160px; margin-right: 10px"
           :placeholder="t('redisPubSub.subscribeChannel')"
           :disabled="subscribing"
-          clearable
-        />
+          clearable />
       </div>
       <div>
         <me-button
@@ -102,20 +102,17 @@ onUnmounted(() => tauriUnlisten())
           :info="t('redisPubSub.clearMessage')"
           @click="clearData"
           :disabled="dataList.length === 0"
-          placement="top"
-        />
+          placement="top" />
         <el-input
           v-model="keyword"
           :placeholder="t('redisPubSub.keyword')"
           style="width: 280px; margin: 0 10px"
-          clearable
-        />
+          clearable />
         <el-button
           :icon="subscribing ? 'el-icon-video-pause' : 'el-icon-video-play'"
           :loading="loading"
           @click="subscribe"
-          type="primary"
-        >
+          type="primary">
           {{ subscribing ? t('redisPubSub.subscribeStop') : t('redisPubSub.subscribeStart') }}
         </el-button>
       </div>
@@ -132,8 +129,7 @@ onUnmounted(() => tauriUnlisten())
               icon="el-icon-document-copy"
               class="icon-btn"
               @click="meCopy(scope.row.message)"
-              style="justify-content: center"
-            />
+              style="justify-content: center" />
           </template>
         </el-table-column>
       </el-table>
@@ -142,13 +138,11 @@ onUnmounted(() => tauriUnlisten())
       <el-input
         v-model="sendChannel"
         :placeholder="t('redisPubSub.channel')"
-        style="width: 200px"
-      ></el-input>
+        style="width: 200px"></el-input>
       <el-input
         v-model="sendMessage"
         :placeholder="t('redisPubSub.messageContent')"
-        style="margin: 0 10px"
-      ></el-input>
+        style="margin: 0 10px"></el-input>
       <el-button
         icon="el-icon-promotion"
         @click="publish"

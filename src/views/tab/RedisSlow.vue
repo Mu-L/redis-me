@@ -1,7 +1,8 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import { meCopy, meInvoke } from '@/utils/util.js'
-import { useI18n } from 'vue-i18n'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
@@ -90,8 +91,7 @@ refresh()
                     <el-tooltip
                       placement="top-end"
                       :content="t('redisSlow.slowerThanHint')"
-                      :show-after="1000"
-                    >
+                      :show-after="1000">
                       <div>{{ t('redisSlow.slowerThan') }}</div>
                     </el-tooltip>
                   </template>
@@ -105,8 +105,7 @@ refresh()
                     <el-tooltip
                       placement="top-end"
                       :content="t('redisSlow.slowerMaxLenHint')"
-                      :show-after="1000"
-                    >
+                      :show-after="1000">
                       <div>{{ t('redisSlow.slowerMaxLen') }}</div>
                     </el-tooltip>
                   </template>
@@ -131,8 +130,7 @@ refresh()
           v-model="keyword"
           :placeholder="t('redisSlow.keyword')"
           style="width: 300px; margin-right: 10px"
-          clearable
-        />
+          clearable />
         <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading" />
       </div>
     </div>
@@ -144,8 +142,7 @@ refresh()
         :default-sort="{ prop: 'time', order: 'descending' }"
         @sort-change="sortChange"
         border
-        stripe
-      >
+        stripe>
         <!--
       <el-table-column :label="t('action')" width="80" align="center">
           <template #default="scope">
@@ -164,8 +161,7 @@ refresh()
           prop="cost"
           width="90"
           sortable
-          show-overflow-tooltip
-        >
+          show-overflow-tooltip>
           <template #default="scope"> {{ scope.row.cost.toFixed(2) }} ms </template>
         </el-table-column>
         <el-table-column
@@ -173,30 +169,26 @@ refresh()
           prop="command"
           min-width="120"
           sortable
-          show-overflow-tooltip
-        />
+          show-overflow-tooltip />
         <el-table-column
           :label="t('redisSlow.clientName')"
           prop="clientName"
           width="140"
           sortable
-          show-overflow-tooltip
-        />
+          show-overflow-tooltip />
         <el-table-column
           :label="t('redisSlow.client')"
           prop="client"
           width="140"
           sortable
-          show-overflow-tooltip
-        />
+          show-overflow-tooltip />
         <el-table-column
           :label="t('redisSlow.node')"
           prop="node"
           width="140"
           show-overflow-tooltip
           sortable
-          v-if="share.nodeList.length > 0"
-        />
+          v-if="share.nodeList.length > 0" />
       </me-table>
     </div>
   </div>

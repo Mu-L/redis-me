@@ -1,6 +1,8 @@
-use crate::utils::model::{RedisConf, SslOption};
+use crate::utils::error::AppError;
+use crate::utils::model::{ConnConfig, SslOption};
+use crate::utils::ssh_tunnel::SshTunnel;
 use crate::utils::util::{AnyResult, CONNECTION_CHECK_TIMEOUT};
-use anyhow::Context;
+use anyhow::{Context, bail};
 use log::info;
 use redis::cluster::{ClusterClient, ClusterConfig};
 use redis::sentinel::{SentinelClientBuilder, SentinelServerType};
@@ -10,19 +12,39 @@ use redis::{
 use std::fs;
 
 // 获取单机连接
-pub fn get_client_single(conf: &RedisConf) -> AnyResult<Client> {
+pub fn get_client_single(conf: &ConnConfig) -> AnyResult<(Client, Option<SshTunnel>)> {
+    // SSH 隧道不支持哨兵模式
+    if conf.ssh && conf.sentinel {
+        bail!(AppError::SentinelNotSupported);
+    }
+
+    // 如果启用 SSH 隧道，先建立隧道
+    let ssh_tunnel = if conf.ssh {
+        let tunnel = SshTunnel::start(&conf.ssh_option, &conf.host, conf.port)?;
+        info!("SSH 隧道已建立，本地端口: {}", tunnel.local_port);
+        Some(tunnel)
+    } else {
+        None
+    };
+
+    // 决定连接目标
+    let (target_host, target_port) = if conf.ssh {
+        ("127.0.0.1", ssh_tunnel.as_ref().unwrap().local_port)
+    } else {
+        (conf.host.as_str(), conf.port)
+    };
+
     let prefix = if conf.ssl { "rediss" } else { "redis" };
     let suffix = if conf.ssl { "/#insecure" } else { "" };
 
     let redis_url = format!(
         "{}://{}:{}@{}:{}{}",
-        prefix, conf.username, conf.password, conf.host, conf.port, suffix
+        prefix, conf.username, conf.password, target_host, target_port, suffix
     );
     let redis_url_log = format!(
         "{}://{}:{}@{}:{}{}",
-        prefix, conf.username, "******", conf.host, conf.port, suffix
+        prefix, conf.username, "******", target_host, target_port, suffix
     );
-    // 日志打印中去除密码显示
     info!("redis_url: {redis_url_log}");
 
     let certs = get_tls_certs(conf.ssl_option.clone())?;
@@ -42,12 +64,13 @@ pub fn get_client_single(conf: &RedisConf) -> AnyResult<Client> {
     if conf.sentinel {
         client = get_client_sentinel(conf)?;
     }
-    Ok(client)
+    Ok((client, ssh_tunnel))
 }
 
-fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
+fn get_client_sentinel(conf: &ConnConfig) -> AnyResult<Client> {
     let certs = get_tls_certs(conf.ssl_option.clone())?;
     let conf = conf.clone();
+    let sentinel_option = conf.sentinel_option.clone();
     let client = if conf.ssl
         && let Some(tls) = certs
     {
@@ -57,13 +80,16 @@ fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
             insecure: true,
             tls_params: None,
         };
-        let mut builder =
-            SentinelClientBuilder::new(vec![addr], conf.master_name, SentinelServerType::Master)?
-                .set_client_to_redis_db(conf.db as i64)
-                .set_client_to_redis_tls_mode(TlsMode::Secure)
-                .set_client_to_redis_certificates(tls.clone())
-                .set_client_to_sentinel_tls_mode(TlsMode::Secure)
-                .set_client_to_sentinel_certificates(tls);
+        let mut builder = SentinelClientBuilder::new(
+            vec![addr],
+            sentinel_option.master_name,
+            SentinelServerType::Master,
+        )?
+        .set_client_to_redis_db(conf.db as i64)
+        .set_client_to_redis_tls_mode(TlsMode::Secure)
+        .set_client_to_redis_certificates(tls.clone())
+        .set_client_to_sentinel_tls_mode(TlsMode::Secure)
+        .set_client_to_sentinel_certificates(tls);
         // TODO ==> danger_accept_invalid_hostnames 改为 true（目前没有这个属性）
         // https://github.com/redis-rs/redis-rs/issues/1931
 
@@ -73,29 +99,32 @@ fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
         if !conf.password.is_empty() {
             builder = builder.set_client_to_sentinel_password(conf.password);
         };
-        if !conf.master_username.is_empty() {
-            builder = builder.set_client_to_redis_password(conf.master_username);
+        if !sentinel_option.master_username.is_empty() {
+            builder = builder.set_client_to_redis_username(sentinel_option.master_username);
         }
-        if !conf.master_password.is_empty() {
-            builder = builder.set_client_to_redis_password(conf.master_password);
+        if !sentinel_option.master_password.is_empty() {
+            builder = builder.set_client_to_redis_password(sentinel_option.master_password);
         }
         builder.build()?.get_client()?
     } else {
         let addr = ConnectionAddr::Tcp(conf.host, conf.port);
-        let mut builder =
-            SentinelClientBuilder::new(vec![addr], conf.master_name, SentinelServerType::Master)?
-                .set_client_to_redis_db(conf.db as i64);
+        let mut builder = SentinelClientBuilder::new(
+            vec![addr],
+            sentinel_option.master_name,
+            SentinelServerType::Master,
+        )?
+        .set_client_to_redis_db(conf.db as i64);
         if !conf.username.is_empty() {
             builder = builder.set_client_to_sentinel_username(conf.username);
         };
         if !conf.password.is_empty() {
             builder = builder.set_client_to_sentinel_password(conf.password);
         };
-        if !conf.master_username.is_empty() {
-            builder = builder.set_client_to_redis_password(conf.master_username);
+        if !sentinel_option.master_username.is_empty() {
+            builder = builder.set_client_to_redis_username(sentinel_option.master_username);
         }
-        if !conf.master_password.is_empty() {
-            builder = builder.set_client_to_redis_password(conf.master_password);
+        if !sentinel_option.master_password.is_empty() {
+            builder = builder.set_client_to_redis_password(sentinel_option.master_password);
         }
         builder.build()?.get_client()?
     };
@@ -103,7 +132,12 @@ fn get_client_sentinel(conf: &RedisConf) -> AnyResult<Client> {
 }
 
 // 获取集群连接
-pub fn get_client_cluster(conf: &RedisConf) -> AnyResult<ClusterClient> {
+pub fn get_client_cluster(conf: &ConnConfig) -> AnyResult<ClusterClient> {
+    // SSH 隧道不支持集群模式
+    if conf.ssh {
+        bail!(AppError::ClusterNotSupported);
+    }
+
     let prefix = if conf.ssl { "rediss" } else { "redis" };
     let suffix = if conf.ssl { "/#insecure" } else { "" };
     let redis_url = format!("{}://{}:{}{}", prefix, conf.host, conf.port, suffix);
@@ -132,11 +166,7 @@ pub fn get_client_cluster(conf: &RedisConf) -> AnyResult<ClusterClient> {
 }
 
 // 获取证书
-fn get_tls_certs(ssl_option: Option<SslOption>) -> AnyResult<Option<TlsCertificates>> {
-    if ssl_option.is_none() {
-        return Ok(None);
-    }
-    let ssl_option = ssl_option.unwrap();
+fn get_tls_certs(ssl_option: SslOption) -> AnyResult<Option<TlsCertificates>> {
     if ssl_option.key.is_empty() && ssl_option.cert.is_empty() && ssl_option.ca.is_empty() {
         return Ok(None);
     };

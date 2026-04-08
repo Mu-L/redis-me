@@ -1,12 +1,14 @@
 <script setup>
 import { useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/utils/tip.js'
-import NodeList from '../ext/NodeList.vue'
 import { bus, INFO_REFRESH, meInvoke } from '@/utils/util.js'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
-import { useI18n } from 'vue-i18n'
-import MeWebsite from '@/components/MeWebsite.vue'
+
+import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -160,29 +162,28 @@ function goMemory() {
         <div class="me-flex" style="align-items: center">
           <div>
             <el-text size="large" style="margin-left: 5px">{{ infoNode }}</el-text>
-            <el-tag style="margin-left: 10px"
-              >{{ share.isValkey ? 'Valkey' : 'Redis' }} {{ share.serverVersion }}</el-tag
-            >
+            <el-tag style="margin-left: 10px" effect="plain">
+              {{ share.isValkey ? 'Valkey' : 'Redis' }} {{ share.serverVersion }}
+            </el-tag>
             <el-tag
               type="success"
               style="margin-left: 10px"
+              effect="plain"
               v-if="dic[share.isValkey ? 'server_mode' : 'redis_mode']"
               >{{ dic[share.isValkey ? 'server_mode' : 'redis_mode'] }}</el-tag
             >
-            <el-tag type="success" style="margin-left: 10px" v-if="dic['role']">{{
+            <el-tag type="success" style="margin-left: 10px" v-if="dic['role']" effect="plain">{{
               dic['role']
             }}</el-tag>
           </div>
           <div class="me-flex">
             <me-icon
-              class="refresh icon-btn"
+              class="refresh-btn"
               :name="t('refresh')"
               icon="el-icon-refresh"
               placement="left"
               hint
-              @click="refresh(true)"
-              :loading="loading"
-            />
+              @click="refresh(true)" />
             <node-list v-model="node" style="margin-left: 10px" @change="refresh(true)" clearable />
           </div>
         </div>
@@ -290,17 +291,15 @@ function goMemory() {
           <div class="detail-header-right">
             <me-icon
               :info="t('redisInfo.rawInfo')"
-              icon="me-icon-raw"
-              class="raw-info icon-btn"
-              @click="dialog.raw = true"
-            />
+              icon="el-icon-notebook"
+              class="icon-btn"
+              @click="dialog.raw = true" />
             <el-select
               v-model="tagSelected"
               :placeholder="t('redisInfo.tag')"
               clearable
               style="width: 150px; margin: 0 10px"
-              @change="tagChange"
-            >
+              @change="tagChange">
               <el-option v-for="tag in tagList" :key="tag" :label="tag" :value="tag" />
             </el-select>
             <el-input
@@ -308,8 +307,7 @@ function goMemory() {
               clearable
               style="width: 200px"
               prefix-icon="el-icon-search"
-              :placeholder="t('redisInfo.keyword')"
-            />
+              :placeholder="t('redisInfo.keyword')" />
           </div>
         </div>
       </template>
@@ -320,8 +318,7 @@ function goMemory() {
         show-summary
         :summary-method="getSummaries"
         stripe
-        height="100%"
-      >
+        height="100%">
         <el-table-column prop="tag" :label="t('redisInfo.tag')" width="100" />
         <el-table-column prop="key" :label="t('redisInfo.key')" show-overflow-tooltip />
         <el-table-column prop="value" :label="t('redisInfo.value')" show-overflow-tooltip />
@@ -334,7 +331,7 @@ function goMemory() {
     </el-card>
   </div>
 
-  <me-dialog v-model="dialog.raw" icon="me-icon-raw" title="Info" width="60vw">
+  <me-dialog v-model="dialog.raw" icon="el-icon-notebook" title="Info" width="60vw">
     <me-code :modelValue="raw" mode="properties" read-only />
   </me-dialog>
 
@@ -344,8 +341,7 @@ function goMemory() {
     :title="t('redisInfo.client')"
     width="80vw"
     :close-on-press-escape="false"
-    :close-on-click-modal="false"
-  >
+    :close-on-click-modal="false">
     <RedisClient :init-node="node || infoNode" />
   </me-dialog>
 
@@ -361,8 +357,7 @@ function goMemory() {
     :title="t('redisInfo.runConfig')"
     width="80vw"
     :close-on-press-escape="false"
-    :close-on-click-modal="false"
-  >
+    :close-on-click-modal="false">
     <RedisConfig :init-node="node || infoNode" :init-version="share.serverVersion" />
   </me-dialog>
 </template>
@@ -392,10 +387,16 @@ function goMemory() {
     padding: 0;
   }
 
-  .refresh {
+  .refresh-btn {
     font-size: 20px;
     color: var(--el-color-success);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--el-color-primary);
+    }
   }
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   .detail-card {
     margin-top: 10px;
@@ -411,11 +412,6 @@ function goMemory() {
 
       .detail-header-right {
         display: flex;
-
-        .raw-info {
-          font-size: 20px;
-          color: var(--el-color-success);
-        }
       }
     }
   }

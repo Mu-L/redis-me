@@ -1,8 +1,9 @@
 <script setup>
-import { clientTip as tips } from '@/utils/tip.js'
-import NodeList from '@/views/ext/NodeList.vue'
-import { meConfirm, meHumanSeconds, meInvoke, meOk } from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
+
+import { clientTip as tips } from '@/utils/tip.js'
+import { meConfirm, meHumanSeconds, meInvoke, meOk } from '@/utils/util.js'
+import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -127,8 +128,7 @@ function propWidth(item) {
           style="width: 120px"
           @change="refresh"
           :placeholder="t('redisClient.clientType')"
-          clearable
-        >
+          clearable>
           <el-option value="NORMAL" />
           <el-option value="MASTER" />
           <el-option value="SLAVE" />
@@ -142,8 +142,7 @@ function propWidth(item) {
           v-model="keyword"
           :placeholder="t('redisClient.keyword')"
           style="width: 280px; margin-right: 10px"
-          clearable
-        />
+          clearable />
         <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading" />
       </div>
     </div>
@@ -156,16 +155,14 @@ function propWidth(item) {
         @sort-change="sortChange"
         border
         stripe
-        height="100%"
-      >
+        height="100%">
         <el-table-column
           label="ID"
           prop="id"
           show-overflow-tooltip
           sortable
           width="100"
-          align="right"
-        >
+          align="right">
           <template #header>
             <el-tooltip :content="tips['id'] || 'id'" placement="top">
               <span>ID</span>
@@ -192,8 +189,7 @@ function propWidth(item) {
           sortable
           width="140"
           align="right"
-          :formatter="row => meHumanSeconds(row.age)"
-        >
+          :formatter="row => meHumanSeconds(row.age)">
           <template #header>
             <el-tooltip :content="tips['age'] || 'age'" placement="top">
               <span>{{ t('redisClient.age') }}</span>
@@ -206,8 +202,7 @@ function propWidth(item) {
           sortable
           width="120"
           align="right"
-          :formatter="row => meHumanSeconds(row.idle)"
-        >
+          :formatter="row => meHumanSeconds(row.idle)">
           <template #header>
             <el-tooltip :content="tips['idle'] || 'idle'" placement="top">
               <span>{{ t('redisClient.idle') }}</span>
@@ -229,8 +224,7 @@ function propWidth(item) {
           show-overflow-tooltip
           sortable
           :width="propWidth(item)"
-          align="right"
-        >
+          align="right">
           <template #header>
             <el-tooltip :content="tips[item] || item" placement="top">
               <span>{{ item }}</span>
@@ -243,16 +237,14 @@ function propWidth(item) {
           width="80"
           align="center"
           fixed="right"
-          v-if="canEdit"
-        >
+          v-if="canEdit">
           <template #default="scope">
             <me-icon
               :info="t('redisClient.killClientHint')"
               icon="el-icon-CircleCloseFilled"
               class="icon-btn"
               @click="killClient(scope.row)"
-              style="justify-content: center"
-            />
+              style="justify-content: center" />
           </template>
         </el-table-column>
       </me-table>

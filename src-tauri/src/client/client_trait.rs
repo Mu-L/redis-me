@@ -1,4 +1,5 @@
 use crate::utils::conn::set_client_name;
+use crate::utils::error::AppError;
 use crate::utils::model::*;
 use crate::utils::util::*;
 use Ordering::Relaxed;
@@ -17,28 +18,28 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16, Ordering};
 use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
 
 // 抽取公共属性
-pub struct RedisMeBase {
+pub struct MeBase {
     pub id: String,
-    pub conf: RedisConf,
-    pub db: Arc<AtomicU8>,
+    pub conf: ConnConfig,
+    pub db: Arc<AtomicU16>,
     pub subscribe_running: Arc<AtomicBool>,
     pub monitor_running: Arc<AtomicBool>,
     pub export_import_running: Arc<AtomicBool>,
     pub last_check_time: Arc<AtomicI64>,
 }
 
-impl From<&RedisConf> for RedisMeBase {
-    fn from(conf: &RedisConf) -> Self {
-        RedisMeBase {
+impl From<&ConnConfig> for MeBase {
+    fn from(conf: &ConnConfig) -> Self {
+        MeBase {
             id: conf.id.clone(),
             conf: conf.clone(),
-            db: Arc::new(AtomicU8::new(conf.db)),
+            db: Arc::new(AtomicU16::new(conf.db)),
             subscribe_running: Arc::new(AtomicBool::new(false)),
             monitor_running: Arc::new(AtomicBool::new(false)),
             export_import_running: Arc::new(AtomicBool::new(false)),
@@ -48,12 +49,12 @@ impl From<&RedisConf> for RedisMeBase {
 }
 
 // RedisME服务接口
-pub trait RedisMeClient: Send + Sync {
+pub trait MeClient: Send + Sync {
     fn name(&self) -> String;
 
     fn db_list(&self) -> AnyResult<Vec<RedisDB>>;
 
-    fn select_db(&self, db: u8) -> AnyResult<()>;
+    fn select_db(&self, db: u16) -> AnyResult<()>;
 
     fn info(&self, node: Option<String>) -> AnyResult<RedisInfo>;
 
@@ -67,7 +68,7 @@ pub trait RedisMeClient: Send + Sync {
         let info_list = self.info_list()?;
         info_list
             .into_iter()
-            .map(|info| info_to_chart(info))
+            .map(info_to_chart)
             .collect()
     }
 
@@ -174,7 +175,7 @@ pub fn get0(
 ) -> AnyResult<RedisValue> {
     let key_type: ValueType = conn.key_type(&key)?;
 
-    let value: serde_json::Value = match key_type.clone() {
+    let value: serde_json::Value = match key_type {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             serde_json::to_value(vec8_to_display_string(&value))
@@ -199,7 +200,7 @@ pub fn get0(
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 match value {
                     Some(str) => serde_json::to_value(vec8_to_display_string(&str)),
-                    None => bail!("HashKey Not Exists: 【{}】", hash_key),
+                    None => bail!(AppError::FieldNotFound { hash_key }),
                 }
             } else {
                 let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
@@ -214,14 +215,16 @@ pub fn get0(
                 let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
                 match reply.ids.pop() {
                     Some(entry) => serde_json::to_value(ui_stream_id(entry.map)),
-                    None => bail!("StreamId Not Exists: 【{}】", hash_key),
+                    None => bail!(AppError::FieldNotFoundStream {
+                        stream_id: hash_key
+                    }),
                 }
             } else {
                 let reply: StreamRangeReply = conn.xrange_all(&key)?;
                 serde_json::to_value(ui_stream_value(reply))
             }
         }
-        ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
+        ValueType::JSON => {
             let value: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
             serde_json::from_str(&redis_value_to_string(value, "\n"))
         }
@@ -253,14 +256,14 @@ pub fn field_scan_0_get(
     let mut cc = param.cursor.unwrap_or_default();
 
     // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
-    let value: Option<serde_json::Value> = match key_type.clone() {
+    let value: Option<serde_json::Value> = match key_type {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             let value: String = vec8_to_display_string(&value);
             cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
-        ValueType::Unknown(other) if other == REDIS_JSON_TYPE_NAME => {
+        ValueType::JSON => {
             let value: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
             cc.finished = true;
             //Some(serde_json::to_value(redis_value_to_string(value, "\n"))?)
@@ -276,7 +279,7 @@ pub fn field_scan_0_get(
                         cc.finished = true;
                         Some(serde_json::to_value(vec8_to_display_string(&str))?)
                     }
-                    None => bail!("HashKey Not Exists: 【{}】", hash_key),
+                    None => bail!(AppError::FieldNotFound { hash_key}),
                 }
             } else {
                 None
@@ -314,7 +317,9 @@ pub fn field_scan_0_get(
                         cc.finished = true;
                         Some(serde_json::to_value(ui_stream_id(entry.map))?)
                     }
-                    None => bail!("StreamId Not Exists: 【{}】", hash_key),
+                    None => bail!(AppError::FieldNotFoundStream {
+                        stream_id: hash_key
+                    }),
                 }
             } else {
                 // https://redis.ac.cn/docs/latest/commands/xrange/
@@ -387,7 +392,9 @@ pub fn field_scan_1_cmd(
         ValueType::Hash => "hscan",
         ValueType::Set => "sscan",
         ValueType::ZSet => "zscan",
-        _ => bail!("field scan not support now"),
+        _ => bail!(AppError::FieldScanNotSupported {
+            value_type: ui_key_type(key_type.clone())
+        }),
     };
 
     // SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
@@ -425,7 +432,9 @@ pub fn field_scan_2_value(
             scan_value.zset.extend(ui_zset_value(value));
             new_count
         }
-        _ => bail!("field scan not support now"),
+        _ => bail!(AppError::FieldScanNotSupported {
+            value_type: ui_key_type(key_type.clone())
+        }),
     };
     Ok(new_count)
 }
@@ -438,7 +447,9 @@ pub fn field_scan_3_json(
         ValueType::Hash => serde_json::to_value(&scan_value.hash)?,
         ValueType::Set => serde_json::to_value(&scan_value.set)?,
         ValueType::ZSet => serde_json::to_value(&scan_value.zset)?,
-        _ => bail!("field scan not support now"),
+        _ => bail!(AppError::FieldScanNotSupported {
+            value_type: ui_key_type(key_type.clone())
+        }),
     };
     Ok(value)
 }
@@ -531,18 +542,16 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
     if "key" == mode {
         // 新增键
         let exists: bool = conn.exists(&key)?;
-        assert_is_true(
-            !exists,
-            format!(
-                "Key ready exits: {}",
-                vec8_to_display_string(key.to_bytes())
-            ),
-        )?
+        if exists {
+            bail!(AppError::KeyAlreadyExists {
+                key: vec8_to_display_string(key.to_bytes())
+            })
+        }
     } else if "field" == mode {
         // 新增字段
         key_type = conn.key_type(&key)?
     } else {
-        bail!("mode: {} unsupported now", mode)
+        bail!(AppError::FieldOperationNotSupported { mode })
     }
 
     let fv_list = param.field_value_list;
@@ -742,27 +751,30 @@ fn handle_other_value_type(value_type: &ValueType, key: &RedisKey) -> AnyResult<
     match value_type {
         ValueType::Unknown(other) => {
             if "none" == other {
-                bail!(
-                    "Key Not Exists: 【{}】",
-                    vec8_to_display_string(key.to_bytes())
-                )
+                bail!(AppError::KeyNotFound {
+                    key: vec8_to_display_string(key.to_bytes())
+                })
             } else {
-                bail!("Unknown ValueType: {other}")
+                bail!(AppError::KeyTypeUnknown {
+                    value_type: other.into()
+                })
             }
         }
         //ValueType::Stream => bail!("Unsupported Type: Stream"),
-        _ => bail!("Unsupported Type: {value_type:?}"),
+        _ => bail!(AppError::KeyTypeUnsupported {
+            value_type: format!("{:?}", value_type)
+        }),
     }
 }
 
 pub fn batch_key0(
-    rmc: &impl RedisMeClient,
+    rmc: &impl MeClient,
     param: RedisBatchKey,
     assert_not_empty: bool,
 ) -> AnyResult<Vec<RedisKey>> {
     let key_list = if param.key_list.is_empty() {
         if param.pattern.is_empty() {
-            bail!("key list and pattern parameters cannot both be empty")
+            bail!(AppError::EmptyParameters)
         }
         let scan_result = rmc.scan(ScanParam::all(param.pattern))?;
         info!("scan key count: {}", scan_result.key_list.len());
@@ -772,7 +784,7 @@ pub fn batch_key0(
     };
 
     if assert_not_empty && key_list.is_empty() {
-        bail!("key list is empty")
+        bail!(AppError::EmptyKeyList)
     }
 
     Ok(key_list)
@@ -780,7 +792,7 @@ pub fn batch_key0(
 
 pub fn export_import_check_running(running: Arc<AtomicBool>) -> AnyResult<()> {
     if running.load(Relaxed) {
-        bail!("export/import is running");
+        bail!(AppError::ExportImportRunning)
     }
     running.store(true, Relaxed);
     Ok(())
@@ -973,7 +985,7 @@ fn import_key(
 ) -> AnyResult<()> {
     let parts: Vec<&str> = line.split(',').collect();
     if parts.len() != 2 && parts.len() != 3 {
-        bail!("invalid line: {}", line)
+        bail!(AppError::ImportInvalidLine { line: line.into() })
     }
 
     let ttl_part = if parts.len() == 3 { parts[2] } else { "-1" };
@@ -1047,7 +1059,10 @@ fn import_cmds(
             let result = import_cmd(conn, line);
             match result {
                 Ok(_) => ok_count += 1,
-                Err(_) => err_count += 1,
+                Err(e) => {
+                    warn!("import cmd err: {e}");
+                    err_count += 1
+                },
             }
             // 通知导入进度
             let event = ExportImportEvent {
@@ -1095,7 +1110,7 @@ pub fn xinfo_groups0(
     Ok(reply
         .groups
         .into_iter()
-        .map(|x| ui_xinfo_group(x))
+        .map(ui_xinfo_group)
         .collect())
 }
 
@@ -1108,7 +1123,7 @@ pub fn xinfo_consumers0(
     Ok(reply
         .consumers
         .into_iter()
-        .map(|x| ui_xinfo_consumer(x))
+        .map(ui_xinfo_consumer)
         .collect())
 }
 

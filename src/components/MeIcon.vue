@@ -21,8 +21,7 @@ defineProps({
         :placement="placement"
         :content="info"
         :raw-content="rawContent"
-        :show-after="showAfter"
-      >
+        :show-after="showAfter">
         <el-icon v-if="icon.startsWith('el-icon-')">
           <Component :is="icon" />
         </el-icon>

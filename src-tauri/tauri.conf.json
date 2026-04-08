@@ -20,9 +20,7 @@
         "center": true
       }
     ],
-    "security": {
-      "csp": null
-    }
+    "security": { "csp": null }
   },
   "bundle": {
     "active": true,
@@ -39,15 +37,9 @@
     "resources": ["resources/conf/*"],
     "createUpdaterArtifacts": true,
     "windows": {
-      "wix": {
-        "language": ["en-US", "zh-CN"]
-      },
-      "nsis": {
-        "languages": ["English", "SimpChinese"]
-      },
-      "webviewInstallMode": {
-        "type": "skip"
-      }
+      "wix": { "language": ["en-US", "zh-CN"] },
+      "nsis": { "languages": ["English", "SimpChinese"] },
+      "webviewInstallMode": { "type": "skip" }
     }
   },
   "plugins": {

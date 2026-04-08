@@ -1,8 +1,9 @@
 <script setup>
+import { nanoid } from 'nanoid'
+import { computed } from 'vue'
 // 共享数据
 import { useI18n } from 'vue-i18n'
-import { computed } from 'vue'
-import { nanoid } from 'nanoid'
+
 import KeyTypeTag from './KeyTypeTag.vue'
 
 const { t } = useI18n()
@@ -255,8 +256,7 @@ function checkChange() {
         :empty-text="emptyText"
         :height="height"
         :item-size="20"
-        :show-checkbox="showCheckbox"
-      >
+        :show-checkbox="showCheckbox">
         <template #default="{ node }">
           <div style="width: 100%" v-if="node.isLeaf" :class="getNodeClass(node)">
             <Suspense>
@@ -278,8 +278,7 @@ function checkChange() {
                   : node.expanded
                     ? 'el-icon-folderOpened'
                     : 'el-icon-folder'
-              "
-            />
+              " />
             <div style="color: var(--el-color-info); margin-right: 10px">
               [ {{ node.data.keyCount }} ]
             </div>

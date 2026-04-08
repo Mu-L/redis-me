@@ -1,12 +1,13 @@
 <script setup>
+import { getAllWebviewWindows, WebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { type } from '@tauri-apps/plugin-os'
+import { nanoid } from 'nanoid'
+import { useI18n } from 'vue-i18n'
+
 import { bus, CONN_REFRESH, meErr, meInvoke, meOk } from '@/utils/util.js'
-import Setting from '@/views/ext/Setting.vue'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
-import { useI18n } from 'vue-i18n'
-import { nanoid } from 'nanoid'
-import { type } from '@tauri-apps/plugin-os'
-import { getAllWebviewWindows, WebviewWindow } from '@tauri-apps/api/webviewWindow'
+import Setting from '@/views/ext/Setting.vue'
 
 // 共享数据
 const share = inject('share')
@@ -81,8 +82,7 @@ async function newWindow() {
       clearable
       filterable
       :disabled="share.connList.length === 0"
-      value-key="id"
-    >
+      value-key="id">
       <el-option v-for="item in share.connList" :label="item.name" :value="item" :key="item.id">
         <div :style="{ color: item?.color }">{{ item.name }}</div>
       </el-option>
@@ -132,8 +132,7 @@ async function newWindow() {
       :close-on-click-modal="false"
       :close-on-press-escape="false"
       align-center
-      draggable
-    >
+      draggable>
       <Setting />
     </el-dialog>
     <el-dialog v-model="dialog.info" width="400" align-center draggable>
@@ -145,8 +144,7 @@ async function newWindow() {
       align-center
       draggable
       :show-close="false"
-      style="--el-dialog-bg-color: unset; box-shadow: unset"
-    >
+      style="--el-dialog-bg-color: unset; box-shadow: unset">
       <Official />
     </el-dialog>
   </div>

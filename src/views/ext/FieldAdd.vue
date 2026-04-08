@@ -1,5 +1,7 @@
 <script setup>
 import { cloneDeep } from 'lodash'
+import { useI18n } from 'vue-i18n'
+
 import {
   KEY_TYPE_LIST,
   meInvoke,
@@ -9,7 +11,6 @@ import {
   meTtlSeconds,
   meType,
 } from '@/utils/util.js'
-import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
@@ -182,8 +183,7 @@ watch(
     destroy-on-close
     close-on-press-escape
     close-on-click-modal
-    draggable
-  >
+    draggable>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
       <!-- 键类型和TTL: 仅新建键时显示 -->
       <el-row :gutter="40" v-if="form.mode === 'key'">
@@ -193,8 +193,7 @@ watch(
               <el-option
                 v-for="item in KEY_TYPE_LIST"
                 :label="item.value"
-                :value="item.value.toLowerCase()"
-              >
+                :value="item.value.toLowerCase()">
                 <el-text :type="item.type">{{ item.value }}</el-text>
               </el-option>
 
@@ -234,8 +233,7 @@ watch(
       <el-form-item
         :label="t('fieldAdd.value')"
         prop="value"
-        v-if="form.mode === 'key' && stringOrJsonType"
-      >
+        v-if="form.mode === 'key' && stringOrJsonType">
         <!-- <el-input type="textarea" :rows="6" v-model="form.value" clearable/>-->
         <me-code v-model="form.value" style="height: 150px; width: 100%" />
       </el-form-item>
@@ -243,8 +241,7 @@ watch(
       <!-- list类型的添加方式: rpush、lpush -->
       <el-form-item
         :label="t('fieldAdd.type')"
-        v-if="form.mode === 'field' && form.type === 'list'"
-      >
+        v-if="form.mode === 'field' && form.type === 'list'">
         <el-segmented v-model="form.listPushMethod" :options="form.listPushOptions" />
       </el-form-item>
 
@@ -257,42 +254,36 @@ watch(
       <el-form-item
         :label="t('fieldAdd.element') + ' ' + hint"
         prop="fieldValueList"
-        v-if="!stringOrJsonType"
-      >
+        v-if="!stringOrJsonType">
         <div
           v-for="(item, index) in form.fieldValueList"
           class="me-flex"
           style="margin-bottom: 10px; width: 100%"
-          key="id"
-        >
+          key="id">
           <el-input
             type="text"
             v-model="item.fieldKey"
             :placeholder="form.type === 'hash' ? t('fieldAdd.hashKey') : t('fieldAdd.field')"
             style="margin-right: 10px"
             v-if="form.type === 'hash' || form.type === 'stream'"
-            :validate-event="false"
-          />
+            :validate-event="false" />
           <el-input
             type="text"
             v-model="item.fieldValue"
             :placeholder="t('fieldAdd.value')"
             style="margin-right: 10px"
-            :validate-event="false"
-          />
+            :validate-event="false" />
           <el-input-number
             :controls="false"
             v-model="item.fieldScore"
             style="margin-right: 10px"
             v-if="form.type === 'zset'"
-            :validate-event="false"
-          />
+            :validate-event="false" />
           <el-button
             icon="el-icon-delete"
             circle
             @click="deleteElement(index)"
-            v-if="form.fieldValueList.length > 1"
-          />
+            v-if="form.fieldValueList.length > 1" />
           <el-button icon="el-icon-plus" circle @click="newElement(index)" />
         </div>
       </el-form-item>

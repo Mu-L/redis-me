@@ -1,4 +1,8 @@
 <script setup>
+import dayjs from 'dayjs'
+import { parseInt } from 'lodash/string.js'
+import { useI18n } from 'vue-i18n'
+
 import {
   bus,
   KEY_DELETE,
@@ -14,13 +18,11 @@ import {
   meRenameKey,
   meType,
 } from '@/utils/util.js'
+import TableGroup from '@/views/ext/TableGroup.vue'
+import TTLSet from '@/views/ext/TTLSet.vue'
+
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
-import { useI18n } from 'vue-i18n'
-import TTLSet from '@/views/ext/TTLSet.vue'
-import { parseInt } from 'lodash/string.js'
-import dayjs from 'dayjs'
-import TableGroup from '@/views/ext/TableGroup.vue'
 
 const { t } = useI18n()
 // 刷新键
@@ -362,8 +364,7 @@ async function showGroups() {
               :info="t('copy')"
               icon="el-icon-document-copy"
               @click="meCopy(share.redisKey.key)"
-              placement="top"
-            />
+              placement="top" />
           </template>
         </el-input>
 
@@ -375,8 +376,7 @@ async function showGroups() {
           style="width: 200px; margin-left: 10px"
           v-model="hashKey"
           v-if="hashType || streamType"
-          @keyup.enter="refreshKey(false)"
-        >
+          @keyup.enter="refreshKey(false)">
           <template #prepend>{{
             streamType ? t('redisValue.streamId') : t('redisValue.hashKey')
           }}</template>
@@ -388,8 +388,7 @@ async function showGroups() {
             :info="canEdit ? t('redisValue.ttlHint') : t('redisValue.ttlHintReadonly')"
             placement="top"
             style="margin: 0 10px"
-            @click="updateTTL"
-          >
+            @click="updateTTL">
             {{
               redisValue.ttl === -1 ? t('redisValue.ttlForever') : meHumanSeconds(redisValue.ttl)
             }}
@@ -400,23 +399,19 @@ async function showGroups() {
               :info="t('redisValue.refreshKey')"
               icon="el-icon-refresh"
               placement="top"
-              @click="refreshKey(false)"
-            />
+              @click="refreshKey(false)" />
             <me-button
               :info="t('redisValue.renameKey')"
               icon="el-icon-edit"
               placement="top"
               @click="renameKey"
-              v-if="canEdit"
-            />
+              v-if="canEdit" />
             <me-button
               :info="t('redisValue.deleteKey')"
               icon="el-icon-delete"
               placement="top"
               @click="delKey"
-              v-if="canEdit"
-              type="danger"
-            />
+              v-if="canEdit" />
           </el-button-group>
         </div>
       </div>
@@ -428,18 +423,16 @@ async function showGroups() {
           <me-code
             :modelValue="showValue"
             @update:modelValue="newValue => (redisValue.newValue = newValue)"
-            :read-only="!canSave"
-          />
+            :read-only="!canSave" />
 
           <div class="btn-rb" v-if="canSave">
             <me-button
               class="save"
               :info="t('save')"
-              type="danger"
+              type="primary"
               icon="me-icon-save"
               @click="setValue"
-              placement="top"
-            />
+              placement="top" />
           </div>
 
           <div class="btn-rt">
@@ -448,14 +441,12 @@ async function showGroups() {
                 :info="t('redisValue.loadMore')"
                 icon="me-icon-load-more"
                 @click="refreshKey(false, true, false)"
-                placement="top"
-              />
+                placement="top" />
               <me-button
                 :info="t('redisValue.loadAll')"
                 icon="me-icon-load-all"
                 @click="refreshKey(false, true, true)"
-                placement="top"
-              />
+                placement="top" />
             </el-button-group>
 
             <el-button-group>
@@ -464,15 +455,13 @@ async function showGroups() {
                 :info="t('copy')"
                 icon="el-icon-document-copy"
                 @click="meCopy(showValue)"
-                placement="bottom"
-              />
+                placement="bottom" />
               <me-button
                 :info="t('redisValue.prettyHint')"
                 placement="bottom-end"
                 icon="el-icon-magic-stick"
-                :type="isPretty ? 'info' : ''"
-                @click="isPretty = !isPretty"
-              />
+                :style="{ color: isPretty ? 'var(--el-color-primary)' : '' }"
+                @click="isPretty = !isPretty" />
             </el-button-group>
           </div>
         </template>
@@ -486,8 +475,7 @@ async function showGroups() {
                 v-model="tableKeyword"
                 :placeholder="t('redisValue.tableKeyword')"
                 clearable
-                :style="{ width: streamType ? '120px' : '300px' }"
-              />
+                :style="{ width: streamType ? '120px' : '300px' }" />
 
               <el-input
                 v-if="streamType"
@@ -495,16 +483,14 @@ async function showGroups() {
                 v-model.trim="meta.maxId"
                 placeholder="MaxId"
                 clearable
-                style="width: 160px; margin-left: 10px"
-              />
+                style="width: 160px; margin-left: 10px" />
               <el-input
                 v-if="streamType"
                 @keyup.enter="refreshKey(true)"
                 v-model.trim="meta.minId"
                 placeholder="MinId"
                 clearable
-                style="width: 160px; margin-left: 10px"
-              />
+                style="width: 160px; margin-left: 10px" />
             </div>
 
             <!-- 右侧更多+插入行 -->
@@ -514,21 +500,18 @@ async function showGroups() {
                   :info="t('redisValue.loadMore')"
                   icon="me-icon-load-more"
                   @click="refreshKey(false, true, false)"
-                  placement="top"
-                />
+                  placement="top" />
                 <me-button
                   :info="t('redisValue.loadAll')"
                   icon="me-icon-load-all"
                   @click="refreshKey(false, true, true)"
-                  placement="top"
-                />
+                  placement="top" />
               </el-button-group>
               <el-button
                 icon="el-icon-grid"
                 @click="showGroups"
                 style="margin-left: 10px"
-                v-if="streamType"
-              >
+                v-if="streamType">
                 Groups
               </el-button>
               <el-button icon="el-icon-plus" @click="fieldAdd" style="margin-left: 10px">{{
@@ -544,22 +527,19 @@ async function showGroups() {
               ref="table"
               height="100%"
               :row-class-name="rowClassName"
-              @row-click="rowClick"
-            >
+              @row-click="rowClick">
               <el-table-column
                 label="#"
                 type="index"
                 width="50"
                 align="center"
-                show-overflow-tooltip
-              >
+                show-overflow-tooltip>
                 <template #default="scope">
                   <div v-if="fieldSetIndex !== scope.$index">{{ scope.$index + 1 }}</div>
                   <me-icon
                     v-else
                     icon="el-icon-edit"
-                    :style="{ color: share.color, display: 'block' }"
-                  ></me-icon>
+                    :style="{ color: share.color, display: 'block' }"></me-icon>
                 </template>
               </el-table-column>
 
@@ -567,8 +547,7 @@ async function showGroups() {
                 :label="t('redisValue.id')"
                 prop="id"
                 show-overflow-tooltip
-                v-if="redisValue.type === 'stream'"
-              >
+                v-if="redisValue.type === 'stream'">
                 <template #default="scope">
                   <el-tooltip :content="streamIdToDate(scope.row.id)" placement="right">
                     {{ scope.row.id }}
@@ -579,8 +558,7 @@ async function showGroups() {
                 :label="t('redisValue.key')"
                 prop="key"
                 show-overflow-tooltip
-                v-if="redisValue.type === 'hash'"
-              />
+                v-if="redisValue.type === 'hash'" />
               <el-table-column :label="t('redisValue.value')" prop="value" show-overflow-tooltip>
                 <template #default="scope">
                   {{ streamType ? JSON.stringify(scope.row.value) : scope.row.value }}
@@ -590,41 +568,33 @@ async function showGroups() {
                 :label="t('redisValue.score')"
                 prop="score"
                 show-overflow-tooltip
-                v-if="redisValue.type === 'zset'"
-              />
+                v-if="redisValue.type === 'zset'" />
 
               <el-table-column
                 :label="t('action')"
                 :width="canEdit ? (streamType ? 80 : 100) : 80"
                 fixed="right"
-                align="center"
-              >
+                align="center">
                 <template #default="scope">
-                  <div
-                    class="me-flex"
-                    style="justify-content: space-around"
-                  >
+                  <div class="me-flex" style="justify-content: space-around">
                     <me-icon
                       :info="t('copy')"
                       icon="el-icon-document-copy"
                       class="icon-btn"
                       @click.stop="
                         meCopy(streamType ? JSON.stringify(scope.row.value) : scope.row.value)
-                      "
-                    />
+                      " />
                     <me-icon
                       :info="t('edit')"
                       icon="el-icon-edit"
                       class="icon-btn"
                       @click.stop="fieldSet(scope.row, scope.$index)"
-                      v-if="canEdit && !streamType"
-                    />
+                      v-if="canEdit && !streamType" />
                     <el-popconfirm
                       :hide-after="0"
                       :title="t('redisValue.deleteConfirm')"
                       @confirm.stop="fieldDel(scope.row)"
-                      v-if="canEdit"
-                    >
+                      v-if="canEdit">
                       <template #reference>
                         <me-icon :info="t('delete')" icon="el-icon-delete" class="icon-btn" />
                       </template>
@@ -638,16 +608,14 @@ async function showGroups() {
               ref="fieldSetRef"
               @success="refreshKey"
               @closed="fieldSetInit"
-              class="field-set"
-            />
+              class="field-set" />
           </div>
         </div>
 
         <!-- string类型不显示，带有hashKey不显示, 命中黑名单的hash类型不显示-->
         <div
           class="btn-rb"
-          v-if="!(stringTypeOrWithHashKey || jsonType || (hashType && showValue.startsWith('[')))"
-        >
+          v-if="!(stringTypeOrWithHashKey || jsonType || (hashType && showValue.startsWith('[')))">
           <el-segmented v-model="viewType" :options="viewTypeList">
             <template #default="scope">
               <me-icon
@@ -655,15 +623,13 @@ async function showGroups() {
                 icon="me-icon-json"
                 hint
                 placement="top"
-                v-if="scope.item === 'json'"
-              />
+                v-if="scope.item === 'json'" />
               <me-icon
                 :name="t('redisValue.tableView')"
                 icon="me-icon-table"
                 hint
                 placement="top"
-                v-else
-              />
+                v-else />
             </template>
           </el-segmented>
         </div>
@@ -678,9 +644,9 @@ async function showGroups() {
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
 
     <!-- Stream消费者组 -->
-    <el-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900" draggable>
+    <me-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900">
       <TableGroup :data-list="groupDataList" />
-    </el-dialog>
+    </me-dialog>
   </div>
 </template>
 

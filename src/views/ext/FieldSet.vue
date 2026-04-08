@@ -1,7 +1,8 @@
 <script setup>
 import { cloneDeep } from 'lodash'
-import { meInvoke, meOk } from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
+
+import { meInvoke, meOk } from '@/utils/util.js'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
@@ -74,8 +75,7 @@ function submit() {
       :model="form"
       :rules="rules"
       label-position="top"
-      style="display: flex; flex-direction: column; height: 100%"
-    >
+      style="display: flex; flex-direction: column; height: 100%">
       <el-form-item :label="t('fieldSet.hashKey')" v-if="form.type === 'hash'">
         <el-input v-model="form.fieldKey" disabled />
       </el-form-item>
@@ -87,14 +87,12 @@ function submit() {
           :controls="false"
           v-model="form.fieldScore"
           align="left"
-          style="width: 100%"
-        />
+          style="width: 100%" />
       </el-form-item>
       <el-form-item
         :label="t('fieldSet.value')"
         prop="fieldValue"
-        style="display: flex; flex-direction: column; flex: 1"
-      >
+        style="display: flex; flex-direction: column; flex: 1">
         <me-code v-model="form.fieldValue" style="flex: 1" />
       </el-form-item>
     </el-form>

@@ -1,9 +1,10 @@
 <script setup>
-import { useI18n } from 'vue-i18n'
-import { meCheckUpdate, meConfirm } from '@/utils/util.js'
-import { ref } from 'vue'
 import { getVersion } from '@tauri-apps/api/app'
 import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+import { meCheckUpdate, meConfirm } from '@/utils/util.js'
 
 const { t } = useI18n()
 const settings = window.meTauri.settings
@@ -146,8 +147,7 @@ function toDefault(name) {
               v-for="item in langList"
               :label="item.label"
               :value="item.value"
-              :key="item.value"
-            />
+              :key="item.value" />
           </el-select>
         </el-form-item>
       </el-row>
@@ -161,8 +161,7 @@ function toDefault(name) {
             multiple
             allow-create
             filterable
-            :reserve-keyword="false"
-          >
+            :reserve-keyword="false">
             <el-option v-for="item in fonts" :label="item" :value="item" :key="item" />
           </el-select>
         </el-form-item>
@@ -176,8 +175,7 @@ function toDefault(name) {
             multiple
             allow-create
             filterable
-            :reserve-keyword="false"
-          >
+            :reserve-keyword="false">
             <el-option v-for="item in fonts" :label="item" :value="item" :key="item" />
           </el-select>
         </el-form-item>
@@ -225,8 +223,7 @@ function toDefault(name) {
               :name="t('setting.keyScanCount')"
               icon="el-icon-question-filled"
               :info="t('setting.keyScanCountTip')"
-              placement="top"
-            />
+              placement="top" />
           </template>
           <el-input-number
             v-model="settings.keyScanCount"
@@ -234,8 +231,7 @@ function toDefault(name) {
             :max="10000"
             :controls="false"
             style="width: 100px"
-            align="left"
-          />
+            align="left" />
         </el-form-item>
         <el-form-item>
           <template #label>
@@ -243,8 +239,7 @@ function toDefault(name) {
               :name="t('setting.fieldScanCount')"
               icon="el-icon-question-filled"
               :info="t('setting.fieldScanCountTip')"
-              placement="top"
-            />
+              placement="top" />
           </template>
           <el-input-number
             v-model.number="settings.fieldScanCount"
@@ -252,8 +247,7 @@ function toDefault(name) {
             :max="100"
             :controls="false"
             style="width: 100px"
-            align="left"
-          />
+            align="left" />
         </el-form-item>
       </el-row>
 
@@ -265,8 +259,7 @@ function toDefault(name) {
           <el-segmented
             v-model="settings.keySort"
             :options="keySortList"
-            :disabled="settings.keyShow !== 'tree'"
-          />
+            :disabled="settings.keyShow !== 'tree'" />
         </el-form-item>
       </el-row>
     </el-form>

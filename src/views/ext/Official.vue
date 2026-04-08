@@ -1,6 +1,6 @@
 <script setup>
-import wechat from '@/assets/images/wechat.png'
 import bilibili from '@/assets/images/bilibili.png'
+import wechat from '@/assets/images/wechat.png'
 </script>
 
 <template>

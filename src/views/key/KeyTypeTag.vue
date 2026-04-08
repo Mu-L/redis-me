@@ -1,5 +1,5 @@
 <script setup>
-import { meInvoke, meType } from '@/utils/util.js'
+import { meInvoke, meKeyShort, meType } from '@/utils/util.js'
 
 const share = inject('share')
 const props = defineProps({
@@ -17,6 +17,6 @@ if (!props.redisKey.keyType) {
 
 <template>
   <el-tag size="small" disable-transitions :type="meType(redisKey.keyType)" effect="dark">
-    {{ redisKey.keyType.slice(0, 1) || '?' }}
+    {{ meKeyShort(redisKey.keyType) }}
   </el-tag>
 </template>

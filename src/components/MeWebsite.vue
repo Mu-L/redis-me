@@ -1,6 +1,7 @@
 <script setup>
 // 跳转到官网: Redis中英文/Valkey中英文
 import { openUrl } from '@tauri-apps/plugin-opener'
+
 import { isZh, meOk } from '@/utils/util.js'
 
 const { to } = defineProps({

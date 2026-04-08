@@ -1,8 +1,9 @@
 <script setup>
 import { useVirtualList } from '@vueuse/core'
 import { cloneDeep } from 'lodash'
-import { meInvoke, meOk } from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
+
+import { meInvoke, meOk } from '@/utils/util.js'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
@@ -144,14 +145,12 @@ const exportFilePrefix = computed(
           v-model="form.file"
           :placeholder="t('keyBatch.exportFileTip')"
           :file-prefix="exportFilePrefix"
-          file-suffix="csv"
-        />
+          file-suffix="csv" />
       </el-form-item>
 
       <el-form-item
         :label="t('keyBatch.impactKeys', form.keyList.length, { count: form.keyList.length })"
-        v-if="!showScan"
-      >
+        v-if="!showScan">
         <div v-bind="containerProps" :style="{ height: '250px', width: '100%' }">
           <div v-bind="wrapperProps">
             <div v-for="item in list" :key="item.index" class="key single-line-ellipsis">
@@ -181,8 +180,7 @@ const exportFilePrefix = computed(
           :loading="loading"
           @click="submit"
           v-else
-          :disabled="!(form.keyList.length > 0 && exportBtnEnabled)"
-        >
+          :disabled="!(form.keyList.length > 0 && exportBtnEnabled)">
           {{ confirmSizeBtn }}</el-button
         >
       </template>

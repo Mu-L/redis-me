@@ -1,4 +1,5 @@
 import { defineAdditionalConfig } from 'vitepress'
+
 import { version } from '../../package.json'
 
 export default defineAdditionalConfig({
@@ -22,16 +23,9 @@ export default defineAdditionalConfig({
     },
 
     //#region 以下直接从官网复制: https://github.com/vuejs/vitepress/blob/main/docs/zh/config.ts
-    docFooter: {
-      prev: '上一页',
-      next: '下一页',
-    },
-    outline: {
-      label: '页面导航',
-    },
-    lastUpdated: {
-      text: '最后更新于',
-    },
+    docFooter: { prev: '上一页', next: '下一页' },
+    outline: { label: '页面导航' },
+    lastUpdated: { text: '最后更新于' },
     notFound: {
       title: '页面未找到',
       quote: '但如果你不改变方向，并且继续寻找，你可能最终会到达你所前往的地方。',

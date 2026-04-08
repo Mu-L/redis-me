@@ -11,53 +11,89 @@ use std::collections::HashMap;
 api_model!(RedisDB { db: u8, size: u64 });
 
 // 连接信息
-api_model!(RedisConf {
-    id: String,
-    name: String,
+api_model!(
+    #[derive(Default)]
+    ConnConfig {
+        id: String,
+        name: String,
 
-    host: String,
-    port: u16,
-    username: String,
-    password: String,
-    db: u8,
+        host: String,
+        port: u16,
+        username: String,
+        password: String,
+        db: u16,
 
-    cluster: bool,
-    ssl: bool,
-    ssl_option: Option<SslOption>,
+        // 集群模式
+        cluster: bool,
 
-    // 哨兵模式
-    sentinel: bool,
-    master_name: String,
-    master_username: String,
-    master_password: String,
-});
+        // SSL连接
+        ssl: bool,
+        ssl_option: SslOption,
 
-impl RedisConf {
+        // 哨兵模式
+        sentinel: bool,
+        sentinel_option: SentinelOption,
+
+        // SSH隧道
+        ssh: bool,
+        ssh_option: SshOption
+    }
+);
+
+api_model!(
+    #[derive(Default)]
+    SslOption {
+        key: String,
+        cert: String,
+        ca: String,
+    }
+);
+
+api_model!(
+    #[derive(Default)]
+    SentinelOption {
+        master_name: String,
+        master_username: String,
+        master_password: String,
+    }
+);
+
+api_model!(
+    #[derive(Default)]
+    SshOption {
+        host: String,
+        port: u16,
+
+        login_type: String, // pwd 用户名/密码, pkfile 私钥文件
+        username: String,
+        password: String,
+        pkfile: String,
+        passphrase: String,
+    }
+);
+
+impl ConnConfig {
     pub fn test(&self) -> AnyResult<()> {
         if self.cluster {
             get_client_cluster(self)?;
         } else {
             get_client_single(self)?;
         };
+        // 单机模式返回的元组在测试后丢弃，SSH 隧道随之关闭
+        // 集群模式不支持 SSH
         Ok(())
     }
 
     pub fn masters(&self) -> AnyResult<Vec<HashMap<String, String>>> {
         let mut conf = self.clone();
         conf.sentinel = false;
-        let client = get_client_single(&conf)?;
+        let (client, _) = get_client_single(&conf)?;
         let mut conn = client.get_connection()?;
         let masters: Vec<HashMap<String, String>> =
             redis::cmd("sentinel").arg("masters").query(&mut conn)?;
         Ok(masters)
     }
 }
-
-api_model!(SslOption {
-    key: String,
-    cert: String,
-    ca: String,
-});
 
 // 信息 图形
 api_model!(
@@ -145,7 +181,7 @@ api_model!(XInfoGroup{
     lag: Option<usize>
 });
 
-api_model!(XInfoConsumer{
+api_model!(XInfoConsumer {
     name: String,
     pending: usize,
     idle: usize,
@@ -272,11 +308,11 @@ api_model!(RedisExportCsv {
     with_ttl: bool,
 });
 
-impl Into<RedisBatchKey> for RedisExportCsv {
-    fn into(self) -> RedisBatchKey {
+impl From<RedisExportCsv> for RedisBatchKey {
+    fn from(value: RedisExportCsv) -> Self {
         RedisBatchKey {
-            pattern: self.pattern,
-            key_list: self.key_list,
+            pattern: value.pattern,
+            key_list: value.key_list,
         }
     }
 }

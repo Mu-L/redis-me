@@ -101,6 +101,7 @@ export default {
     importFormatErr: 'Invalid Format',
 
     // 新增编辑
+    labelWidth: '80',
     addConn: 'Add Conn',
     editConn: 'Edit Conn',
     deleteConn: 'Delete Connection 【{name}】?',
@@ -109,36 +110,66 @@ export default {
     username: 'User',
     password: 'Password',
     ssl: 'SSL Options',
-    cert: 'Cert',
-    key: 'Key',
-    ca: 'CA',
+    sslOption: {
+      cert: 'Cert',
+      key: 'Key',
+      ca: 'CA',
+      certHint: 'Public Key File format (Cert)',
+      keyHint: 'Private Key File in PEM format (Key)',
+      caHint: 'Certificate Authority File in PEM format (CA)',
+    },
     sentinel: 'Sentinel',
     sentinelLabelWidth: '140',
     sentinelConfig: 'Sentinel Options',
-    masterName: 'Master Name',
-    masterUsername: 'Master Username',
-    masterPassword: 'Master Password',
+    sentinelOption: {
+      masterName: 'Master Name',
+      masterUsername: 'Master Username',
+      masterPassword: 'Master Password',
+      masterNameHint: 'Master node name monitored by sentinel',
+    },
     autoDiscover: 'Auto Discover',
     autoDiscoverOk: 'Discover {count} Master | Discover {count} Masters',
 
+    ssh: 'SSH Tunnel',
+    sshModeTip: 'SSH tunnel does not support cluster/sentinel mode now',
+    loginType: 'Login',
     nameHint: '[Optional] Automatically generated based on Host and Port',
-    certHint: 'Public Key File format',
-    keyHint: 'Private Key File in PEM format',
-    caHint: 'Certificate Authority File in PEM format',
     testConn: 'Test Conn',
-    readonly: 'Read Only',
+    sshOption: {
+      host: 'Host',
+      port: 'Port',
+      username: 'User',
+      password: 'Password',
+      loginTypePwd: 'Password',
+      loginTypePkfile: 'Private Key',
+      pkfile: 'KeyFile',
+      passphrase: 'Passphrase',
+      pkfileHint: 'Select private key file',
+      passphraseHint: 'Password for private key (Optional)',
+      hostRequired: 'Please input SSH host',
+      portRequired: 'Please input SSH port',
+      usernameRequired: 'Please input SSH username',
+      passwordRequired: 'Please input SSH password',
+      pkfileRequired: 'Please select private key file',
+    },
+
+    readonly: 'RO',
     readonlyShort: 'RO',
     nameRequired: 'Please Input host',
     portRequired: 'Please Input port',
-    testOk: 'Conn Success',
+    testOk: 'Test Conn Success',
     downloading: 'Downloading',
 
+    sshTip:
+      'Connect to Redis server via SSH tunnel, applicable to the following scenarios<br/>• Redis server is on intranet and cannot be accessed directly<br/>• Need to access Redis through jump server/bastion host<br/>• Need encrypted transmission channel for security<br/><b>Note:</b> SSH tunnel currently only supports standalone mode',
+    sslTip:
+      'Used when Redis server has TLS/SSL port enabled<br/>• Need to set tls-port instead of port in Redis configuration<br/>• May need to provide client certificate and private key<br/>• Used to encrypt transmission channel and prevent data theft',
     readonlyTip:
-      'In read-only mode, all editing buttons are hidden (they can be dynamically switched to display)',
+      'After enabling read-only mode<br/>• All edit, delete, and write buttons are hidden<br/>• Only allows viewing and reading Redis data<br/>• Can dynamically switch read-only/writable mode by the lock icon',
     clusterTip:
-      'Select any node in the cluster to fill in, and other nodes will be identified automatically',
+      'Redis Cluster Mode<br/>• Only need to fill in the address of any node<br/>• Automatically identifies all nodes in the cluster',
     sentinelTip:
-      'Select any node of the multiple sentinels. Please fill in the sentinel configuration for the address, port, and password. The user password of the master node is the user password of the Master node monitored by the sentinel',
+      'Redis Cluster Mode<br/>• Choose any one of multiple sentinels, please fill in sentinel configuration for address, port, and password<br/>• Master node username and password are for the Master node monitored by the sentinel',
   },
 
   util: {
@@ -185,10 +216,7 @@ export default {
     about: 'About',
   },
 
-  about: {
-    sourceCode: 'Source Code',
-    officialWebsite: 'Official Website',
-  },
+  about: { sourceCode: 'Source Code', officialWebsite: 'Official Website' },
 
   fieldAdd: {
     append: 'Append',
@@ -230,11 +258,7 @@ export default {
     value: 'Value',
   },
 
-  nodeList: {
-    placeholder: 'Node [Optional]',
-    master: 'M',
-    slave: 'S',
-  },
+  nodeList: { placeholder: 'Node [Optional]', master: 'M', slave: 'S' },
 
   keyBatch: {
     matchRequired: 'Key match expression required',
@@ -279,12 +303,7 @@ export default {
     limit: '(Data has reached limit：${limit})',
   },
 
-  keyList: {
-    refreshKey: 'Reload',
-    copyKey: 'Copy',
-    deleteKey: 'Delete',
-    renameKey: 'Rename',
-  },
+  keyList: { refreshKey: 'Reload', copyKey: 'Copy', deleteKey: 'Delete', renameKey: 'Rename' },
 
   keyTree: {
     noData: 'No Data',
@@ -586,5 +605,31 @@ export default {
     consumerName: 'Consumer Name',
     consumerPending: 'Pending',
     consumerIdle: 'Idle (ms)',
+  },
+
+  // Backend error code translations
+  errors: {
+    connection_not_found: 'Connection {id} not found',
+    connection_lock_timeout: 'Connection lock timeout, please try again later',
+    sentinel_not_supported: 'SSH tunnel does not support sentinel mode',
+    cluster_not_supported: 'SSH tunnel does not support cluster mode',
+    key_not_found: 'Key "{key}" not found',
+    key_already_exists: 'Key "{key}" already exists',
+    key_type_unsupported: 'Unsupported value type: {value_type}',
+    key_type_unknown: 'Unknown value type: {value_type}',
+    field_not_found: 'Hash key "{hash_key}" not found',
+    field_not_found_stream: 'Stream ID "{stream_id}" not found',
+    field_operation_not_supported: 'Unsupported operation mode: {mode}',
+    field_scan_not_supported: 'Field scan does not support type: {value_type}',
+    invalid_node_format: 'Invalid node format: {node}',
+    export_import_running: 'Export/Import task is already running',
+    empty_key_list: 'Key list is empty',
+    empty_parameters: 'Parameters cannot be empty',
+    import_invalid_line: 'Invalid import line: {line}',
+    ssh_key_file_empty: 'SSH private key file path is empty',
+    ssh_login_method_not_supported: 'Unsupported SSH login method: {method}',
+    ssh_auth_failed: 'SSH authentication failed',
+    file_read_failed: 'File read failed: {filename} ({detail})',
+    file_write_failed: 'File write failed: {filename} ({detail})',
   },
 }

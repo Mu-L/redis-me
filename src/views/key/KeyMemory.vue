@@ -1,7 +1,8 @@
 <script setup>
 import { useVirtualList } from '@vueuse/core'
-import { meHumanSize, meInvoke } from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
+
+import { meHumanSize, meInvoke } from '@/utils/util.js'
 
 const { t } = useI18n()
 defineExpose({ open })
@@ -62,8 +63,7 @@ const { list, containerProps, wrapperProps } = useVirtualList(items, { itemHeigh
           t('keyMemory.info', { total: keyList.length, size: meHumanSize(totalSize) }) +
           (keyList.length >= form.countLimit ? t('keyMemory.limit', { size: form.countLimit }) : '')
         "
-        :loading="loading"
-      >
+        :loading="loading">
         <div v-bind="containerProps" :style="{ height: '300px', width: '100%' }">
           <div v-bind="wrapperProps">
             <div v-for="item in list" :key="item.index" class="key me-flex">

@@ -23,13 +23,7 @@ export default {
   deleteOk: '删除成功',
   actionOk: '操作成功',
 
-  timeUnit: {
-    width: '80',
-    second: '秒',
-    minute: '分',
-    hour: '小时',
-    day: '天',
-  },
+  timeUnit: { width: '80', second: '秒', minute: '分', hour: '小时', day: '天' },
 
   appMain: {
     readonly: '只读',
@@ -102,6 +96,7 @@ export default {
     importFormatErr: '文件连接格式错误',
 
     // 新增编辑
+    labelWidth: '60',
     addConn: '新增连接',
     editConn: '编辑连接',
     deleteConn: '确认删除连接【{name}】吗？',
@@ -110,22 +105,48 @@ export default {
     username: '用户',
     password: '密码',
     ssl: 'SSL设置',
-    cert: '公钥',
-    key: '私钥',
-    ca: '授权',
+    sslOption: {
+      cert: '公钥',
+      key: '私钥',
+      ca: '授权',
+      certHint: 'PEM格式公钥文件 (Cert)',
+      keyHint: 'PEM格式私钥文件 (Key)',
+      caHint: 'PEM格式授权文件 (CA)',
+    },
     sentinel: '哨兵',
     sentinelConfig: '哨兵配置',
     sentinelLabelWidth: '100',
-    masterName: '主节点组名',
-    masterUsername: '主节点用户',
-    masterPassword: '主节点密码',
+    sentinelOption: {
+      masterName: '主节点组名',
+      masterUsername: '主节点用户',
+      masterPassword: '主节点密码',
+      masterNameHint: '哨兵监控的Master节点名称',
+    },
     autoDiscover: '自动查询组名',
     autoDiscoverOk: '查询到{count}个主节点',
 
+    ssh: 'SSH 隧道',
+    sshModeTip: 'SSH 隧道暂不支持集群/哨兵模式',
+    loginType: '登录',
+    sshOption: {
+      host: '主机',
+      port: '端口',
+      username: '用户',
+      password: '密码',
+      loginTypePwd: '密码',
+      loginTypePkfile: '私钥',
+      pkfile: '私钥',
+      passphrase: '密码',
+      pkfileHint: '选择私钥文件',
+      passphraseHint: '私钥文件密码（可选）',
+      hostRequired: '请输入SSH主机',
+      portRequired: '请输入SSH端口',
+      usernameRequired: '请输入SSH用户名',
+      passwordRequired: '请输入SSH密码',
+      pkfileRequired: '请选择私钥文件',
+    },
+
     nameHint: '【可选】默认自动根据主机和端口生成',
-    certHint: 'PEM格式公钥文件 (Cert)',
-    keyHint: 'PEM格式私钥文件 (Key)',
-    caHint: 'PEM格式授权文件 (CA)',
     testConn: '测试连接',
     readonly: '只读',
     readonlyShort: '只读',
@@ -134,10 +155,15 @@ export default {
     testOk: '测试连接成功',
     downloading: '下载中...',
 
-    readonlyTip: '只读模式下，所有编辑按钮隐藏（可动态切换显示）',
-    clusterTip: '选择集群中任一节点配置填入即可，会自动识别其它节点',
+    sshTip: `通过SSH隧道连接Redis服务器，适用于以下场景<br/>• Redis服务器在内网，无法直接访问<br/>• 需要通过跳板机/堡垒机访问Redis<br/>• 需要加密传输通道保障安全<br/><b>注意：</b>SSH隧道目前仅支持单机模式`,
+    sslTip:
+      'Redis服务器开启了TLS/SSL端口时使用<br/>• 需要在Redis配置中设置 tls-port 而非 port<br/>• 可能需要提供客户端证书和私钥<br/>• 用于加密传输通道，防止数据被窃听',
+    readonlyTip:
+      '启用只读模式后<br/>• 所有编辑、删除、写入按钮被隐藏<br/>• 仅允许查看和读取Redis数据<br/>• 可通过锁图标动态切换只读/可写模式',
+    clusterTip:
+      'Redis Cluster 集群模式<br/>• 只需填写任一节点的地址<br/>• 自动识别集群中的所有节点',
     sentinelTip:
-      '多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置。主节点用户密码为哨兵监听的Master节点的用户密码',
+      'Redis Sentinel 哨兵模式<br/>• 多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置<br/>• 主节点用户密码为哨兵监听的Master节点的用户密码',
   },
 
   util: {
@@ -184,10 +210,7 @@ export default {
     about: '关于',
   },
 
-  about: {
-    sourceCode: '源码地址',
-    officialWebsite: '官方网站',
-  },
+  about: { sourceCode: '源码地址', officialWebsite: '官方网站' },
 
   fieldAdd: {
     append: '尾部追加',
@@ -229,11 +252,7 @@ export default {
     value: '值',
   },
 
-  nodeList: {
-    placeholder: '指定节点【可选】',
-    master: '主',
-    slave: '从',
-  },
+  nodeList: { placeholder: '指定节点【可选】', master: '主', slave: '从' },
 
   keyBatch: {
     matchRequired: '键名表达式不能为空',
@@ -581,5 +600,31 @@ export default {
     consumerName: '消费者名称',
     consumerPending: 'Pending',
     consumerIdle: '空闲时长 (ms)',
+  },
+
+  // 后端错误码翻译
+  errors: {
+    connection_not_found: '连接 {id} 不存在',
+    connection_lock_timeout: '获取连接超时，请稍后重试',
+    sentinel_not_supported: 'SSH 隧道暂不支持哨兵模式',
+    cluster_not_supported: 'SSH 隧道暂不支持集群模式',
+    key_not_found: '键 "{key}" 不存在',
+    key_already_exists: '键 "{key}" 已存在',
+    key_type_unsupported: '不支持的值类型: {value_type}',
+    key_type_unknown: '未知的值类型: {value_type}',
+    field_not_found: '哈希键 "{hash_key}" 不存在',
+    field_not_found_stream: 'Stream ID "{stream_id}" 不存在',
+    field_operation_not_supported: '不支持的操作模式: {mode}',
+    field_scan_not_supported: '字段扫描不支持类型: {value_type}',
+    invalid_node_format: '无效的节点格式: {node}',
+    export_import_running: '导出/导入任务正在运行中',
+    empty_key_list: '键列表为空',
+    empty_parameters: '参数不能为空',
+    import_invalid_line: '无效的导入行: {line}',
+    ssh_key_file_empty: 'SSH 私钥文件路径为空',
+    ssh_login_method_not_supported: '不支持的 SSH 登录方式: {method}',
+    ssh_auth_failed: 'SSH 认证失败',
+    file_read_failed: '文件读取失败: {filename} ({detail})',
+    file_write_failed: '文件写入失败: {filename} ({detail})',
   },
 }

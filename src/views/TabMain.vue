@@ -1,12 +1,12 @@
 <script setup>
+import RedisChart from '@/views/tab/RedisChart.vue'
 import RedisInfo from '@/views/tab/RedisInfo.vue'
-import RedisValue from '@/views/tab/RedisValue.vue'
-import RedisSlow from '@/views/tab/RedisSlow.vue'
-import RedisTerminal from '@/views/tab/RedisTerminal.vue'
+import RedisMemory from '@/views/tab/RedisMemory.vue'
 import RedisMonitor from '@/views/tab/RedisMonitor.vue'
 import RedisPubsub from '@/views/tab/RedisPubsub.vue'
-import RedisMemory from '@/views/tab/RedisMemory.vue'
-import RedisChart from '@/views/tab/RedisChart.vue'
+import RedisSlow from '@/views/tab/RedisSlow.vue'
+import RedisTerminal from '@/views/tab/RedisTerminal.vue'
+import RedisValue from '@/views/tab/RedisValue.vue'
 // import RedisTauri from '@/views/tab/RedisTauri.vue'
 
 // 共享数据

@@ -1,9 +1,11 @@
 <script setup>
-import NodeList from '../ext/NodeList.vue'
-import { meCopy, meInvoke } from '@/utils/util.js'
-import MeIcon from '@/components/MeIcon.vue'
 import { useI18n } from 'vue-i18n'
+
+import MeIcon from '@/components/MeIcon.vue'
 import { commandHelp } from '@/utils/cmd.js'
+import { meCopy, meInvoke } from '@/utils/util.js'
+
+import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -94,8 +96,7 @@ function openKeyShortDialog() {
       :exec-command="execCommand"
       :prefix
       :welcome
-      :command-help="commandHelp"
-    />
+      :command-help="commandHelp" />
 
     <!-- 集群节点 -->
     <div class="node me-flex" v-if="share.conn?.cluster">
@@ -103,8 +104,7 @@ function openKeyShortDialog() {
         <el-checkbox
           v-model="autoBroadcast"
           :label="t('redisTerminal.autoBroadcast')"
-          style="margin-left: 10px"
-        />
+          style="margin-left: 10px" />
       </el-tooltip>
       <node-list v-model="node" clearable style="margin-left: 10px" />
     </div>
@@ -120,16 +120,14 @@ function openKeyShortDialog() {
         :info="t('redisTerminal.keyShortHint')"
         placement="top-end"
         @click="openKeyShortDialog"
-        style="margin-left: 10px; font-size: 20px"
-      />
+        style="margin-left: 10px; font-size: 20px" />
       <me-icon
         class="icon-btn"
         icon="el-icon-help"
         :info="t('redisTerminal.commandHint')"
         placement="top-end"
         @click="openCommandDialog"
-        style="margin-left: 5px"
-      />
+        style="margin-left: 5px" />
     </div>
 
     <!-- 快捷键提示 -->
@@ -139,8 +137,7 @@ function openKeyShortDialog() {
       align-center
       draggable
       :show-close="false"
-      style="--el-dialog-bg-color: unset; box-shadow: unset"
-    >
+      style="--el-dialog-bg-color: unset; box-shadow: unset">
       <el-text type="warning" size="large" v-html="t('redisTerminal.keyShortMore')"> </el-text>
     </el-dialog>
 
@@ -149,8 +146,7 @@ function openKeyShortDialog() {
       v-model="visible"
       icon="el-icon-document"
       :title="t('redisTerminal.commandTitle')"
-      width="80vw"
-    >
+      width="80vw">
       <div style="height: 100%; display: flex; flex-direction: column">
         <div class="me-flex">
           <div class="me-flex">
@@ -159,8 +155,7 @@ function openKeyShortDialog() {
               style="width: 200px"
               :placeholder="t('redisTerminal.group')"
               clearable
-              filterable
-            >
+              filterable>
               <el-option v-for="item in groupList" :key="item" :value="item">{{ item }}</el-option>
             </el-select>
             <me-website to="command" />
@@ -169,8 +164,7 @@ function openKeyShortDialog() {
             v-model="keyword"
             :placeholder="t('redisTerminal.keywordHint')"
             style="width: 300px"
-            clearable
-          />
+            clearable />
         </div>
 
         <div style="margin-top: 10px; flex-grow: 1; height: 0">
@@ -180,35 +174,30 @@ function openKeyShortDialog() {
             border
             stripe
             height="100%"
-            :default-sort="{ prop: 'key', order: 'ascending' }"
-          >
+            :default-sort="{ prop: 'key', order: 'ascending' }">
             <el-table-column
               :label="t('redisTerminal.group')"
               prop="group"
               width="120"
               show-overflow-tooltip
-              sortable
-            />
+              sortable />
             <el-table-column
               :label="t('redisTerminal.command')"
               prop="key"
               width="150"
               show-overflow-tooltip
-              sortable
-            />
+              sortable />
             <el-table-column :label="t('redisTerminal.usage')" prop="usage" show-overflow-tooltip />
             <el-table-column
               :label="t('redisTerminal.summary')"
               prop="summary"
-              show-overflow-tooltip
-            />
+              show-overflow-tooltip />
             <el-table-column
               :label="t('redisTerminal.since')"
               prop="since"
               width="100"
               show-overflow-tooltip
-              sortable
-            />
+              sortable />
           </me-table>
         </div>
       </div>

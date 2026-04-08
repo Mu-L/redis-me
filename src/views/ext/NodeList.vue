@@ -21,12 +21,11 @@ if (initNode && share.nodeList.length > 0) {
     v-model="node"
     style="width: 220px"
     :placeholder="t('nodeList.placeholder')"
-    v-if="share.nodeList.length > 0"
-  >
+    v-if="share.nodeList.length > 0">
     <el-option v-for="item in share.nodeList" :key="item.node" :value="item.node">
-      <el-tag effect="dark" :type="item.isMaster ? 'primary' : 'info'" hit
-        >{{ item.node }} ({{ item.isMaster ? t('nodeList.master') : t('nodeList.slave') }})</el-tag
-      >
+      <el-tag effect="dark" :type="item.isMaster ? 'primary' : 'info'">
+        {{ item.node }} ({{ item.isMaster ? t('nodeList.master') : t('nodeList.slave') }})
+      </el-tag>
     </el-option>
   </el-select>
 </template>

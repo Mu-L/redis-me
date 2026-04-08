@@ -40,8 +40,7 @@ function updatePageSize(size) {
       :page-sizes="[20, 50, 100]"
       @update:page-size="updatePageSize"
       :total="data.length"
-      layout="total, sizes, prev, pager, next, jumper"
-    />
+      layout="total, sizes, prev, pager, next, jumper" />
   </div>
 </template>
 

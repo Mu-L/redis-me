@@ -2,8 +2,9 @@
 import { cloneDeep } from 'lodash'
 import { nanoid } from 'nanoid'
 import { ref, useTemplateRef } from 'vue'
-import { meInvoke, PREDEFINE_COLORS, meRandomString, meOk, meErr } from '@/utils/util.js'
 import { useI18n } from 'vue-i18n'
+
+import { meInvoke, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util.js'
 const { t } = useI18n()
 
 const emit = defineEmits(['success', 'closed'])
@@ -20,7 +21,12 @@ const form = reactive({
   db: 0,
 
   readonly: false,
+  color: '#409eff',
+
+  // 集群模式
   cluster: false,
+
+  // SSL连接
   ssl: false,
   sslOption: {
     key: '',
@@ -28,13 +34,25 @@ const form = reactive({
     ca: '',
   },
 
-  color: '#409eff',
-
-  // 哨兵模式补充
+  // 哨兵模式
   sentinel: false,
-  masterName: '',
-  masterUsername: '',
-  masterPassword: '',
+  sentinelOption: {
+    masterName: '',
+    masterUsername: '',
+    masterPassword: '',
+  },
+
+  // SSH隧道
+  ssh: false,
+  sshOption: {
+    host: '',
+    port: 22,
+    loginType: 'pwd', // pwd 用户名/密码, pkfile 私钥文件
+    username: '',
+    password: '',
+    pkfile: '', // 私钥文件
+    passphrase: '', // 私钥密码
+  },
 
   // 其他元信息补充: 复制连接时不保留
   meta: {
@@ -47,6 +65,76 @@ const form = reactive({
 const rules = {
   host: [{ required: true, message: t('conn.nameRequired') }],
   port: [{ required: true, message: t('conn.portRequired') }],
+  'sshOption.host': [
+    {
+      required: true,
+      message: t('conn.sshOption.hostRequired'),
+      trigger: 'blur',
+      validator: (_rule, value, callback) => {
+        if (form.ssh && !value) {
+          callback(new Error(t('conn.sshOption.hostRequired')))
+        } else {
+          callback()
+        }
+      },
+    },
+  ],
+  'sshOption.port': [
+    {
+      required: true,
+      message: t('conn.sshOption.portRequired'),
+      trigger: 'blur',
+      validator: (_rule, value, callback) => {
+        if (form.ssh && !value) {
+          callback(new Error(t('conn.sshOption.portRequired')))
+        } else {
+          callback()
+        }
+      },
+    },
+  ],
+  'sshOption.username': [
+    {
+      required: true,
+      message: t('conn.sshOption.usernameRequired'),
+      trigger: 'blur',
+      validator: (_rule, value, callback) => {
+        if (form.ssh && !value) {
+          callback(new Error(t('conn.sshOption.usernameRequired')))
+        } else {
+          callback()
+        }
+      },
+    },
+  ],
+  'sshOption.password': [
+    {
+      required: true,
+      message: t('conn.sshOption.passwordRequired'),
+      trigger: 'blur',
+      validator: (_rule, value, callback) => {
+        if (form.ssh && form.sshOption.loginType === 'pwd' && !value) {
+          callback(new Error(t('conn.sshOption.passwordRequired')))
+        } else {
+          callback()
+        }
+      },
+    },
+  ],
+  'sshOption.pkfile': [
+    {
+      required: true,
+      message: t('conn.sshOption.pkfileRequired'),
+      trigger: 'blur',
+      validator: (_rule, value, callback) => {
+        if (form.ssh && form.sshOption.loginType === 'pkfile' && !value) {
+          callback(new Error(t('conn.sshOption.pkfileRequired')))
+        } else {
+          callback()
+        }
+      },
+    },
+  ],
 }
 
 // 外部打开对话框
@@ -123,8 +211,8 @@ const masters = ref([])
 async function autoDiscover(alert = false) {
   try {
     masters.value = await meInvoke('masters', { conf: form }, false)
-    if (!form.masterName && masters.value.length > 0) {
-      form.masterName = masters.value[0].name
+    if (!form.sentinelOption.masterName && masters.value.length > 0) {
+      form.sentinelOption.masterName = masters.value[0].name
     }
 
     if (alert) {
@@ -138,20 +226,51 @@ async function autoDiscover(alert = false) {
   }
 }
 
+// 哨兵模式自动发现 + 与SSH互斥
 watch(
   () => form.sentinel,
   (newValue, _oldValue) => {
     if (newValue) {
+      // 与SSH互斥
+      if (form.ssh) {
+        meWarn(t('conn.sshModeTip'))
+        form.sentinel = false
+        return
+      }
+
       autoDiscover()
     }
   },
 )
 
 watch(
-  () => form.masterName,
+  () => form.sentinelOption.masterName,
   (newValue, _oldValue) => {
     if (newValue === undefined) {
-      form.masterName = ''
+      form.sentinelOption.masterName = ''
+    }
+  },
+)
+
+// SSH与集群/哨兵互斥
+watch(
+  () => form.ssh,
+  newValue => {
+    if (newValue) {
+      if (form.cluster || form.sentinel) {
+        meWarn(t('conn.sshModeTip'))
+        form.ssh = false
+      }
+    }
+  },
+)
+
+watch(
+  () => form.cluster,
+  newValue => {
+    if (newValue && form.ssh) {
+      meWarn(t('conn.sshModeTip'))
+      form.cluster = false
     }
   },
 )
@@ -166,13 +285,19 @@ watch(
     width="600"
     append-to-body
     destroy-on-close
-    align-center
-  >
-    <el-form ref="formRef" :model="form" :rules="rules" label-position="right" label-width="60">
+    align-center>
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-position="right"
+      :label-width="t('conn.labelWidth')">
+      <!-- 连接名称 -->
       <el-form-item :label="t('conn.name')" prop="name">
         <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
       </el-form-item>
 
+      <!-- 主机、端口 -->
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item :label="t('conn.host')" prop="host">
@@ -188,12 +313,12 @@ watch(
               :controls="false"
               align="left"
               style="width: 100%"
-              placeholder="6379"
-            />
+              placeholder="6379" />
           </el-form-item>
         </el-col>
       </el-row>
 
+      <!-- 用户名、密码 -->
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item :label="t('conn.username')">
@@ -207,59 +332,177 @@ watch(
               v-model.trim="form.password"
               placeholder="password"
               clearable
-              show-password
-            />
+              show-password />
           </el-form-item>
         </el-col>
       </el-row>
 
-      <el-row :gutter="24">
-        <el-col :span="5">
+      <!-- 颜色、复选框 -->
+      <el-row :gutter="24" justify="space-between">
+        <el-col :span="6">
           <el-form-item :label="t('conn.color')">
             <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS" />
           </el-form-item>
         </el-col>
-        <el-col :span="19">
-          <el-checkbox v-model="form.ssl">SSL</el-checkbox>
+        <el-col :span="18" style="padding-left: 0; padding-right: 0">
+          <el-checkbox v-model="form.ssh">
+            <me-icon
+              name="SSH"
+              icon="el-icon-question-filled"
+              placement="top"
+              :info="t('conn.sshTip')"
+              :icon-left="false"
+              raw-content />
+          </el-checkbox>
+          <el-checkbox v-model="form.ssl">
+            <me-icon
+              name="SSL"
+              icon="el-icon-question-filled"
+              placement="top"
+              :info="t('conn.sslTip')"
+              :icon-left="false"
+              raw-content />
+          </el-checkbox>
           <el-checkbox v-model="form.readonly">
             <me-icon
               :name="t('conn.readonly')"
               icon="el-icon-question-filled"
+              placement="top"
               :info="t('conn.readonlyTip')"
               :icon-left="false"
-            />
+              raw-content />
           </el-checkbox>
           <el-checkbox v-model="form.cluster">
             <me-icon
               :name="t('conn.cluster')"
               icon="el-icon-question-filled"
+              placement="top"
               :info="t('conn.clusterTip')"
               :icon-left="false"
-            />
+              raw-content />
           </el-checkbox>
           <el-checkbox v-model="form.sentinel">
             <me-icon
               :name="t('conn.sentinel')"
               icon="el-icon-question-filled"
+              placement="top"
               :info="t('conn.sentinelTip')"
               :icon-left="false"
-            />
+              raw-content />
           </el-checkbox>
         </el-col>
       </el-row>
 
+      <!-- SSH隧道 -->
+      <div v-show="form.ssh">
+        <el-divider content-position="left">{{ t('conn.ssh') }}</el-divider>
+
+        <!-- SSH主机、端口 -->
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item :label="t('conn.sshOption.host')" prop="sshOption.host">
+              <el-input v-model.trim="form.sshOption.host" placeholder="SSH host" clearable />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item :label="t('conn.sshOption.port')" prop="sshOption.port">
+              <el-input-number
+                :min="1"
+                :max="65535"
+                v-model="form.sshOption.port"
+                :controls="false"
+                align="left"
+                style="width: 100%"
+                placeholder="22" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 登录方式 -->
+        <el-form-item :label="t('conn.loginType')">
+          <el-segmented
+            v-model="form.sshOption.loginType"
+            :options="[
+              { label: t('conn.sshOption.loginTypePwd'), value: 'pwd' },
+              { label: t('conn.sshOption.loginTypePkfile'), value: 'pkfile' },
+            ]" />
+        </el-form-item>
+
+        <!-- 密码模式 -->
+        <template v-if="form.sshOption.loginType === 'pwd'">
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item :label="t('conn.sshOption.username')" prop="sshOption.username">
+                <el-input
+                  v-model.trim="form.sshOption.username"
+                  placeholder="SSH username"
+                  clearable />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item :label="t('conn.sshOption.password')" prop="sshOption.password">
+                <el-input
+                  v-model.trim="form.sshOption.password"
+                  type="password"
+                  placeholder="SSH password"
+                  clearable
+                  show-password />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </template>
+
+        <!-- 私钥模式 -->
+        <template v-if="form.sshOption.loginType === 'pkfile'">
+          <el-form-item :label="t('conn.sshOption.username')" prop="sshOption.username">
+            <el-input v-model.trim="form.sshOption.username" placeholder="SSH username" clearable />
+          </el-form-item>
+          <el-form-item :label="t('conn.sshOption.pkfile')" prop="sshOption.pkfile">
+            <me-file-input
+              v-model="form.sshOption.pkfile"
+              :placeholder="t('conn.sshOption.pkfileHint')" />
+          </el-form-item>
+          <el-form-item :label="t('conn.sshOption.passphrase')">
+            <el-input
+              v-model.trim="form.sshOption.passphrase"
+              type="password"
+              :placeholder="t('conn.sshOption.passphraseHint')"
+              clearable
+              show-password />
+          </el-form-item>
+        </template>
+      </div>
+
+      <!-- SSL加密 -->
+      <div v-show="form.ssl">
+        <el-divider content-position="left">{{ t('conn.ssl') }}</el-divider>
+        <el-form-item :label="t('conn.sslOption.cert')">
+          <me-file-input
+            v-model="form.sslOption.cert"
+            :placeholder="t('conn.sslOption.certHint')" />
+        </el-form-item>
+        <el-form-item :label="t('conn.sslOption.key')">
+          <me-file-input v-model="form.sslOption.key" :placeholder="t('conn.sslOption.keyHint')" />
+        </el-form-item>
+        <el-form-item :label="t('conn.sslOption.ca')">
+          <me-file-input v-model="form.sslOption.ca" :placeholder="t('conn.sslOption.caHint')" />
+        </el-form-item>
+      </div>
+
+      <!-- 哨兵模式 -->
       <div v-show="form.sentinel">
         <el-divider content-position="left">{{ t('conn.sentinelConfig') }}</el-divider>
-        <el-form-item :label="t('conn.masterName')" :label-width="t('conn.sentinelLabelWidth')">
+        <el-form-item
+          :label="t('conn.sentinelOption.masterName')"
+          :label-width="t('conn.sentinelLabelWidth')">
           <div class="me-flex" style="width: 100%">
             <el-select
-              v-model="form.masterName"
+              v-model="form.sentinelOption.masterName"
               clearable
               filterable
               allow-create
               style="flex: 1"
-              placeholder="mymaster"
-            >
+              :placeholder="t('conn.sentinelOption.masterNameHint')">
               <el-option v-for="item in masters" :key="item.name" :value="item.name">
                 <span style="float: left">{{ item.name }}</span>
                 <span style="float: right; color: var(--el-text-color-secondary)">{{
@@ -273,40 +516,27 @@ watch(
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item
-              :label="t('conn.masterUsername')"
-              :label-width="t('conn.sentinelLabelWidth')"
-            >
-              <el-input v-model.trim="form.masterUsername" placeholder="username" clearable />
+              :label="t('conn.sentinelOption.masterUsername')"
+              :label-width="t('conn.sentinelLabelWidth')">
+              <el-input
+                v-model.trim="form.sentinelOption.masterUsername"
+                :placeholder="t('conn.sentinelOption.masterUsername')"
+                clearable />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item
-              :label="t('conn.masterPassword')"
-              :label-width="t('conn.sentinelLabelWidth')"
-            >
+              :label="t('conn.sentinelOption.masterPassword')"
+              :label-width="t('conn.sentinelLabelWidth')">
               <el-input
-                v-model.trim="form.masterPassword"
-                placeholder="password"
+                v-model.trim="form.sentinelOption.masterPassword"
+                :placeholder="t('conn.sentinelOption.masterPassword')"
                 type="password"
                 clearable
-                show-password
-              />
+                show-password />
             </el-form-item>
           </el-col>
         </el-row>
-      </div>
-
-      <div v-show="form.ssl">
-        <el-divider content-position="left">{{ t('conn.ssl') }}</el-divider>
-        <el-form-item :label="t('conn.cert')">
-          <me-file-input v-model="form.sslOption.cert" :placeholder="t('conn.certHint')" />
-        </el-form-item>
-        <el-form-item :label="t('conn.key')">
-          <me-file-input v-model="form.sslOption.key" :placeholder="t('conn.keyHint')" />
-        </el-form-item>
-        <el-form-item :label="t('conn.ca')">
-          <me-file-input v-model="form.sslOption.ca" :placeholder="t('conn.caHint')" />
-        </el-form-item>
       </div>
     </el-form>
     <template #footer>
@@ -327,3 +557,9 @@ watch(
     </template>
   </el-dialog>
 </template>
+
+<style scoped lang="scss">
+:deep(.el-checkbox) {
+  margin-right: 12px;
+}
+</style>

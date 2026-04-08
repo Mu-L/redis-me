@@ -1,6 +1,4 @@
 <script setup>
-import { isDark, meHumanNums, meInvoke, meLog, PREDEFINE_COLORS } from '@/utils/util.js'
-import { Line } from 'vue-chartjs'
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -12,11 +10,14 @@ import {
   TimeScale,
   Tooltip,
 } from 'chart.js'
-import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
-import { cloneDeep, merge } from 'lodash'
-import NodeList from '@/views/ext/NodeList.vue'
-import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
+import { cloneDeep, merge } from 'lodash'
+import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
+import { Line } from 'vue-chartjs'
+import { useI18n } from 'vue-i18n'
+
+import { isDark, meHumanNums, meInvoke, meLog, PREDEFINE_COLORS } from '@/utils/util.js'
+import NodeList from '@/views/ext/NodeList.vue'
 
 // 只注册必要的组件即可
 // https://chartjs.cn/docs/latest/getting-started/integration.html
@@ -463,8 +464,7 @@ watch(
             :class="autoRefresh ? 'rotating' : ''"
             icon="el-icon-refresh-right"
             @click="getData"
-            style="margin-left: 20px"
-          />
+            style="margin-left: 20px" />
           <template #dropdown>
             <el-dropdown-menu>
               <el-form :label-width="t('redisChart.labelWidth')" label-position="right">
@@ -480,8 +480,7 @@ watch(
                       :min="1"
                       :max="60"
                       :controls="false"
-                      style="width: 80px; margin-left: 10px"
-                    >
+                      style="width: 80px; margin-left: 10px">
                       <template #suffix>{{ t('redisChart.refreshUnit') }}</template>
                     </el-input-number>
                   </el-form-item>
@@ -493,8 +492,7 @@ watch(
                       :min="1"
                       :max="600"
                       :controls="false"
-                      style="width: 80px; margin-left: 10px"
-                    >
+                      style="width: 80px; margin-left: 10px">
                       <template #suffix>{{ t('redisChart.keepUnit') }}</template>
                     </el-input-number>
                   </el-form-item>
@@ -506,8 +504,7 @@ watch(
                       :min="10"
                       :max="200"
                       :controls="false"
-                      style="width: 80px; margin-left: 10px"
-                    >
+                      style="width: 80px; margin-left: 10px">
                       <template #suffix>{{ t('redisChart.pointUnit') }}</template>
                     </el-input-number>
                   </el-form-item>
@@ -548,15 +545,13 @@ watch(
           <Line
             ref="totalConnectionsReceived"
             :data="chartData.totalConnectionsReceived"
-            :options="totalOptions"
-          />
+            :options="totalOptions" />
         </div>
         <div class="chart">
           <Line
             ref="totalCommandsProcessed"
             :data="chartData.totalCommandsProcessed"
-            :options="totalOptions"
-          />
+            :options="totalOptions" />
         </div>
       </template>
     </div>

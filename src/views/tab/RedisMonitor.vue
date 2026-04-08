@@ -1,8 +1,9 @@
 <script setup>
-import NodeList from '@/views/ext/NodeList.vue'
-import { meConfirm, meCopy, meInvoke, meOk } from '@/utils/util.js'
 import { listen } from '@tauri-apps/api/event'
 import { useI18n } from 'vue-i18n'
+
+import { meConfirm, meCopy, meInvoke, meOk } from '@/utils/util.js'
+import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -75,20 +76,17 @@ onUnmounted(() => tauriUnlisten())
           :info="t('redisMonitor.clearMessage')"
           @click="clearData"
           :disabled="dataList.length === 0"
-          placement="top"
-        />
+          placement="top" />
         <el-input
           v-model="keyword"
           :placeholder="t('redisMonitor.keyword')"
           style="width: 280px; margin: 0 10px"
-          clearable
-        />
+          clearable />
         <el-button
           :icon="monitoring ? 'el-icon-video-pause' : 'el-icon-video-play'"
           @click="monitor"
           type="primary"
-          :loading="loading"
-        >
+          :loading="loading">
           {{ monitoring ? t('redisMonitor.monitorStop') : t('redisMonitor.monitorStart') }}
         </el-button>
       </div>
@@ -104,8 +102,7 @@ onUnmounted(() => tauriUnlisten())
               icon="el-icon-document-copy"
               class="icon-btn"
               @click="meCopy(scope.row.command)"
-              style="justify-content: center"
-            />
+              style="justify-content: center" />
           </template>
         </el-table-column>
       </el-table>
