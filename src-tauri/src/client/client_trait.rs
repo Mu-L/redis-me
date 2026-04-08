@@ -1059,7 +1059,10 @@ fn import_cmds(
             let result = import_cmd(conn, line);
             match result {
                 Ok(_) => ok_count += 1,
-                Err(_) => err_count += 1,
+                Err(e) => {
+                    warn!("import cmd err: {e}");
+                    err_count += 1
+                },
             }
             // 通知导入进度
             let event = ExportImportEvent {
