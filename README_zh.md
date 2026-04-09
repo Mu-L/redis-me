@@ -50,10 +50,6 @@
 # 安装 Rust （国内镜像 https://rsproxy.cn/）
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# 安装Node（推荐使用fnm安装）
-curl -o- https://fnm.vercel.app/install | bash
-fnm install 22
-
 # 安装vite+: 自动管理node/pnpm （国内镜像 https://npmmirror.com, 环境变量: NPM_CONFIG_REGISTRY）
 curl -fsSL https://vite.plus | bash
 
