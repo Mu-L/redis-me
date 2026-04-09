@@ -23,7 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# hepengju 
+# hepengju
 *.d.ts
 docs/.vitepress/dist
 docs/.vitepress/cache
+.qwen
