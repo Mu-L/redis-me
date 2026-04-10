@@ -1,5 +1,15 @@
 # 2.x Changelog
 
+## [v2.7.1](https://mp.weixin.qq.com/s/9-NM8ZHlmFreYbKRSX0Row) (2026-04-11)
+
+- Bug Fixes
+  - Handle special characters in user passwords #68
+  - Support for databases with more than 255 DB indexes #69
+- Packaging Optimization
+  - Moved Redis default configuration files to frontend resources for easier portable packaging
+  - Changed the packaged exe name from `redis-me` to `RedisME`
+  - Added support for Windows Portable packaging (for company computers without admin rights to install exe) #66
+
 ## [v2.7.0](https://mp.weixin.qq.com/s/4jG3-O3LJH6JvQbZIgUIIA) (2026-04-11)
 
 - Connection

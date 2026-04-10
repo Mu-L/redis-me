@@ -1,15 +1,15 @@
 # 2.x 更新日志
 
 
-## v2.7.1
+## [v2.7.1](https://mp.weixin.qq.com/s/9-NM8ZHlmFreYbKRSX0Row) (2026-04-11) 
 
 - 缺陷修复
   - 用户密码包含特殊字符串的处理 #68
-  - 数据库数量大于255个的支持(Aliyun Redis有256个数据库) #69
-- 打包优化 #66
+  - 数据库数量大于255个的支持 #69
+- 打包优化 
   - Redis的默认配置文件移动到前端资源目录下，方便便携打包
-  - 新增支持Window便携版打包(部分公司电脑没有安装exe权限)
   - 打包后的exe名称redis-me改为RedisME
+  - 新增支持Window便携版打包(部分公司电脑没有安装exe权限) #66
 
 ## [v2.7.0](https://mp.weixin.qq.com/s/4jG3-O3LJH6JvQbZIgUIIA) (2026-04-11)
 
