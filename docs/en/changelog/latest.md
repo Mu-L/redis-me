@@ -1,6 +1,6 @@
 # 2.x Changelog
 
-## [v2.7.0]() (2026-04-10)
+## [v2.7.0](https://mp.weixin.qq.com/s/4jG3-O3LJH6JvQbZIgUIIA) (2026-04-11)
 
 - Connection
   - **New SSH tunnel feature, supports password and private key authentication**
