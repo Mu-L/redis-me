@@ -34,7 +34,7 @@
       "resources/icons/icon.png",
       "resources/icons/icon.svg"
     ],
-    "resources": ["resources/conf/*"],
+    "resources": [],
     "createUpdaterArtifacts": true,
     "windows": {
       "wix": { "language": ["en-US", "zh-CN"] },

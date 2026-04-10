@@ -20,13 +20,23 @@ function downloadLink(fileName) {
 const downloadMenu = computed(() => {
   return [
     {
-      text: 'Windows x64 (.exe)',
+      text: `Windows x64 (.exe)`,
       link: downloadLink(`RedisME_${version}_x64-setup.exe`),
       icon: Windows,
     },
     {
-      text: 'Windows arm64 (.exe)',
+      text: `Windows x64 (.zip)`,
+      link: downloadLink(`RedisME_${version}_portable_x64.zip`),
+      icon: Windows,
+    },
+    {
+      text: `Windows arm64 (.exe)`,
       link: downloadLink(`RedisME_${version}_arm64-setup.exe`),
+      icon: Windows,
+    },
+    {
+      text: `Windows arm64 (.zip)`,
+      link: downloadLink(`RedisME_${version}_portable_arm64.zip`),
       icon: Windows,
     },
     {

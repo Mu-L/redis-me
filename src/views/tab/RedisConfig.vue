@@ -1,6 +1,4 @@
 <script setup>
-import { BaseDirectory } from '@tauri-apps/api/path'
-import { readDir, readTextFile } from '@tauri-apps/plugin-fs'
 import { sortBy } from 'lodash'
 import { useI18n } from 'vue-i18n'
 
@@ -25,21 +23,46 @@ const keyword = ref('')
 const loading = ref(false)
 const dataList = ref([])
 
-// 文件格式的配置文件
-// 读取配置文件目录，将所有文件存储起来
-// const configVersionList = Object.keys(redisConfText).reverse()
+// 文件格式的配置文件（使用 Vite ?raw 导入，打包时会内联到 JS 中）
 const serverType = computed(() => (share.isValkey ? 'Valkey' : 'Redis'))
-const dirConfigList = ref([])
-onMounted(() => readConfigDir())
-async function readConfigDir() {
-  const files = await readDir('resources/conf', { baseDir: BaseDirectory.Resource })
-  files.forEach(file => {
-    if (file.isFile && file.name.endsWith('.conf')) {
-      dirConfigList.value.push(file.name.substring(0, file.name.length - 5))
-    }
-  })
-  dirConfigList.value.sort().reverse()
+
+// 动态加载配置文件
+const configCache = {}
+async function loadConfigFile(version) {
+  if (configCache[version]) return configCache[version]
+
+  try {
+    const { default: content } = await import(`../../assets/conf/${version}.conf?raw`)
+    configCache[version] = content
+    return content
+  } catch (e) {
+    console.error(`加载配置文件失败: ${version}`, e)
+    return null
+  }
 }
+
+// 配置文件列表（手动维护，与 src/assets/conf/ 目录保持一致）
+const allConfigVersions = [
+  'Redis4.0',
+  'Redis5.0',
+  'Redis6.2',
+  'Redis7.0',
+  'Redis7.2',
+  'Redis7.4',
+  'Redis8.0',
+  'Redis8.2',
+  'Redis8.4',
+  'Redis8.6',
+  'Valkey7.2',
+  'Valkey8.0',
+  'Valkey8.1',
+  'Valkey9.0',
+]
+
+const dirConfigList = ref([])
+onMounted(() => {
+  dirConfigList.value = [...allConfigVersions].sort().reverse()
+})
 
 const configVersionList = computed(() =>
   dirConfigList.value.filter(d => d.startsWith(serverType.value)),
@@ -50,10 +73,12 @@ const configRaw = ref('')
 // 读取配置文件的值
 watchEffect(async () => {
   try {
-    // configRaw.value = redisConfText[configVersion.value]
-    configRaw.value = await readTextFile(`resources/conf/${configVersion.value}.conf`, {
-      baseDir: BaseDirectory.Resource,
-    })
+    if (!configVersion.value) {
+      configRaw.value = t('redisConfig.noConfig')
+      return
+    }
+    const content = await loadConfigFile(configVersion.value)
+    configRaw.value = content || t('redisConfig.noConfig')
   } catch (e) {
     configRaw.value = t('redisConfig.noConfig')
   }

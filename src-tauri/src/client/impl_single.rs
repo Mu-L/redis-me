@@ -53,7 +53,7 @@ impl MeClient for MeSingle {
         let db_count = map
             .get("databases")
             .unwrap_or(&"0".to_string())
-            .parse::<u8>()?;
+            .parse::<u16>()?;
         info!("db_count: {}", db_count);
         let mut db_list = vec![];
         for i in 0..db_count {

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 // 数据库信息
-api_model!(RedisDB { db: u8, size: u64 });
+api_model!(RedisDB { db: u16, size: u64 });
 
 // 连接信息
 api_model!(

@@ -30,7 +30,7 @@ jobs:
       - uses: voidzero-dev/setup-vp@v1
         with:
           node-version: '24'
-          cache: true
+          cache: false
           run-install: true
 
       - name: install Rust stable
@@ -65,3 +65,24 @@ jobs:
           prerelease: false
           tauriScript: vp run tauri
           args: ${{ matrix.args }}
+
+      - name: Create portable zip (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $arch = if ('${{ matrix.args }}' -match 'aarch64') { 'arm64' } else { 'x64' }
+          $version = '${{ github.ref_name }}' -replace '^v', ''
+          $targetDir = if ('${{ matrix.args }}' -match '--target') { '${{ matrix.args }}'.Split(' ')[1] } else { '' }
+          $exePath = if ($targetDir) { "src-tauri/target/$targetDir/release/RedisME.exe" } else { "src-tauri/target/release/RedisME.exe" }
+          $zipName = "RedisME_${version}_portable_$arch.zip"
+          Compress-Archive -Path $exePath -DestinationPath $zipName
+          Write-Host "Created: $zipName"
+
+      - name: Upload portable zip to release (Windows)
+        if: matrix.platform == 'windows-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: RedisME_*_portable_*.zip
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
