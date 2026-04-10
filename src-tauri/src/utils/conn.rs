@@ -10,6 +10,7 @@ use redis::{
     Client, ClientTlsConfig, Commands, ConnectionAddr, ConnectionLike, TlsCertificates, TlsMode,
 };
 use std::fs;
+use url::Url;
 
 // 获取单机连接
 pub fn get_client_single(conf: &ConnConfig) -> AnyResult<(Client, Option<SshTunnel>)> {
@@ -34,16 +35,26 @@ pub fn get_client_single(conf: &ConnConfig) -> AnyResult<(Client, Option<SshTunn
         (conf.host.as_str(), conf.port)
     };
 
-    let prefix = if conf.ssl { "rediss" } else { "redis" };
-    let suffix = if conf.ssl { "/#insecure" } else { "" };
+    // 使用 url crate 构建 URL，自动处理密码中的特殊字符（如 &、@、: 等）
+    let mut url = Url::parse(&format!(
+        "{}://{}:{}",
+        if conf.ssl { "rediss" } else { "redis" },
+        target_host,
+        target_port
+    ))?;
+    url.set_username(&conf.username).unwrap_or(());
+    url.set_password(Some(&conf.password)).unwrap_or(());
+    if conf.ssl {
+        url.set_fragment(Some("insecure"));
+    }
 
-    let redis_url = format!(
-        "{}://{}:{}@{}:{}{}",
-        prefix, conf.username, conf.password, target_host, target_port, suffix
-    );
     let redis_url_log = format!(
-        "{}://{}:{}@{}:{}{}",
-        prefix, conf.username, "******", target_host, target_port, suffix
+        "{}://{}:******@{}:{}{}",
+        url.scheme(),
+        conf.username,
+        target_host,
+        target_port,
+        url.fragment().map(|f| format!("#{}", f)).unwrap_or_default()
     );
     info!("redis_url: {redis_url_log}");
 
@@ -51,9 +62,9 @@ pub fn get_client_single(conf: &ConnConfig) -> AnyResult<(Client, Option<SshTunn
     let mut client = if conf.ssl
         && let Some(tls) = certs
     {
-        Client::build_with_tls(redis_url, tls)?
+        Client::build_with_tls(url.to_string(), tls)?
     } else {
-        Client::open(redis_url)?
+        Client::open(url.to_string())?
     };
     // 测试连接是否可以成功，注意超时时间比较短，用户可以快速感知到。此连接使用后丢弃即可
     let mut conn = client.get_connection_with_timeout(CONNECTION_CHECK_TIMEOUT)?;
@@ -138,12 +149,29 @@ pub fn get_client_cluster(conf: &ConnConfig) -> AnyResult<ClusterClient> {
         bail!(AppError::ClusterNotSupported);
     }
 
-    let prefix = if conf.ssl { "rediss" } else { "redis" };
-    let suffix = if conf.ssl { "/#insecure" } else { "" };
-    let redis_url = format!("{}://{}:{}{}", prefix, conf.host, conf.port, suffix);
-    info!("redis_url: {redis_url}");
+    // 使用 url crate 构建 URL，自动处理密码中的特殊字符
+    let mut url = Url::parse(&format!(
+        "{}://{}:{}",
+        if conf.ssl { "rediss" } else { "redis" },
+        conf.host,
+        conf.port
+    ))?;
+    url.set_username(&conf.username).unwrap_or(());
+    url.set_password(Some(&conf.password)).unwrap_or(());
+    if conf.ssl {
+        url.set_fragment(Some("insecure"));
+    }
 
-    let mut builder = ClusterClient::builder(vec![redis_url]);
+    info!(
+        "redis_url: {}://{}:******@{}:{}{}",
+        url.scheme(),
+        conf.username,
+        conf.host,
+        conf.port,
+        url.fragment().map(|f| format!("#{}", f)).unwrap_or_default()
+    );
+
+    let mut builder = ClusterClient::builder(vec![url.to_string()]);
     if !conf.username.is_empty() {
         builder = builder.username(conf.username.clone());
     }
