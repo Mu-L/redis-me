@@ -1,22 +1,16 @@
 # 2.x Changelog
 
-## v2.7.0
+## [v2.7.0](https://mp.weixin.qq.com/s/4jG3-O3LJH6JvQbZIgUIIA) (2026-04-11)
 
-### 🔗 Connection Management
-
-- Added SSH tunnel support with password and private key authentication
-- Different icons for standalone and cluster connections for better visual distinction
-- Checkbox options now include usage scenario descriptions
-
-### 🌍 Internationalization
-
-- Backend error messages now fully support multi-language (Chinese and English)
-
-### 🎨 Interface Optimization
-
-- Set type abbreviation changed to E to avoid conflict with String's S
-- Stream consumer group dialog enhanced with icons and fixed height
-- UI details optimized for info refresh, key deletion, and saving btn
+- Connection
+  - **New SSH tunnel feature, supports password and private key authentication**
+  - Added usage scenario descriptions for connection option checkboxes
+  - Different icons for standalone and cluster connections
+- I18N: **Error prompts from the Rust backend also support i18n**
+- Details
+  - Set type abbreviated as E, Stream type abbreviated as X
+  - Stream consumer group dialog enhanced with icons and fixed height
+  - Style optimization for refresh button on info page and delete/save buttons on key-value page
 
 ## [v2.6.0](https://mp.weixin.qq.com/s/rhs5S14vhNMHkNFmf5KONg) (2026-04-04)
 
