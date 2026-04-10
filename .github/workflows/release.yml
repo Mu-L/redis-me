@@ -72,26 +72,11 @@ jobs:
         run: |
           $arch = if ('${{ matrix.args }}' -match 'aarch64') { 'arm64' } else { 'x64' }
           $version = '${{ github.ref_name }}' -replace '^v', ''
-          $zipName = "RedisME_${version}_portable_$arch.zip"
           $targetDir = if ('${{ matrix.args }}' -match '--target') { '${{ matrix.args }}'.Split(' ')[1] } else { '' }
           $exePath = if ($targetDir) { "src-tauri/target/$targetDir/release/RedisME.exe" } else { "src-tauri/target/release/RedisME.exe" }
-          Write-Host "Looking for: $exePath"
-          if (Test-Path $exePath) {
-            Compress-Archive -Path $exePath -DestinationPath $zipName
-            Write-Host "Created: $zipName"
-          } else {
-            Write-Host "File not found, searching..."
-            $found = Get-ChildItem -Path src-tauri/target -Name RedisME.exe -Recurse | Select-Object -First 1
-            if ($found) {
-              Write-Host "Found at: src-tauri/target/$found"
-              Compress-Archive -Path "src-tauri/target/$found" -DestinationPath $zipName
-              Write-Host "Created: $zipName"
-            } else {
-              Write-Host "ERROR: RedisME.exe not found in target directory"
-              Get-ChildItem -Path src-tauri/target -Recurse -Name *.exe | ForEach-Object { Write-Host "  Found exe: $_" }
-              exit 1
-            }
-          }
+          $zipName = "RedisME_${version}_portable_$arch.zip"
+          Compress-Archive -Path $exePath -DestinationPath $zipName
+          Write-Host "Created: $zipName"
 
       - name: Upload portable zip to release (Windows)
         if: matrix.platform == 'windows-latest'
