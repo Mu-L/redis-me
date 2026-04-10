@@ -39,7 +39,7 @@ export const KEY_TYPE_LIST = [
   { short: 'L', value: 'LIST', type: 'danger' },
   { short: 'E', value: 'SET', type: 'danger' },
   { short: 'Z', value: 'ZSET', type: 'danger' },
-  { short: 'S', value: 'STREAM', type: 'warning' },
+  { short: 'X', value: 'STREAM', type: 'warning' },
   { short: 'J', value: 'JSON', type: 'warning' },
 ]
 

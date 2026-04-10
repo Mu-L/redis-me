@@ -3,14 +3,17 @@
 ## v2.7.0
 
 ### 🔗 Connection Management
+
 - Added SSH tunnel support with password and private key authentication
 - Different icons for standalone and cluster connections for better visual distinction
 - Checkbox options now include usage scenario descriptions
 
 ### 🌍 Internationalization
+
 - Backend error messages now fully support multi-language (Chinese and English)
 
 ### 🎨 Interface Optimization
+
 - Set type abbreviation changed to E to avoid conflict with String's S
 - Stream consumer group dialog enhanced with icons and fixed height
 - UI details optimized for info refresh, key deletion, and saving btn
