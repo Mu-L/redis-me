@@ -65,3 +65,22 @@ jobs:
           prerelease: false
           tauriScript: vp run tauri
           args: ${{ matrix.args }}
+
+      - name: Create portable zip (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $arch = if ('${{ matrix.args }}' -match 'aarch64') { 'arm64' } else { 'x64' }
+          $version = '${{ github.ref_name }}' -replace '^v', ''
+          $zipName = "RedisME_${version}_portable_$arch.zip"
+          Compress-Archive -Path src-tauri/target/release/RedisME.exe -DestinationPath $zipName
+          Write-Host "Created: $zipName"
+
+      - name: Upload portable zip to release (Windows)
+        if: matrix.platform == 'windows-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: RedisME_*_portable_*.zip
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
