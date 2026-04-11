@@ -32,8 +32,9 @@ pub fn conn_list(app_handle: AppHandle, conn_list: Vec<ConnConfig>) -> ApiResult
 
 // 连接
 #[command]
-pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
-    to_api_result(app_handle.connect(id)).map(|_| ())
+pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<ServerCapabilities> {
+    to_api_result(app_handle.connect(id))
+        .map(|client| (*client.base().capabilities).clone())
 }
 
 // 断开
