@@ -459,9 +459,9 @@ impl MeSingle {
         info!("Redis单机连接初始化成功: {}", redis_conn.name);
 
         // 获取版本信息并检测能力
-        let info_output: String = redis::cmd("INFO").arg("SERVER").query(&mut conn)?;
+        let info: String = redis::cmd("INFO").arg("SERVER").query(&mut conn)?;
         let mut base = MeBase::from(redis_conn);
-        base.update_server_info(&info_output, &mut conn);
+        base.update_server_info(&info, &mut conn);
 
         Ok(Box::new(MeSingle {
             base,

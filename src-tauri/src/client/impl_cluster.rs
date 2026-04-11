@@ -10,7 +10,7 @@ use chrono::Utc;
 use log::{info, warn};
 use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
-use redis::cluster_routing::RoutingInfo;
+use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
 use redis::{ConnectionLike, FromRedisValue, Value};
@@ -563,9 +563,11 @@ impl MeCluster {
         let mut conn = Self::new_conn(&client)?;
 
         // 获取版本信息并检测能力（从任意节点获取，通常集群版本一致）
-        let info_output: String = redis::cmd("INFO").arg("SERVER").query(&mut conn)?;
+        let value: Value =conn.route_command(redis::cmd("INFO").arg("SERVER"),
+                                             SingleNode(SingleNodeRoutingInfo::RandomPrimary))?;
+        let info = redis_value_to_string(value, "\n");
         let mut base = MeBase::from(redis_conn);
-        base.update_server_info(&info_output, &mut conn);
+        base.update_server_info(&info, &mut conn);
 
         // 获取节点信息并保存起来
         let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query(&mut conn)?;
