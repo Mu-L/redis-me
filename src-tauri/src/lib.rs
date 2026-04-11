@@ -51,7 +51,6 @@ pub fn run() {
             node_list,
             scan,
             field_scan,
-            get,
             ttl,
             set,
             del,

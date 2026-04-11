@@ -55,7 +55,7 @@ api_commands!(
     node_list() -> Vec<RedisNode>;             // 节点列表
     scan(param: ScanParam) -> ScanResult;      // 扫描
     field_scan(param: FieldScanParam)  -> FieldScanResult;      // 字段扫描
-    get(key: RedisKey, hash_key: Option<String>) -> RedisValue; // 获取值(不扫描，直接获取所有)
+    //get(key: RedisKey, hash_key: Option<String>) -> RedisValue; // 获取值(不扫描，直接获取所有)
     ttl(key: RedisKey, ttl: i64) -> ();                 // 设置TTL
     set(key: RedisKey, value: String, ttl: i64, key_type: Option<String>) -> ();  // 设置值
     del(key: RedisKey) -> ();                           // 删除键

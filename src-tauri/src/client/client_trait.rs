@@ -55,8 +55,6 @@ pub trait MeClient: Send + Sync {
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult>;
 
-    fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue>;
-
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()>;
 
     fn set(
@@ -143,83 +141,6 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
         cmd.arg("type").arg(scan_type);
     }
     cmd
-}
-
-pub fn get0(
-    mut conn: MutexGuard<impl Commands>,
-    key: RedisKey,
-    hash_key: Option<String>,
-) -> AnyResult<RedisValue> {
-    let key_type: ValueType = conn.key_type(&key)?;
-
-    let value: serde_json::Value = match key_type {
-        ValueType::String => {
-            let value: Vec<u8> = conn.get(&key)?;
-            serde_json::to_value(vec8_to_display_string(&value))
-        }
-        // 注意: 原始返回的信息用Vec<u8>接收，再手动转换为String，避免无效UTF8字符串时直接报错
-        ValueType::List => {
-            let value: Vec<Vec<u8>> = conn.lrange(&key, 0, -1)?;
-            serde_json::to_value(ui_list_value(&value))
-        }
-        ValueType::Set => {
-            let value: HashSet<Vec<u8>> = conn.smembers(&key)?;
-            serde_json::to_value(ui_set_value(value))
-        }
-        ValueType::ZSet => {
-            let value: Vec<(Vec<u8>, f64)> = conn.zrange_withscores(&key, 0, -1)?;
-            serde_json::to_value(ui_zset_value(value))
-        }
-        ValueType::Hash => {
-            if let Some(hash_key) = hash_key
-                && !hash_key.is_empty()
-            {
-                let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
-                match value {
-                    Some(str) => serde_json::to_value(vec8_to_display_string(&str)),
-                    None => bail!(AppError::FieldNotFound { hash_key }),
-                }
-            } else {
-                let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
-                serde_json::to_value(ui_hash_value(value))
-            }
-        }
-        ValueType::Stream => {
-            // stream的id, 复用hash_key字段
-            if let Some(hash_key) = hash_key
-                && !hash_key.is_empty()
-            {
-                let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
-                match reply.ids.pop() {
-                    Some(entry) => serde_json::to_value(ui_stream_id(entry.map)),
-                    None => bail!(AppError::FieldNotFoundStream {
-                        stream_id: hash_key
-                    }),
-                }
-            } else {
-                let reply: StreamRangeReply = conn.xrange_all(&key)?;
-                serde_json::to_value(ui_stream_value(reply))
-            }
-        }
-        ValueType::JSON => {
-            let value: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
-            serde_json::from_str(&redis_value_to_string(value, "\n"))
-        }
-        _ => Ok(handle_other_value_type(&key_type, &key)?),
-    }?;
-
-    let ttl: i64 = conn.ttl(&key)?;
-    let size: u64 = redis::cmd("memory")
-        .arg("usage")
-        .arg(&key)
-        .query(&mut conn)?;
-
-    Ok(RedisValue {
-        key_type: ui_key_type(key_type),
-        ttl,
-        size,
-        value,
-    })
 }
 
 pub fn field_scan_0_get(

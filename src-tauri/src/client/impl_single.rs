@@ -157,10 +157,6 @@ impl MeClient for MeSingle {
         field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, &self.capabilities)
     }
 
-    fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {
-        get0(self.get_conn()?, key, hash_key)
-    }
-
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
         ttl0(self.get_conn()?, key, ttl)
     }
