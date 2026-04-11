@@ -42,6 +42,11 @@ const share = reactive({
   // 兼容valkey
   isValkey: false, // 默认不是valkey, 如果info信息中有valkey_version则设置为true
   serverVersion: '', // 服务器版本, isValkey ? 'valkey_version' : 'redis_version'
+
+  // 扩展能力
+  capabilities: {
+    hash_field_ttl: false, // 哈希字段级的TTL, Redis/Valkey >= 7.4.0
+  }
 })
 provide('share', share)
 
@@ -77,7 +82,7 @@ watch(
         share.color = newConn.color
         share.readonly = !!newConn.readonly
         share.tabName = 'info'
-        await meInvoke('connect', { id: newConn.id })
+        share.capabilities = await meInvoke('connect', { id: newConn.id })
         connPrepared.value = true
         const data = await meInvoke('node_list', { id: share.conn.id })
         // 节点列表排序: 主节点在前面，相同类型节点按照node升序
