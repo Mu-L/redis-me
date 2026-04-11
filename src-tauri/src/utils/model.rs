@@ -2,7 +2,7 @@
 
 use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
-use crate::utils::util::{AnyResult, vec8_to_display_string, parse_server_version};
+use crate::utils::util::{AnyResult, vec8_to_display_string, parse_server_version, redis_value_to_string};
 use redis::{Commands, RedisWrite, ToRedisArgs, ToSingleRedisArg, Value};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -164,11 +164,10 @@ impl ServerCapabilities {
             .query(conn);
 
         let hash_field_ttl = match result {
-            Ok(Value::Array(ref items)) if !items.is_empty() => {
-                // HTTL 命令存在
-                true
-            }
-            Ok(Value::Nil) => false,
+            Ok(value) => {
+                let str = redis_value_to_string(value, "");
+                !str.trim().is_empty() // HTTL 命令存在
+            },
             _ => false,
         };
 
