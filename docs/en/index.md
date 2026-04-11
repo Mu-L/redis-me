@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: 'RedisME'
-  tagline: Lightweight, Modern Redis Desktop Manager
+  tagline: Modern, Lightweight, Cross-Platform RDM
   image:
     src: /images/logo-color.svg
     alt: RedisME
