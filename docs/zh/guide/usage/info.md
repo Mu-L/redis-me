@@ -15,8 +15,8 @@
 - **原始信息**：点击书本图标查看info的原始信息
 - **指定节点**：集群模式支持获取**指定节点的info信息**
 
-![main.png](../../../public/images/info/main.png)
-![client.png](../../../public/images/info/client.png)
-![config.png](../../../public/images/info/config.png)
-![raw.png](../../../public/images/info/raw.png)
-![cluster.png](../../../public/images/info/cluster.png)
+![main.png](/images/info/main.png)
+![client.png](/images/info/client.png)
+![config.png](/images/info/config.png)
+![raw.png](/images/info/raw.png)
+![cluster.png](/images/info/cluster.png)
