@@ -30,7 +30,7 @@ mod tests {
             host: "ali.hepengju.com".into(),
             port: 6379,
             username: "".into(),
-            password: "hepengju".into(),
+            password: "hepengju&:2026".into(),
             ..ConnConfig::default()
         }
     }
@@ -43,7 +43,7 @@ mod tests {
             host: "ali.hepengju.com".into(),
             port: 7001,
             username: "".into(),
-            password: "hepengju".into(),
+            password: "hepengju&:2026".into(),
             db: 0,
             ..ConnConfig::default()
         }
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn test_info() {
-        let client = client_single_ssh();
+        let client = client_single();
         let result = client.info(None).unwrap();
         println!("{result:#?}");
         let result = client.info(None).unwrap();
@@ -236,11 +236,11 @@ mod tests {
 
     #[test]
     fn test_field_add() {
-        client().del("redis_me:string".into()).unwrap();
+        client().del("redis-me:unitest:string".into()).unwrap();
 
         client()
             .field_add(RedisFieldAdd {
-                key: "redis_me:string".into(),
+                key: "redis-me:unitest:string".into(),
                 mode: "key".into(),
                 key_type: "string".into(),
                 ttl: -1,
@@ -253,8 +253,8 @@ mod tests {
 
         client()
             .field_add(RedisFieldAdd {
-                key: "redis_me:hash".into(),
-                mode: "field".into(),
+                key: "redis-me:unitest:hash".into(),
+                mode: "key".into(),
                 key_type: "hash".into(),
                 ttl: -1,
                 value: "".into(),
@@ -264,11 +264,13 @@ mod tests {
                         field_key: "hash_key1".into(),
                         field_value: "value1".into(),
                         field_score: 0.0,
+                        field_ttl: 3600,
                     },
                     RedisFieldValue {
                         field_key: "hash_key2".into(),
                         field_value: "value2".into(),
                         field_score: 0.0,
+                        field_ttl: 3600,
                     },
                 ],
                 stream_id: "".to_string(),

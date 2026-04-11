@@ -66,6 +66,13 @@ pub fn ui_key_type(key_type: ValueType) -> String {
     }
 }
 
+pub fn to_key_type(key_type: &str) -> ValueType {
+    match key_type {
+        ME_JSON_TYPE_NAME => ValueType::JSON,
+        _ => key_type.into(),
+    }
+}
+
 pub fn ui_xinfo_group(group: StreamInfoGroup) -> XInfoGroup {
     XInfoGroup {
         name: group.name,
@@ -350,6 +357,32 @@ pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
         0.0
     };
     Ok(chart)
+}
+
+// 新增：从 INFO SERVER 输出解析版本号
+pub fn parse_server_version(info_output: &str) -> String {
+    // Valkey 的 INFO SERVER 会同时输出:
+    //   valkey_version:7.2.5
+    //   redis_version:7.2.5
+    // 优先获取 valkey_version，否则获取 redis_version
+    let mut valkey_version: Option<&str> = None;
+    let mut redis_version: Option<&str> = None;
+
+    for line in info_output.lines() {
+        let line = line.trim();
+        if line.starts_with("valkey_version:") {
+            valkey_version = Some(line.trim_start_matches("valkey_version:"));
+        } else if line.starts_with("redis_version:") {
+            redis_version = Some(line.trim_start_matches("redis_version:"));
+        }
+    }
+
+    // 优先返回 valkey_version
+    valkey_version
+        .or(redis_version)
+        .unwrap_or("0.0.0")
+        .trim()
+        .to_string()
 }
 
 #[cfg(test)]

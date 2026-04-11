@@ -45,8 +45,8 @@ impl Drop for MeCluster {
 }
 
 impl MeClient for MeCluster {
-    fn name(&self) -> String {
-        self.conf.name.clone()
+    fn base(&self) -> &MeBase {
+        &self.base
     }
 
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
@@ -211,7 +211,7 @@ impl MeClient for MeCluster {
             value = Some(field_scan_3_json(&key_type, &scan_value)?)
         }
 
-        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc)
+        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, &self.capabilities)
     }
 
     fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {
@@ -241,11 +241,11 @@ impl MeClient for MeCluster {
     }
 
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
-        field_add0(self.get_conn()?, param)
+        field_add0(self.get_conn()?, param, &self.capabilities)
     }
 
     fn field_set(&self, param: RedisFieldSet) -> AnyResult<()> {
-        field_set0(self.get_conn()?, param)
+        field_set0(self.get_conn()?, param, &self.capabilities)
     }
 
     fn field_del(&self, param: RedisFieldDel) -> AnyResult<()> {
@@ -559,13 +559,18 @@ impl MeCluster {
         let client = get_client_cluster(redis_conn)?;
         let mut conn = Self::new_conn(&client)?;
 
+        // 获取版本信息并检测能力（从任意节点获取，通常集群版本一致）
+        let info_output: String = redis::cmd("INFO").arg("SERVER").query(&mut conn)?;
+        let mut base = MeBase::from(redis_conn);
+        base.update_server_info(&info_output, &mut conn);
+
         // 获取节点信息并保存起来
         let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query(&mut conn)?;
         let node_list = Self::parse_node_list(cluster_nodes)?;
         info!("Redis集群连接初始化成功: {}", redis_conn.name);
 
         Ok(Box::new(MeCluster {
-            base: MeBase::from(redis_conn),
+            base,
             client,
             conn: Mutex::new(conn),
             node_list,
