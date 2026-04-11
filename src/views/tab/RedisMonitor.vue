@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import { meConfirm, meCopy, meInvoke, meOk } from '@/utils/util.js'
 import NodeList from '@/views/ext/NodeList.vue'
+import MeWebsite from '@/components/MeWebsite.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -67,16 +68,17 @@ onUnmounted(() => tauriUnlisten())
 <template>
   <div class="redis-monitor">
     <div class="me-flex header">
-      <div>
-        <node-list v-model="node" style="margin-right: 10px" init-node :disabled="monitoring" />
+      <div class="me-flex">
+        <me-button
+            icon="el-icon-delete"
+            :info="t('redisMonitor.clearMessage')"
+            @click="clearData"
+            :disabled="dataList.length === 0"
+            placement="top" />
+        <node-list v-model="node" init-node :disabled="monitoring" style="margin-left: 10px"/>
+        <me-website to="monitor" />
       </div>
       <div>
-        <me-button
-          icon="el-icon-delete"
-          :info="t('redisMonitor.clearMessage')"
-          @click="clearData"
-          :disabled="dataList.length === 0"
-          placement="top" />
         <el-input
           v-model="keyword"
           :placeholder="t('redisMonitor.keyword')"

@@ -43,8 +43,27 @@ const command = {
   valkey: '/commands/',
 }
 
+// 慢日志命令
+const slowlog = {
+  redis: '/docs/latest/commands/slowlog-get/',
+  valkey: '/commands/slowlog-get/'
+}
+
+// 监控命令
+const monitor = {
+  redis: '/docs/latest/commands/monitor/',
+  valkey: '/commands/monitor/'
+}
+
+// 发布订阅命令
+const pubsub = {
+  redis: '/docs/latest/commands/psubscribe/',
+  valkey: '/commands/psubscribe/'
+}
+
 function handleCommand(cmd) {
   let part = cmd.split('-')[0]
+  openUrl(websize[cmd] + info[part])
   if (to === 'info') {
     openUrl(websize[cmd] + info[part])
   } else if (to === 'config') {
@@ -53,6 +72,12 @@ function handleCommand(cmd) {
     openUrl(websize[cmd] + client[part])
   } else if (to === 'command') {
     openUrl(websize[cmd] + command[part])
+  } else if (to === 'slowlog') {
+    openUrl(websize[cmd] + slowlog[part])
+  } else if (to === 'monitor') {
+    openUrl(websize[cmd] + monitor[part])
+  } else if (to === 'pubsub') {
+    openUrl(websize[cmd] + pubsub[part])
   } else {
     meOk(`TODO: ${cmd}`)
   }

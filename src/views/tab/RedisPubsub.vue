@@ -3,6 +3,7 @@ import { listen } from '@tauri-apps/api/event'
 import { useI18n } from 'vue-i18n'
 
 import { meCopy, meInvoke, meOk } from '@/utils/util.js'
+import MeWebsite from '@/components/MeWebsite.vue'
 
 const { t } = useI18n()
 // 共享数据
@@ -88,21 +89,22 @@ onUnmounted(() => tauriUnlisten())
 <template>
   <div class="redis-pubsub">
     <div class="me-flex">
-      <div>
+      <div class="me-flex">
+        <me-button
+            icon="el-icon-delete"
+            :info="t('redisPubSub.clearMessage')"
+            @click="clearData"
+            :disabled="dataList.length === 0"
+            placement="top" />
         <el-input
           v-model="channel"
-          style="width: 160px; margin-right: 10px"
+          style="width: 160px; margin-left: 10px"
           :placeholder="t('redisPubSub.subscribeChannel')"
           :disabled="subscribing"
           clearable />
+        <me-website to="pubsub" />
       </div>
       <div>
-        <me-button
-          icon="el-icon-delete"
-          :info="t('redisPubSub.clearMessage')"
-          @click="clearData"
-          :disabled="dataList.length === 0"
-          placement="top" />
         <el-input
           v-model="keyword"
           :placeholder="t('redisPubSub.keyword')"
