@@ -190,8 +190,8 @@ watch(
     :width="600"
     @closed="emit('closed')"
     destroy-on-close
-    close-on-press-escape
-    close-on-click-modal
+    :close-on-press-escape="false"
+    :close-on-click-modal="false"
     draggable>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
       <!-- 键类型和TTL: 仅新建键时显示 -->
