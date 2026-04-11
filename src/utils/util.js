@@ -247,6 +247,7 @@ export function meHumanNums(size, zeroShow = '0', fractionDigits = 2) {
 
 // w天 xx:yy:zz 的格式
 export function meHumanSeconds(seconds) {
+  if (seconds === undefined || seconds === null) return '-'
   if (seconds <= 0) return seconds
 
   const days = Math.floor(seconds / (3600 * 24)) // 计算天数
