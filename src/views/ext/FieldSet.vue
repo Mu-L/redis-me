@@ -25,6 +25,7 @@ const initForm = readonly({
   fieldKey: '',
   fieldValue: '',
   fieldScore: 0,
+  fieldTtl: -1,
 })
 const form = ref(cloneDeep(initForm))
 
@@ -78,6 +79,9 @@ function submit() {
       style="display: flex; flex-direction: column; height: 100%">
       <el-form-item :label="t('fieldSet.hashKey')" v-if="form.type === 'hash'">
         <el-input v-model="form.fieldKey" disabled />
+      </el-form-item>
+      <el-form-item :label="t('fieldSet.fieldTtl')" v-if="form.type === 'hash' && share.capabilities?.hashFieldTtl">
+        <el-input-number v-model="form.fieldTtl" :min="-1" :controls="false" style="width: 100%" align="left" />
       </el-form-item>
       <el-form-item :label="t('fieldSet.index')" v-if="form.type === 'list'">
         <el-input v-model="form.fieldIndex" disabled />

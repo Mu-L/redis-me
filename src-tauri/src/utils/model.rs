@@ -364,15 +364,6 @@ impl ToRedisArgs for RedisKey {
 }
 impl ToSingleRedisArg for RedisKey {}
 
-// Redis值
-api_model!(RedisValue {
-    #[serde(rename = "type")]
-    key_type: String,
-    ttl: i64,
-    size: u64,
-    value: serde_json::Value,
-});
-
 // 批量删除
 api_model!(RedisBatchKey {
     #[serde(rename = "match")]

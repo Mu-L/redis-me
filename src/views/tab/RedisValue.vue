@@ -100,11 +100,9 @@ const dataList = computed(() => {
 
   let data = []
 
-  if (rv.type === 'hash') {
-    Object.entries(rv.value).forEach(([key, value]) => data.push({ key, value }))
-  } else if (rv.type === 'list' || rv.type === 'set') {
+  if (rv.type === 'list' || rv.type === 'set') {
     rv.value.forEach(value => data.push({ value }))
-  } else if (rv.type === 'zset' || rv.type === 'stream') {
+  } else if (rv.type === 'zset' || rv.type === 'stream' || rv.type === 'hash') {
     rv.value.forEach(value => data.push(value)) // 返回的直接是[{score: '', value: ''}]
   }
   return data
@@ -180,11 +178,10 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
         data.type === 'list' ||
         data.type === 'set' ||
         data.type === 'zset' ||
+        data.type === 'hash' ||
         data.type === 'stream'
       ) {
         redisValue.value.value = redisValue.value.value.concat(data.value)
-      } else if (data.type === 'hash') {
-        redisValue.value.value = { ...redisValue.value.value, ...data.value }
       } else {
         redisValue.value = data
       }
@@ -274,6 +271,7 @@ function fieldSet(row, index) {
     fieldKey: row.key || '',
     fieldValue: row.value,
     fieldScore: row.score || 0,
+    fieldTtl: row.ttl ?? -1,
     srcFieldValue: row.value,
     type: redisValue.value.type,
     key: share.redisKey,
@@ -565,6 +563,15 @@ async function showGroups() {
                 </template>
               </el-table-column>
               <el-table-column
+                  :label="t('redisValue.ttl')"
+                  width="150"
+                  prop="ttl"
+                  v-if="redisValue.type === 'hash' && share.capabilities.hashFieldTtl ">
+                <template #default="scope">
+                  {{ meHumanSeconds(scope.row.ttl) }}
+                </template>
+              </el-table-column>
+              <el-table-column
                 :label="t('redisValue.score')"
                 prop="score"
                 show-overflow-tooltip
@@ -612,10 +619,10 @@ async function showGroups() {
           </div>
         </div>
 
-        <!-- string类型不显示，带有hashKey不显示, 命中黑名单的hash类型不显示-->
+        <!-- string类型不显示，带有hashKey不显示 -->
         <div
           class="btn-rb"
-          v-if="!(stringTypeOrWithHashKey || jsonType || (hashType && showValue.startsWith('[')))">
+          v-if="!(stringTypeOrWithHashKey || jsonType)">
           <el-segmented v-model="viewType" :options="viewTypeList">
             <template #default="scope">
               <me-icon
