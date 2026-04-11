@@ -204,7 +204,7 @@ mod tests {
         // param.hash_key = Some("k0".into());
         // let mut param = test_field_scan_param("field-scan:list");
         // let mut param = test_field_scan_param("field-scan:set");
-        let mut param = test_field_scan_param("field-scan:zset");
+        let mut param = test_field_scan_param("field-scan:hash");
         let result = client().field_scan(param.clone()).unwrap();
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
 
@@ -213,25 +213,6 @@ mod tests {
             let result = client().field_scan(param).unwrap();
             println!("{}", serde_json::to_string_pretty(&result).unwrap());
         }
-    }
-
-    #[test]
-    fn test_get() {
-        let value = client().get("hepengju:list".into(), None).unwrap();
-        println!("{value:#?}");
-        println!("{}", serde_json::to_string(&value).unwrap());
-
-        let value = client().get("hepengju:string".into(), None).unwrap();
-        println!("{}", serde_json::to_string(&value).unwrap());
-
-        let value = client().get("hepengju:stream".into(), None).unwrap();
-        println!("{}", serde_json::to_string(&value).unwrap());
-
-        let value = client().get("hepengju:json-obj".into(), None).unwrap();
-        println!("{}", serde_json::to_string(&value).unwrap());
-
-        let value = client().get("hepengju:json-array".into(), None).unwrap();
-        println!("{}", serde_json::to_string(&value).unwrap());
     }
 
     #[test]

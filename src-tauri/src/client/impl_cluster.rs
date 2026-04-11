@@ -186,7 +186,7 @@ impl MeClient for MeCluster {
                     let value = conn.route_command(&cmd, route.clone())?;
                     let (next_cursor, new_value): (u64, Value) =
                         FromRedisValue::from_redis_value(value)?;
-                    let new_count = field_scan_2_value(&key_type, &mut scan_value, new_value)?;
+                    let new_count = field_scan_2_value(&mut conn, &key_type, &mut scan_value, new_value, &key, &self.capabilities)?;
 
                     ready_count += new_count;
                     cc.now_cursor = next_cursor;
@@ -211,7 +211,7 @@ impl MeClient for MeCluster {
             value = Some(field_scan_3_json(&key_type, &scan_value)?)
         }
 
-        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, &self.capabilities)
+        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc)
     }
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {

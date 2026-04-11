@@ -277,7 +277,7 @@ api_model!(XInfoConsumer {
 api_model!(
 #[derive(Default)]
 FieldScanValue {
-    hash: HashMap<String, String>,
+    hash: Vec<RedisHashItem>,
     set: Vec<String>,
     zset: Vec<RedisZetItem>,
 });
@@ -410,6 +410,15 @@ api_model!(RedisImportCsv {
     ttl: i64,
     handle_ttl: String, // TTL处理: 尝试读取 parse, 自定义 custom, 永久 forever
     handle_conflict: String, // 冲突处理: 覆盖 replace, 忽略 ignore
+});
+
+// Hash条目
+api_model!(RedisHashItem{
+    key: String,
+    value: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ttl: Option<i64>,
 });
 
 // Zset条目

@@ -10,7 +10,7 @@ use chrono::{Local};
 use log::{info, warn};
 use parking_lot::MutexGuard;
 use redis::streams::{StreamInfoConsumersReply, StreamInfoGroupsReply, StreamRangeReply};
-use redis::{Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType, from_redis_value, ExpireOption};
+use redis::{Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType, from_redis_value, ExpireOption, IntegerReplyOrNoOp};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -306,15 +306,33 @@ pub fn field_scan_1_cmd(
 }
 
 pub fn field_scan_2_value(
+    conn: &mut impl Commands,
     key_type: &ValueType,
     scan_value: &mut FieldScanValue,
     new_value: Value,
+    key: &RedisKey,
+    capabilities: &ServerCapabilities,
 ) -> AnyResult<usize> {
     let new_count = match key_type {
         ValueType::Hash => {
-            let value: HashMap<Vec<u8>, Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
+            let value: Vec<(Vec<u8>, Vec<u8>)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            scan_value.hash.extend(ui_hash_value(value));
+            scan_value.hash.extend(ui_hash_value(&value));
+
+            // 补充hash字段ttl
+            if capabilities.hash_field_ttl {
+                let keys: Vec<&Vec<u8>> = value.iter().map(|(k, _)| k).collect();
+                let ttl_values: Vec<IntegerReplyOrNoOp> = conn.httl(key, keys)?;
+
+                for (item, ttl_reply) in scan_value.hash.iter_mut().zip(ttl_values) {
+                    item.ttl = match ttl_reply {
+                        IntegerReplyOrNoOp::IntegerReply(ttl) => Some(ttl as i64),
+                        IntegerReplyOrNoOp::NotExists => Some(-2),
+                        IntegerReplyOrNoOp::ExistsButNotRelevant => Some(-1),
+                        _ => None // 其他场景
+                    };
+                }
+            }
             new_count
         }
         ValueType::Set => {
@@ -358,7 +376,6 @@ pub fn field_scan_4_return(
     key_type: ValueType,
     value: serde_json::Value,
     cursor: ScanCursor,
-    capabilities: &ServerCapabilities,
 ) -> AnyResult<FieldScanResult> {
     let ttl: i64 = conn.ttl(&key)?;
     let size: u64 = redis::cmd("memory")

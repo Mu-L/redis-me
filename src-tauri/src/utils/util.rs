@@ -3,9 +3,9 @@ use crate::utils::model::*;
 use anyhow::bail;
 use chrono::DateTime;
 use log::error;
-use rand::Rng;
 use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
+use rand::Rng;
 use redis::streams::{StreamId, StreamInfoConsumer, StreamInfoGroup, StreamRangeReply};
 use redis::{FromRedisValue, Value, ValueType};
 use std::collections::{HashMap, HashSet};
@@ -122,15 +122,19 @@ pub fn ui_list_value(value: &[Vec<u8>]) -> Vec<String> {
         .collect()
 }
 
-pub fn ui_hash_value(value: HashMap<Vec<u8>, Vec<u8>>) -> HashMap<String, String> {
+pub fn ui_hash_value(value: &Vec<(Vec<u8>, Vec<u8>)>) -> Vec<RedisHashItem> {
     value
-        .into_iter()
+        .iter()
         .map(|(key, value)| {
-            let key: String = vec8_to_display_string(&key);
-            let value: String = vec8_to_display_string(&value);
-            (key, value)
+            let key: String = vec8_to_display_string(key);
+            let value: String = vec8_to_display_string(value);
+            RedisHashItem {
+                key,
+                value,
+                ttl: None
+            }
         })
-        .collect::<HashMap<String, String>>()
+        .collect()
 }
 
 pub fn ui_set_value(value: HashSet<Vec<u8>>) -> Vec<String> {
@@ -389,8 +393,8 @@ pub fn parse_server_version(info_output: &str) -> String {
 mod tests {
     use super::*;
     use crate::utils::model::RedisKey;
-    use base64::Engine;
     use base64::prelude::BASE64_STANDARD;
+    use base64::Engine;
 
     #[test]
     fn test_serde() -> AnyResult<()> {
