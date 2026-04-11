@@ -2,14 +2,16 @@
 
 use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
-use crate::utils::util::{AnyResult, vec8_to_display_string, parse_server_version, redis_value_to_string};
+use crate::utils::util::{
+    AnyResult, parse_server_version, redis_value_to_string, vec8_to_display_string,
+};
+use chrono::Utc;
+use log::info;
 use redis::{Commands, RedisWrite, ToRedisArgs, ToSingleRedisArg, Value};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16};
-use chrono::Utc;
-use log::info;
 
 // 连接信息
 api_model!(
@@ -150,7 +152,7 @@ api_model!(
     #[derive(Default)]
     ServerCapabilities {
         hash_field_ttl: bool, // Redis/Valkey >= 7.4.0
-        // 未来可扩展其他特性
+                              // 未来可扩展其他特性
     }
 );
 
@@ -158,16 +160,13 @@ impl ServerCapabilities {
     // 通过 COMMAND INFO HTTL 检测是否支持字段级 TTL
     pub fn from_command_info(conn: &mut impl Commands) -> Self {
         // COMMAND INFO HTTL 返回命令信息，如果命令不存在返回 Nil
-        let result: Result<Value, _> = redis::cmd("COMMAND")
-            .arg("INFO")
-            .arg("HTTL")
-            .query(conn);
+        let result: Result<Value, _> = redis::cmd("COMMAND").arg("INFO").arg("HTTL").query(conn);
 
         let hash_field_ttl = match result {
             Ok(value) => {
                 let str = redis_value_to_string(value, "");
                 !str.trim().is_empty() // HTTL 命令存在
-            },
+            }
             _ => false,
         };
 
@@ -175,12 +174,8 @@ impl ServerCapabilities {
     }
 }
 
-
 // 数据库信息
 api_model!(RedisDB { db: u16, size: u64 });
-
-
-
 
 // 信息 图形
 api_model!(

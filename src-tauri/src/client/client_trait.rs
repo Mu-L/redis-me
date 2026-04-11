@@ -6,11 +6,14 @@ use Ordering::Relaxed;
 use anyhow::{Context, bail};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
-use chrono::{Local};
+use chrono::Local;
 use log::{info, warn};
 use parking_lot::MutexGuard;
 use redis::streams::{StreamInfoConsumersReply, StreamInfoGroupsReply, StreamRangeReply};
-use redis::{Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType, from_redis_value, ExpireOption, IntegerReplyOrNoOp};
+use redis::{
+    Cmd, Commands, Connection, ExpireOption, FromRedisValue, IntegerReplyOrNoOp, JsonCommands, Msg,
+    SetExpiry, SetOptions, Value, ValueType, from_redis_value,
+};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -22,7 +25,6 @@ use tauri::{AppHandle, Emitter};
 
 // RedisME服务接口
 pub trait MeClient: Send + Sync {
-
     fn base(&self) -> &MeBase;
 
     fn name(&self) -> String {
@@ -43,10 +45,7 @@ pub trait MeClient: Send + Sync {
 
     fn chart_list(&self) -> AnyResult<Vec<RedisChart>> {
         let info_list = self.info_list()?;
-        info_list
-            .into_iter()
-            .map(info_to_chart)
-            .collect()
+        info_list.into_iter().map(info_to_chart).collect()
     }
 
     fn node_list(&self) -> AnyResult<Vec<RedisNode>>;
@@ -177,7 +176,7 @@ pub fn field_scan_0_get(
                         cc.finished = true;
                         Some(serde_json::to_value(vec8_to_display_string(&str))?)
                     }
-                    None => bail!(AppError::FieldNotFound { hash_key}),
+                    None => bail!(AppError::FieldNotFound { hash_key }),
                 }
             } else {
                 None
@@ -329,7 +328,7 @@ pub fn field_scan_2_value(
                         IntegerReplyOrNoOp::IntegerReply(ttl) => Some(ttl as i64),
                         IntegerReplyOrNoOp::NotExists => Some(-2),
                         IntegerReplyOrNoOp::ExistsButNotRelevant => Some(-1),
-                        _ => None // 其他场景
+                        _ => None, // 其他场景
                     };
                 }
             }
@@ -463,7 +462,9 @@ pub fn field_add0(
         "key" => {
             let exists: bool = conn.exists(&key)?;
             if exists {
-                bail!(AppError::KeyAlreadyExists {key: vec8_to_display_string(key.to_bytes())})
+                bail!(AppError::KeyAlreadyExists {
+                    key: vec8_to_display_string(key.to_bytes())
+                })
             }
         }
         // 当键不存在时，下面的match会抛出对应异常
@@ -529,15 +530,21 @@ pub fn field_add0(
     Ok(())
 }
 
-pub fn field_set0(mut conn: MutexGuard<impl Commands>, param: RedisFieldSet, capabilities: &ServerCapabilities,) -> AnyResult<()> {
+pub fn field_set0(
+    mut conn: MutexGuard<impl Commands>,
+    param: RedisFieldSet,
+    capabilities: &ServerCapabilities,
+) -> AnyResult<()> {
     let key: RedisKey = param.key;
     let key_type: ValueType = conn.key_type(&key)?;
 
     match key_type {
         ValueType::Hash => {
+            // HSET 会清除字段级的 TTL，将其置为 -1（永久）。因此只需要处理>0的场景
             let _: () = conn.hset(&key, &param.field_key, param.field_value)?;
             if capabilities.hash_field_ttl && param.field_ttl > 0 {
-                let _: () = conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, param.field_key)?;
+                let _: () =
+                    conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, param.field_key)?;
             }
         }
         ValueType::List => {
@@ -991,7 +998,7 @@ fn import_cmds(
                 Err(e) => {
                     warn!("import cmd err: {e}");
                     err_count += 1
-                },
+                }
             }
             // 通知导入进度
             let event = ExportImportEvent {
@@ -1036,11 +1043,7 @@ pub fn xinfo_groups0(
     key: RedisKey,
 ) -> AnyResult<Vec<XInfoGroup>> {
     let reply: StreamInfoGroupsReply = conn.xinfo_groups(&key)?;
-    Ok(reply
-        .groups
-        .into_iter()
-        .map(ui_xinfo_group)
-        .collect())
+    Ok(reply.groups.into_iter().map(ui_xinfo_group).collect())
 }
 
 pub fn xinfo_consumers0(
@@ -1049,11 +1052,7 @@ pub fn xinfo_consumers0(
     group: String,
 ) -> AnyResult<Vec<XInfoConsumer>> {
     let reply: StreamInfoConsumersReply = conn.xinfo_consumers(&key, &group)?;
-    Ok(reply
-        .consumers
-        .into_iter()
-        .map(ui_xinfo_consumer)
-        .collect())
+    Ok(reply.consumers.into_iter().map(ui_xinfo_consumer).collect())
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

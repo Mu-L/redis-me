@@ -137,7 +137,14 @@ impl MeClient for MeSingle {
             loop {
                 let cmd = field_scan_1_cmd(&key_type, &key, cc.now_cursor, param.count)?;
                 let (next_cursor, new_value): (u64, Value) = cmd.query(&mut conn)?;
-                let new_count = field_scan_2_value(&mut conn, &key_type, &mut scan_value, new_value, &key, &self.capabilities)?;
+                let new_count = field_scan_2_value(
+                    &mut conn,
+                    &key_type,
+                    &mut scan_value,
+                    new_value,
+                    &key,
+                    &self.capabilities,
+                )?;
 
                 ready_count += new_count;
                 cc.now_cursor = next_cursor;

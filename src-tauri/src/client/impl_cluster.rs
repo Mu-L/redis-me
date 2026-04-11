@@ -186,7 +186,14 @@ impl MeClient for MeCluster {
                     let value = conn.route_command(&cmd, route.clone())?;
                     let (next_cursor, new_value): (u64, Value) =
                         FromRedisValue::from_redis_value(value)?;
-                    let new_count = field_scan_2_value(&mut conn, &key_type, &mut scan_value, new_value, &key, &self.capabilities)?;
+                    let new_count = field_scan_2_value(
+                        &mut conn,
+                        &key_type,
+                        &mut scan_value,
+                        new_value,
+                        &key,
+                        &self.capabilities,
+                    )?;
 
                     ready_count += new_count;
                     cc.now_cursor = next_cursor;
