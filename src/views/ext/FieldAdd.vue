@@ -46,6 +46,7 @@ const initForm = computed(() => ({
       fieldKey: '',
       fieldValue: '',
       fieldScore: 0,
+      fieldTtl: -1,
     },
   ],
 }))
@@ -129,6 +130,7 @@ function newElement(index) {
     fieldKey: '',
     fieldValue: '',
     fieldScore: 0,
+    fieldTtl: -1,
   }
   form.value.fieldValueList.splice(index + 1, 0, newValue)
 }
@@ -144,9 +146,15 @@ function submit() {
     try {
       // json输入支持json5格式, 此处转换为正常json字符串
       const value = form.value.type === 'json' ? meJsonNormal(form.value.value) : form.value.value
+      form.value.fieldValueList.forEach(item => {
+        if (item.fieldTtl === null) item.fieldTtl = -1
+      })
+
       const params = {
         id: share.conn.id,
-        param: { ...form.value, value, ttl: meTtlSeconds(form.value.ttl, ttlUnit.value) },
+        param: { ...form.value, value,
+          ttl: meTtlSeconds(form.value.ttl, ttlUnit.value),
+          fieldValueList: form.value.fieldValueList },
       }
       await meInvoke('field_add', params)
       visible.value = false
@@ -159,7 +167,8 @@ function submit() {
 }
 
 const hint = computed(() => {
-  if (form.value.type === 'hash') return t('fieldAdd.hashHint')
+  if (form.value.type === 'hash')
+    return share.capabilities?.hashFieldTtl ?  t('fieldAdd.hashHintTtl') : t('fieldAdd.hashHint')
   if (form.value.type === 'zset') return t('fieldAdd.zsetHint')
   if (form.value.type === 'stream') return t('fieldAdd.streamHint')
   return ''
@@ -278,6 +287,14 @@ watch(
             v-model="item.fieldScore"
             style="margin-right: 10px"
             v-if="form.type === 'zset'"
+            :validate-event="false" />
+          <el-input-number
+            v-if="form.type === 'hash' && share.capabilities?.hashFieldTtl"
+            v-model="item.fieldTtl"
+            :min="-1"
+            :controls="false"
+            :placeholder="t('fieldAdd.fieldTtl')"
+            style="margin-right: 10px; width: 250px"
             :validate-event="false" />
           <el-button
             icon="el-icon-delete"

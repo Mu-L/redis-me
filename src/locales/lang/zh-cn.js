@@ -223,9 +223,10 @@ export default {
     jsonValidator: '值必须为有效的JSON格式',
     hashValidator: '哈希键和值不允许为空',
     streamValidator: '字段和值不允许为空',
-    hashHint: '(哈希键: 值)',
-    zsetHint: '(值: 分数)',
-    streamHint: '(字段: 值)',
+    hashHint: '(哈希键：值)',
+    hashHintTtl: '(哈希键：值：超时秒)',
+    zsetHint: '(值：分数)',
+    streamHint: '(字段：值)',
     newKey: '新增键',
     newField: '新增字段',
     key: '键',
@@ -240,6 +241,7 @@ export default {
     hashKey: '哈希键',
     streamId: 'ID (*表示服务器自动生成)',
     streamIdRequired: '请输入ID',
+    fieldTtl: '超时秒数',
   },
 
   fieldSet: {

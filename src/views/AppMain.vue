@@ -45,7 +45,7 @@ const share = reactive({
 
   // 扩展能力
   capabilities: {
-    hash_field_ttl: false, // 哈希字段级的TTL, Redis/Valkey >= 7.4.0
+    hashFieldTtl: false, // 哈希字段级的TTL, Redis/Valkey >= 7.4.0
   }
 })
 provide('share', share)
