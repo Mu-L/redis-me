@@ -1,9 +1,9 @@
 ## Future
 
-- Redis终端多参数提示
+- Redis终端多参数提示 √
+- Hash 字段级 TTL √
 - 数据查看器增强: MsgPack、Protobuf、Java/Pickle 序列化数据查看、二进制视图 (Binary View)、Gzip/Brotli/Deflate 压缩数据自动解压查看等
-- Hash 字段级 TTL
-- 命令执行日志
+- 命令执行日志: 已有方案
 - Command Dump（命令导出） - ARDM 支持将键导出为 Redis 命令格式，方便迁移
 - 搜索历史记录
 - 界面交互增强
@@ -33,7 +33,7 @@
 - SSH隧道支持集群和哨兵
 - 哨兵模式：支持SSL
 - 添加RedisME的应用日志界面展示
-- 命令执行，带有空格时的提示
+- 命令执行，带有空格时的提示 √
 - 集群添加功能：判断key所在的节点
 - 集群内存分析慢的分析及优化，可以停止
 - 命令监控添加跳转文档链接
