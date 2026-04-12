@@ -537,7 +537,7 @@ function editDbName(db) {
             {{ `db${share.conn.db} (${share.dbSizeMap['db' + share.conn.db] || 0})` }}
           </template>
         </el-select>
-        <div class="me-flex" style="width: 50px; margin: 0 5px" v-if="!cursor?.finished">
+        <div class="me-flex" style="width: 45px; margin: 0 5px" v-if="!cursor?.finished">
           <me-icon
             :name="t('keyMain.loadMore')"
             icon="me-icon-load-more"
