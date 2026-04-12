@@ -353,6 +353,7 @@ async function showGroups() {
     <template v-if="share.redisKey && redisValue">
       <!-- 上方键 -->
       <div class="key">
+        <!-- 键名称 -->
         <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
           <template #prepend>
             <el-text :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
@@ -380,6 +381,7 @@ async function showGroups() {
           }}</template>
         </el-input>
 
+        <!-- TTL, 刷新/编辑/删除 -->
         <div class="me-flex">
           <me-button
             icon="el-icon-timer"
@@ -423,6 +425,7 @@ async function showGroups() {
             @update:modelValue="newValue => (redisValue.newValue = newValue)"
             :read-only="!canSave" />
 
+          <!-- 保存 -->
           <div class="btn-rb" v-if="canSave">
             <me-button
               class="save"
@@ -433,7 +436,9 @@ async function showGroups() {
               placement="top" />
           </div>
 
+          <!-- 扩展功能 -->
           <div class="btn-rt">
+            <!-- 加载更多，加载全部 -->
             <el-button-group v-show="showMore">
               <me-button
                 :info="t('redisValue.loadMore')"
@@ -447,6 +452,7 @@ async function showGroups() {
                 placement="top" />
             </el-button-group>
 
+            <!-- 大小/复制/美化 -->
             <el-button-group>
               <el-button style="margin-left: 10px">Size: {{ showSize }}</el-button>
               <me-button
