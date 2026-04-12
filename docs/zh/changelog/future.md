@@ -2,16 +2,19 @@
 
 - Redis终端多参数提示 √
 - Hash 字段级 TTL √
-- 数据查看器增强: MsgPack、Protobuf、Java/Pickle 序列化数据查看、二进制视图 (Binary View)、Gzip/Brotli/Deflate 压缩数据自动解压查看等
+- 数据查看器增强: 已有方案
+  - 支持hex,binary,base64等
+  - MsgPack、Protobuf、Java/Pickle 序列化数据查看
 - 命令执行日志: 已有方案
-- Command Dump（命令导出） - ARDM 支持将键导出为 Redis 命令格式，方便迁移
+- Command Dump（命令导出） - ARDM 支持将键导出为 Redis 命令格式，方便迁移: 已有方案
+- Redis ACL 管理: 已有方案
+- DB下拉框可以搜索
 - 搜索历史记录
 - 界面交互增强
   - 键列表方向键快捷导航
   - 标签页滚轮切换
   - 快捷键支持/自定义
   - 不可见字符键值格式化显示
-- Redis ACL 管理
 
 - 改为TypeScript 或 JSDoc以便支持类型提示？
 - 调研: 谷歌firebase, 腾讯CloudBase实现用户体系会员登录/连接同步/设置同步等
@@ -26,7 +29,6 @@
   - 网络代理
   - URL反向解析
 
-- 值显示: 支持hex,binary,base64等 TODO
 - 应用层面的快捷键
 - 启动自动压缩是什么鬼？（RedisInsight/TinyRDM里面都有）
 - 支持配置分隔符
@@ -36,7 +38,7 @@
 - 命令执行，带有空格时的提示 √
 - 集群添加功能：判断key所在的节点
 - 集群内存分析慢的分析及优化，可以停止
-- 命令监控添加跳转文档链接
+- 命令监控添加跳转文档链接 √
 - 命令监控为什么没有监控到自己的点击呢？（单机有的，集群没有）
 - 终端执行是否需要单独的连接？以便查看moved命令？
 - 发布订阅可以动态更新订阅模式
