@@ -520,6 +520,10 @@ export default {
     renameKey: 'Rename Key',
     refreshKey: 'Refresh Key',
     jsonValidator: 'Value must be in a valid JSON format',
+
+    textMemory: 'Memory Usage: ',
+    textLength: 'Length: ',
+    textEntries: 'Entries: '
   },
 
   redisChart: {

@@ -516,6 +516,10 @@ export default {
     renameKey: '重命名键',
     refreshKey: '刷新键',
     jsonValidator: '值必须为有效的JSON格式',
+
+    textMemory: '内存占用：',
+    textLength: '长度：',
+    textEntries: '条目：',
   },
 
   redisChart: {
