@@ -2,8 +2,8 @@
 import { listen } from '@tauri-apps/api/event'
 import { useI18n } from 'vue-i18n'
 
-import { meCopy, meInvoke, meOk } from '@/utils/util.js'
 import MeWebsite from '@/components/MeWebsite.vue'
+import { meCopy, meInvoke, meOk } from '@/utils/util.js'
 
 const { t } = useI18n()
 // 共享数据
@@ -91,11 +91,11 @@ onUnmounted(() => tauriUnlisten())
     <div class="me-flex">
       <div class="me-flex">
         <me-button
-            icon="el-icon-delete"
-            :info="t('redisPubSub.clearMessage')"
-            @click="clearData"
-            :disabled="dataList.length === 0"
-            placement="top" />
+          icon="el-icon-delete"
+          :info="t('redisPubSub.clearMessage')"
+          @click="clearData"
+          :disabled="dataList.length === 0"
+          placement="top" />
         <el-input
           v-model="channel"
           style="width: 160px; margin-left: 10px"

@@ -152,9 +152,12 @@ function submit() {
 
       const params = {
         id: share.conn.id,
-        param: { ...form.value, value,
+        param: {
+          ...form.value,
+          value,
           ttl: meTtlSeconds(form.value.ttl, ttlUnit.value),
-          fieldValueList: form.value.fieldValueList },
+          fieldValueList: form.value.fieldValueList,
+        },
       }
       await meInvoke('field_add', params)
       visible.value = false
@@ -168,7 +171,7 @@ function submit() {
 
 const hint = computed(() => {
   if (form.value.type === 'hash')
-    return share.capabilities?.hashFieldTtl ?  t('fieldAdd.hashHintTtl') : t('fieldAdd.hashHint')
+    return share.capabilities?.hashFieldTtl ? t('fieldAdd.hashHintTtl') : t('fieldAdd.hashHint')
   if (form.value.type === 'zset') return t('fieldAdd.zsetHint')
   if (form.value.type === 'stream') return t('fieldAdd.streamHint')
   return ''

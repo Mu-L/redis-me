@@ -1,10 +1,10 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 
+import MeWebsite from '@/components/MeWebsite.vue'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import { meCopy, meInvoke } from '@/utils/util.js'
 import NodeList from '@/views/ext/NodeList.vue'
-import MeWebsite from '@/components/MeWebsite.vue'
 
 const { t } = useI18n()
 // 共享数据

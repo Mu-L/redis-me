@@ -10,7 +10,6 @@ const { to } = defineProps({
   marginLeft: { type: String, default: '10px' },
 })
 
-
 // 官网站点
 const websize = {
   redis: 'https://redis.io',
@@ -46,19 +45,19 @@ const command = {
 // 慢日志命令
 const slowlog = {
   redis: '/docs/latest/commands/slowlog-get/',
-  valkey: '/commands/slowlog-get/'
+  valkey: '/commands/slowlog-get/',
 }
 
 // 监控命令
 const monitor = {
   redis: '/docs/latest/commands/monitor/',
-  valkey: '/commands/monitor/'
+  valkey: '/commands/monitor/',
 }
 
 // 发布订阅命令
 const pubsub = {
   redis: '/docs/latest/commands/psubscribe/',
-  valkey: '/commands/psubscribe/'
+  valkey: '/commands/psubscribe/',
 }
 
 function handleCommand(cmd) {

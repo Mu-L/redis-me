@@ -1,18 +1,17 @@
 # 2.x 更新日志
 
-
 ## v2.8.0
 
 - Hash字段级别的TTL支持(Redis7.4版本开始支持)
-- 终端: 命令帮助优化，支持Config GET等中间包含空格的命令提示
+- 终端: 命令提示优化，支持Config GET等中间包含空格的命令提示
 - 链接: 慢日志、命令监控、发布订阅添加官方文档跳转链接
 
-## [v2.7.1](https://mp.weixin.qq.com/s/9-NM8ZHlmFreYbKRSX0Row) (2026-04-11) 
+## [v2.7.1](https://mp.weixin.qq.com/s/9-NM8ZHlmFreYbKRSX0Row) (2026-04-11)
 
 - 缺陷修复
   - 用户密码包含特殊字符的处理 #68
   - 数据库数量大于255个的支持 #69
-- 打包优化 
+- 打包优化
   - Redis的默认配置文件移动到前端资源目录下，方便便携打包
   - 打包后的exe名称redis-me改为RedisME
   - 新增支持Window便携版打包(部分公司电脑没有安装exe权限) #66

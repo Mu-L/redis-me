@@ -563,10 +563,10 @@ async function showGroups() {
                 </template>
               </el-table-column>
               <el-table-column
-                  :label="t('redisValue.ttl')"
-                  width="150"
-                  prop="ttl"
-                  v-if="redisValue.type === 'hash' && share.capabilities.hashFieldTtl ">
+                :label="t('redisValue.ttl')"
+                width="150"
+                prop="ttl"
+                v-if="redisValue.type === 'hash' && share.capabilities.hashFieldTtl">
                 <template #default="scope">
                   {{ meHumanSeconds(scope.row.ttl) }}
                 </template>
@@ -620,9 +620,7 @@ async function showGroups() {
         </div>
 
         <!-- string类型不显示，带有hashKey不显示 -->
-        <div
-          class="btn-rb"
-          v-if="!(stringTypeOrWithHashKey || jsonType)">
+        <div class="btn-rb" v-if="!(stringTypeOrWithHashKey || jsonType)">
           <el-segmented v-model="viewType" :options="viewTypeList">
             <template #default="scope">
               <me-icon

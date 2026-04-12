@@ -80,8 +80,15 @@ function submit() {
       <el-form-item :label="t('fieldSet.hashKey')" v-if="form.type === 'hash'">
         <el-input v-model="form.fieldKey" disabled />
       </el-form-item>
-      <el-form-item :label="t('fieldSet.fieldTtl')" v-if="form.type === 'hash' && share.capabilities?.hashFieldTtl">
-        <el-input-number v-model="form.fieldTtl" :min="-1" :controls="false" style="width: 100%" align="left" />
+      <el-form-item
+        :label="t('fieldSet.fieldTtl')"
+        v-if="form.type === 'hash' && share.capabilities?.hashFieldTtl">
+        <el-input-number
+          v-model="form.fieldTtl"
+          :min="-1"
+          :controls="false"
+          style="width: 100%"
+          align="left" />
       </el-form-item>
       <el-form-item :label="t('fieldSet.index')" v-if="form.type === 'list'">
         <el-input v-model="form.fieldIndex" disabled />
