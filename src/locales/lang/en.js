@@ -618,6 +618,7 @@ export default {
     sentinel_not_supported: 'SSH tunnel does not support sentinel mode',
     cluster_not_supported: 'SSH tunnel does not support cluster mode',
     key_not_found: 'Key "{key}" not found',
+    key_node_not_found: 'Node not found for key "{key}"',
     key_already_exists: 'Key "{key}" already exists',
     key_type_unsupported: 'Unsupported value type: {value_type}',
     key_type_unknown: 'Unknown value type: {value_type}',

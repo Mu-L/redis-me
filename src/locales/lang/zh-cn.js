@@ -613,6 +613,7 @@ export default {
     sentinel_not_supported: 'SSH 隧道暂不支持哨兵模式',
     cluster_not_supported: 'SSH 隧道暂不支持集群模式',
     key_not_found: '键 "{key}" 不存在',
+    key_node_not_found: '未找到键 "{key}" 所在的节点',
     key_already_exists: '键 "{key}" 已存在',
     key_type_unsupported: '不支持的值类型: {value_type}',
     key_type_unknown: '未知的值类型: {value_type}',

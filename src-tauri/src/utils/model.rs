@@ -349,6 +349,16 @@ impl From<Vec<u8>> for RedisKey {
     }
 }
 
+impl From<RedisKey> for String {
+    fn from(redis_key: RedisKey) -> Self {
+        if redis_key.key.is_empty() {
+            String::from_utf8_lossy(&redis_key.bytes).to_string()
+        } else {
+            redis_key.key.clone()
+        }
+    }
+}
+
 impl ToRedisArgs for RedisKey {
     fn write_redis_args<W>(&self, out: &mut W)
     where

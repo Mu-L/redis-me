@@ -448,6 +448,16 @@ impl MeClient for MeSingle {
         xinfo_consumers0(self.get_conn()?, key, group)
     }
 
+    fn key_node(&self, _key: RedisKey) -> AnyResult<Vec<RedisNode>> {
+        let node = format!("{}:{}", self.conf.host, self.conf.port);
+        Ok(vec![RedisNode {
+            id: self.base.id.clone(),
+            node,
+            is_master: true,
+            slave_of_node: None,
+        }])
+    }
+
     implement_pipeline_commands!(Pipeline);
 }
 

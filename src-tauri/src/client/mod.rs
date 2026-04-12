@@ -18,8 +18,8 @@ mod tests {
     fn client() -> Box<dyn MeClient> {
         // default_provider().install_default()
         //     .expect("Failed to install rustls crypto provider");
-        client_single()
-        // client_cluster()
+        // client_single()
+        client_cluster()
     }
 
     #[allow(unused)]
@@ -384,4 +384,12 @@ mod tests {
     //     let result = client().subscribe(None).unwrap();
     //     println!("{result:?}");
     // }
+
+    #[test]
+    fn test_key_node() {
+        // 修改为你要测试的键名
+        let key = "test:key_node";
+        let result = client().key_node(key.into()).unwrap();
+        println!("所在节点: {:?}", result);
+    }
 }

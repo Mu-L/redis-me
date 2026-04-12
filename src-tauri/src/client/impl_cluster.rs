@@ -553,6 +553,77 @@ impl MeClient for MeCluster {
         xinfo_consumers0(self.get_conn()?, key, group)
     }
 
+    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>> {
+        let mut conn = self.get_conn()?;
+
+        // 1. 获取键的槽位
+        let slot: u16 = redis::cmd("CLUSTER")
+            .arg("KEYSLOT")
+            .arg(&key)
+            .query(&mut conn)?;
+
+        // 2. 获取槽位分配信息
+        // CLUSTER SLOTS 返回格式:
+        // [[start_slot, end_slot, [master_host, master_port, master_id], [replica_host, replica_port, replica_id], ...], ...]
+        let slots_info: Vec<Value> = redis::cmd("CLUSTER")
+            .arg("SLOTS")
+            .query(&mut conn)?;
+
+        // 3. 匹配槽位范围
+        for slot_entry in slots_info {
+            if let Value::Array(ref slot_data) = slot_entry
+                && slot_data.len() >= 3
+            {
+                if let (Value::Int(start), Value::Int(end)) = (&slot_data[0], &slot_data[1]) {
+                    if (*start as u16) <= slot && slot <= (*end as u16) {
+                        // 找到了！解析所有节点（主 + 从）
+                        let mut nodes = Vec::new();
+                        let mut master_node = String::new();
+
+                        // 从索引2开始是节点信息，索引2是主节点，之后是从节点
+                        for i in 2..slot_data.len() {
+                            if let Value::Array(node_info) = &slot_data[i]
+                                && node_info.len() >= 3
+                            {
+                                let host = redis_value_to_string(node_info[0].clone(), "");
+                                let port = match &node_info[1] {
+                                    Value::Int(p) => *p as u16,
+                                    _ => continue,
+                                };
+                                let id = redis_value_to_string(node_info[2].clone(), "");
+                                let node_addr = format!("{}:{}", host, port);
+                                let is_master = i == 2;
+
+                                // 记录主节点地址
+                                if is_master {
+                                    master_node = node_addr.clone();
+                                }
+
+                                nodes.push(RedisNode {
+                                    id,
+                                    node: node_addr,
+                                    is_master,
+                                    slave_of_node: if is_master {
+                                        None
+                                    } else {
+                                        Some(master_node.clone())
+                                    },
+                                });
+                            }
+                        }
+
+                        if !nodes.is_empty() {
+                            return Ok(nodes);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 未找到
+        bail!(AppError::KeyNodeNotFound { key: key.into() })
+    }
+
     implement_pipeline_commands!(ClusterPipeline);
 }
 
@@ -729,7 +800,7 @@ impl MeCluster {
                     id: id.into(),
                     node: node.into(),
                     is_master: false,
-                    slave_of_node: master_node.map(|node| node.id.clone()),
+                    slave_of_node: master_node.map(|node| node.node.clone()),
                 })
             }
         }
