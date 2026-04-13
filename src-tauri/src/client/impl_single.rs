@@ -128,7 +128,7 @@ impl MeClient for MeSingle {
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
         let mut conn = self.get_conn()?;
-        let (mut value, key_type, mut cc) = field_scan_0_get(&mut conn, param.clone())?;
+        let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
 
         let key = param.key;
         if value.is_none() {
@@ -161,7 +161,7 @@ impl MeClient for MeSingle {
             value = Some(field_scan_3_json(&key_type, &scan_value)?)
         }
 
-        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc)
+        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, length)
     }
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {

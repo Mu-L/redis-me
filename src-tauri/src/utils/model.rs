@@ -301,6 +301,7 @@ api_model!(FieldScanResult {
     size: u64,
     value: serde_json::Value,
     cursor: ScanCursor,
+    length: usize, // String类型的原始bytes长度
 });
 
 // Redis键: 由于键是字节存储的，考虑转换为utf-8字符串显示后可能会丢失信息，因此封装为对象

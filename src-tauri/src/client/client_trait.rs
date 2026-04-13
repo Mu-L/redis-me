@@ -146,17 +146,21 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
 pub fn field_scan_0_get(
     mut conn: &mut MutexGuard<impl Commands>,
     param: FieldScanParam,
-) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor)> {
+) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor, usize)> {
     let key = param.key;
     let hash_key = param.hash_key;
 
     let key_type: ValueType = conn.key_type(&key)?;
     let mut cc = param.cursor.unwrap_or_default();
 
+    // String类型的bytes长度
+    let mut length = 0;
+    
     // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
     let value: Option<serde_json::Value> = match key_type {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
+            length = value.len();
             let value: String = vec8_to_display_string(&value);
             cc.finished = true;
             Some(serde_json::to_value(value)?)
@@ -277,7 +281,7 @@ pub fn field_scan_0_get(
         }
         _ => None,
     };
-    Ok((value, key_type, cc))
+    Ok((value, key_type, cc, length))
 }
 
 pub fn field_scan_1_cmd(
@@ -376,6 +380,7 @@ pub fn field_scan_4_return(
     key_type: ValueType,
     value: serde_json::Value,
     cursor: ScanCursor,
+    length: usize
 ) -> AnyResult<FieldScanResult> {
     let ttl: i64 = conn.ttl(&key)?;
     let size: u64 = redis::cmd("memory")
@@ -389,6 +394,7 @@ pub fn field_scan_4_return(
         size,
         value,
         cursor,
+        length
     })
 }
 
