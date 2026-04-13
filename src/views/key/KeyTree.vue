@@ -4,12 +4,15 @@ import { computed } from 'vue'
 // 共享数据
 import { useI18n } from 'vue-i18n'
 
+import { TREE_KEY_ID_PREFIX } from '@/utils/util.js'
+
 import KeyTypeTag from './KeyTypeTag.vue'
 
 const { t } = useI18n()
 const share = inject('share')
 const canEdit = computed(() => !share.readonly)
 
+defineExpose({ setCurrentKey })
 const emit = defineEmits([
   'chooseKey',
   'chooseFolder',
@@ -65,7 +68,7 @@ function getNodeClass(node) {
   const clazz = []
   if (
     (node.isLeaf && node.data.redisKey?.key === contextMenuNode.value?.data?.redisKey?.key) ||
-    (!node.isLeaf && node.key == contextMenuNode.value?.key)
+    (!node.isLeaf && node.key === contextMenuNode.value?.key)
   ) {
     clazz.push('context-key')
   }
@@ -164,7 +167,7 @@ function buildTree(keyList) {
       // hepengju 这种键直接返回
       if (index === parts.length - 1) {
         // 叶子节点显示全称且保存原始值
-        let node = { id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk }
+        let node = { id: TREE_KEY_ID_PREFIX + rk.key, label: rk.key, children: [], redisKey: rk }
         nowLevel.push(node)
         return
       }
@@ -226,15 +229,27 @@ function countLeaves(node) {
 
 // 构建树: 仅仅叶子节点（即List显示）
 function buildList(keyList) {
-  return keyList.map(rk => ({ id: 'leaf-' + rk.key, label: rk.key, children: [], redisKey: rk }))
+  return keyList.map(rk => ({
+    id: TREE_KEY_ID_PREFIX + rk.key,
+    label: rk.key,
+    children: [],
+    redisKey: rk,
+  }))
 }
 
 // 获取选中的节点键
 function checkChange() {
   emit(
     'checkChange',
-    treeRef.value.getCheckedNodes(true).map(node => node.redisKey),
+    treeRef.value?.getCheckedNodes(true).map(node => node.redisKey),
   )
+}
+
+// 设置选中节点（TODO 自动展开父节点）
+function setCurrentKey(redisKey) {
+  const nodeId = TREE_KEY_ID_PREFIX + redisKey.key
+  treeRef.value?.scrollToNode(nodeId, 'center')
+  treeRef.value?.setCurrentKey(nodeId)
 }
 </script>
 

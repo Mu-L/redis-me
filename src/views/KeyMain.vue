@@ -212,9 +212,13 @@ function addKey() {
   fieldAddRef.value?.open({ mode: 'key', key: keyPrefix.value })
 }
 
+const keyTreeRef = useTemplateRef('keyTreeRef')
 function addKeyOk(redisKey) {
   keyList.value.unshift(redisKey)
   chooseKey(redisKey)
+  nextTick(() => {
+    keyTreeRef.value.setCurrentKey(redisKey)
+  })
   bus.emit(INFO_REFRESH)
 }
 
