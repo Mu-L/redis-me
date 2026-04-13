@@ -245,9 +245,20 @@ function checkChange() {
   )
 }
 
-// 设置选中节点（TODO 自动展开父节点）
+// 设置选中节点
 function setCurrentKey(redisKey) {
   const nodeId = TREE_KEY_ID_PREFIX + redisKey.key
+
+  // 展开所有父节点
+  const parts = redisKey.key.split(/:+/)
+  for (let i = 0; i < parts.length - 1; i++) {
+    const parentId = parts.slice(0, i + 1).join(':')
+    const parentNode = treeRef.value?.getNode(parentId)
+    if (parentNode && !parentNode.expanded) {
+      treeRef.value?.expandNode(parentNode)
+    }
+  }
+
   treeRef.value?.scrollToNode(nodeId, 'center')
   treeRef.value?.setCurrentKey(nodeId)
 }
