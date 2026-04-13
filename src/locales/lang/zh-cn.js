@@ -518,7 +518,7 @@ export default {
     jsonValidator: '值必须为有效的JSON格式',
 
     textMemory: '内存占用：',
-    textLength: '长度：',
+    textLength: '字节长度：',
     textEntries: '条目：',
   },
 

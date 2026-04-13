@@ -155,7 +155,7 @@ pub fn field_scan_0_get(
 
     // String类型的bytes长度
     let mut length = 0;
-    
+
     // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
     let value: Option<serde_json::Value> = match key_type {
         ValueType::String => {
@@ -178,6 +178,7 @@ pub fn field_scan_0_get(
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 match value {
                     Some(str) => {
+                        length = str.len();
                         cc.finished = true;
                         Some(serde_json::to_value(vec8_to_display_string(&str))?)
                     }

@@ -522,7 +522,7 @@ export default {
     jsonValidator: 'Value must be in a valid JSON format',
 
     textMemory: 'Memory Usage: ',
-    textLength: 'Length: ',
+    textLength: 'Bytes Length: ',
     textEntries: 'Entries: ',
   },
 
