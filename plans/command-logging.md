@@ -3,6 +3,7 @@
 ## 一、需求分析
 
 实现一个命令执行日志功能，记录所有发送给 Redis 的命令，包括：
+
 - 用户通过终端执行的命令
 - 界面操作触发的命令（GET/SET/HSCAN 等）
 - 批量操作（Pipeline）
@@ -136,27 +137,27 @@ impl ConnectionLike for LoggingConnection {
         let start = Instant::now();
         let result = self.inner.req_packed_command(cmd);
         let duration_ms = start.elapsed().as_millis() as u64;
-        
+
         self.log_command(cmd, &result, duration_ms);
         result
     }
-    
+
     /// 发送打包的命令（用于 SUBSCRIBE/MONITOR 等）
     fn send_packed_command(&mut self, cmd: &Cmd) -> RedisResult<()> {
         self.inner.send_packed_command(cmd)
     }
-    
+
     /// 接收响应（用于 SUBSCRIBE/MONITOR 等流式命令）
     fn recv_response(&mut self) -> RedisResult<Value> {
         self.inner.recv_response()
     }
-    
+
     /// 设置数据库索引（SELECT 命令时更新）
     fn set_db(&mut self, db: u16) {
         self.db_index = db;
         self.inner.set_db(db);
     }
-    
+
     fn get_db(&self) -> u16 {
         self.db_index
     }
@@ -170,22 +171,22 @@ impl LoggingConnection {
     /// 解析 Cmd 对象，提取命令名和参数
     fn parse_cmd(cmd: &Cmd) -> (String, Vec<String>) {
         let mut cmd_iter = cmd.arg_iter();
-        
+
         // 第一个参数是命令名
         let command = cmd_iter.next()
             .and_then(|arg| arg.to_str())
             .unwrap_or("UNKNOWN")
             .to_uppercase();
-        
+
         // 其余是参数
         let args: Vec<String> = cmd_iter
             .filter_map(|arg| arg.to_str())
             .map(|s| s.to_string())
             .collect();
-        
+
         (command, args)
     }
-    
+
     /// 序列化 Redis Value 为字符串
     fn value_to_string(value: &Value) -> String {
         match value {
@@ -198,14 +199,14 @@ impl LoggingConnection {
                     .map(|v| Self::value_to_string(v))
                     .take(10)  // 最多取10个
                     .collect();
-                format!("[{}{}]", items.join(", "), 
+                format!("[{}{}]", items.join(", "),
                     if arr.len() > 10 { "..." } else { "" })
             },
             Value::Map(map) => {
                 let items: Vec<String> = map.iter()
                     .take(5)
-                    .map(|(k, v)| format!("{}: {}", 
-                        Self::value_to_string(k), 
+                    .map(|(k, v)| format!("{}: {}",
+                        Self::value_to_string(k),
                         Self::value_to_string(v)))
                     .collect();
                 format!("{{{}}}", items.join(", "))
@@ -213,35 +214,35 @@ impl LoggingConnection {
             _ => format!("{:?}", value),
         }
     }
-    
+
     /// 记录命令执行
     fn log_command(&self, cmd: &Cmd, result: &RedisResult<Value>, duration_ms: u64) {
         let (command, args) = Self::parse_cmd(cmd);
-        
+
         // 过滤系统命令（可选）
         if Self::should_skip(&command) {
             return;
         }
-        
+
         let (status, response, error) = match result {
             Ok(value) => {
                 let resp = Self::value_to_string(value);
-                let status = if duration_ms > self.slow_threshold_ms { 
-                    "slow" 
-                } else { 
-                    "ok" 
+                let status = if duration_ms > self.slow_threshold_ms {
+                    "slow"
+                } else {
+                    "ok"
                 };
                 (status.to_string(), Self::truncate(&resp, 500), None)
             },
             Err(e) => ("error".to_string(), String::new(), Some(e.to_string())),
         };
-        
+
         let full_command = if args.is_empty() {
             command.clone()
         } else {
             format!("{} {}", command, args.join(" "))
         };
-        
+
         let entry = CommandLogEntry {
             id: self.logger.next_id.fetch_add(1, Ordering::Relaxed),
             timestamp: Local::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string(),
@@ -255,17 +256,17 @@ impl LoggingConnection {
             status,
             error,
         };
-        
+
         self.logger.log(entry);
     }
-    
+
     /// 是否跳过某些命令（可选配置）
     fn should_skip(command: &str) -> bool {
         // 可以配置跳过高频系统命令，例如:
         // matches!(command, "PING" | "CLIENT" | "SELECT")
         false  // 默认全部记录
     }
-    
+
     /// 截断字符串
     fn truncate(s: &str, max_len: usize) -> String {
         if s.len() > max_len {
@@ -281,21 +282,21 @@ impl LoggingConnection {
 
 ### 4.1 新建文件
 
-| 文件路径 | 说明 |
-|---------|------|
-| `src-tauri/src/utils/cmd_logger.rs` | CommandLogger 和 CommandLogEntry 定义 |
-| `src-tauri/src/utils/logging_conn.rs` | LoggingConnection 包装器实现 |
+| 文件路径                              | 说明                                  |
+| ------------------------------------- | ------------------------------------- |
+| `src-tauri/src/utils/cmd_logger.rs`   | CommandLogger 和 CommandLogEntry 定义 |
+| `src-tauri/src/utils/logging_conn.rs` | LoggingConnection 包装器实现          |
 
 ### 4.2 修改文件
 
-| 文件路径 | 修改内容 | 预计行数 |
-|---------|---------|---------|
-| `src-tauri/src/utils/mod.rs` | 导出新模块 `pub mod cmd_logger; pub mod logging_conn;` | +2 |
-| `src-tauri/src/client/state.rs` | AppState 添加 `command_logger: Arc<CommandLogger>` 字段 | +10 |
-| `src-tauri/src/client/impl_single.rs` | 1. MeSingle.conn 类型改为 `LoggingConnection`<br>2. init() 方法包装连接 | ~20 |
-| `src-tauri/src/client/impl_cluster.rs` | 集群模式各方法添加日志（约10处 route_command 调用点） | ~50 |
-| `src-tauri/src/api.rs` | 暴露 API: get_command_logs, clear_command_logs, toggle_command_logger | ~40 |
-| `src-tauri/src/client/client_trait.rs` | Pipeline 调用点添加汇总日志（约10处，可选） | ~30 |
+| 文件路径                               | 修改内容                                                                | 预计行数 |
+| -------------------------------------- | ----------------------------------------------------------------------- | -------- |
+| `src-tauri/src/utils/mod.rs`           | 导出新模块 `pub mod cmd_logger; pub mod logging_conn;`                  | +2       |
+| `src-tauri/src/client/state.rs`        | AppState 添加 `command_logger: Arc<CommandLogger>` 字段                 | +10      |
+| `src-tauri/src/client/impl_single.rs`  | 1. MeSingle.conn 类型改为 `LoggingConnection`<br>2. init() 方法包装连接 | ~20      |
+| `src-tauri/src/client/impl_cluster.rs` | 集群模式各方法添加日志（约10处 route_command 调用点）                   | ~50      |
+| `src-tauri/src/api.rs`                 | 暴露 API: get_command_logs, clear_command_logs, toggle_command_logger   | ~40      |
+| `src-tauri/src/client/client_trait.rs` | Pipeline 调用点添加汇总日志（约10处，可选）                             | ~30      |
 
 ## 五、特殊场景处理
 
@@ -329,6 +330,7 @@ logger.log(CommandLogEntry {
 ```
 
 **需要添加 Pipeline 日志的位置** (约 10 处):
+
 - `impl_single.rs`: memory_usage (2处), batch_del, batch_ttl
 - `impl_cluster.rs`: memory_usage (2处), batch_del, batch_ttl
 - `client_trait.rs`: mock_data (5种类型)
@@ -346,6 +348,7 @@ logger.log(CommandLogEntry {
 **方案**: 在 `impl_cluster.rs` 中为每个 `route_command` / `req_command` 调用点手动添加日志
 
 需要修改的方法（约 10 处）:
+
 - `info()` / `info_list()`
 - `scan()`
 - `field_scan()`
@@ -388,7 +391,7 @@ pub async fn get_command_logs(
 ) -> Result<Vec<CommandLogEntry>, String> {
     let logger = state.get_logger();
     let mut entries = logger.get_entries();
-    
+
     // 过滤
     if let Some(cmd) = filter_command {
         entries.retain(|e| e.command.to_uppercase().contains(&cmd.to_uppercase()));
@@ -396,10 +399,10 @@ pub async fn get_command_logs(
     if let Some(status) = filter_status {
         entries.retain(|e| e.status == status);
     }
-    
+
     let limit = limit.unwrap_or(1000);
     let offset = offset.unwrap_or(0);
-    
+
     Ok(entries.into_iter()
         .rev()  // 最新的在前
         .skip(offset)
@@ -434,7 +437,7 @@ pub async fn get_command_log_stats(
 ) -> Result<CommandLogStats, String> {
     let logger = state.get_logger();
     let entries = logger.get_entries();
-    
+
     let total = entries.len();
     let error_count = entries.iter().filter(|e| e.status == "error").count();
     let slow_count = entries.iter().filter(|e| e.status == "slow").count();
@@ -443,13 +446,13 @@ pub async fn get_command_log_stats(
     } else {
         0
     };
-    
+
     // 命令频率统计
     let mut cmd_counts: HashMap<String, usize> = HashMap::new();
     for entry in &entries {
         *cmd_counts.entry(entry.command.clone()).or_insert(0) += 1;
     }
-    
+
     Ok(CommandLogStats {
         total,
         error_count,
@@ -492,32 +495,29 @@ src/views/
 
 ### 7.2 核心功能
 
-| 功能 | 说明 |
-|------|------|
-| 实时滚动 | 新日志自动滚动到底部 |
-| 暂停/继续 | 暂停自动滚动，方便查看 |
-| 命令过滤 | 按命令名、状态、连接名、时间范围过滤 |
-| 关键字搜索 | 高亮匹配的命令参数 |
-| 复制命令 | 一键复制完整命令 |
-| 慢命令高亮 | 红色标记超过阈值的命令 |
-| 统计面板 | 显示命令频率、平均耗时等 |
-| 导出 | 导出为 JSON/CSV 文件 |
-| 清空 | 清空当前日志 |
+| 功能       | 说明                                 |
+| ---------- | ------------------------------------ |
+| 实时滚动   | 新日志自动滚动到底部                 |
+| 暂停/继续  | 暂停自动滚动，方便查看               |
+| 命令过滤   | 按命令名、状态、连接名、时间范围过滤 |
+| 关键字搜索 | 高亮匹配的命令参数                   |
+| 复制命令   | 一键复制完整命令                     |
+| 慢命令高亮 | 红色标记超过阈值的命令               |
+| 统计面板   | 显示命令频率、平均耗时等             |
+| 导出       | 导出为 JSON/CSV 文件                 |
+| 清空       | 清空当前日志                         |
 
 ### 7.3 实时推送方案
 
 ```javascript
 // 方案1: 轮询（简单，适合日志量不大）
 const timer = setInterval(async () => {
-  const logs = await invoke('get_command_logs', { 
-    limit: 100, 
-    offset: currentOffset 
-  })
+  const logs = await invoke('get_command_logs', { limit: 100, offset: currentOffset })
   addLogs(logs)
 }, 1000)
 
 // 方案2: Tauri Event（实时，但高频 emit 可能有性能影响）
-listen('command-log', (event) => {
+listen('command-log', event => {
   addLog(event.payload)
 })
 
@@ -528,12 +528,12 @@ listen('command-log', (event) => {
 
 ### 8.1 开销评估
 
-| 操作 | 耗时 | 说明 |
-|------|------|------|
-| parse_cmd() | < 0.01ms | 简单的参数提取 |
-| value_to_string() | < 0.1ms | 序列化响应（截断到10个元素） |
-| log() | < 0.01ms | RwLock 写入 |
-| **总计** | **< 0.2ms** | 对命令执行影响极小 |
+| 操作              | 耗时        | 说明                         |
+| ----------------- | ----------- | ---------------------------- |
+| parse_cmd()       | < 0.01ms    | 简单的参数提取               |
+| value_to_string() | < 0.1ms     | 序列化响应（截断到10个元素） |
+| log()             | < 0.01ms    | RwLock 写入                  |
+| **总计**          | **< 0.2ms** | 对命令执行影响极小           |
 
 ### 8.2 优化措施
 
@@ -554,6 +554,7 @@ listen('command-log', (event) => {
 ## 九、实施步骤
 
 ### Phase 1: 核心功能（优先级最高）
+
 - [ ] 新建 `cmd_logger.rs` - CommandLogger 实现
 - [ ] 新建 `logging_conn.rs` - LoggingConnection 包装器
 - [ ] 修改 `impl_single.rs` - 单机模式接入
@@ -561,17 +562,20 @@ listen('command-log', (event) => {
 - [ ] 修改 `api.rs` - 暴露基础 API
 
 ### Phase 2: 完善覆盖率
+
 - [ ] 修改 `impl_cluster.rs` - 集群模式添加 日志
 - [ ] 修改 `client_trait.rs` - Pipeline 汇总日志
 - [ ] 添加命令过滤/敏感信息处理
 
 ### Phase 3: 前端界面
+
 - [ ] 新建 `CommandLog.vue` 组件
 - [ ] 实现实时轮询/推送
 - [ ] 实现过滤/搜索功能
 - [ ] 实现统计面板
 
 ### Phase 4: 高级功能（可选）
+
 - [ ] 导出 JSON/CSV
 - [ ] 慢命令告警
 - [ ] 命令频率图表
@@ -579,12 +583,12 @@ listen('command-log', (event) => {
 
 ## 十、替代方案比较
 
-| 方案 | 拦截位置 | 覆盖率 | 实现复杂度 | 维护成本 | 推荐度 |
-|------|---------|--------|-----------|---------|--------|
-| **Connection 包装器** | ConnectionLike trait | 95%+ | 中 | 低 | ⭐⭐⭐⭐⭐ |
-| 业务方法手动记录 | 每个函数 | 100% | 高 | 高 | ⭐⭐ |
-| redis-rs Fork 修改 | redis-rs 源码 | 100% | 极高 | 极高 | ⭐ |
-| Pipeline 包装器 | Pipeline 层 | 80% | 中 | 中 | ⭐⭐⭐ |
+| 方案                  | 拦截位置             | 覆盖率 | 实现复杂度 | 维护成本 | 推荐度     |
+| --------------------- | -------------------- | ------ | ---------- | -------- | ---------- |
+| **Connection 包装器** | ConnectionLike trait | 95%+   | 中         | 低       | ⭐⭐⭐⭐⭐ |
+| 业务方法手动记录      | 每个函数             | 100%   | 高         | 高       | ⭐⭐       |
+| redis-rs Fork 修改    | redis-rs 源码        | 100%   | 极高       | 极高     | ⭐         |
+| Pipeline 包装器       | Pipeline 层          | 80%    | 中         | 中       | ⭐⭐⭐     |
 
 ## 十一、注意事项
 

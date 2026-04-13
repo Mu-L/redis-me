@@ -523,7 +523,7 @@ export default {
 
     textMemory: 'Memory Usage: ',
     textLength: 'Length: ',
-    textEntries: 'Entries: '
+    textEntries: 'Entries: ',
   },
 
   redisChart: {

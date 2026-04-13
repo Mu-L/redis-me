@@ -12,6 +12,7 @@
 ```
 
 **存在的问题:**
+
 - `DUMP` 命令生成的是 RDB 格式的二进制数据
 - 不同 Redis 版本的 RDB 格式可能**不兼容** (RDB version 差异)
 - 导出的文件是**二进制编码**,不可读、不可编辑
@@ -69,6 +70,7 @@ EXPIRE mybinary 3600
 ```
 
 **格式特点:**
+
 - 使用 SQL 注释风格 (`--`)
 - 每种类型前有注释说明,如 `-- STRING: keyname`
 - 二进制数据使用 `BASE64:` 前缀标记
@@ -79,19 +81,20 @@ EXPIRE mybinary 3600
 
 ### 2.2 数据类型映射
 
-| Redis 类型 | 导出命令 | 说明 |
-|-----------|---------|------|
-| **STRING** | `SET key "value"` | 基本字符串 |
-| **STRING (binary)** | `SET key BASE64:xxxx` | 二进制数据,Base64 编码 |
-| **HASH** | `HSET key field "value"` (多条) | 哈希表,每个字段一条命令 |
-| **LIST** | `RPUSH key "value"` (多条) | 列表,使用 RPUSH 保持顺序 |
-| **SET** | `SADD key "member"` (多条) | 集合,无序 |
-| **ZSET** | `ZADD key score "member"` (多条) | 有序集合,带分数 |
-| **STREAM** | `XADD key * field "value"` | 流,使用 `*` 自动生成 ID |
-| **JSON** (RedisJSON) | `JSON.SET key $ json_value` | JSON 类型 |
-| **其他类型** | 跳过并记录警告 | 如 Bloom Filter 等 |
+| Redis 类型           | 导出命令                         | 说明                     |
+| -------------------- | -------------------------------- | ------------------------ |
+| **STRING**           | `SET key "value"`                | 基本字符串               |
+| **STRING (binary)**  | `SET key BASE64:xxxx`            | 二进制数据,Base64 编码   |
+| **HASH**             | `HSET key field "value"` (多条)  | 哈希表,每个字段一条命令  |
+| **LIST**             | `RPUSH key "value"` (多条)       | 列表,使用 RPUSH 保持顺序 |
+| **SET**              | `SADD key "member"` (多条)       | 集合,无序                |
+| **ZSET**             | `ZADD key score "member"` (多条) | 有序集合,带分数          |
+| **STREAM**           | `XADD key * field "value"`       | 流,使用 `*` 自动生成 ID  |
+| **JSON** (RedisJSON) | `JSON.SET key $ json_value`      | JSON 类型                |
+| **其他类型**         | 跳过并记录警告                   | 如 Bloom Filter 等       |
 
 **过期时间处理:**
+
 ```redis
 -- 如果键有 TTL,追加 EXPIRE 命令
 EXPIRE key seconds
@@ -102,6 +105,7 @@ EXPIRE key seconds
 ### 2.3 二进制数据处理
 
 **检测逻辑:**
+
 ```rust
 fn is_binary_data(value: &[u8]) -> bool {
     // 包含非打印字符(控制字符,排除常见空白符)
@@ -110,6 +114,7 @@ fn is_binary_data(value: &[u8]) -> bool {
 ```
 
 **编码格式:**
+
 ```redis
 -- 普通字符串
 SET mykey "hello world"
@@ -119,6 +124,7 @@ SET mybinary BASE64:SGVsbG8gV29ybGQ=
 ```
 
 **导入时自动识别:**
+
 ```rust
 if value.starts_with("BASE64:") {
     let decoded = base64_decode(&value[7..])?;
@@ -170,18 +176,18 @@ pub fn export_keys_as_command(
 ) -> AnyResult<()> {
     info!("export keys as command format, file: {}", file);
     let mut writer = BufWriter::new(File::create(file)?);
-    
+
     // 写入文件头
     let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
     writeln!(writer, "-- RedisME Command Export")?;
     writeln!(writer, "-- Exported at: {}", now)?;
     writeln!(writer, "-- Keys: {}", key_list.len())?;
     writeln!(writer)?;
-    
+
     let mut ok_count = 0;
     let mut err_count = 0;
     let total_count = key_list.len() as u64;
-    
+
     for key in key_list {
         if running.load(Relaxed) {
             let result = export_key_as_command(&mut conn, &mut writer, key, with_ttl);
@@ -192,7 +198,7 @@ pub fn export_keys_as_command(
                     err_count += 1;
                 }
             }
-            
+
             // 通知导出进度
             let event = ExportImportEvent {
                 id: id.clone(),
@@ -205,7 +211,7 @@ pub fn export_keys_as_command(
             let _ = app_handle.emit(EVENT_EXPORT, event);
         }
     }
-    
+
     // 完成通知
     let event = ExportImportEvent {
         id: id.clone(),
@@ -231,10 +237,10 @@ fn export_key_as_command(
     let key_type: String = redis::cmd("TYPE")
         .arg(&key)
         .query(conn)?;
-    
+
     // 写入类型注释
     writeln!(writer, "-- {}: {}", key_type.to_uppercase(), key)?;
-    
+
     // 根据类型导出
     match key_type.as_str() {
         "string" => export_string_as_command(conn, writer, &key)?,
@@ -249,7 +255,7 @@ fn export_key_as_command(
             writeln!(writer, "-- UNSUPPORTED TYPE: {}", other)?;
         }
     }
-    
+
     // 导出 TTL
     if with_ttl {
         let ttl: i64 = conn.ttl(&key)?;
@@ -257,7 +263,7 @@ fn export_key_as_command(
             writeln!(writer, "EXPIRE {} {}", escape_identifier(&key), ttl)?;
         }
     }
-    
+
     writeln!(writer)?; // 空行分隔
     Ok(())
 }
@@ -270,7 +276,7 @@ fn export_string_as_command(
 ) -> AnyResult<()> {
     let value: Vec<u8> = redis::cmd("GET").arg(key).query(conn)?;
     let key_escaped = escape_identifier(key);
-    
+
     if is_binary_data(&value) {
         // 二进制数据,使用 BASE64 编码
         let encoded = BASE64.encode(&value);
@@ -291,7 +297,7 @@ fn export_hash_as_command(
 ) -> AnyResult<()> {
     let pairs: Vec<(String, String)> = conn.hgetall(key)?;
     let key_escaped = escape_identifier(key);
-    
+
     for (field, value) in pairs {
         writeln!(
             writer,
@@ -316,7 +322,7 @@ fn export_list_as_command(
         .arg(-1)
         .query(conn)?;
     let key_escaped = escape_identifier(key);
-    
+
     for item in items {
         writeln!(writer, "RPUSH {} {}", key_escaped, escape_value(&item))?;
     }
@@ -331,7 +337,7 @@ fn export_set_as_command(
 ) -> AnyResult<()> {
     let members: Vec<String> = conn.smembers(key)?;
     let key_escaped = escape_identifier(key);
-    
+
     for member in members {
         writeln!(writer, "SADD {} {}", key_escaped, escape_value(&member))?;
     }
@@ -351,7 +357,7 @@ fn export_zset_as_command(
         .arg("WITHSCORES")
         .query(conn)?;
     let key_escaped = escape_identifier(key);
-    
+
     for (member, score) in pairs {
         writeln!(
             writer,
@@ -377,13 +383,13 @@ fn export_stream_as_command(
         .arg("+")
         .query(conn)?;
     let key_escaped = escape_identifier(key);
-    
+
     for entry in entries {
         // 构建 field-value 对
         let mut fields = String::new();
         for (field, value) in entry.fields {
-            fields.push_str(&format!(" {} {}", 
-                escape_identifier(&field), 
+            fields.push_str(&format!(" {} {}",
+                escape_identifier(&field),
                 escape_value(&value)
             ));
         }
@@ -402,7 +408,7 @@ fn export_json_as_command(
         .arg(key)
         .query(conn)?;
     let key_escaped = escape_identifier(key);
-    
+
     writeln!(writer, "JSON.SET {} $ {}", key_escaped, &json_str)?;
     Ok(())
 }
@@ -467,7 +473,7 @@ pub fn get_key_as_command(conn: &mut impl Commands, key: &str) -> AnyResult<Stri
     let mut output = String::new();
     let key_info = RedisKey::from(key.to_string());
     let mut dummy_writer = std::io::Cursor::new(Vec::new());
-    
+
     export_key_as_command(conn, &mut BufWriter::new(dummy_writer), key_info, false)?;
     Ok(output)
 }
@@ -475,7 +481,7 @@ pub fn get_key_as_command(conn: &mut impl Commands, key: &str) -> AnyResult<Stri
 /// 获取多个键的命令格式
 pub fn get_keys_as_commands(conn: &mut impl Commands, keys: &[String]) -> AnyResult<String> {
     let mut output = String::new();
-    
+
     for key in keys {
         let key_info = RedisKey::from(key.clone());
         let result = export_key_as_command(conn, &mut BufWriter::new(std::io::Cursor::new(Vec::new())), key_info, false);
@@ -501,10 +507,10 @@ fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<
     } else {
         param.key_list.clone()
     };
-    
+
     let running = self.export_import_running.clone();
     export_import_check_running(running.clone())?;
-    
+
     let id = param.pattern.clone();
     std::thread::spawn({
         let running = running.clone();
@@ -513,21 +519,21 @@ fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<
             match param.export_format.as_str() {
                 "command" => {
                     export_keys_as_command(
-                        &mut conn, key_list, &param.file, 
+                        &mut conn, key_list, &param.file,
                         param.with_ttl, running, app_handle, id
                     );
                 }
                 _ => {
                     // 默认使用原有的 DUMP 格式
                     export_csv_0_thread(
-                        &mut conn, key_list, param.file, 
+                        &mut conn, key_list, param.file,
                         param.with_ttl, running, app_handle, id
                     );
                 }
             }
         }
     });
-    
+
     Ok(())
 }
 ```
@@ -550,19 +556,17 @@ const initForm = readonly({
 
   file: '',
   withTtl: true,
-  exportFormat: 'command',  // 新增: 'command' 或 'dump'
+  exportFormat: 'command', // 新增: 'command' 或 'dump'
 })
 
 // 修改文件后缀建议
-const exportFileSuffix = computed(() => 
-  form.value.exportFormat === 'command' ? 'redis' : 'csv'
-)
+const exportFileSuffix = computed(() => (form.value.exportFormat === 'command' ? 'redis' : 'csv'))
 </script>
 
 <template>
   <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
     <!-- 现有表单项... -->
-    
+
     <!-- 新增: 导出格式选择 -->
     <el-form-item :label="t('keyBatch.exportFormat')" v-if="isExport">
       <el-radio-group v-model="form.exportFormat">
@@ -583,7 +587,7 @@ const exportFileSuffix = computed(() =>
         :file-prefix="exportFilePrefix"
         :file-suffix="exportFileSuffix" />
     </el-form-item>
-    
+
     <!-- 现有表单项... -->
   </el-form>
 </template>
@@ -600,14 +604,14 @@ import { meCopy, meInvoke, meOk } from '@/utils/util.js'
 // 新增: 复制选中的键为命令
 async function copyCheckedAsCommand() {
   if (checkedKeyList.value.length === 0) return
-  
+
   try {
     loading.value = true
     const commands = await meInvoke('get_keys_commands', {
       id: share.conn.id,
       keys: checkedKeyList.value,
     })
-    
+
     const commandText = commands.join('\n')
     meCopy(commandText, t('keyMain.copyCommandOk'))
   } catch (e) {
@@ -622,7 +626,7 @@ async function copyCheckedAsCommand() {
   <!-- 在多操作区域添加按钮 -->
   <div class="me-flex" v-else style="width: 70px; margin-left: 10px">
     <!-- 现有按钮... -->
-    
+
     <!-- 新增: 复制为命令 -->
     <el-link underline="never" :disabled="checkedDisabled" @click="copyCheckedAsCommand">
       <me-icon
@@ -632,7 +636,7 @@ async function copyCheckedAsCommand() {
         :class="checkedBtnClass"
         placement="top" />
     </el-link>
-    
+
     <!-- 现有按钮... -->
   </div>
 </template>
@@ -650,7 +654,7 @@ export default {
     formatDump: 'DUMP 格式 (兼容旧版)',
     // ... 现有文本
   },
-  
+
   keyMain: {
     copyAsCommand: '复制为命令',
     copyCommandOk: '已复制 {count} 个键的命令',
@@ -670,7 +674,7 @@ export default {
     formatDump: 'DUMP Format (Legacy)',
     // ... existing text
   },
-  
+
   keyMain: {
     copyAsCommand: 'Copy as Commands',
     copyCommandOk: 'Copied {count} keys as commands',
@@ -718,15 +722,15 @@ fn import_keys_from_command_file(
     let mut ok_count = 0;
     let mut err_count = 0;
     let mut ignore_count = 0;
-    
+
     for line in reader.lines() {
         let line = line?.trim().to_string();
-        
+
         // 跳过注释和空行
         if line.is_empty() || line.starts_with("--") {
             continue;
         }
-        
+
         if running.load(Relaxed) {
             let result = execute_command(conn, &line);
             match result {
@@ -742,7 +746,7 @@ fn import_keys_from_command_file(
             }
         }
     }
-    
+
     Ok(())
 }
 
@@ -758,19 +762,19 @@ fn execute_command(conn: &mut impl Commands, command: &str) -> AnyResult<()> {
 
 ## 五、修改文件清单
 
-| 文件路径 | 修改内容 | 预估行数 |
-|---------|---------|---------|
-| `src-tauri/src/utils/model.rs` | `RedisExportCsv` 添加 `export_format` 字段 | +5 |
-| `src-tauri/src/client/client_trait.rs` | 新增导出函数: `export_key_as_command`, `export_keys_as_command` 等 | +300 |
-| `src-tauri/src/client/client_trait.rs` | 新增辅助函数: 转义、检测二进制等 | +80 |
-| `src-tauri/src/client/impl_single.rs` | 修改 `export_csv` 方法,支持格式选择 | +20 |
-| `src-tauri/src/client/impl_cluster.rs` | 修改 `export_csv` 方法,支持格式选择 | +20 |
-| `src-tauri/src/api.rs` | 新增 `get_key_command`, `get_keys_commands` API | +30 |
-| `src-tauri/src/lib.rs` | 注册新 API | +5 |
-| `src/views/key/KeyBatch.vue` | 添加导出格式选择单选框 | +25 |
-| `src/views/KeyMain.vue` | 添加"复制为命令"按钮及逻辑 | +35 |
-| `src/locales/lang/zh-cn.js` | 添加中文翻译 | +10 |
-| `src/locales/lang/en.js` | 添加英文翻译 | +10 |
+| 文件路径                               | 修改内容                                                           | 预估行数 |
+| -------------------------------------- | ------------------------------------------------------------------ | -------- |
+| `src-tauri/src/utils/model.rs`         | `RedisExportCsv` 添加 `export_format` 字段                         | +5       |
+| `src-tauri/src/client/client_trait.rs` | 新增导出函数: `export_key_as_command`, `export_keys_as_command` 等 | +300     |
+| `src-tauri/src/client/client_trait.rs` | 新增辅助函数: 转义、检测二进制等                                   | +80      |
+| `src-tauri/src/client/impl_single.rs`  | 修改 `export_csv` 方法,支持格式选择                                | +20      |
+| `src-tauri/src/client/impl_cluster.rs` | 修改 `export_csv` 方法,支持格式选择                                | +20      |
+| `src-tauri/src/api.rs`                 | 新增 `get_key_command`, `get_keys_commands` API                    | +30      |
+| `src-tauri/src/lib.rs`                 | 注册新 API                                                         | +5       |
+| `src/views/key/KeyBatch.vue`           | 添加导出格式选择单选框                                             | +25      |
+| `src/views/KeyMain.vue`                | 添加"复制为命令"按钮及逻辑                                         | +35      |
+| `src/locales/lang/zh-cn.js`            | 添加中文翻译                                                       | +10      |
+| `src/locales/lang/en.js`               | 添加英文翻译                                                       | +10      |
 
 **总计:** 约 +540 行代码
 
@@ -784,21 +788,21 @@ fn execute_command(conn: &mut impl Commands, command: &str) -> AnyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_is_binary_data() {
         assert!(!is_binary_data(b"hello world"));
         assert!(is_binary_data(b"hello\x00world"));
         assert!(!is_binary_data(b"hello\tworld")); // 制表符不算
     }
-    
+
     #[test]
     fn test_escape_value() {
         assert_eq!(escape_value("hello"), "\"hello\"");
         assert_eq!(escape_value("he\"llo"), "\"he\\\"llo\"");
         assert_eq!(escape_value("he\nllo"), "\"he\\nllo\"");
     }
-    
+
     #[test]
     fn test_escape_identifier() {
         assert_eq!(escape_identifier("mykey"), "mykey");
@@ -845,14 +849,14 @@ fn export_hash_as_command(...) -> AnyResult<()> {
             .arg("COUNT")
             .arg(1000)
             .query(conn)?;
-        
+
         cursor = result.0;
         let pairs = result.1;
-        
+
         for (field, value) in pairs {
             writeln!(writer, "HSET {} {} {}", ...)?;
         }
-        
+
         if cursor == 0 {
             break;
         }
@@ -934,17 +938,18 @@ if ok_count % 100 == 0 {
 
 ## 九、优势总结
 
-| 特性 | DUMP 格式 | 命令格式 (新) |
-|------|----------|--------------|
-| **版本兼容性** | ❌ 可能不兼容 | ✅ 兼容性好 |
-| **可读性** | ❌ 二进制编码 | ✅ 纯文本 |
-| **可编辑性** | ❌ 不可编辑 | ✅ 可编辑 |
-| **直接执行** | ❌ 需要 RESTORE | ✅ redis-cli 可直接执行 |
-| **文件大小** | ✅ 较小 (二进制) | ⚠️ 较大 (文本) |
-| **导出速度** | ✅ 快 (DUMP 命令) | ⚠️ 慢 (需要 GET 等) |
-| **二进制支持** | ✅ 原生支持 | ⚠️ 需 BASE64 编码 |
+| 特性           | DUMP 格式         | 命令格式 (新)           |
+| -------------- | ----------------- | ----------------------- |
+| **版本兼容性** | ❌ 可能不兼容     | ✅ 兼容性好             |
+| **可读性**     | ❌ 二进制编码     | ✅ 纯文本               |
+| **可编辑性**   | ❌ 不可编辑       | ✅ 可编辑               |
+| **直接执行**   | ❌ 需要 RESTORE   | ✅ redis-cli 可直接执行 |
+| **文件大小**   | ✅ 较小 (二进制)  | ⚠️ 较大 (文本)          |
+| **导出速度**   | ✅ 快 (DUMP 命令) | ⚠️ 慢 (需要 GET 等)     |
+| **二进制支持** | ✅ 原生支持       | ⚠️ 需 BASE64 编码       |
 
 **推荐使用场景:**
+
 - ✅ **迁移数据**: 使用命令格式,避免版本兼容问题
 - ✅ **备份恢复**: 使用命令格式,可读可编辑
 - ✅ **快速分享**: 使用"复制为命令",方便粘贴

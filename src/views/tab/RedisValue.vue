@@ -350,9 +350,11 @@ const textMemory = computed(() => t('redisValue.textMemory') + meHumanSize(redis
 const textLength = computed(() => {
   if (jsonType.value) return ''
   return stringTypeOrWithHashKey.value
-      ? t('redisValue.textLength') + redisValue.value.value.length
-      : t('redisValue.textEntries') + filterDataList.value.length + ' / ' + redisValue.value.value.length
-
+    ? t('redisValue.textLength') + redisValue.value.value.length
+    : t('redisValue.textEntries') +
+        filterDataList.value.length +
+        ' / ' +
+        redisValue.value.value.length
 })
 
 // 值显示方式: string(utf-8), binary, hex等
@@ -431,7 +433,8 @@ const textLength = computed(() => {
       <!-- 中间值 -->
       <div class="value-main">
         <!-- json显示 -->
-        <me-code v-if="viewType === 'json'"
+        <me-code
+          v-if="viewType === 'json'"
           :modelValue="showValue"
           @update:modelValue="newValue => (redisValue.newValue = newValue)"
           :read-only="!canSave" />
@@ -479,7 +482,7 @@ const textLength = computed(() => {
           </div>
           <div class="table-view">
             <me-table
-                layout="sizes, prev, pager, next, jumper"
+              layout="sizes, prev, pager, next, jumper"
               :data="filterDataList"
               border
               stripe
@@ -586,30 +589,30 @@ const textLength = computed(() => {
         <div class="me-flex" style="align-items: center">
           <!-- 美化/复制 -->
           <me-icon
-              placement="top-start"
-              :info="t('redisValue.prettyHint')"
-              class="icon-btn"
-              :style="{ color: isPretty ? 'var(--el-color-success)' : '' }"
-              icon="el-icon-magic-stick"
-              @click="isPretty = !isPretty" />
+            placement="top-start"
+            :info="t('redisValue.prettyHint')"
+            class="icon-btn"
+            :style="{ color: isPretty ? 'var(--el-color-success)' : '' }"
+            icon="el-icon-magic-stick"
+            @click="isPretty = !isPretty" />
 
           <me-icon
-              style="font-size: 18px; margin-left: 5px"
-              :info="t('copy')"
-              class="icon-btn"
-              icon="el-icon-document-copy"
-              @click="meCopy(showValue)"
-              placement="top" />
+            style="font-size: 18px; margin-left: 5px"
+            :info="t('copy')"
+            class="icon-btn"
+            icon="el-icon-document-copy"
+            @click="meCopy(showValue)"
+            placement="top" />
 
           <el-divider direction="vertical" />
 
           <!-- 内存占用 -->
-          <el-text> {{textMemory}} </el-text>
+          <el-text> {{ textMemory }} </el-text>
 
           <el-divider direction="vertical" v-if="textLength" />
 
           <!-- 长度/条目 -->
-          <el-text> {{textLength}}</el-text>
+          <el-text> {{ textLength }}</el-text>
         </div>
 
         <div class="me-flex" style="position: relative">
@@ -627,44 +630,48 @@ const textLength = computed(() => {
           <!-- 加载更多、加载全部 -->
           <div class="me-flex" style="width: 45px; margin-right: 10px" v-if="showMore">
             <me-icon
-                :name="t('redisValue.loadMore')"
-                icon="me-icon-load-more"
-                hint
-                placement="top"
-                class="icon-btn"
-                @click="refreshKey(false, true, false)" />
+              :name="t('redisValue.loadMore')"
+              icon="me-icon-load-more"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="refreshKey(false, true, false)" />
             <me-icon
-                :name="t('redisValue.loadAll')"
-                icon="me-icon-load-all"
-                hint
-                placement="top"
-                class="icon-btn"
-                @click="refreshKey(false, true, true)" />
+              :name="t('redisValue.loadAll')"
+              icon="me-icon-load-all"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="refreshKey(false, true, true)" />
           </div>
 
           <!-- 保存 -->
-          <me-button v-if="canSave"
-                     :info="t('save')"
-                     type="primary"
-                     icon="me-icon-save"
-                     @click="setValue"
-                     placement="top"/>
+          <me-button
+            v-if="canSave"
+            :info="t('save')"
+            type="primary"
+            icon="me-icon-save"
+            @click="setValue"
+            placement="top" />
 
           <!-- string类型不显示，带有hashKey不显示 -->
-          <el-segmented v-model="viewType" :options="viewTypeList" v-if="!(stringTypeOrWithHashKey || jsonType)">
+          <el-segmented
+            v-model="viewType"
+            :options="viewTypeList"
+            v-if="!(stringTypeOrWithHashKey || jsonType)">
             <template #default="scope">
               <me-icon
-                  :name="t('redisValue.jsonView')"
-                  icon="me-icon-json"
-                  hint
-                  placement="top"
-                  v-if="scope.item === 'json'" />
+                :name="t('redisValue.jsonView')"
+                icon="me-icon-json"
+                hint
+                placement="top"
+                v-if="scope.item === 'json'" />
               <me-icon
-                  :name="t('redisValue.tableView')"
-                  icon="me-icon-table"
-                  hint
-                  placement="top"
-                  v-else />
+                :name="t('redisValue.tableView')"
+                icon="me-icon-table"
+                hint
+                placement="top"
+                v-else />
             </template>
           </el-segmented>
         </div>

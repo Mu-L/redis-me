@@ -123,7 +123,9 @@ function handleInputTipsSearch(command, _cursorIndex, commandStore, callback) {
     }
 
     matchedCommands =
-      found.length > 0 ? found : commandStore.filter(cmd => cmd.key.toLowerCase().includes(firstWord))
+      found.length > 0
+        ? found
+        : commandStore.filter(cmd => cmd.key.toLowerCase().includes(firstWord))
   }
 
   // 转换为提示项格式,并添加高亮效果(与 vue-web-terminal 默认高亮一致)
