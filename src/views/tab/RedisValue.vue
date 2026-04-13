@@ -348,7 +348,7 @@ async function showGroups() {
 // 内存占用和条目
 const textMemory = computed(() => t('redisValue.textMemory') + meHumanSize(redisValue.value?.size))
 const textLength = computed(() => {
-  if (jsonType.value || streamType.value) return ''
+  if (jsonType.value || streamType.value && withHashKey.value) return ''
   return stringTypeOrWithHashKey.value
     ? t('redisValue.textLength') + redisValue.value.length
     : t('redisValue.textEntries') +
@@ -448,22 +448,24 @@ const textLength = computed(() => {
                 v-model="tableKeyword"
                 :placeholder="t('redisValue.tableKeyword')"
                 clearable
-                :style="{ width: streamType ? '120px' : '300px' }" />
+                :style="{ width: streamType ? '180px' : '300px' }" />
 
+
+            </div>
+
+            <div v-if="streamType">
               <el-input
-                v-if="streamType"
-                @keyup.enter="refreshKey(true)"
-                v-model.trim="meta.maxId"
-                placeholder="MaxId"
-                clearable
-                style="width: 160px; margin-left: 10px" />
+                  @keyup.enter="refreshKey(true)"
+                  v-model.trim="meta.maxId"
+                  placeholder="MaxId"
+                  clearable
+                  style="width: 180px;" />
               <el-input
-                v-if="streamType"
-                @keyup.enter="refreshKey(true)"
-                v-model.trim="meta.minId"
-                placeholder="MinId"
-                clearable
-                style="width: 160px; margin-left: 10px" />
+                  @keyup.enter="refreshKey(true)"
+                  v-model.trim="meta.minId"
+                  placeholder="MinId"
+                  clearable
+                  style="width: 180px; margin-left: 10px" />
             </div>
 
             <!-- 右侧更多+插入行 -->
