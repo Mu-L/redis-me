@@ -143,9 +143,6 @@ refreshDbList()
 async function selectDB() {
   await meInvoke('select_db', { id: share.conn.id, db: share.conn.db })
   await refresh() // RedisInfo的键数量需要更新下
-
-  // 修复非首次切换DB时，share.connList没有同步更新的问题
-  share.connList.filter(conn => conn.id === share.conn.id)[0].db = share.conn.db
 }
 
 const keyPrefix = ref('')

@@ -63,8 +63,18 @@ function toggleKeyTag() {
 
 // 切换连接时loading
 watch(
-  () => share.conn,
+  // () => share.conn,
+  () => JSON.stringify(share.conn), // 监听序列化后的字符串，避免新旧连接是同一个引用
   async (newConn, oldConn) => {
+    newConn = meJsonParse(newConn)
+    oldConn = meJsonParse(oldConn)
+
+    // 触发连接列表更新（保存和同步到后端） #72
+    const index = share.connList.findIndex(c => c.id === share.conn.id)
+    if (index !== -1) {
+      share.connList[index] = {...share.conn}
+    }
+
     // 连接id未发生改变时，无需断开重连（比如颜色或db改变）
     if (newConn?.id === oldConn?.id) return
 

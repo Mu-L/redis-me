@@ -427,6 +427,9 @@ export function meJsonFormat(jsonString) {
 
 // 支持json5格式的输入(key可以不加引号，key-value可以为单引号，允许注释等)
 export function meJsonParse(jsonString) {
+  if (!jsonString) return null
+  if (jsonString === 'undefined') return null
+  if (jsonString === 'null') return null
   return JSON5.parse(jsonString)
 }
 
