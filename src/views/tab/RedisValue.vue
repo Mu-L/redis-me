@@ -153,7 +153,8 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
   }
 
   if (!useCursor) {
-    cursor.value = null
+    cursor.value = null // 不使用游标时重置游标
+    redisValue.value = null // 不使用游标时重置值（String, JSON的保存按钮-发生变化时才能点击）
   }
 
   loading.value = true
@@ -188,8 +189,8 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       redisValue.value = data
     }
 
-    await setTimer(redisValue.value.ttl)
     showMore.value = !cursor.value?.finished
+    await setTimer(redisValue.value.ttl)
   } finally {
     loading.value = false
   }
@@ -213,11 +214,7 @@ function renameKey() {
 
 // 保存值
 async function setValue() {
-  let value =
-    redisValue.value.newValue ||
-    (redisValue.value.type === 'json'
-      ? JSON.stringify(redisValue.value.value, null, 2)
-      : redisValue.value.value)
+  let value = redisValue.value.newValue
   const params = {
     key: share.redisKey,
     ttl: redisValue.value.ttl,
@@ -648,6 +645,7 @@ const textLength = computed(() => {
 
           <!-- 保存 -->
           <me-button
+              :disabled="!(redisValue?.newValue)"
             v-if="canSave"
             :info="t('save')"
             type="primary"
