@@ -72,7 +72,7 @@ watch(
     // 触发连接列表更新（保存和同步到后端） #72
     const index = share.connList.findIndex(c => c.id === share.conn.id)
     if (index !== -1) {
-      share.connList[index] = {...share.conn}
+      share.connList[index] = newConn
     }
 
     // 连接id未发生改变时，无需断开重连（比如颜色或db改变）
