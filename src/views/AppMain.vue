@@ -87,7 +87,7 @@ watch(
         await meInvoke('disconnect', { id: oldConn.id })
       }
 
-      // 打开新连接，获取节点列表和数据库列表（TODO）
+      // 打开新连接
       if (newConn) {
         share.color = newConn.color
         share.readonly = !!newConn.readonly
