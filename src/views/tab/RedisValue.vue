@@ -234,6 +234,7 @@ async function setValue() {
 
   await meInvoke('set', { id: share.conn.id, ...params, value })
   meOk(t('saveOk'))
+  await refreshKey()
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
