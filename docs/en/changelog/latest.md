@@ -1,5 +1,22 @@
 # 2.x Changelog
 
+## v2.8.0 (2026-04-18)
+
+### ✨ New Features
+
+- **New Key: Automatically expand parent node, scroll to current node position and select it**
+- Value Display: **Hash field-level TTL support**
+  - Supported from Redis 7.4, **automatically detects** whether the server supports it
+- Value Display: Style refactoring for easier future feature additions
+  - Moved Size/Copy/Format buttons from top-right corner to bottom icons, preventing obstruction of values or scrollbars
+  - Added **byte length display for strings** and entry display for other types
+- Terminal: Command prompt optimization, supports **commands with spaces in the middle** like Config GET
+- Links: Added official documentation jump links for Slow Log, Command Monitor, and Pub/Sub
+
+### 🐞 Bug Fixes
+
+- After switching DB multiple times, the displayed DB in the connection dropdown does not match the actual DB being queried #72
+
 ## [v2.7.1](https://mp.weixin.qq.com/s/9-NM8ZHlmFreYbKRSX0Row) (2026-04-11)
 
 - Bug Fixes
