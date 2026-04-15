@@ -504,7 +504,7 @@ export default {
     insertRow: '插入行',
     id: 'ID',
     key: '键',
-    ttl: '过期 (秒)',
+    ttl: '过期',
     value: '值',
     score: '分数',
     deleteConfirm: '确定删除吗？',
