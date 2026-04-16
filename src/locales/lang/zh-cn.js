@@ -223,9 +223,10 @@ export default {
     jsonValidator: '值必须为有效的JSON格式',
     hashValidator: '哈希键和值不允许为空',
     streamValidator: '字段和值不允许为空',
-    hashHint: '(哈希键: 值)',
-    zsetHint: '(值: 分数)',
-    streamHint: '(字段: 值)',
+    hashHint: '(哈希键：值)',
+    hashHintTtl: '(哈希键：值：过期秒)',
+    zsetHint: '(值：分数)',
+    streamHint: '(字段：值)',
     newKey: '新增键',
     newField: '新增字段',
     key: '键',
@@ -240,6 +241,7 @@ export default {
     hashKey: '哈希键',
     streamId: 'ID (*表示服务器自动生成)',
     streamIdRequired: '请输入ID',
+    fieldTtl: '超时秒数',
   },
 
   fieldSet: {
@@ -247,6 +249,7 @@ export default {
     fieldScoreRequired: '请输入分数',
     editField: '编辑字段',
     hashKey: '哈希键',
+    fieldTtl: '字段过期 (秒)',
     index: '索引',
     score: '分数',
     value: '值',
@@ -501,6 +504,7 @@ export default {
     insertRow: '插入行',
     id: 'ID',
     key: '键',
+    ttl: '过期',
     value: '值',
     score: '分数',
     deleteConfirm: '确定删除吗？',
@@ -512,6 +516,10 @@ export default {
     renameKey: '重命名键',
     refreshKey: '刷新键',
     jsonValidator: '值必须为有效的JSON格式',
+
+    textMemory: '内存占用：',
+    textLength: '字节长度：',
+    textEntries: '条目：',
   },
 
   redisChart: {
@@ -609,6 +617,7 @@ export default {
     sentinel_not_supported: 'SSH 隧道暂不支持哨兵模式',
     cluster_not_supported: 'SSH 隧道暂不支持集群模式',
     key_not_found: '键 "{key}" 不存在',
+    key_node_not_found: '未找到键 "{key}" 所在的节点',
     key_already_exists: '键 "{key}" 已存在',
     key_type_unsupported: '不支持的值类型: {value_type}',
     key_type_unknown: '未知的值类型: {value_type}',

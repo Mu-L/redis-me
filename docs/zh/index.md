@@ -3,17 +3,10 @@ layout: home
 
 hero:
   name: 'RedisME'
-  tagline: 轻量、现代的Redis桌面客户端
+  tagline: 现代、轻量、跨平台的Redis桌面客户端
   image:
     src: /images/logo-color.svg
     alt: RedisME
-#  actions:
-#    - theme: brand
-#      text: 下载安装
-#      link: https://gitee.com/hepengju/redis-me/releases
-#    - theme: alt
-#      text: 进入GitHub
-#      link: https://github.com/hepengju/redis-me
 
 features:
   - icon: 🚀

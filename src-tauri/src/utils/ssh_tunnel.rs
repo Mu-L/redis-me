@@ -143,12 +143,7 @@ impl SshTunnel {
         info!("SSH 认证完成，准备打开 TCP 转发通道");
 
         let channel = session
-            .channel_open_direct_tcpip(
-                target_host,
-                target_port as u32,
-                "127.0.0.1",
-                0,
-            )
+            .channel_open_direct_tcpip(target_host, target_port as u32, "127.0.0.1", 0)
             .await?;
 
         let mut ssh_stream = channel.into_stream();
@@ -246,7 +241,10 @@ impl SshTunnel {
     ) -> AnyResult<()> {
         match result {
             Ok(Ok(AuthResult::Success)) => Ok(()),
-            Ok(Ok(AuthResult::Failure { remaining_methods, partial_success })) => {
+            Ok(Ok(AuthResult::Failure {
+                remaining_methods,
+                partial_success,
+            })) => {
                 info!(
                     "SSH 认证失败，用户: {}, 剩余方法: {:?}, 部分成功: {}",
                     username, remaining_methods, partial_success

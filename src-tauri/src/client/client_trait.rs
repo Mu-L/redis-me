@@ -6,51 +6,30 @@ use Ordering::Relaxed;
 use anyhow::{Context, bail};
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
-use chrono::{Local, Utc};
+use chrono::Local;
 use log::{info, warn};
 use parking_lot::MutexGuard;
 use redis::streams::{StreamInfoConsumersReply, StreamInfoGroupsReply, StreamRangeReply};
 use redis::{
-    Cmd, Commands, Connection, FromRedisValue, JsonCommands, Msg, SetExpiry, SetOptions, Value,
-    ValueType, from_redis_value,
+    Cmd, Commands, Connection, ExpireOption, FromRedisValue, IntegerReplyOrNoOp, JsonCommands, Msg,
+    SetExpiry, SetOptions, Value, ValueType, from_redis_value,
 };
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::thread::JoinHandle;
 use tauri::{AppHandle, Emitter};
 
-// 抽取公共属性
-pub struct MeBase {
-    pub id: String,
-    pub conf: ConnConfig,
-    pub db: Arc<AtomicU16>,
-    pub subscribe_running: Arc<AtomicBool>,
-    pub monitor_running: Arc<AtomicBool>,
-    pub export_import_running: Arc<AtomicBool>,
-    pub last_check_time: Arc<AtomicI64>,
-}
-
-impl From<&ConnConfig> for MeBase {
-    fn from(conf: &ConnConfig) -> Self {
-        MeBase {
-            id: conf.id.clone(),
-            conf: conf.clone(),
-            db: Arc::new(AtomicU16::new(conf.db)),
-            subscribe_running: Arc::new(AtomicBool::new(false)),
-            monitor_running: Arc::new(AtomicBool::new(false)),
-            export_import_running: Arc::new(AtomicBool::new(false)),
-            last_check_time: Arc::new(AtomicI64::new(Utc::now().timestamp())),
-        }
-    }
-}
-
 // RedisME服务接口
 pub trait MeClient: Send + Sync {
-    fn name(&self) -> String;
+    fn base(&self) -> &MeBase;
+
+    fn name(&self) -> String {
+        self.base().conf.name.clone()
+    }
 
     fn db_list(&self) -> AnyResult<Vec<RedisDB>>;
 
@@ -66,10 +45,7 @@ pub trait MeClient: Send + Sync {
 
     fn chart_list(&self) -> AnyResult<Vec<RedisChart>> {
         let info_list = self.info_list()?;
-        info_list
-            .into_iter()
-            .map(info_to_chart)
-            .collect()
+        info_list.into_iter().map(info_to_chart).collect()
     }
 
     fn node_list(&self) -> AnyResult<Vec<RedisNode>>;
@@ -77,8 +53,6 @@ pub trait MeClient: Send + Sync {
     fn scan(&self, param: ScanParam) -> AnyResult<ScanResult>;
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult>;
-
-    fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue>;
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()>;
 
@@ -135,6 +109,7 @@ pub trait MeClient: Send + Sync {
     fn key_type(&self, key: RedisKey) -> AnyResult<String>;
     fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>>;
     fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>>;
+    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>>;
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -168,97 +143,24 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
     cmd
 }
 
-pub fn get0(
-    mut conn: MutexGuard<impl Commands>,
-    key: RedisKey,
-    hash_key: Option<String>,
-) -> AnyResult<RedisValue> {
-    let key_type: ValueType = conn.key_type(&key)?;
-
-    let value: serde_json::Value = match key_type {
-        ValueType::String => {
-            let value: Vec<u8> = conn.get(&key)?;
-            serde_json::to_value(vec8_to_display_string(&value))
-        }
-        // 注意: 原始返回的信息用Vec<u8>接收，再手动转换为String，避免无效UTF8字符串时直接报错
-        ValueType::List => {
-            let value: Vec<Vec<u8>> = conn.lrange(&key, 0, -1)?;
-            serde_json::to_value(ui_list_value(&value))
-        }
-        ValueType::Set => {
-            let value: HashSet<Vec<u8>> = conn.smembers(&key)?;
-            serde_json::to_value(ui_set_value(value))
-        }
-        ValueType::ZSet => {
-            let value: Vec<(Vec<u8>, f64)> = conn.zrange_withscores(&key, 0, -1)?;
-            serde_json::to_value(ui_zset_value(value))
-        }
-        ValueType::Hash => {
-            if let Some(hash_key) = hash_key
-                && !hash_key.is_empty()
-            {
-                let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
-                match value {
-                    Some(str) => serde_json::to_value(vec8_to_display_string(&str)),
-                    None => bail!(AppError::FieldNotFound { hash_key }),
-                }
-            } else {
-                let value: HashMap<Vec<u8>, Vec<u8>> = conn.hgetall(&key)?;
-                serde_json::to_value(ui_hash_value(value))
-            }
-        }
-        ValueType::Stream => {
-            // stream的id, 复用hash_key字段
-            if let Some(hash_key) = hash_key
-                && !hash_key.is_empty()
-            {
-                let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
-                match reply.ids.pop() {
-                    Some(entry) => serde_json::to_value(ui_stream_id(entry.map)),
-                    None => bail!(AppError::FieldNotFoundStream {
-                        stream_id: hash_key
-                    }),
-                }
-            } else {
-                let reply: StreamRangeReply = conn.xrange_all(&key)?;
-                serde_json::to_value(ui_stream_value(reply))
-            }
-        }
-        ValueType::JSON => {
-            let value: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
-            serde_json::from_str(&redis_value_to_string(value, "\n"))
-        }
-        _ => Ok(handle_other_value_type(&key_type, &key)?),
-    }?;
-
-    let ttl: i64 = conn.ttl(&key)?;
-    let size: u64 = redis::cmd("memory")
-        .arg("usage")
-        .arg(&key)
-        .query(&mut conn)?;
-
-    Ok(RedisValue {
-        key_type: ui_key_type(key_type),
-        ttl,
-        size,
-        value,
-    })
-}
-
 pub fn field_scan_0_get(
     mut conn: &mut MutexGuard<impl Commands>,
     param: FieldScanParam,
-) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor)> {
+) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor, usize)> {
     let key = param.key;
     let hash_key = param.hash_key;
 
     let key_type: ValueType = conn.key_type(&key)?;
     let mut cc = param.cursor.unwrap_or_default();
 
+    // String类型的bytes长度
+    let mut length = 0;
+
     // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
     let value: Option<serde_json::Value> = match key_type {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
+            length = value.len();
             let value: String = vec8_to_display_string(&value);
             cc.finished = true;
             Some(serde_json::to_value(value)?)
@@ -276,10 +178,11 @@ pub fn field_scan_0_get(
                 let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
                 match value {
                     Some(str) => {
+                        length = str.len();
                         cc.finished = true;
                         Some(serde_json::to_value(vec8_to_display_string(&str))?)
                     }
-                    None => bail!(AppError::FieldNotFound { hash_key}),
+                    None => bail!(AppError::FieldNotFound { hash_key }),
                 }
             } else {
                 None
@@ -379,7 +282,7 @@ pub fn field_scan_0_get(
         }
         _ => None,
     };
-    Ok((value, key_type, cc))
+    Ok((value, key_type, cc, length))
 }
 
 pub fn field_scan_1_cmd(
@@ -408,15 +311,33 @@ pub fn field_scan_1_cmd(
 }
 
 pub fn field_scan_2_value(
+    conn: &mut impl Commands,
     key_type: &ValueType,
     scan_value: &mut FieldScanValue,
     new_value: Value,
+    key: &RedisKey,
+    capabilities: &ServerCapabilities,
 ) -> AnyResult<usize> {
     let new_count = match key_type {
         ValueType::Hash => {
-            let value: HashMap<Vec<u8>, Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
+            let value: Vec<(Vec<u8>, Vec<u8>)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            scan_value.hash.extend(ui_hash_value(value));
+            scan_value.hash.extend(ui_hash_value(&value));
+
+            // 补充hash字段ttl
+            if capabilities.hash_field_ttl {
+                let keys: Vec<&Vec<u8>> = value.iter().map(|(k, _)| k).collect();
+                let ttl_values: Vec<IntegerReplyOrNoOp> = conn.httl(key, keys)?;
+
+                for (item, ttl_reply) in scan_value.hash.iter_mut().zip(ttl_values) {
+                    item.ttl = match ttl_reply {
+                        IntegerReplyOrNoOp::IntegerReply(ttl) => Some(ttl as i64),
+                        IntegerReplyOrNoOp::NotExists => Some(-2),
+                        IntegerReplyOrNoOp::ExistsButNotRelevant => Some(-1),
+                        _ => None, // 其他场景
+                    };
+                }
+            }
             new_count
         }
         ValueType::Set => {
@@ -460,6 +381,7 @@ pub fn field_scan_4_return(
     key_type: ValueType,
     value: serde_json::Value,
     cursor: ScanCursor,
+    length: usize
 ) -> AnyResult<FieldScanResult> {
     let ttl: i64 = conn.ttl(&key)?;
     let size: u64 = redis::cmd("memory")
@@ -473,6 +395,7 @@ pub fn field_scan_4_return(
         size,
         value,
         cursor,
+        length
     })
 }
 
@@ -534,24 +457,27 @@ pub fn rename0(
     Ok(())
 }
 
-pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> AnyResult<()> {
+pub fn field_add0(
+    mut conn: MutexGuard<impl Commands>,
+    param: RedisFieldAdd,
+    capabilities: &ServerCapabilities,
+) -> AnyResult<()> {
     let key: RedisKey = param.key.into();
     let mode = param.mode;
-    let mut key_type = ValueType::from(param.key_type);
+    let mut key_type = to_key_type(&param.key_type);
 
-    if "key" == mode {
-        // 新增键
-        let exists: bool = conn.exists(&key)?;
-        if exists {
-            bail!(AppError::KeyAlreadyExists {
-                key: vec8_to_display_string(key.to_bytes())
-            })
+    match mode.as_str() {
+        "key" => {
+            let exists: bool = conn.exists(&key)?;
+            if exists {
+                bail!(AppError::KeyAlreadyExists {
+                    key: vec8_to_display_string(key.to_bytes())
+                })
+            }
         }
-    } else if "field" == mode {
-        // 新增字段
-        key_type = conn.key_type(&key)?
-    } else {
-        bail!(AppError::FieldOperationNotSupported { mode })
+        // 当键不存在时，下面的match会抛出对应异常
+        "field" => key_type = conn.key_type(&key)?,
+        _ => bail!(AppError::FieldOperationNotSupported { mode }),
     }
 
     let fv_list = param.field_value_list;
@@ -559,35 +485,35 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
     match key_type {
         ValueType::String => conn.set(&key, &param.value)?,
         ValueType::Hash => fv_list
-            .into_iter()
-            .try_for_each(|f| conn.hset(&key, f.field_key, f.field_value))?,
+            .iter()
+            .try_for_each(|f| conn.hset(&key, &f.field_key, &f.field_value))?,
         ValueType::List => {
             if "lpush" == param.list_push_method {
                 // 插入头部时保持原有顺序
                 fv_list
-                    .into_iter()
+                    .iter()
                     .rev()
-                    .try_for_each(|fv| conn.lpush(&key, fv.field_value))?;
+                    .try_for_each(|fv| conn.lpush(&key, &fv.field_value))?;
             } else {
                 fv_list
-                    .into_iter()
-                    .try_for_each(|f| conn.rpush(&key, f.field_value))?;
+                    .iter()
+                    .try_for_each(|f| conn.rpush(&key, &f.field_value))?;
             }
         }
         ValueType::Set => fv_list
-            .into_iter()
-            .try_for_each(|f| conn.sadd(&key, f.field_value))?,
+            .iter()
+            .try_for_each(|f| conn.sadd(&key, &f.field_value))?,
         ValueType::ZSet => fv_list
-            .into_iter()
-            .try_for_each(|f| conn.zadd(&key, f.field_value, f.field_score))?,
+            .iter()
+            .try_for_each(|f| conn.zadd(&key, &f.field_value, f.field_score))?,
         ValueType::Stream => {
             let items: Vec<(String, String)> = fv_list
-                .into_iter()
-                .map(|f| (f.field_key, f.field_value))
+                .iter()
+                .map(|f| (f.field_key.clone(), f.field_value.clone()))
                 .collect();
             conn.xadd(&key, &param.stream_id, &items)?
         }
-        ValueType::Unknown(other) if other == ME_JSON_TYPE_NAME => {
+        ValueType::JSON => {
             let value: serde_json::Value =
                 serde_json::from_str(&param.value).with_context(|| "json parse error")?;
             conn.json_set(&key, "$", &value)?
@@ -597,19 +523,37 @@ pub fn field_add0(mut conn: MutexGuard<impl Commands>, param: RedisFieldAdd) -> 
         }
     };
 
+    // 新增：Hash 类型字段 TTL（仅 Redis/Valkey >= 7.4 支持）
+    if capabilities.hash_field_ttl && matches!(key_type, ValueType::Hash) {
+        for fv in &fv_list {
+            if fv.field_ttl > 0 {
+                let _: () = conn.hexpire(&key, fv.field_ttl, ExpireOption::NONE, &fv.field_key)?;
+            }
+        }
+    }
+
     if "key" == mode && param.ttl > 0 {
         let _: () = conn.expire(&key, param.ttl)?;
     }
     Ok(())
 }
 
-pub fn field_set0(mut conn: MutexGuard<impl Commands>, param: RedisFieldSet) -> AnyResult<()> {
+pub fn field_set0(
+    mut conn: MutexGuard<impl Commands>,
+    param: RedisFieldSet,
+    capabilities: &ServerCapabilities,
+) -> AnyResult<()> {
     let key: RedisKey = param.key;
     let key_type: ValueType = conn.key_type(&key)?;
 
     match key_type {
         ValueType::Hash => {
-            let _: () = conn.hset(&key, param.field_key, param.field_value)?;
+            // HSET 会清除字段级的 TTL，将其置为 -1（永久）。因此只需要处理>0的场景
+            let _: () = conn.hset(&key, &param.field_key, param.field_value)?;
+            if capabilities.hash_field_ttl && param.field_ttl > 0 {
+                let _: () =
+                    conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, param.field_key)?;
+            }
         }
         ValueType::List => {
             let _: () = conn.lset(&key, param.field_index, param.field_value)?;
@@ -1062,7 +1006,7 @@ fn import_cmds(
                 Err(e) => {
                     warn!("import cmd err: {e}");
                     err_count += 1
-                },
+                }
             }
             // 通知导入进度
             let event = ExportImportEvent {
@@ -1107,11 +1051,7 @@ pub fn xinfo_groups0(
     key: RedisKey,
 ) -> AnyResult<Vec<XInfoGroup>> {
     let reply: StreamInfoGroupsReply = conn.xinfo_groups(&key)?;
-    Ok(reply
-        .groups
-        .into_iter()
-        .map(ui_xinfo_group)
-        .collect())
+    Ok(reply.groups.into_iter().map(ui_xinfo_group).collect())
 }
 
 pub fn xinfo_consumers0(
@@ -1120,11 +1060,7 @@ pub fn xinfo_consumers0(
     group: String,
 ) -> AnyResult<Vec<XInfoConsumer>> {
     let reply: StreamInfoConsumersReply = conn.xinfo_consumers(&key, &group)?;
-    Ok(reply
-        .consumers
-        .into_iter()
-        .map(ui_xinfo_consumer)
-        .collect())
+    Ok(reply.consumers.into_iter().map(ui_xinfo_consumer).collect())
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

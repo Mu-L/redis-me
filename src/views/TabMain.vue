@@ -14,7 +14,10 @@ const share = inject('share')
 </script>
 
 <template>
-  <el-tabs class="redis-tag" v-model="share.tabName">
+  <el-tabs
+    v-model="share.tabName"
+    class="redis-tab"
+    :style="{ paddingBottom: share.tabName === 'value' ? 0 : '10px' }">
     <me-tab-pane name="info" icon="el-icon-calendar"> <RedisInfo /> </me-tab-pane>
     <me-tab-pane name="value" icon="el-icon-memo"> <RedisValue /> </me-tab-pane>
     <me-tab-pane name="terminal" icon="me-icon-terminal" lazy> <RedisTerminal /> </me-tab-pane>
@@ -28,10 +31,11 @@ const share = inject('share')
 </template>
 
 <style scoped lang="scss">
-.redis-tag {
+.redis-tab {
   //border: 2px solid red;
   border: 1px solid var(--el-border-color);
   padding: 0 10px 10px 10px;
+
   height: 100%;
 
   :deep(.el-tab-pane) {

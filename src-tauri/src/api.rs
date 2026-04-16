@@ -32,8 +32,8 @@ pub fn conn_list(app_handle: AppHandle, conn_list: Vec<ConnConfig>) -> ApiResult
 
 // 连接
 #[command]
-pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
-    to_api_result(app_handle.connect(id)).map(|_| ())
+pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<ServerCapabilities> {
+    to_api_result(app_handle.connect(id)).map(|client| (*client.base().capabilities).clone())
 }
 
 // 断开
@@ -54,7 +54,7 @@ api_commands!(
     node_list() -> Vec<RedisNode>;             // 节点列表
     scan(param: ScanParam) -> ScanResult;      // 扫描
     field_scan(param: FieldScanParam)  -> FieldScanResult;      // 字段扫描
-    get(key: RedisKey, hash_key: Option<String>) -> RedisValue; // 获取值(不扫描，直接获取所有)
+    //get(key: RedisKey, hash_key: Option<String>) -> RedisValue; // 获取值(不扫描，直接获取所有)
     ttl(key: RedisKey, ttl: i64) -> ();                 // 设置TTL
     set(key: RedisKey, value: String, ttl: i64, key_type: Option<String>) -> ();  // 设置值
     del(key: RedisKey) -> ();                           // 删除键
@@ -77,6 +77,7 @@ api_commands!(
     key_type(key: RedisKey) -> String;           // 获取键类型
     xinfo_groups(key: RedisKey) -> Vec<XInfoGroup>; // 获取Stream类型的组信息
     xinfo_consumers(key: RedisKey, group: String) -> Vec<XInfoConsumer>; // 获取Stream类型的消费者信息
+    key_node(key: RedisKey) -> Vec<RedisNode>;  // 获取键所在节点(主+从)
 );
 
 // 需要将app_handle传递过去的命令

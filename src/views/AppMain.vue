@@ -42,6 +42,11 @@ const share = reactive({
   // 兼容valkey
   isValkey: false, // 默认不是valkey, 如果info信息中有valkey_version则设置为true
   serverVersion: '', // 服务器版本, isValkey ? 'valkey_version' : 'redis_version'
+
+  // 扩展能力
+  capabilities: {
+    hashFieldTtl: false, // 哈希字段级的TTL, Redis/Valkey >= 7.4.0
+  },
 })
 provide('share', share)
 
@@ -58,8 +63,18 @@ function toggleKeyTag() {
 
 // 切换连接时loading
 watch(
-  () => share.conn,
+  // () => share.conn,
+  () => JSON.stringify(share.conn), // 监听序列化后的字符串，避免新旧连接是同一个引用
   async (newConn, oldConn) => {
+    newConn = meJsonParse(newConn)
+    oldConn = meJsonParse(oldConn)
+
+    // 触发连接列表更新（保存和同步到后端） #72
+    const index = share.connList.findIndex(c => c.id === share.conn.id)
+    if (index !== -1) {
+      share.connList[index] = newConn
+    }
+
     // 连接id未发生改变时，无需断开重连（比如颜色或db改变）
     if (newConn?.id === oldConn?.id) return
 
@@ -72,12 +87,12 @@ watch(
         await meInvoke('disconnect', { id: oldConn.id })
       }
 
-      // 打开新连接，获取节点列表和数据库列表（TODO）
+      // 打开新连接
       if (newConn) {
         share.color = newConn.color
         share.readonly = !!newConn.readonly
         share.tabName = 'info'
-        await meInvoke('connect', { id: newConn.id })
+        share.capabilities = await meInvoke('connect', { id: newConn.id })
         connPrepared.value = true
         const data = await meInvoke('node_list', { id: share.conn.id })
         // 节点列表排序: 主节点在前面，相同类型节点按照node升序

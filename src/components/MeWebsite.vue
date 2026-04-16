@@ -10,6 +10,7 @@ const { to } = defineProps({
   marginLeft: { type: String, default: '10px' },
 })
 
+// 官网站点
 const websize = {
   redis: 'https://redis.io',
   'redis-zh': 'https://redis.ac.cn',
@@ -17,43 +18,65 @@ const websize = {
   'valkey-zh': 'https://valkey.cn',
 }
 
+// 信息命令
 const info = {
   redis: '/docs/latest/commands/info/',
-  'redis-zh': '/docs/latest/commands/info/',
   valkey: '/commands/info/',
-  'valkey-zh': '/commands/info/',
 }
 
+// 配置文件
 const config = {
   redis: '/docs/latest/operate/oss_and_stack/management/config/',
-  'redis-zh': '/docs/latest/operate/oss_and_stack/management/config/',
   valkey: '/topics/valkey.conf/',
-  'valkey-zh': '/topics/valkey.conf/',
 }
 
+// 客户端列表
 const client = {
   redis: '/docs/latest/commands/client-list/',
-  'redis-zh': '/docs/latest/commands/client-list/',
   valkey: '/commands/client-list/',
-  'valkey-zh': '/commands/client-list/',
 }
 
+// 命令列表
 const command = {
   redis: '/docs/latest/commands/',
-  'redis-zh': '/docs/latest/commands/',
   valkey: '/commands/',
-  'valkey-zh': '/commands/',
+}
+
+// 慢日志命令
+const slowlog = {
+  redis: '/docs/latest/commands/slowlog-get/',
+  valkey: '/commands/slowlog-get/',
+}
+
+// 监控命令
+const monitor = {
+  redis: '/docs/latest/commands/monitor/',
+  valkey: '/commands/monitor/',
+}
+
+// 发布订阅命令
+const pubsub = {
+  redis: '/docs/latest/commands/psubscribe/',
+  valkey: '/commands/psubscribe/',
 }
 
 function handleCommand(cmd) {
+  let part = cmd.split('-')[0]
+  openUrl(websize[cmd] + info[part])
   if (to === 'info') {
-    openUrl(websize[cmd] + info[cmd])
+    openUrl(websize[cmd] + info[part])
   } else if (to === 'config') {
-    openUrl(websize[cmd] + config[cmd])
+    openUrl(websize[cmd] + config[part])
   } else if (to === 'client') {
-    openUrl(websize[cmd] + client[cmd])
+    openUrl(websize[cmd] + client[part])
   } else if (to === 'command') {
-    openUrl(websize[cmd] + command[cmd])
+    openUrl(websize[cmd] + command[part])
+  } else if (to === 'slowlog') {
+    openUrl(websize[cmd] + slowlog[part])
+  } else if (to === 'monitor') {
+    openUrl(websize[cmd] + monitor[part])
+  } else if (to === 'pubsub') {
+    openUrl(websize[cmd] + pubsub[part])
   } else {
     meOk(`TODO: ${cmd}`)
   }

@@ -44,8 +44,8 @@ impl Drop for MeSingle {
 }
 
 impl MeClient for MeSingle {
-    fn name(&self) -> String {
-        self.conf.name.clone()
+    fn base(&self) -> &MeBase {
+        &self.base
     }
 
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
@@ -128,7 +128,7 @@ impl MeClient for MeSingle {
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
         let mut conn = self.get_conn()?;
-        let (mut value, key_type, mut cc) = field_scan_0_get(&mut conn, param.clone())?;
+        let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
 
         let key = param.key;
         if value.is_none() {
@@ -137,7 +137,14 @@ impl MeClient for MeSingle {
             loop {
                 let cmd = field_scan_1_cmd(&key_type, &key, cc.now_cursor, param.count)?;
                 let (next_cursor, new_value): (u64, Value) = cmd.query(&mut conn)?;
-                let new_count = field_scan_2_value(&key_type, &mut scan_value, new_value)?;
+                let new_count = field_scan_2_value(
+                    &mut conn,
+                    &key_type,
+                    &mut scan_value,
+                    new_value,
+                    &key,
+                    &self.capabilities,
+                )?;
 
                 ready_count += new_count;
                 cc.now_cursor = next_cursor;
@@ -154,11 +161,7 @@ impl MeClient for MeSingle {
             value = Some(field_scan_3_json(&key_type, &scan_value)?)
         }
 
-        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc)
-    }
-
-    fn get(&self, key: RedisKey, hash_key: Option<String>) -> AnyResult<RedisValue> {
-        get0(self.get_conn()?, key, hash_key)
+        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, length)
     }
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
@@ -184,11 +187,11 @@ impl MeClient for MeSingle {
     }
 
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
-        field_add0(self.get_conn()?, param)
+        field_add0(self.get_conn()?, param, &self.capabilities)
     }
 
     fn field_set(&self, param: RedisFieldSet) -> AnyResult<()> {
-        field_set0(self.get_conn()?, param)
+        field_set0(self.get_conn()?, param, &self.capabilities)
     }
 
     fn field_del(&self, param: RedisFieldDel) -> AnyResult<()> {
@@ -445,6 +448,16 @@ impl MeClient for MeSingle {
         xinfo_consumers0(self.get_conn()?, key, group)
     }
 
+    fn key_node(&self, _key: RedisKey) -> AnyResult<Vec<RedisNode>> {
+        let node = format!("{}:{}", self.conf.host, self.conf.port);
+        Ok(vec![RedisNode {
+            id: self.base.id.clone(),
+            node,
+            is_master: true,
+            slave_of_node: None,
+        }])
+    }
+
     implement_pipeline_commands!(Pipeline);
 }
 
@@ -452,10 +465,16 @@ impl MeClient for MeSingle {
 impl MeSingle {
     pub fn init(redis_conn: &ConnConfig) -> AnyResult<Box<dyn MeClient>> {
         let (client, ssh_tunnel) = get_client_single(redis_conn)?;
-        let conn = Self::new_conn(&client, redis_conn.db)?;
+        let mut conn = Self::new_conn(&client, redis_conn.db)?;
         info!("Redis单机连接初始化成功: {}", redis_conn.name);
+
+        // 获取版本信息并检测能力
+        let info: String = redis::cmd("INFO").arg("SERVER").query(&mut conn)?;
+        let mut base = MeBase::from(redis_conn);
+        base.update_server_info(&info, &mut conn);
+
         Ok(Box::new(MeSingle {
-            base: MeBase::from(redis_conn),
+            base,
             client,
             conn: Mutex::new(conn),
             ssh_tunnel,

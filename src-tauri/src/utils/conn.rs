@@ -54,7 +54,9 @@ pub fn get_client_single(conf: &ConnConfig) -> AnyResult<(Client, Option<SshTunn
         conf.username,
         target_host,
         target_port,
-        url.fragment().map(|f| format!("#{}", f)).unwrap_or_default()
+        url.fragment()
+            .map(|f| format!("#{}", f))
+            .unwrap_or_default()
     );
     info!("redis_url: {redis_url_log}");
 
@@ -168,7 +170,9 @@ pub fn get_client_cluster(conf: &ConnConfig) -> AnyResult<ClusterClient> {
         conf.username,
         conf.host,
         conf.port,
-        url.fragment().map(|f| format!("#{}", f)).unwrap_or_default()
+        url.fragment()
+            .map(|f| format!("#{}", f))
+            .unwrap_or_default()
     );
 
     let mut builder = ClusterClient::builder(vec![url.to_string()]);

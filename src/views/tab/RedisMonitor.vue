@@ -2,6 +2,7 @@
 import { listen } from '@tauri-apps/api/event'
 import { useI18n } from 'vue-i18n'
 
+import MeWebsite from '@/components/MeWebsite.vue'
 import { meConfirm, meCopy, meInvoke, meOk } from '@/utils/util.js'
 import NodeList from '@/views/ext/NodeList.vue'
 
@@ -67,16 +68,17 @@ onUnmounted(() => tauriUnlisten())
 <template>
   <div class="redis-monitor">
     <div class="me-flex header">
-      <div>
-        <node-list v-model="node" style="margin-right: 10px" init-node :disabled="monitoring" />
-      </div>
-      <div>
+      <div class="me-flex">
         <me-button
           icon="el-icon-delete"
           :info="t('redisMonitor.clearMessage')"
           @click="clearData"
           :disabled="dataList.length === 0"
           placement="top" />
+        <node-list v-model="node" init-node :disabled="monitoring" style="margin-left: 10px" />
+        <me-website to="monitor" />
+      </div>
+      <div>
         <el-input
           v-model="keyword"
           :placeholder="t('redisMonitor.keyword')"

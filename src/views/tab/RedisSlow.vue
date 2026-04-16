@@ -1,6 +1,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 
+import MeWebsite from '@/components/MeWebsite.vue'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import { meCopy, meInvoke } from '@/utils/util.js'
 import NodeList from '@/views/ext/NodeList.vue'
@@ -80,7 +81,7 @@ refresh()
 <template>
   <div class="redis-slow">
     <div class="me-flex header">
-      <div>
+      <div class="me-flex">
         <el-dropdown placement="bottom-start" :hide-on-click="false" :teleported="false">
           <el-button icon="el-icon-setting">{{ t('redisSlow.slowParam') }}</el-button>
           <template #dropdown>
@@ -123,6 +124,7 @@ refresh()
           </template>
         </el-dropdown>
         <node-list v-model="node" clearable style="margin-left: 10px" @change="refresh" />
+        <me-website to="slowlog" />
       </div>
 
       <div>

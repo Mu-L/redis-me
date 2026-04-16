@@ -51,7 +51,6 @@ pub fn run() {
             node_list,
             scan,
             field_scan,
-            get,
             ttl,
             set,
             del,
@@ -79,6 +78,7 @@ pub fn run() {
             key_type,
             xinfo_groups,
             xinfo_consumers,
+            key_node,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

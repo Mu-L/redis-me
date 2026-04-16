@@ -4,6 +4,7 @@ import { computed } from 'vue'
 
 const { data } = defineProps({
   data: { type: Array, default: () => [] },
+  layout: { type: String, default: 'total, sizes, prev, pager, next, jumper' },
 })
 
 // 前端分页表
@@ -32,7 +33,7 @@ function updatePageSize(size) {
       </el-table>
     </div>
     <el-pagination
-      style="margin: 10px 0 0 5px"
+      :style="{ margin: '10px 0 0 0', marginLeft: layout.includes('total') ? '5px' : 0 }"
       size="small"
       background
       @change="handleChange"
@@ -40,7 +41,7 @@ function updatePageSize(size) {
       :page-sizes="[20, 50, 100]"
       @update:page-size="updatePageSize"
       :total="data.length"
-      layout="total, sizes, prev, pager, next, jumper" />
+      :layout />
   </div>
 </template>
 

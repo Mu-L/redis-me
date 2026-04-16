@@ -26,6 +26,7 @@ pub enum AppError {
     ConnectionLockTimeout,
     SentinelNotSupported,
     ClusterNotSupported,
+    KeyNodeNotFound { key: String },
 
     // 键值操作
     KeyNotFound { key: String },

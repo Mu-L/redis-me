@@ -2,13 +2,16 @@
 
 use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
-use crate::utils::util::{AnyResult, vec8_to_display_string};
-use redis::{RedisWrite, ToRedisArgs, ToSingleRedisArg};
+use crate::utils::util::{
+    AnyResult, parse_server_version, redis_value_to_string, vec8_to_display_string,
+};
+use chrono::Utc;
+use log::info;
+use redis::{Commands, RedisWrite, ToRedisArgs, ToSingleRedisArg, Value};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-// 数据库信息
-api_model!(RedisDB { db: u16, size: u64 });
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16};
 
 // 连接信息
 api_model!(
@@ -94,6 +97,85 @@ impl ConnConfig {
         Ok(masters)
     }
 }
+
+// 客户端的公共属性
+api_model!(
+    MeBase {
+        id: String,
+        conf: ConnConfig,
+        db: Arc<AtomicU16>,
+        subscribe_running: Arc<AtomicBool>,
+        monitor_running: Arc<AtomicBool>,
+        export_import_running: Arc<AtomicBool>,
+        last_check_time: Arc<AtomicI64>,
+
+        // 服务器信息缓存
+        server_version: String,               // Redis/Valkey 版本
+        capabilities: Arc<ServerCapabilities>, // 能力标识
+    }
+);
+
+impl From<&ConnConfig> for MeBase {
+    fn from(conf: &ConnConfig) -> Self {
+        MeBase {
+            id: conf.id.clone(),
+            conf: conf.clone(),
+            db: Arc::new(AtomicU16::new(conf.db)),
+            subscribe_running: Arc::new(AtomicBool::new(false)),
+            monitor_running: Arc::new(AtomicBool::new(false)),
+            export_import_running: Arc::new(AtomicBool::new(false)),
+            last_check_time: Arc::new(AtomicI64::new(Utc::now().timestamp())),
+
+            // 默认值，实际在创建客户端时更新
+            server_version: String::new(),
+            capabilities: Arc::new(ServerCapabilities::default()),
+        }
+    }
+}
+
+// 新增：MeBase 更新版本和能力的方法
+impl MeBase {
+    pub fn update_server_info(&mut self, info_output: &str, conn: &mut impl Commands) {
+        // 解析版本号
+        self.server_version = parse_server_version(info_output);
+        // 通过命令检测能力
+        self.capabilities = Arc::new(ServerCapabilities::from_command_info(conn));
+        info!(
+            "Detected server: {} (capabilities: hash_field_ttl={})",
+            self.server_version, self.capabilities.hash_field_ttl
+        );
+    }
+}
+
+// 能力标识
+api_model!(
+    #[derive(Default)]
+    ServerCapabilities {
+        hash_field_ttl: bool, // Redis/Valkey >= 7.4.0
+                              // 未来可扩展其他特性
+    }
+);
+
+impl ServerCapabilities {
+    // 通过 COMMAND INFO HTTL 检测是否支持字段级 TTL
+    pub fn from_command_info(conn: &mut impl Commands) -> Self {
+        // COMMAND INFO HTTL 返回命令信息，如果命令不存在返回 Nil
+        let result: Result<Value, _> = redis::cmd("COMMAND").arg("INFO").arg("HTTL").query(conn);
+
+        let hash_field_ttl = match result {
+            Ok(value) => {
+                let str = redis_value_to_string(value, "");
+                !str.trim().is_empty() // HTTL 命令存在
+            }
+            _ => false,
+        };
+
+        Self { hash_field_ttl }
+    }
+}
+
+// 数据库信息
+api_model!(RedisDB { db: u16, size: u64 });
 
 // 信息 图形
 api_model!(
@@ -190,7 +272,7 @@ api_model!(XInfoConsumer {
 api_model!(
 #[derive(Default)]
 FieldScanValue {
-    hash: HashMap<String, String>,
+    hash: Vec<RedisHashItem>,
     set: Vec<String>,
     zset: Vec<RedisZetItem>,
 });
@@ -219,6 +301,7 @@ api_model!(FieldScanResult {
     size: u64,
     value: serde_json::Value,
     cursor: ScanCursor,
+    length: usize, // String类型的原始bytes长度
 });
 
 // Redis键: 由于键是字节存储的，考虑转换为utf-8字符串显示后可能会丢失信息，因此封装为对象
@@ -267,6 +350,16 @@ impl From<Vec<u8>> for RedisKey {
     }
 }
 
+impl From<RedisKey> for String {
+    fn from(redis_key: RedisKey) -> Self {
+        if redis_key.key.is_empty() {
+            String::from_utf8_lossy(&redis_key.bytes).to_string()
+        } else {
+            redis_key.key.clone()
+        }
+    }
+}
+
 impl ToRedisArgs for RedisKey {
     fn write_redis_args<W>(&self, out: &mut W)
     where
@@ -276,15 +369,6 @@ impl ToRedisArgs for RedisKey {
     }
 }
 impl ToSingleRedisArg for RedisKey {}
-
-// Redis值
-api_model!(RedisValue {
-    #[serde(rename = "type")]
-    key_type: String,
-    ttl: i64,
-    size: u64,
-    value: serde_json::Value,
-});
 
 // 批量删除
 api_model!(RedisBatchKey {
@@ -325,6 +409,15 @@ api_model!(RedisImportCsv {
     handle_conflict: String, // 冲突处理: 覆盖 replace, 忽略 ignore
 });
 
+// Hash条目
+api_model!(RedisHashItem{
+    key: String,
+    value: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ttl: Option<i64>,
+});
+
 // Zset条目
 api_model!(RedisZetItem {
     value: String,
@@ -360,6 +453,7 @@ api_model!(RedisFieldSet {
     field_key: String,
     field_value: String,
     field_score: f64,
+    field_ttl: i64, // 字段 TTL（秒），仅 Redis/Valkey >= 7.4
 });
 
 // 字段值
@@ -367,6 +461,7 @@ api_model!(RedisFieldValue {
     field_key: String,
     field_value: String,
     field_score: f64,
+    field_ttl: i64, // 字段 TTL（秒），仅 Redis/Valkey >= 7.4
 });
 
 // 字段删除

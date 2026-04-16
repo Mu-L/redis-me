@@ -21,6 +21,7 @@ export const KEY_REFRESH = 'KEY_REFRESH'
 export const INFO_REFRESH = 'INFO_REFRESH'
 export const CONN_REFRESH = 'CONN_REFRESH'
 export const CONN_LIST_WINDOWS_SYNC = 'CONN_LIST_WINDOWS_SYNC'
+export const TREE_KEY_ID_PREFIX = '_TREE_KEY_ID_PREFIX_'
 
 // 预设颜色
 export const PREDEFINE_COLORS = [
@@ -247,6 +248,9 @@ export function meHumanNums(size, zeroShow = '0', fractionDigits = 2) {
 
 // w天 xx:yy:zz 的格式
 export function meHumanSeconds(seconds) {
+  if (seconds === undefined || seconds === null) return '-'
+  if (seconds <= 0) return seconds
+
   const days = Math.floor(seconds / (3600 * 24)) // 计算天数
   seconds %= 3600 * 24 // 计算剩余秒数
 
@@ -423,6 +427,9 @@ export function meJsonFormat(jsonString) {
 
 // 支持json5格式的输入(key可以不加引号，key-value可以为单引号，允许注释等)
 export function meJsonParse(jsonString) {
+  if (!jsonString) return null
+  if (jsonString === 'undefined') return null
+  if (jsonString === 'null') return null
   return JSON5.parse(jsonString)
 }
 

@@ -18,8 +18,8 @@ mod tests {
     fn client() -> Box<dyn MeClient> {
         // default_provider().install_default()
         //     .expect("Failed to install rustls crypto provider");
-        client_single()
-        // client_cluster()
+        // client_single()
+        client_cluster()
     }
 
     #[allow(unused)]
@@ -30,7 +30,7 @@ mod tests {
             host: "ali.hepengju.com".into(),
             port: 6379,
             username: "".into(),
-            password: "hepengju".into(),
+            password: "hepengju&:2026".into(),
             ..ConnConfig::default()
         }
     }
@@ -43,7 +43,7 @@ mod tests {
             host: "ali.hepengju.com".into(),
             port: 7001,
             username: "".into(),
-            password: "hepengju".into(),
+            password: "hepengju&:2026".into(),
             db: 0,
             ..ConnConfig::default()
         }
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn test_info() {
-        let client = client_single_ssh();
+        let client = client_single();
         let result = client.info(None).unwrap();
         println!("{result:#?}");
         let result = client.info(None).unwrap();
@@ -204,7 +204,7 @@ mod tests {
         // param.hash_key = Some("k0".into());
         // let mut param = test_field_scan_param("field-scan:list");
         // let mut param = test_field_scan_param("field-scan:set");
-        let mut param = test_field_scan_param("field-scan:zset");
+        let mut param = test_field_scan_param("field-scan:hash");
         let result = client().field_scan(param.clone()).unwrap();
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
 
@@ -216,31 +216,12 @@ mod tests {
     }
 
     #[test]
-    fn test_get() {
-        let value = client().get("hepengju:list".into(), None).unwrap();
-        println!("{value:#?}");
-        println!("{}", serde_json::to_string(&value).unwrap());
-
-        let value = client().get("hepengju:string".into(), None).unwrap();
-        println!("{}", serde_json::to_string(&value).unwrap());
-
-        let value = client().get("hepengju:stream".into(), None).unwrap();
-        println!("{}", serde_json::to_string(&value).unwrap());
-
-        let value = client().get("hepengju:json-obj".into(), None).unwrap();
-        println!("{}", serde_json::to_string(&value).unwrap());
-
-        let value = client().get("hepengju:json-array".into(), None).unwrap();
-        println!("{}", serde_json::to_string(&value).unwrap());
-    }
-
-    #[test]
     fn test_field_add() {
-        client().del("redis_me:string".into()).unwrap();
+        client().del("redis-me:unitest:string".into()).unwrap();
 
         client()
             .field_add(RedisFieldAdd {
-                key: "redis_me:string".into(),
+                key: "redis-me:unitest:string".into(),
                 mode: "key".into(),
                 key_type: "string".into(),
                 ttl: -1,
@@ -253,8 +234,8 @@ mod tests {
 
         client()
             .field_add(RedisFieldAdd {
-                key: "redis_me:hash".into(),
-                mode: "field".into(),
+                key: "redis-me:unitest:hash".into(),
+                mode: "key".into(),
                 key_type: "hash".into(),
                 ttl: -1,
                 value: "".into(),
@@ -264,11 +245,13 @@ mod tests {
                         field_key: "hash_key1".into(),
                         field_value: "value1".into(),
                         field_score: 0.0,
+                        field_ttl: 3600,
                     },
                     RedisFieldValue {
                         field_key: "hash_key2".into(),
                         field_value: "value2".into(),
                         field_score: 0.0,
+                        field_ttl: 3600,
                     },
                 ],
                 stream_id: "".to_string(),
@@ -401,4 +384,12 @@ mod tests {
     //     let result = client().subscribe(None).unwrap();
     //     println!("{result:?}");
     // }
+
+    #[test]
+    fn test_key_node() {
+        // 修改为你要测试的键名
+        let key = "test:key_node";
+        let result = client().key_node(key.into()).unwrap();
+        println!("所在节点: {:?}", result);
+    }
 }

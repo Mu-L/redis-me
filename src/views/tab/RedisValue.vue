@@ -88,8 +88,6 @@ const showValue = computed(() => {
   }
 })
 
-// 键大小
-const showSize = computed(() => meHumanSize(redisValue.value?.size))
 // 加载更多(手动控制，而不是计算属性，避免cursor变化多次导致按钮闪现又丢失)
 const showMore = ref(false)
 
@@ -100,11 +98,9 @@ const dataList = computed(() => {
 
   let data = []
 
-  if (rv.type === 'hash') {
-    Object.entries(rv.value).forEach(([key, value]) => data.push({ key, value }))
-  } else if (rv.type === 'list' || rv.type === 'set') {
+  if (rv.type === 'list' || rv.type === 'set') {
     rv.value.forEach(value => data.push({ value }))
-  } else if (rv.type === 'zset' || rv.type === 'stream') {
+  } else if (rv.type === 'zset' || rv.type === 'stream' || rv.type === 'hash') {
     rv.value.forEach(value => data.push(value)) // 返回的直接是[{score: '', value: ''}]
   }
   return data
@@ -157,7 +153,8 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
   }
 
   if (!useCursor) {
-    cursor.value = null
+    cursor.value = null // 不使用游标时重置游标
+    redisValue.value = null // 不使用游标时重置值（String, JSON的保存按钮-发生变化时才能点击）
   }
 
   loading.value = true
@@ -180,11 +177,11 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
         data.type === 'list' ||
         data.type === 'set' ||
         data.type === 'zset' ||
+        data.type === 'hash' ||
         data.type === 'stream'
       ) {
-        redisValue.value.value = redisValue.value.value.concat(data.value)
-      } else if (data.type === 'hash') {
-        redisValue.value.value = { ...redisValue.value.value, ...data.value }
+        // redisValue.value.value = redisValue.value.value.concat(data.value)
+        redisValue.value.value = [...redisValue.value.value, ...data.value]
       } else {
         redisValue.value = data
       }
@@ -192,8 +189,8 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       redisValue.value = data
     }
 
-    await setTimer(redisValue.value.ttl)
     showMore.value = !cursor.value?.finished
+    await setTimer(redisValue.value.ttl)
   } finally {
     loading.value = false
   }
@@ -217,11 +214,7 @@ function renameKey() {
 
 // 保存值
 async function setValue() {
-  let value =
-    redisValue.value.newValue ||
-    (redisValue.value.type === 'json'
-      ? JSON.stringify(redisValue.value.value, null, 2)
-      : redisValue.value.value)
+  let value = redisValue.value.newValue
   const params = {
     key: share.redisKey,
     ttl: redisValue.value.ttl,
@@ -238,6 +231,7 @@ async function setValue() {
 
   await meInvoke('set', { id: share.conn.id, ...params, value })
   meOk(t('saveOk'))
+  await refreshKey()
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -274,6 +268,7 @@ function fieldSet(row, index) {
     fieldKey: row.key || '',
     fieldValue: row.value,
     fieldScore: row.score || 0,
+    fieldTtl: row.ttl ?? -1,
     srcFieldValue: row.value,
     type: redisValue.value.type,
     key: share.redisKey,
@@ -347,6 +342,21 @@ async function showGroups() {
   groupDataList.value = await meInvoke('xinfo_groups', { id: share.conn.id, key: share.redisKey })
   tableGroupVisible.value = true
 }
+
+// 内存占用和条目
+const textMemory = computed(() => t('redisValue.textMemory') + meHumanSize(redisValue.value?.size))
+const textLength = computed(() => {
+  if (jsonType.value || (streamType.value && withHashKey.value)) return ''
+  return stringTypeOrWithHashKey.value
+    ? t('redisValue.textLength') + redisValue.value.length
+    : t('redisValue.textEntries') +
+        filterDataList.value.length +
+        ' / ' +
+        redisValue.value.value.length
+})
+
+// 值显示方式: string(utf-8), binary, hex等
+// const displayFormat = ref('Raw')
 </script>
 
 <template>
@@ -354,7 +364,8 @@ async function showGroups() {
   <div class="redis-value" v-loading="loading" element-loading-background="unset">
     <template v-if="share.redisKey && redisValue">
       <!-- 上方键 -->
-      <div class="key">
+      <div class="value-header">
+        <!-- 键名称 -->
         <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
           <template #prepend>
             <el-text :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
@@ -382,6 +393,7 @@ async function showGroups() {
           }}</template>
         </el-input>
 
+        <!-- TTL, 刷新/编辑/删除 -->
         <div class="me-flex">
           <me-button
             icon="el-icon-timer"
@@ -416,55 +428,14 @@ async function showGroups() {
         </div>
       </div>
 
-      <!-- 下方值 -->
-      <div class="value">
+      <!-- 中间值 -->
+      <div class="value-main">
         <!-- json显示 -->
-        <template v-if="viewType === 'json'">
-          <me-code
-            :modelValue="showValue"
-            @update:modelValue="newValue => (redisValue.newValue = newValue)"
-            :read-only="!canSave" />
-
-          <div class="btn-rb" v-if="canSave">
-            <me-button
-              class="save"
-              :info="t('save')"
-              type="primary"
-              icon="me-icon-save"
-              @click="setValue"
-              placement="top" />
-          </div>
-
-          <div class="btn-rt">
-            <el-button-group v-show="showMore">
-              <me-button
-                :info="t('redisValue.loadMore')"
-                icon="me-icon-load-more"
-                @click="refreshKey(false, true, false)"
-                placement="top" />
-              <me-button
-                :info="t('redisValue.loadAll')"
-                icon="me-icon-load-all"
-                @click="refreshKey(false, true, true)"
-                placement="top" />
-            </el-button-group>
-
-            <el-button-group>
-              <el-button style="margin-left: 10px">Size: {{ showSize }}</el-button>
-              <me-button
-                :info="t('copy')"
-                icon="el-icon-document-copy"
-                @click="meCopy(showValue)"
-                placement="bottom" />
-              <me-button
-                :info="t('redisValue.prettyHint')"
-                placement="bottom-end"
-                icon="el-icon-magic-stick"
-                :style="{ color: isPretty ? 'var(--el-color-primary)' : '' }"
-                @click="isPretty = !isPretty" />
-            </el-button-group>
-          </div>
-        </template>
+        <me-code
+          v-if="viewType === 'json'"
+          :modelValue="showValue"
+          @update:modelValue="newValue => (redisValue.newValue = newValue)"
+          :read-only="!canSave" />
 
         <!-- 表格显示 -->
         <div class="me-flex" style="flex-direction: column; height: 100%" v-else>
@@ -475,38 +446,26 @@ async function showGroups() {
                 v-model="tableKeyword"
                 :placeholder="t('redisValue.tableKeyword')"
                 clearable
-                :style="{ width: streamType ? '120px' : '300px' }" />
+                :style="{ width: streamType ? '180px' : '300px' }" />
+            </div>
 
+            <div v-if="streamType">
               <el-input
-                v-if="streamType"
                 @keyup.enter="refreshKey(true)"
                 v-model.trim="meta.maxId"
                 placeholder="MaxId"
                 clearable
-                style="width: 160px; margin-left: 10px" />
+                style="width: 180px" />
               <el-input
-                v-if="streamType"
                 @keyup.enter="refreshKey(true)"
                 v-model.trim="meta.minId"
                 placeholder="MinId"
                 clearable
-                style="width: 160px; margin-left: 10px" />
+                style="width: 180px; margin-left: 10px" />
             </div>
 
             <!-- 右侧更多+插入行 -->
             <div>
-              <el-button-group v-show="showMore">
-                <me-button
-                  :info="t('redisValue.loadMore')"
-                  icon="me-icon-load-more"
-                  @click="refreshKey(false, true, false)"
-                  placement="top" />
-                <me-button
-                  :info="t('redisValue.loadAll')"
-                  icon="me-icon-load-all"
-                  @click="refreshKey(false, true, true)"
-                  placement="top" />
-              </el-button-group>
               <el-button
                 icon="el-icon-grid"
                 @click="showGroups"
@@ -521,6 +480,7 @@ async function showGroups() {
           </div>
           <div class="table-view">
             <me-table
+              layout="sizes, prev, pager, next, jumper"
               :data="filterDataList"
               border
               stripe
@@ -562,6 +522,15 @@ async function showGroups() {
               <el-table-column :label="t('redisValue.value')" prop="value" show-overflow-tooltip>
                 <template #default="scope">
                   {{ streamType ? JSON.stringify(scope.row.value) : scope.row.value }}
+                </template>
+              </el-table-column>
+              <el-table-column
+                :label="t('redisValue.ttl')"
+                width="150"
+                prop="ttl"
+                v-if="redisValue.type === 'hash' && share.capabilities.hashFieldTtl">
+                <template #default="scope">
+                  {{ meHumanSeconds(scope.row.ttl) }}
                 </template>
               </el-table-column>
               <el-table-column
@@ -611,12 +580,84 @@ async function showGroups() {
               class="field-set" />
           </div>
         </div>
+      </div>
 
-        <!-- string类型不显示，带有hashKey不显示, 命中黑名单的hash类型不显示-->
-        <div
-          class="btn-rb"
-          v-if="!(stringTypeOrWithHashKey || jsonType || (hashType && showValue.startsWith('[')))">
-          <el-segmented v-model="viewType" :options="viewTypeList">
+      <!-- 功能区 -->
+      <div class="value-footer me-flex">
+        <div class="me-flex" style="align-items: center">
+          <!-- 美化/复制 -->
+          <me-icon
+            placement="top-start"
+            :info="t('redisValue.prettyHint')"
+            class="icon-btn"
+            :style="{ color: isPretty ? 'var(--el-color-success)' : '' }"
+            icon="el-icon-magic-stick"
+            @click="isPretty = !isPretty" />
+
+          <me-icon
+            style="font-size: 18px; margin-left: 5px"
+            :info="t('copy')"
+            class="icon-btn"
+            icon="el-icon-document-copy"
+            @click="meCopy(showValue)"
+            placement="top" />
+
+          <el-divider direction="vertical" />
+
+          <!-- 内存占用 -->
+          <el-text> {{ textMemory }} </el-text>
+
+          <el-divider direction="vertical" v-if="textLength" />
+
+          <!-- 长度/条目 -->
+          <el-text> {{ textLength }}</el-text>
+        </div>
+
+        <div class="me-flex" style="position: relative">
+          <!-- 查看方式
+          <el-select v-model="displayFormat" style="width: 90px; margin: 0 5px">
+            <template #header>
+              <el-text style="font-weight: bold">查看方式</el-text>
+            </template>
+            <el-option value="Raw"/>
+            <el-option value="Hex"/>
+            <el-option value="Binary"/>
+          </el-select>
+          -->
+
+          <!-- 加载更多、加载全部 -->
+          <div class="me-flex" style="width: 45px; margin-right: 10px" v-if="showMore">
+            <me-icon
+              :name="t('redisValue.loadMore')"
+              icon="me-icon-load-more"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="refreshKey(false, true, false)" />
+            <me-icon
+              :name="t('redisValue.loadAll')"
+              icon="me-icon-load-all"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="refreshKey(false, true, true)" />
+          </div>
+
+          <!-- 保存 -->
+          <me-button
+              :disabled="!(redisValue?.newValue)"
+            v-if="canSave"
+            :info="t('save')"
+            type="primary"
+            icon="me-icon-save"
+            @click="setValue"
+            placement="top" />
+
+          <!-- string类型不显示，带有hashKey不显示 -->
+          <el-segmented
+            v-model="viewType"
+            :options="viewTypeList"
+            v-if="!(stringTypeOrWithHashKey || jsonType)">
             <template #default="scope">
               <me-icon
                 :name="t('redisValue.jsonView')"
@@ -658,7 +699,7 @@ async function showGroups() {
   display: flex;
   flex-direction: column;
 
-  .key {
+  .value-header {
     :deep(.el-input-group__prepend) {
       padding: 0 16px;
     }
@@ -670,31 +711,11 @@ async function showGroups() {
     justify-content: space-between;
   }
 
-  .value {
-    margin-top: 10px;
+  .value-main {
+    margin: 10px 0 0 0;
     position: relative;
     flex-grow: 1;
     overflow: hidden;
-
-    .btn-rt {
-      //background-color: #272822;
-      position: absolute;
-      right: 0;
-      top: 0;
-    }
-
-    .btn-rb {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      z-index: 10; // 当表格数据较多时，可以显示在上方
-    }
-
-    .btn-lb {
-      position: absolute;
-      left: 40px;
-      bottom: 0;
-    }
 
     .table-view {
       margin-top: 10px;
@@ -721,6 +742,21 @@ async function showGroups() {
         width: 60%;
         height: 100%;
       }
+    }
+  }
+
+  .value-footer {
+    height: 32px;
+    font-size: 20px;
+
+    :deep(.el-select__wrapper) {
+      min-height: 0;
+      height: 28px;
+      padding: 4px 4px 4px 10px;
+    }
+
+    :deep(.el-select-dropdown__item) {
+      padding: 0 20px 0 20px;
     }
   }
 }
