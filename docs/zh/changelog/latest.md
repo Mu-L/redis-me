@@ -1,6 +1,6 @@
 # 2.x 更新日志
 
-## v2.8.0 (2026-04-18)
+## [v2.8.0](https://mp.weixin.qq.com/s/um11TcxvQFegEmiJdLi6BQ) (2026-04-16)
 
 ### ✨ 新增功能
 
