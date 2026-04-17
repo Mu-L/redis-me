@@ -148,7 +148,6 @@ pub fn field_scan0(
     param: FieldScanParam,
     capabilities: &ServerCapabilities,
 ) -> AnyResult<FieldScanResult> {
-
     let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
 
     let key = param.key;
@@ -183,7 +182,6 @@ pub fn field_scan0(
     }
 
     field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, length)
-
 }
 
 pub fn field_scan_0_get(
@@ -424,7 +422,7 @@ pub fn field_scan_4_return(
     key_type: ValueType,
     value: serde_json::Value,
     cursor: ScanCursor,
-    length: usize
+    length: usize,
 ) -> AnyResult<FieldScanResult> {
     let ttl: i64 = conn.ttl(&key)?;
     let size: u64 = redis::cmd("memory")
@@ -438,7 +436,7 @@ pub fn field_scan_4_return(
         size,
         value,
         cursor,
-        length
+        length,
     })
 }
 

@@ -4,6 +4,7 @@ use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name}
 use crate::utils::error::AppError;
 use crate::utils::model::*;
 use crate::utils::util::*;
+use Ordering::Relaxed;
 use anyhow::bail;
 use chrono::Utc;
 use log::{info, warn};
@@ -19,7 +20,6 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
-use Ordering::Relaxed;
 
 pub struct MeCluster {
     base: MeBase,
@@ -502,9 +502,7 @@ impl MeClient for MeCluster {
         // 2. 获取槽位分配信息
         // CLUSTER SLOTS 返回格式:
         // [[start_slot, end_slot, [master_host, master_port, master_id], [replica_host, replica_port, replica_id], ...], ...]
-        let slots_info: Vec<Value> = redis::cmd("CLUSTER")
-            .arg("SLOTS")
-            .query(&mut conn)?;
+        let slots_info: Vec<Value> = redis::cmd("CLUSTER").arg("SLOTS").query(&mut conn)?;
 
         // 3. 匹配槽位范围
         for slot_entry in slots_info {
@@ -571,8 +569,10 @@ impl MeCluster {
         let mut conn = Self::new_conn(&client)?;
 
         // 获取版本信息并检测能力（从任意节点获取，通常集群版本一致）
-        let value: Value =conn.route_command(redis::cmd("INFO").arg("SERVER"),
-                                             SingleNode(SingleNodeRoutingInfo::RandomPrimary))?;
+        let value: Value = conn.route_command(
+            redis::cmd("INFO").arg("SERVER"),
+            SingleNode(SingleNodeRoutingInfo::RandomPrimary),
+        )?;
         let info = redis_value_to_string(value, "\n");
         let mut base = MeBase::from(redis_conn);
         base.update_server_info(&info, &mut conn);
