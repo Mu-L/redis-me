@@ -108,6 +108,7 @@ pub trait MeClient: Send + Sync {
     fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>>;
     fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>>;
     fn flush_db(&self) -> AnyResult<()>;
+    fn flush_all(&self) -> AnyResult<()>;
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -1106,6 +1107,11 @@ pub fn xinfo_consumers0(
 
 pub fn flush_db0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()>{
     let _: () = conn.flushdb()?;
+    Ok(())
+}
+
+pub fn flush_all0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()>{
+    let _: () = conn.flushall()?;
     Ok(())
 }
 
