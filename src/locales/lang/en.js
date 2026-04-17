@@ -78,6 +78,12 @@ export default {
     keySort: 'Tree Sort',
     sortByCount: 'Count',
     sortByAlphabet: 'Alphabet',
+
+    keyHeight: 'Key Height',
+    keyLabel: 'Key Name',
+    keyLabelTip: 'Display of the names of child node keys when keys are presented in a tree structure',
+    keyLabelFull: 'Full',
+    keyLabelShort: 'Short',
   },
 
   conn: {

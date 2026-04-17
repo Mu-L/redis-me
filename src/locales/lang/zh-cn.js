@@ -73,6 +73,12 @@ export default {
     keySort: '树形排序',
     sortByCount: '数量',
     sortByAlphabet: '字母',
+
+    keyHeight: '键高度',
+    keyLabel: '键名称',
+    keyLabelTip: '键树形展示时子节点键的名称显示',
+    keyLabelFull: '全称',
+    keyLabelShort: '简称',
   },
 
   conn: {

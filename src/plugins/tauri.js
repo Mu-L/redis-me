@@ -61,6 +61,8 @@ const initSettings = {
   fieldScanCount: 20,
   keyShow: 'tree',
   keySort: 'count',
+  keyHeight: 20,
+  keyLabel: 'short'
 }
 const settings = { ...initSettings, ...storeSettings }
 const meTauri = reactive({
