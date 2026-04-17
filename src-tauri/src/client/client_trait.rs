@@ -143,6 +143,49 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
     cmd
 }
 
+pub fn field_scan0(
+    mut conn: &mut MutexGuard<impl Commands>,
+    param: FieldScanParam,
+    capabilities: &ServerCapabilities,
+) -> AnyResult<FieldScanResult> {
+
+    let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
+
+    let key = param.key;
+    if value.is_none() {
+        let mut scan_value = FieldScanValue::default();
+        let mut ready_count = 0;
+        loop {
+            let cmd = field_scan_1_cmd(&key_type, &key, cc.now_cursor, param.count)?;
+            let (next_cursor, new_value): (u64, Value) = cmd.query(&mut conn)?;
+            let new_count = field_scan_2_value(
+                &mut conn,
+                &key_type,
+                &mut scan_value,
+                new_value,
+                &key,
+                capabilities,
+            )?;
+
+            ready_count += new_count;
+            cc.now_cursor = next_cursor;
+
+            if next_cursor == 0 {
+                cc.finished = true;
+                break;
+            }
+
+            if !param.load_all && ready_count >= param.count as usize {
+                break;
+            }
+        }
+        value = Some(field_scan_3_json(&key_type, &scan_value)?)
+    }
+
+    field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, length)
+
+}
+
 pub fn field_scan_0_get(
     mut conn: &mut MutexGuard<impl Commands>,
     param: FieldScanParam,
@@ -376,7 +419,7 @@ pub fn field_scan_3_json(
 }
 
 pub fn field_scan_4_return(
-    mut conn: MutexGuard<impl Commands>,
+    mut conn: &mut MutexGuard<impl Commands>,
     key: RedisKey,
     key_type: ValueType,
     value: serde_json::Value,

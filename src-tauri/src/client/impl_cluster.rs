@@ -4,15 +4,14 @@ use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name}
 use crate::utils::error::AppError;
 use crate::utils::model::*;
 use crate::utils::util::*;
-use Ordering::Relaxed;
 use anyhow::bail;
 use chrono::Utc;
 use log::{info, warn};
 use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
-use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
+use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
 use redis::{ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -20,6 +19,7 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 use tauri::AppHandle;
+use Ordering::Relaxed;
 
 pub struct MeCluster {
     base: MeBase,
@@ -155,70 +155,7 @@ impl MeClient for MeCluster {
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
         let mut conn = self.get_conn()?;
-        let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
-
-        let key = param.key;
-        if value.is_none() {
-            let mut scan_value = FieldScanValue::default();
-            let mut ready_count = 0;
-
-            // 遍历集群节点: 仅扫描主节点
-            let nodes: Vec<String> = self.get_node_list_master();
-            let node_size = nodes.len();
-
-            'outer: for node in nodes {
-                if cc.ready_nodes.contains(&node) {
-                    continue; // 扫描过的予以跳过
-                }
-                cc.now_node = node.clone();
-
-                let (route, _) = self.get_node_route(Some(node.clone()))?;
-
-                'inner: loop {
-                    // 正在扫描的节点则重置上次游标
-                    let cursor = if cc.now_node == node {
-                        cc.now_cursor
-                    } else {
-                        0
-                    };
-                    let cmd = field_scan_1_cmd(&key_type, &key, cursor, param.count)?;
-
-                    let value = conn.route_command(&cmd, route.clone())?;
-                    let (next_cursor, new_value): (u64, Value) =
-                        FromRedisValue::from_redis_value(value)?;
-                    let new_count = field_scan_2_value(
-                        &mut conn,
-                        &key_type,
-                        &mut scan_value,
-                        new_value,
-                        &key,
-                        &self.capabilities,
-                    )?;
-
-                    ready_count += new_count;
-                    cc.now_cursor = next_cursor;
-
-                    if next_cursor == 0 {
-                        break 'inner;
-                    }
-
-                    if !param.load_all && ready_count >= param.count as usize {
-                        break 'outer;
-                    }
-                }
-                cc.ready_nodes.push(node.clone());
-            }
-
-            // 判断是否扫描完毕
-            if cc.ready_nodes.len() == node_size {
-                cc.finished = true;
-                cc.now_node = "".to_string();
-                cc.now_cursor = 0;
-            }
-            value = Some(field_scan_3_json(&key_type, &scan_value)?)
-        }
-
-        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, length)
+        field_scan0(&mut conn, param, &self.capabilities)
     }
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
