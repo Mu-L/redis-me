@@ -166,8 +166,9 @@ function buildTree(keyList) {
       // 叶子节点显示全称且保存原始值
       // hepengju 这种键直接返回
       if (index === parts.length - 1) {
-        // 叶子节点显示全称且保存原始值
-        let node = { id: TREE_KEY_ID_PREFIX + rk.key, label: rk.key, children: [], redisKey: rk }
+        // 叶子节点显示简称或全称, 保存原始值
+        const label = keyLabelShort.value ? part: rk.key
+        let node = { id: TREE_KEY_ID_PREFIX + rk.key, label, children: [], redisKey: rk }
         nowLevel.push(node)
         return
       }
@@ -263,8 +264,9 @@ function setCurrentKey(redisKey) {
   treeRef.value?.setCurrentKey(nodeId)
 }
 
-// 键高度配置
+// 键高度配置, 键显示模式
 const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
+const keyLabelShort = computed(() => meTauri.settings.keyLabel === 'short' ?? true)
 </script>
 
 <template>
@@ -298,7 +300,10 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
                 <el-tag size="small" disable-transitions type="info" effect="dark">?</el-tag>
               </template>
             </Suspense>
-            <div style="margin-left: 5px;">{{ node.label }}</div>
+            <div style="margin-left: 5px;">
+              <span v-if="node.label">{{ node.label }}</span>
+              <span v-else style="color: var(--el-color-info-light-3)">[EMPTY]</span>
+            </div>
           </div>
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
             <me-icon
