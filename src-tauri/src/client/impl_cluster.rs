@@ -154,8 +154,7 @@ impl MeClient for MeCluster {
     }
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
-        let mut conn = self.get_conn()?;
-        field_scan0(&mut conn, param, &self.capabilities)
+        field_scan0(self.get_conn()?, param, &self.capabilities)
     }
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {

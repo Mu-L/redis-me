@@ -144,12 +144,14 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
 }
 
 pub fn field_scan0(
-    mut conn: &mut MutexGuard<impl Commands>,
+    mut conn: MutexGuard<impl Commands>,
     param: FieldScanParam,
     capabilities: &ServerCapabilities,
 ) -> AnyResult<FieldScanResult> {
+    // String, Json, List, Hash(WithKey), Stream(WithKey), Stream 直接获取得到值
     let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
 
+    // Hash, Set, Zset 进行扫描(hscan, sscan, zscan)
     let key = param.key;
     if value.is_none() {
         let mut scan_value = FieldScanValue::default();
@@ -181,6 +183,7 @@ pub fn field_scan0(
         value = Some(field_scan_3_json(&key_type, &scan_value)?)
     }
 
+    // 返回值添加TTL和内存占用
     field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, length)
 }
 
@@ -197,7 +200,6 @@ pub fn field_scan_0_get(
     // String类型的bytes长度
     let mut length = 0;
 
-    // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
     let value: Option<serde_json::Value> = match key_type {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
@@ -417,7 +419,7 @@ pub fn field_scan_3_json(
 }
 
 pub fn field_scan_4_return(
-    mut conn: &mut MutexGuard<impl Commands>,
+    mut conn: MutexGuard<impl Commands>,
     key: RedisKey,
     key_type: ValueType,
     value: serde_json::Value,
