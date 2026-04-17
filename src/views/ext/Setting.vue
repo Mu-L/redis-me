@@ -281,8 +281,8 @@ function toDefault(name) {
         <el-form-item :label="t('setting.keyHeight')">
           <el-input-number
               v-model="settings.keyHeight"
-              :min="18"
-              :max="30"
+              :min="16"
+              :max="28"
               style="width: 100px"
               align="center" />
         </el-form-item>

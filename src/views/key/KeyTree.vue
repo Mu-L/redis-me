@@ -262,6 +262,9 @@ function setCurrentKey(redisKey) {
   treeRef.value?.scrollToNode(nodeId, 'center')
   treeRef.value?.setCurrentKey(nodeId)
 }
+
+// 键高度配置
+const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
 </script>
 
 <template>
@@ -281,7 +284,7 @@ function setCurrentKey(redisKey) {
         }"
         :empty-text="emptyText"
         :height="height"
-        :item-size="20"
+        :item-size="keyHeight"
         :show-checkbox="showCheckbox">
         <template #default="{ node }">
           <div style="width: 100%; justify-content: flex-start; align-items: center"
