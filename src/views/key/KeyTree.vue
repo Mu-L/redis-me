@@ -284,7 +284,9 @@ function setCurrentKey(redisKey) {
         :item-size="20"
         :show-checkbox="showCheckbox">
         <template #default="{ node }">
-          <div style="width: 100%" v-if="node.isLeaf" :class="getNodeClass(node)">
+          <div style="width: 100%; justify-content: flex-start; align-items: center"
+               v-if="node.isLeaf" :class="getNodeClass(node)"
+               class="me-flex">
             <Suspense>
               <template #default>
                 <KeyTypeTag :conn-id="share.conn.id" :redis-key="node.data.redisKey" />
@@ -293,7 +295,7 @@ function setCurrentKey(redisKey) {
                 <el-tag size="small" disable-transitions type="info" effect="dark">?</el-tag>
               </template>
             </Suspense>
-            {{ node.label }}
+            <div style="margin-left: 5px;">{{ node.label }}</div>
           </div>
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
             <me-icon
@@ -375,10 +377,9 @@ function setCurrentKey(redisKey) {
 
 /*  键类型TAG设置 */
 :deep(.el-tag--small) {
-  height: 16px;
-  width: 16px;
+  height: 14px;
+  width: 14px;
   padding: 0 4px;
-
   font-size: 10px;
 }
 </style>
