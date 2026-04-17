@@ -338,8 +338,7 @@ async function handleCommand(command) {
 // 清空数据库
 function flushDb() {
   meConfirm(t('keyMain.flushDbConfirm'), async () => {
-    const param = { command: 'flushdb' }
-    await meInvoke('execute_command', { id: share.conn.id, param })
+    await meInvoke('flush_db', { id: share.conn.id })
     meOk(t('keyMain.flushDbOk'))
     bus.emit(CONN_REFRESH)
     bus.emit(INFO_REFRESH)
