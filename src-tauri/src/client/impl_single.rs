@@ -424,6 +424,10 @@ impl MeClient for MeSingle {
         }])
     }
 
+    fn flush_db(&self) -> AnyResult<()> {
+        flush_db0(self.get_conn()?)
+    }
+
     implement_pipeline_commands!(Pipeline);
 }
 

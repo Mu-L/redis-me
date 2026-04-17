@@ -10,10 +10,7 @@ use chrono::Local;
 use log::{info, warn};
 use parking_lot::MutexGuard;
 use redis::streams::{StreamInfoConsumersReply, StreamInfoGroupsReply, StreamRangeReply};
-use redis::{
-    Cmd, Commands, Connection, ExpireOption, FromRedisValue, IntegerReplyOrNoOp, JsonCommands, Msg,
-    SetExpiry, SetOptions, Value, ValueType, from_redis_value,
-};
+use redis::{Cmd, Commands, Connection, ExpireOption, FromRedisValue, IntegerReplyOrNoOp, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType, from_redis_value};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -110,6 +107,7 @@ pub trait MeClient: Send + Sync {
     fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>>;
     fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>>;
     fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>>;
+    fn flush_db(&self) -> AnyResult<()>;
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -1104,6 +1102,11 @@ pub fn xinfo_consumers0(
 ) -> AnyResult<Vec<XInfoConsumer>> {
     let reply: StreamInfoConsumersReply = conn.xinfo_consumers(&key, &group)?;
     Ok(reply.consumers.into_iter().map(ui_xinfo_consumer).collect())
+}
+
+pub fn flush_db0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()>{
+    let _: () = conn.flushdb()?;
+    Ok(())
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

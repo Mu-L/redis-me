@@ -79,6 +79,7 @@ pub fn run() {
             xinfo_groups,
             xinfo_consumers,
             key_node,
+            flush_db
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
