@@ -355,6 +355,13 @@ const textLength = computed(() => {
         redisValue.value.value.length
 })
 
+// 查看此键所在集群节点
+async function showLocation() {
+  const data = await meInvoke('key_node', { id: share.conn.id, key: share.redisKey })
+  const msg = data.map(item => item.node + ' | ' + item.flags.toUpperCase()).join('<br>')
+  meOk(msg, true, t('redisValue.locationTitle'), { dangerouslyUseHTMLString: true })
+}
+
 // 值显示方式: string(utf-8), binary, hex等
 // const displayFormat = ref('Raw')
 </script>
@@ -600,7 +607,17 @@ const textLength = computed(() => {
             class="icon-btn"
             icon="el-icon-document-copy"
             @click="meCopy(showValue)"
-            placement="top" />
+            placement="top-start" />
+
+          <!-- 键所在节点信息 -->
+          <me-icon
+            v-if="share.conn.cluster"
+            style="font-size: 18px; margin-left: 5px"
+            :info="t('redisValue.locationHint')"
+            class="icon-btn"
+            icon="el-icon-location"
+            @click="showLocation"
+            placement="top-start" />
 
           <el-divider direction="vertical" />
 

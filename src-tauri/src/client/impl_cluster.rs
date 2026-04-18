@@ -512,7 +512,6 @@ impl MeClient for MeCluster {
                     if (*start as u16) <= slot && slot <= (*end as u16) {
                         // 找到了！解析所有节点（主 + 从）
                         let mut nodes = Vec::new();
-                        let mut master_node = String::new();
 
                         // 从索引2开始是节点信息，索引2是主节点，之后是从节点
                         for i in 2..slot_data.len() {
@@ -527,12 +526,6 @@ impl MeClient for MeCluster {
                                 let id = redis_value_to_string(node_info[2].clone(), "");
                                 let node_addr = format!("{}:{}", host, port);
                                 let is_master = i == 2;
-
-                                // 记录主节点地址
-                                if is_master {
-                                    master_node = node_addr.clone();
-                                }
-
                                 let flags = if is_master {
                                     "master".into()
                                 } else {

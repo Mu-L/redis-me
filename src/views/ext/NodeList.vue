@@ -2,7 +2,8 @@
 import { sortBy } from 'lodash'
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {meInvoke} from '@/utils/util.js'
+
+import { meInvoke } from '@/utils/util.js'
 const { t } = useI18n()
 
 const share = inject('share')
@@ -14,9 +15,9 @@ const { initNode } = defineProps({
 })
 
 const srcNodeList = ref([])
-onMounted( async () => {
+onMounted(async () => {
   if (share.conn?.cluster) {
-    srcNodeList.value = await meInvoke('node_list', {id: share.conn.id})
+    srcNodeList.value = await meInvoke('node_list', { id: share.conn.id })
   }
 })
 

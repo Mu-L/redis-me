@@ -511,6 +511,8 @@ export default {
     deleteKey: 'Delete Key',
     prettyHint:
       'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',
+    locationHint: 'View the cluster node where this key is located',
+    locationTitle: 'Cluster Node',
     tableKeyword: 'Fuzzy Filter',
     insertRow: 'Insert Row',
     id: 'ID',
