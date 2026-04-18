@@ -489,18 +489,23 @@ impl MeClient for MeCluster {
         xinfo_consumers0(self.get_conn()?, key, group)
     }
 
-    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>> {
+    fn key_slot(&self, key: RedisKey) -> AnyResult<u64> {
         let mut conn = self.get_conn()?;
-
-        // 1. 获取键的槽位
-        let slot: u16 = redis::cmd("CLUSTER")
+        let slot: u64 = redis::cmd("CLUSTER")
             .arg("KEYSLOT")
             .arg(&key)
             .query(&mut conn)?;
+        Ok(slot)
+    }
+
+    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>> {
+        // 1. 获取键的槽位
+        let slot = self.key_slot(key.clone())?;
 
         // 2. 获取槽位分配信息
         // CLUSTER SLOTS 返回格式:
         // [[start_slot, end_slot, [master_host, master_port, master_id], [replica_host, replica_port, replica_id], ...], ...]
+        let mut conn = self.get_conn()?;
         let slots_info: Vec<Value> = redis::cmd("CLUSTER").arg("SLOTS").query(&mut conn)?;
 
         // 3. 匹配槽位范围
@@ -509,7 +514,7 @@ impl MeClient for MeCluster {
                 && slot_data.len() >= 3
             {
                 if let (Value::Int(start), Value::Int(end)) = (&slot_data[0], &slot_data[1]) {
-                    if (*start as u16) <= slot && slot <= (*end as u16) {
+                    if (*start as u64) <= slot && slot <= (*end as u64) {
                         // 找到了！解析所有节点（主 + 从）
                         let mut nodes = Vec::new();
 

@@ -78,6 +78,7 @@ pub fn run() {
             key_type,
             xinfo_groups,
             xinfo_consumers,
+            key_slot,
             key_node,
             flush_db,
             flush_all,
