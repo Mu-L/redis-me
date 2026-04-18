@@ -212,6 +212,7 @@ api_model!(RedisNode {
     id: String,
     node: String,
     is_master: bool,
+    slots: Option<String>,
     slave_of_node: Option<String>
 });
 

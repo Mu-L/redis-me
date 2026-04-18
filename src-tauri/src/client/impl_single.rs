@@ -420,6 +420,7 @@ impl MeClient for MeSingle {
             id: self.base.id.clone(),
             node,
             is_master: true,
+            slots: Some("0-16383".into()),
             slave_of_node: None,
         }])
     }

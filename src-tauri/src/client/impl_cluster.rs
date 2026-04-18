@@ -537,6 +537,7 @@ impl MeClient for MeCluster {
                                     id,
                                     node: node_addr,
                                     is_master,
+                                    slots: None,
                                     slave_of_node: if is_master {
                                         None
                                     } else {
@@ -693,16 +694,18 @@ impl MeCluster {
 
     // 解析 cluster_nodes (静态方法)
     fn parse_node_list(cluster_nodes: String) -> AnyResult<Vec<RedisNode>> {
-        // 结构
+        // 结构 https://redis.ac.cn/docs/latest/commands/cluster-nodes/
         // <id> <ip:port@cport[,hostname]> <flags> <master> <ping-sent> <pong-recv> <config-epoch> <link-state> <slot> <slot> ... <slot>
 
         // 示例
-        // 01b6af43bd8fe6471097f5b9e5f6e4ff0945d145 192.168.1.11:7004@17004 myself,slave 08914f4493d93b198c1dfe15ab9c14a488ada09d 0 0 2 connected
-        // 86ab8ccdddac8e3bd2d114d51a21f13d186ec178 192.168.1.11:7005@17005 slave e82b9f07782a16fe8e42aef8553ea473ddb130ef 0 1758958605000 3 connected
-        // e82b9f07782a16fe8e42aef8553ea473ddb130ef 192.168.1.11:7003@17003 master - 0 1758958606000 3 connected 10923-16383
-        // c1a786767e6a9574e8116bb771a96f2ddf001148 192.168.1.11:7006@17006 slave 993bffbf44adde4eeabf9b75f26f999177f23412 0 1758958608265 1 connected
-        // 08914f4493d93b198c1dfe15ab9c14a488ada09d 192.168.1.11:7002@17002 master - 0 1758958607260 2 connected 5461-10922
-        // 993bffbf44adde4eeabf9b75f26f999177f23412 192.168.1.11:7001@17001 master - 0 1758958607000 1 connected 0-5460
+        // 0                                        1                          2            3                                        4            5             6               7             8
+        // <id>                                     <ip:port@cport[,hostname]> <flags>      <master>                                 <ping-sent>  <pong-recv>   <config-epoch>  <link-state>  <slot> <slot> ... <slot>
+        // 01b6af43bd8fe6471097f5b9e5f6e4ff0945d145 192.168.1.11:7004@17004    myself,slave 08914f4493d93b198c1dfe15ab9c14a488ada09d 0            0             2               connected
+        // 86ab8ccdddac8e3bd2d114d51a21f13d186ec178 192.168.1.11:7005@17005    slave        e82b9f07782a16fe8e42aef8553ea473ddb130ef 0            1758958605000 3               connected
+        // e82b9f07782a16fe8e42aef8553ea473ddb130ef 192.168.1.11:7003@17003    master       -                                        0            1758958606000 3               connected     10923-16383
+        // c1a786767e6a9574e8116bb771a96f2ddf001148 192.168.1.11:7006@17006    slave        993bffbf44adde4eeabf9b75f26f999177f23412 0            1758958608265 1               connected
+        // 08914f4493d93b198c1dfe15ab9c14a488ada09d 192.168.1.11:7002@17002    master       -                                        0            1758958607260 2               connected     5461-10922
+        // 993bffbf44adde4eeabf9b75f26f999177f23412 192.168.1.11:7001@17001    master       -                                        0            1758958607000 1               connected     0-5460
 
         let cluster_nodes = cluster_nodes.split("\n");
         let mut nodes = vec![];
@@ -710,17 +713,19 @@ impl MeCluster {
         // 解析master节点
         for line in cluster_nodes.clone() {
             let parts: Vec<_> = line.split_whitespace().collect();
-            if parts.len() < 3 {
+            if parts.len() < 9 {
                 continue;
             }
 
-            if parts[2] == "master" || parts[2] == "myself,master" {
+            if parts[2].contains("master") {
                 let id = parts[0];
                 let node = parts[1].split("@").next().unwrap();
+                let slots = parts[8..].join(" ");
                 nodes.push(RedisNode {
                     id: id.into(),
                     node: node.into(),
                     is_master: true,
+                    slots: Some(slots),
                     slave_of_node: None,
                 })
             }
@@ -733,7 +738,7 @@ impl MeCluster {
                 continue;
             }
 
-            if parts[2] == "slave" || parts[2] == "myself,slave" {
+            if parts[2].contains("slave") {
                 let id = parts[0];
                 let node = parts[1].split("@").next().unwrap();
                 let master_id = parts[3];
@@ -744,6 +749,7 @@ impl MeCluster {
                     id: id.into(),
                     node: node.into(),
                     is_master: false,
+                    slots: None,
                     slave_of_node: master_node.map(|node| node.node.clone()),
                 })
             }

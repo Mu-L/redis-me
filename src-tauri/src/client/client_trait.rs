@@ -10,7 +10,10 @@ use chrono::Local;
 use log::{info, warn};
 use parking_lot::MutexGuard;
 use redis::streams::{StreamInfoConsumersReply, StreamInfoGroupsReply, StreamRangeReply};
-use redis::{Cmd, Commands, Connection, ExpireOption, FromRedisValue, IntegerReplyOrNoOp, JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType, from_redis_value};
+use redis::{
+    Cmd, Commands, Connection, ExpireOption, FromRedisValue, IntegerReplyOrNoOp, JsonCommands, Msg,
+    SetExpiry, SetOptions, Value, ValueType, from_redis_value,
+};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -1114,12 +1117,12 @@ pub fn xinfo_consumers0(
     Ok(reply.consumers.into_iter().map(ui_xinfo_consumer).collect())
 }
 
-pub fn flush_db0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()>{
+pub fn flush_db0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
     let _: () = conn.flushdb()?;
     Ok(())
 }
 
-pub fn flush_all0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()>{
+pub fn flush_all0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
     let _: () = conn.flushall()?;
     Ok(())
 }
