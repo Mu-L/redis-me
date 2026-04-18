@@ -66,8 +66,12 @@ async function handleExpand(row, expandedRows) {
         </template>
       </el-table-column>
 
-      <el-table-column :label="t('tableGroup.name')" width="140"
-                       prop="name" show-overflow-tooltip sortable />
+      <el-table-column
+        :label="t('tableGroup.name')"
+        width="140"
+        prop="name"
+        show-overflow-tooltip
+        sortable />
       <el-table-column
         :label="t('tableGroup.consumers')"
         prop="consumers"
