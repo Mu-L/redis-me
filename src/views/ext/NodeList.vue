@@ -13,7 +13,6 @@ const { initNode } = defineProps({
   initNode: { type: Boolean, default: false },
 })
 
-
 const srcNodeList = ref([])
 onMounted( async () => {
   if (share.conn?.cluster) {
@@ -49,13 +48,23 @@ const nodeList = computed(() => {
     }
   })
 
-  // 其他节点: -
+  // 其他节点
+  /*
+  myself：你正在连接的节点。
+  master：节点是主节点。
+  slave：节点是副本。
+  fail?：节点处于 PFAIL 状态。对于你正在连接的节点来说不可达，但逻辑上仍然可达（未处于 FAIL 状态）。
+  fail：节点处于 FAIL 状态。对于将 PFAIL 状态提升为 FAIL 的多个节点来说不可达。
+  handshake：不受信任的节点，正在进行握手。
+  noaddr：此节点没有已知地址。
+  nofailover：副本不会尝试故障转移。
+  noflags：没有任何标志
+  */
   tempList.forEach(item => {
     if (!item.shortLabel) {
-      item.shortLabel = '-'
+      item.shortLabel = item.flags?.slice(0, 1).toUpperCase() || 'F'
     }
   })
-
   return tempList
 })
 
@@ -73,9 +82,12 @@ if (initNode && masterNodeList.value.length > 0) {
     :placeholder="t('nodeList.placeholder')"
     v-if="share.conn?.cluster">
     <el-option v-for="item in nodeList" :key="item.node" :value="item.node">
-      <el-tag effect="dark" :type="item.isMaster ? 'primary' : 'info'">
-        {{ item.node }} ({{ item.shortLabel }})
-      </el-tag>
+      <el-text effect="dark" :type="item.isMaster ? 'primary' : 'info'">
+        {{ item.node }} |
+        <el-tooltip :content="'Slots: ' + item.slots" placement="top" :disabled="!item.isMaster">
+          {{ item.shortLabel }}
+        </el-tooltip>
+      </el-text>
     </el-option>
   </el-select>
 </template>
