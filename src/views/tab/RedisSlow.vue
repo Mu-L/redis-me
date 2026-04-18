@@ -190,7 +190,7 @@ refresh()
           width="180"
           show-overflow-tooltip
           sortable
-          v-if="share.nodeList.length > 0" />
+          v-if="share.conn?.cluster" />
       </me-table>
     </div>
   </div>

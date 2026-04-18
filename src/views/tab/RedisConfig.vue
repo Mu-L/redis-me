@@ -304,7 +304,7 @@ const rules = computed(() => ({
                 v-model="form.autoBroadcast"
                 :label="t('redisConfig.autoBroadcast')"
                 style="margin-left: 20px"
-                v-if="share.nodeList.length > 0" />
+                v-if="share.conn?.cluster" />
             </el-tooltip>
           </div>
         </el-form-item>

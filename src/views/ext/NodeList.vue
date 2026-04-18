@@ -2,6 +2,7 @@
 import { sortBy } from 'lodash'
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
+import {meInvoke} from '@/utils/util.js'
 const { t } = useI18n()
 
 const share = inject('share')
@@ -12,10 +13,18 @@ const { initNode } = defineProps({
   initNode: { type: Boolean, default: false },
 })
 
+
+const srcNodeList = ref([])
+onMounted( async () => {
+  if (share.conn?.cluster) {
+    srcNodeList.value = await meInvoke('node_list', {id: share.conn.id})
+  }
+})
+
 let masterIndex = 0
 let masterLabelMap = new Map()
 const nodeList = computed(() => {
-  let tempList = share.nodeList
+  let tempList = srcNodeList.value
   // 节点列表排序: 按照node升序
   tempList = sortBy(tempList, 'node')
   tempList.forEach(item => {
@@ -62,7 +71,7 @@ if (initNode && masterNodeList.value.length > 0) {
     v-model="node"
     style="width: 220px"
     :placeholder="t('nodeList.placeholder')"
-    v-if="nodeList.length > 0">
+    v-if="share.conn?.cluster">
     <el-option v-for="item in nodeList" :key="item.node" :value="item.node">
       <el-tag effect="dark" :type="item.isMaster ? 'primary' : 'info'">
         {{ item.node }} ({{ item.shortLabel }})
