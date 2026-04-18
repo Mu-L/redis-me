@@ -1,5 +1,22 @@
 # 2.x Changelog
 
+## [v2.9.0](https://mp.weixin.qq.com/s/WWc-iOfnxYtG5eiFRYCQQA) (2026-04-19)
+
+### ✨ New Features
+
+- Key Display: Configurable to show **full name or short name**, key height customizable #73
+- Key Display: Unified folder and key type icon size (14×14), optimized alignment #75
+- Value Display: **View key hash slot and node location** in cluster mode
+- Config Dialog: **Commands support click-to-copy**, color matches connection color
+- Cluster Nodes: **Display master-slave relationship** (M1/M2/M3, S1/S2/S3), show master node slots
+- Other Optimizations: Improved cluster scanning speed and field scanning speed
+
+### 🐞 Bug Fixes
+
+- Cluster Mode: Flush DB only executes on a single node
+- Cluster Mode: Duplicate fields caused by HSCAN/SSCAN/ZSCAN scanning multiple nodes
+- Hash field-level TTL display issues under multiple scans
+
 ## [v2.8.0](https://mp.weixin.qq.com/s/um11TcxvQFegEmiJdLi6BQ) (2026-04-16)
 
 ### ✨ New Features
