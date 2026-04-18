@@ -109,7 +109,7 @@ pub trait MeClient: Send + Sync {
     fn key_type(&self, key: RedisKey) -> AnyResult<String>;
     fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>>;
     fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>>;
-    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<String>>;
+    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>>;
     fn flush_db(&self) -> AnyResult<()>;
     fn flush_all(&self) -> AnyResult<()>;
 }

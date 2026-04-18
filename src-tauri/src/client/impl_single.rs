@@ -414,9 +414,12 @@ impl MeClient for MeSingle {
         xinfo_consumers0(self.get_conn()?, key, group)
     }
 
-    fn key_node(&self, _key: RedisKey) -> AnyResult<Vec<String>> {
+    fn key_node(&self, _key: RedisKey) -> AnyResult<Vec<RedisNode>> {
         let node = format!("{}:{}", self.conf.host, self.conf.port);
-        Ok(vec![node])
+        Ok(vec![RedisNode {
+            node,
+            ..RedisNode::default()
+        }])
     }
 
     fn flush_db(&self) -> AnyResult<()> {

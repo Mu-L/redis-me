@@ -489,7 +489,7 @@ impl MeClient for MeCluster {
         xinfo_consumers0(self.get_conn()?, key, group)
     }
 
-    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<String>> {
+    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>> {
         let mut conn = self.get_conn()?;
 
         // 1. 获取键的槽位
@@ -512,6 +512,7 @@ impl MeClient for MeCluster {
                     if (*start as u16) <= slot && slot <= (*end as u16) {
                         // 找到了！解析所有节点（主 + 从）
                         let mut nodes = Vec::new();
+                        let mut master_node = String::new();
 
                         // 从索引2开始是节点信息，索引2是主节点，之后是从节点
                         for i in 2..slot_data.len() {
@@ -523,8 +524,28 @@ impl MeClient for MeCluster {
                                     Value::Int(p) => *p as u16,
                                     _ => continue,
                                 };
+                                let id = redis_value_to_string(node_info[2].clone(), "");
                                 let node_addr = format!("{}:{}", host, port);
-                                nodes.push(node_addr);
+                                let is_master = i == 2;
+
+                                // 记录主节点地址
+                                if is_master {
+                                    master_node = node_addr.clone();
+                                }
+
+                                let flags = if is_master {
+                                    "master".into()
+                                } else {
+                                    "slave".into()
+                                };
+
+                                nodes.push(RedisNode {
+                                    id,
+                                    node: node_addr,
+                                    flags,
+                                    slots: None,
+                                    slave_of_node: None,
+                                });
                             }
                         }
 
