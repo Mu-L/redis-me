@@ -489,7 +489,7 @@ impl MeClient for MeCluster {
         xinfo_consumers0(self.get_conn()?, key, group)
     }
 
-    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>> {
+    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<String>> {
         let mut conn = self.get_conn()?;
 
         // 1. 获取键的槽位
@@ -512,7 +512,6 @@ impl MeClient for MeCluster {
                     if (*start as u16) <= slot && slot <= (*end as u16) {
                         // 找到了！解析所有节点（主 + 从）
                         let mut nodes = Vec::new();
-                        let mut master_node = String::new();
 
                         // 从索引2开始是节点信息，索引2是主节点，之后是从节点
                         for i in 2..slot_data.len() {
@@ -524,26 +523,8 @@ impl MeClient for MeCluster {
                                     Value::Int(p) => *p as u16,
                                     _ => continue,
                                 };
-                                let id = redis_value_to_string(node_info[2].clone(), "");
                                 let node_addr = format!("{}:{}", host, port);
-                                let is_master = i == 2;
-
-                                // 记录主节点地址
-                                if is_master {
-                                    master_node = node_addr.clone();
-                                }
-
-                                nodes.push(RedisNode {
-                                    id,
-                                    node: node_addr,
-                                    is_master,
-                                    slots: None,
-                                    slave_of_node: if is_master {
-                                        None
-                                    } else {
-                                        Some(master_node.clone())
-                                    },
-                                });
+                                nodes.push(node_addr);
                             }
                         }
 
@@ -687,7 +668,7 @@ impl MeCluster {
     fn get_node_list_master(&self) -> Vec<String> {
         self.node_list
             .iter()
-            .filter(|node| node.is_master)
+            .filter(|node| node.flags.contains("master"))
             .map(|node| node.node.clone())
             .collect::<Vec<String>>()
     }
@@ -724,21 +705,21 @@ impl MeCluster {
                 nodes.push(RedisNode {
                     id: id.into(),
                     node: node.into(),
-                    is_master: true,
+                    flags: parts[2].into(),
                     slots: Some(slots),
                     slave_of_node: None,
                 })
             }
         }
 
-        // 解析slave节点
+        // 解析slave节点和其他节点
         for line in cluster_nodes {
             let parts: Vec<_> = line.split_whitespace().collect();
             if parts.len() < 4 {
                 continue;
             }
 
-            if parts[2].contains("slave") {
+            if !parts[2].contains("master") {
                 let id = parts[0];
                 let node = parts[1].split("@").next().unwrap();
                 let master_id = parts[3];
@@ -748,7 +729,7 @@ impl MeCluster {
                 nodes.push(RedisNode {
                     id: id.into(),
                     node: node.into(),
-                    is_master: false,
+                    flags: parts[2].into(),
                     slots: None,
                     slave_of_node: master_node.map(|node| node.node.clone()),
                 })
