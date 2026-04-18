@@ -181,13 +181,13 @@ refresh()
         <el-table-column
           :label="t('redisSlow.client')"
           prop="client"
-          width="140"
+          width="180"
           sortable
           show-overflow-tooltip />
         <el-table-column
           :label="t('redisSlow.node')"
           prop="node"
-          width="140"
+          width="180"
           show-overflow-tooltip
           sortable
           v-if="share.nodeList.length > 0" />
