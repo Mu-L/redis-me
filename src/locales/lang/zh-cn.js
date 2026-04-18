@@ -73,6 +73,12 @@ export default {
     keySort: '树形排序',
     sortByCount: '数量',
     sortByAlphabet: '字母',
+
+    keyHeight: '键高度',
+    keyLabel: '键名称',
+    keyLabelTip: '键树形展示时子节点键的名称显示',
+    keyLabelFull: '全称',
+    keyLabelShort: '简称',
   },
 
   conn: {
@@ -255,7 +261,7 @@ export default {
     value: '值',
   },
 
-  nodeList: { placeholder: '指定节点【可选】', master: '主', slave: '从' },
+  nodeList: { placeholder: '指定节点【可选】' },
 
   keyBatch: {
     matchRequired: '键名表达式不能为空',
@@ -500,6 +506,10 @@ export default {
     ttlForever: '永久',
     deleteKey: '删除键',
     prettyHint: '默认开启美化，开启后针对hash/list/set/json等进行格式化，关闭后显示原始值toString',
+    locationHint: '查看键所在集群节点',
+    locationTitle: '集群节点',
+    slotHint: '查看键所在集群槽位',
+    slotTitle: '集群槽位',
     tableKeyword: '模糊筛选',
     insertRow: '插入行',
     id: 'ID',

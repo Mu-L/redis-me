@@ -42,11 +42,12 @@ defineProps({
 
     <!-- 图标 + 文字 -->
     <template v-else-if="name">
+      <span v-if="name && !iconLeft" style="margin-right: 5px">{{ name }}</span>
       <el-icon v-if="icon.startsWith('el-icon-')">
         <Component :is="icon" />
       </el-icon>
       <SvgIcon v-else :name="icon" />
-      <span class="name" v-if="name">{{ name }}</span>
+      <span v-if="name && iconLeft" style="margin-left: 5px">{{ name }}</span>
     </template>
 
     <template v-else>
@@ -62,10 +63,6 @@ defineProps({
 .icon-main {
   display: flex;
   align-items: center;
-
-  .name {
-    margin-left: 5px;
-  }
 
   // 避免下拉框里面自带的 .el-dropdown-menu__item i 导致宽度过大
   i {

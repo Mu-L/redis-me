@@ -10,9 +10,9 @@ use chrono::Utc;
 use log::{info, warn};
 use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
-use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
+use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
 use redis::{ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -130,14 +130,21 @@ impl MeClient for MeCluster {
 
                 cc.now_cursor = next_cursor;
                 if next_cursor == 0 {
+                    cc.ready_nodes.push(node.clone());
+
+                    // 单个节点扫描完了就判断1次: 避免每个节点都800多个，导致返回2400个
+                    if !param.load_all && keys.len() >= param.count as usize {
+                        break 'outer;
+                    }
+
                     break 'inner;
                 }
 
-                if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
+                // 单个节点没有扫描完，也判断1次
+                if !param.load_all && keys.len() >= param.count as usize {
                     break 'outer;
                 }
             }
-            cc.ready_nodes.push(node.clone());
         }
 
         // 判断是否扫描完毕
@@ -154,71 +161,7 @@ impl MeClient for MeCluster {
     }
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
-        let mut conn = self.get_conn()?;
-        let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
-
-        let key = param.key;
-        if value.is_none() {
-            let mut scan_value = FieldScanValue::default();
-            let mut ready_count = 0;
-
-            // 遍历集群节点: 仅扫描主节点
-            let nodes: Vec<String> = self.get_node_list_master();
-            let node_size = nodes.len();
-
-            'outer: for node in nodes {
-                if cc.ready_nodes.contains(&node) {
-                    continue; // 扫描过的予以跳过
-                }
-                cc.now_node = node.clone();
-
-                let (route, _) = self.get_node_route(Some(node.clone()))?;
-
-                'inner: loop {
-                    // 正在扫描的节点则重置上次游标
-                    let cursor = if cc.now_node == node {
-                        cc.now_cursor
-                    } else {
-                        0
-                    };
-                    let cmd = field_scan_1_cmd(&key_type, &key, cursor, param.count)?;
-
-                    let value = conn.route_command(&cmd, route.clone())?;
-                    let (next_cursor, new_value): (u64, Value) =
-                        FromRedisValue::from_redis_value(value)?;
-                    let new_count = field_scan_2_value(
-                        &mut conn,
-                        &key_type,
-                        &mut scan_value,
-                        new_value,
-                        &key,
-                        &self.capabilities,
-                    )?;
-
-                    ready_count += new_count;
-                    cc.now_cursor = next_cursor;
-
-                    if next_cursor == 0 {
-                        break 'inner;
-                    }
-
-                    if !param.load_all && ready_count >= param.count as usize {
-                        break 'outer;
-                    }
-                }
-                cc.ready_nodes.push(node.clone());
-            }
-
-            // 判断是否扫描完毕
-            if cc.ready_nodes.len() == node_size {
-                cc.finished = true;
-                cc.now_node = "".to_string();
-                cc.now_cursor = 0;
-            }
-            value = Some(field_scan_3_json(&key_type, &scan_value)?)
-        }
-
-        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, length)
+        field_scan0(self.get_conn()?, param, &self.capabilities)
     }
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
@@ -553,21 +496,24 @@ impl MeClient for MeCluster {
         xinfo_consumers0(self.get_conn()?, key, group)
     }
 
-    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>> {
+    fn key_slot(&self, key: RedisKey) -> AnyResult<u64> {
         let mut conn = self.get_conn()?;
-
-        // 1. 获取键的槽位
-        let slot: u16 = redis::cmd("CLUSTER")
+        let slot: u64 = redis::cmd("CLUSTER")
             .arg("KEYSLOT")
             .arg(&key)
             .query(&mut conn)?;
+        Ok(slot)
+    }
+
+    fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>> {
+        // 1. 获取键的槽位
+        let slot = self.key_slot(key.clone())?;
 
         // 2. 获取槽位分配信息
         // CLUSTER SLOTS 返回格式:
         // [[start_slot, end_slot, [master_host, master_port, master_id], [replica_host, replica_port, replica_id], ...], ...]
-        let slots_info: Vec<Value> = redis::cmd("CLUSTER")
-            .arg("SLOTS")
-            .query(&mut conn)?;
+        let mut conn = self.get_conn()?;
+        let slots_info: Vec<Value> = redis::cmd("CLUSTER").arg("SLOTS").query(&mut conn)?;
 
         // 3. 匹配槽位范围
         for slot_entry in slots_info {
@@ -575,10 +521,9 @@ impl MeClient for MeCluster {
                 && slot_data.len() >= 3
             {
                 if let (Value::Int(start), Value::Int(end)) = (&slot_data[0], &slot_data[1]) {
-                    if (*start as u16) <= slot && slot <= (*end as u16) {
+                    if (*start as u64) <= slot && slot <= (*end as u64) {
                         // 找到了！解析所有节点（主 + 从）
                         let mut nodes = Vec::new();
-                        let mut master_node = String::new();
 
                         // 从索引2开始是节点信息，索引2是主节点，之后是从节点
                         for i in 2..slot_data.len() {
@@ -593,21 +538,18 @@ impl MeClient for MeCluster {
                                 let id = redis_value_to_string(node_info[2].clone(), "");
                                 let node_addr = format!("{}:{}", host, port);
                                 let is_master = i == 2;
-
-                                // 记录主节点地址
-                                if is_master {
-                                    master_node = node_addr.clone();
-                                }
+                                let flags = if is_master {
+                                    "master".into()
+                                } else {
+                                    "slave".into()
+                                };
 
                                 nodes.push(RedisNode {
                                     id,
                                     node: node_addr,
-                                    is_master,
-                                    slave_of_node: if is_master {
-                                        None
-                                    } else {
-                                        Some(master_node.clone())
-                                    },
+                                    flags,
+                                    slots: None,
+                                    slave_of_node: None,
                                 });
                             }
                         }
@@ -624,6 +566,14 @@ impl MeClient for MeCluster {
         bail!(AppError::KeyNodeNotFound { key: key.into() })
     }
 
+    fn flush_db(&self) -> AnyResult<()> {
+        flush_db0(self.get_conn()?)
+    }
+
+    fn flush_all(&self) -> AnyResult<()> {
+        flush_all0(self.get_conn()?)
+    }
+
     implement_pipeline_commands!(ClusterPipeline);
 }
 
@@ -634,8 +584,10 @@ impl MeCluster {
         let mut conn = Self::new_conn(&client)?;
 
         // 获取版本信息并检测能力（从任意节点获取，通常集群版本一致）
-        let value: Value =conn.route_command(redis::cmd("INFO").arg("SERVER"),
-                                             SingleNode(SingleNodeRoutingInfo::RandomPrimary))?;
+        let value: Value = conn.route_command(
+            redis::cmd("INFO").arg("SERVER"),
+            SingleNode(SingleNodeRoutingInfo::RandomPrimary),
+        )?;
         let info = redis_value_to_string(value, "\n");
         let mut base = MeBase::from(redis_conn);
         base.update_server_info(&info, &mut conn);
@@ -742,23 +694,25 @@ impl MeCluster {
     fn get_node_list_master(&self) -> Vec<String> {
         self.node_list
             .iter()
-            .filter(|node| node.is_master)
+            .filter(|node| node.flags.contains("master"))
             .map(|node| node.node.clone())
             .collect::<Vec<String>>()
     }
 
     // 解析 cluster_nodes (静态方法)
     fn parse_node_list(cluster_nodes: String) -> AnyResult<Vec<RedisNode>> {
-        // 结构
+        // 结构 https://redis.ac.cn/docs/latest/commands/cluster-nodes/
         // <id> <ip:port@cport[,hostname]> <flags> <master> <ping-sent> <pong-recv> <config-epoch> <link-state> <slot> <slot> ... <slot>
 
         // 示例
-        // 01b6af43bd8fe6471097f5b9e5f6e4ff0945d145 192.168.1.11:7004@17004 myself,slave 08914f4493d93b198c1dfe15ab9c14a488ada09d 0 0 2 connected
-        // 86ab8ccdddac8e3bd2d114d51a21f13d186ec178 192.168.1.11:7005@17005 slave e82b9f07782a16fe8e42aef8553ea473ddb130ef 0 1758958605000 3 connected
-        // e82b9f07782a16fe8e42aef8553ea473ddb130ef 192.168.1.11:7003@17003 master - 0 1758958606000 3 connected 10923-16383
-        // c1a786767e6a9574e8116bb771a96f2ddf001148 192.168.1.11:7006@17006 slave 993bffbf44adde4eeabf9b75f26f999177f23412 0 1758958608265 1 connected
-        // 08914f4493d93b198c1dfe15ab9c14a488ada09d 192.168.1.11:7002@17002 master - 0 1758958607260 2 connected 5461-10922
-        // 993bffbf44adde4eeabf9b75f26f999177f23412 192.168.1.11:7001@17001 master - 0 1758958607000 1 connected 0-5460
+        // 0                                        1                          2            3                                        4            5             6               7             8
+        // <id>                                     <ip:port@cport[,hostname]> <flags>      <master>                                 <ping-sent>  <pong-recv>   <config-epoch>  <link-state>  <slot> <slot> ... <slot>
+        // 01b6af43bd8fe6471097f5b9e5f6e4ff0945d145 192.168.1.11:7004@17004    myself,slave 08914f4493d93b198c1dfe15ab9c14a488ada09d 0            0             2               connected
+        // 86ab8ccdddac8e3bd2d114d51a21f13d186ec178 192.168.1.11:7005@17005    slave        e82b9f07782a16fe8e42aef8553ea473ddb130ef 0            1758958605000 3               connected
+        // e82b9f07782a16fe8e42aef8553ea473ddb130ef 192.168.1.11:7003@17003    master       -                                        0            1758958606000 3               connected     10923-16383
+        // c1a786767e6a9574e8116bb771a96f2ddf001148 192.168.1.11:7006@17006    slave        993bffbf44adde4eeabf9b75f26f999177f23412 0            1758958608265 1               connected
+        // 08914f4493d93b198c1dfe15ab9c14a488ada09d 192.168.1.11:7002@17002    master       -                                        0            1758958607260 2               connected     5461-10922
+        // 993bffbf44adde4eeabf9b75f26f999177f23412 192.168.1.11:7001@17001    master       -                                        0            1758958607000 1               connected     0-5460
 
         let cluster_nodes = cluster_nodes.split("\n");
         let mut nodes = vec![];
@@ -766,30 +720,32 @@ impl MeCluster {
         // 解析master节点
         for line in cluster_nodes.clone() {
             let parts: Vec<_> = line.split_whitespace().collect();
-            if parts.len() < 3 {
+            if parts.len() < 9 {
                 continue;
             }
 
-            if parts[2] == "master" || parts[2] == "myself,master" {
+            if parts[2].contains("master") {
                 let id = parts[0];
                 let node = parts[1].split("@").next().unwrap();
+                let slots = parts[8..].join(" ");
                 nodes.push(RedisNode {
                     id: id.into(),
                     node: node.into(),
-                    is_master: true,
+                    flags: parts[2].into(),
+                    slots: Some(slots),
                     slave_of_node: None,
                 })
             }
         }
 
-        // 解析slave节点
+        // 解析slave节点和其他节点
         for line in cluster_nodes {
             let parts: Vec<_> = line.split_whitespace().collect();
             if parts.len() < 4 {
                 continue;
             }
 
-            if parts[2] == "slave" || parts[2] == "myself,slave" {
+            if !parts[2].contains("master") {
                 let id = parts[0];
                 let node = parts[1].split("@").next().unwrap();
                 let master_id = parts[3];
@@ -799,7 +755,8 @@ impl MeCluster {
                 nodes.push(RedisNode {
                     id: id.into(),
                     node: node.into(),
-                    is_master: false,
+                    flags: parts[2].into(),
+                    slots: None,
                     slave_of_node: master_node.map(|node| node.node.clone()),
                 })
             }

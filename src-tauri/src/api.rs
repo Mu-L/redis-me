@@ -77,7 +77,10 @@ api_commands!(
     key_type(key: RedisKey) -> String;           // 获取键类型
     xinfo_groups(key: RedisKey) -> Vec<XInfoGroup>; // 获取Stream类型的组信息
     xinfo_consumers(key: RedisKey, group: String) -> Vec<XInfoConsumer>; // 获取Stream类型的消费者信息
-    key_node(key: RedisKey) -> Vec<RedisNode>;  // 获取键所在节点(主+从)
+    key_slot(key: RedisKey) -> u64;              // 获取键的槽位
+    key_node(key: RedisKey) -> Vec<RedisNode>;   // 获取键所在节点ID
+    flush_db() -> ();                            // 清空当前数据库
+    flush_all() -> ();                           // 清空所有数据库
 );
 
 // 需要将app_handle传递过去的命令

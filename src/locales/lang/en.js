@@ -78,6 +78,13 @@ export default {
     keySort: 'Tree Sort',
     sortByCount: 'Count',
     sortByAlphabet: 'Alphabet',
+
+    keyHeight: 'Key Height',
+    keyLabel: 'Key Name',
+    keyLabelTip:
+      'Display of the names of child node keys when keys are presented in a tree structure',
+    keyLabelFull: 'Full',
+    keyLabelShort: 'Short',
   },
 
   conn: {
@@ -261,7 +268,7 @@ export default {
     value: 'Value',
   },
 
-  nodeList: { placeholder: 'Node [Optional]', master: 'M', slave: 'S' },
+  nodeList: { placeholder: 'Node [Optional]' },
 
   keyBatch: {
     matchRequired: 'Key match expression required',
@@ -504,6 +511,10 @@ export default {
     deleteKey: 'Delete Key',
     prettyHint:
       'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',
+    locationHint: 'View the cluster node where this key is located',
+    locationTitle: 'Cluster Node',
+    slotHint: 'View the cluster slot where the key is located',
+    slotTitle: 'Cluster Slot',
     tableKeyword: 'Fuzzy Filter',
     insertRow: 'Insert Row',
     id: 'ID',

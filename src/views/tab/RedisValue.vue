@@ -355,6 +355,19 @@ const textLength = computed(() => {
         redisValue.value.value.length
 })
 
+// 查看此键所在节点
+async function showSlot() {
+  const data = await meInvoke('key_slot', { id: share.conn.id, key: share.redisKey })
+  meOk(data, true, t('redisValue.slotTitle'))
+}
+
+// 查看此键所在节点
+async function showLocation() {
+  const data = await meInvoke('key_node', { id: share.conn.id, key: share.redisKey })
+  const msg = data.map(item => item.node + ' | ' + item.flags.toUpperCase()).join('<br>')
+  meOk(msg, true, t('redisValue.locationTitle'), { dangerouslyUseHTMLString: true })
+}
+
 // 值显示方式: string(utf-8), binary, hex等
 // const displayFormat = ref('Raw')
 </script>
@@ -600,7 +613,26 @@ const textLength = computed(() => {
             class="icon-btn"
             icon="el-icon-document-copy"
             @click="meCopy(showValue)"
-            placement="top" />
+            placement="top-start" />
+
+          <!-- 键所在槽位和节点信息 -->
+          <me-icon
+            v-if="share.conn.cluster"
+            style="margin-left: 5px"
+            :info="t('redisValue.slotHint')"
+            class="icon-btn"
+            icon="me-icon-slot"
+            @click="showSlot"
+            placement="top-start" />
+
+          <me-icon
+            v-if="share.conn.cluster"
+            style="margin-left: 5px"
+            :info="t('redisValue.locationHint')"
+            class="icon-btn"
+            icon="el-icon-location"
+            @click="showLocation"
+            placement="top-start" />
 
           <el-divider direction="vertical" />
 
@@ -645,7 +677,7 @@ const textLength = computed(() => {
 
           <!-- 保存 -->
           <me-button
-              :disabled="!(redisValue?.newValue)"
+            :disabled="!redisValue?.newValue"
             v-if="canSave"
             :info="t('save')"
             type="primary"

@@ -109,7 +109,10 @@ pub trait MeClient: Send + Sync {
     fn key_type(&self, key: RedisKey) -> AnyResult<String>;
     fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>>;
     fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>>;
+    fn key_slot(&self, key: RedisKey) -> AnyResult<u64>;
     fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>>;
+    fn flush_db(&self) -> AnyResult<()>;
+    fn flush_all(&self) -> AnyResult<()>;
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -143,6 +146,59 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
     cmd
 }
 
+pub fn field_scan0(
+    mut conn: MutexGuard<impl Commands>,
+    param: FieldScanParam,
+    capabilities: &ServerCapabilities,
+) -> AnyResult<FieldScanResult> {
+    // String, Json, List, Hash(WithKey), Stream(WithKey), Stream 直接获取得到值
+    let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
+
+    // Hash, Set, Zset 进行扫描(hscan, sscan, zscan)
+    let key = param.key;
+    if value.is_none() {
+        let mut scan_value = FieldScanValue::default();
+        let mut ready_count = 0;
+        loop {
+            // 优化字段扫描个数
+            let count = if param.load_all {
+                1000
+            } else if param.count <= 0 {
+                20
+            } else {
+                param.count
+            };
+
+            let cmd = field_scan_1_cmd(&key_type, &key, cc.now_cursor, count)?;
+            let (next_cursor, new_value): (u64, Value) = cmd.query(&mut conn)?;
+            let new_count = field_scan_2_value(
+                &mut conn,
+                &key_type,
+                &mut scan_value,
+                new_value,
+                &key,
+                capabilities,
+            )?;
+
+            ready_count += new_count;
+            cc.now_cursor = next_cursor;
+
+            if next_cursor == 0 {
+                cc.finished = true;
+                break;
+            }
+
+            if !param.load_all && ready_count >= param.count as usize {
+                break;
+            }
+        }
+        value = Some(field_scan_3_json(&key_type, &scan_value)?)
+    }
+
+    // 返回值添加TTL和内存占用
+    field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, length)
+}
+
 pub fn field_scan_0_get(
     mut conn: &mut MutexGuard<impl Commands>,
     param: FieldScanParam,
@@ -156,7 +212,6 @@ pub fn field_scan_0_get(
     // String类型的bytes长度
     let mut length = 0;
 
-    // 字符串, 哈希类型且带有哈希键, 列表类型 则直接获取得到值
     let value: Option<serde_json::Value> = match key_type {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
@@ -305,7 +360,6 @@ pub fn field_scan_1_cmd(
     // SSCAN key cursor [MATCH pattern] [COUNT count]
     // ZSCAN key cursor [MATCH pattern] [COUNT count]
     let mut cmd = redis::cmd(scan_command);
-    let count = if count == 0 { 10 } else { count };
     cmd.arg(key).arg(cursor).arg("count").arg(count);
     Ok(cmd)
 }
@@ -322,14 +376,14 @@ pub fn field_scan_2_value(
         ValueType::Hash => {
             let value: Vec<(Vec<u8>, Vec<u8>)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            scan_value.hash.extend(ui_hash_value(&value));
+            let mut new_value = ui_hash_value(&value);
 
             // 补充hash字段ttl
             if capabilities.hash_field_ttl {
-                let keys: Vec<&Vec<u8>> = value.iter().map(|(k, _)| k).collect();
-                let ttl_values: Vec<IntegerReplyOrNoOp> = conn.httl(key, keys)?;
+                let fields: Vec<&Vec<u8>> = value.iter().map(|(f, _)| f).collect();
+                let ttl_values: Vec<IntegerReplyOrNoOp> = conn.httl(key, fields)?;
 
-                for (item, ttl_reply) in scan_value.hash.iter_mut().zip(ttl_values) {
+                for (item, ttl_reply) in new_value.iter_mut().zip(ttl_values) {
                     item.ttl = match ttl_reply {
                         IntegerReplyOrNoOp::IntegerReply(ttl) => Some(ttl as i64),
                         IntegerReplyOrNoOp::NotExists => Some(-2),
@@ -338,6 +392,8 @@ pub fn field_scan_2_value(
                     };
                 }
             }
+
+            scan_value.hash.extend(new_value);
             new_count
         }
         ValueType::Set => {
@@ -381,7 +437,7 @@ pub fn field_scan_4_return(
     key_type: ValueType,
     value: serde_json::Value,
     cursor: ScanCursor,
-    length: usize
+    length: usize,
 ) -> AnyResult<FieldScanResult> {
     let ttl: i64 = conn.ttl(&key)?;
     let size: u64 = redis::cmd("memory")
@@ -395,7 +451,7 @@ pub fn field_scan_4_return(
         size,
         value,
         cursor,
-        length
+        length,
     })
 }
 
@@ -1061,6 +1117,16 @@ pub fn xinfo_consumers0(
 ) -> AnyResult<Vec<XInfoConsumer>> {
     let reply: StreamInfoConsumersReply = conn.xinfo_consumers(&key, &group)?;
     Ok(reply.consumers.into_iter().map(ui_xinfo_consumer).collect())
+}
+
+pub fn flush_db0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
+    let _: () = conn.flushdb()?;
+    Ok(())
+}
+
+pub fn flush_all0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
+    let _: () = conn.flushall()?;
+    Ok(())
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

@@ -154,10 +154,11 @@ export async function meInvoke(command, params, alert = true) {
 // ~~~~~~~~~~~~~确认、提示、错误
 export const DoNothing = () => {}
 
-export function meOk(message, isAlert = false, title = '') {
+export function meOk(message, isAlert = false, title = '', options = {}) {
   if (isAlert) {
     // 提示后不消失（适用于长时间运行的任务）
-    void ElMessageBox.alert(message, title || t('info'), { type: 'success' }).then(DoNothing)
+    const finalOptions = { type: 'success', draggable: true, ...options }
+    void ElMessageBox.alert(message, title || t('info'), finalOptions).then(DoNothing)
   } else {
     // 提示后自动消失
     ElMessage.success(message)
@@ -172,7 +173,7 @@ export function meErr(message, title = t('error')) {
   if (message instanceof Error) {
     message = message.message
   }
-  void ElMessageBox.alert(message, title, { type: 'error' }).then(DoNothing)
+  void ElMessageBox.alert(message, title, { type: 'error', draggable: true }).then(DoNothing)
 }
 
 export function meConfirm(message, thenFun, boxOptions = {}) {

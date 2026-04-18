@@ -166,8 +166,9 @@ function buildTree(keyList) {
       // 叶子节点显示全称且保存原始值
       // hepengju 这种键直接返回
       if (index === parts.length - 1) {
-        // 叶子节点显示全称且保存原始值
-        let node = { id: TREE_KEY_ID_PREFIX + rk.key, label: rk.key, children: [], redisKey: rk }
+        // 叶子节点显示简称或全称, 保存原始值
+        const label = keyLabelShort.value ? part : rk.key
+        let node = { id: TREE_KEY_ID_PREFIX + rk.key, label, children: [], redisKey: rk }
         nowLevel.push(node)
         return
       }
@@ -262,6 +263,10 @@ function setCurrentKey(redisKey) {
   treeRef.value?.scrollToNode(nodeId, 'center')
   treeRef.value?.setCurrentKey(nodeId)
 }
+
+// 键高度配置, 键显示模式
+const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
+const keyLabelShort = computed(() => meTauri.settings.keyLabel === 'short' ?? true)
 </script>
 
 <template>
@@ -281,10 +286,14 @@ function setCurrentKey(redisKey) {
         }"
         :empty-text="emptyText"
         :height="height"
-        :item-size="20"
+        :item-size="keyHeight"
         :show-checkbox="showCheckbox">
         <template #default="{ node }">
-          <div style="width: 100%" v-if="node.isLeaf" :class="getNodeClass(node)">
+          <div
+            style="width: 100%; justify-content: flex-start; align-items: center"
+            v-if="node.isLeaf"
+            :class="getNodeClass(node)"
+            class="me-flex">
             <Suspense>
               <template #default>
                 <KeyTypeTag :conn-id="share.conn.id" :redis-key="node.data.redisKey" />
@@ -293,7 +302,10 @@ function setCurrentKey(redisKey) {
                 <el-tag size="small" disable-transitions type="info" effect="dark">?</el-tag>
               </template>
             </Suspense>
-            {{ node.label }}
+            <div style="margin-left: 5px">
+              <span v-if="node.label">{{ node.label }}</span>
+              <span v-else style="color: var(--el-color-info-light-3)">[EMPTY]</span>
+            </div>
           </div>
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
             <me-icon
@@ -375,10 +387,9 @@ function setCurrentKey(redisKey) {
 
 /*  键类型TAG设置 */
 :deep(.el-tag--small) {
-  height: 16px;
-  width: 16px;
+  height: 14px;
+  width: 14px;
   padding: 0 4px;
-
   font-size: 10px;
 }
 </style>

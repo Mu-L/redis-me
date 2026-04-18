@@ -127,41 +127,7 @@ impl MeClient for MeSingle {
     }
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
-        let mut conn = self.get_conn()?;
-        let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
-
-        let key = param.key;
-        if value.is_none() {
-            let mut scan_value = FieldScanValue::default();
-            let mut ready_count = 0;
-            loop {
-                let cmd = field_scan_1_cmd(&key_type, &key, cc.now_cursor, param.count)?;
-                let (next_cursor, new_value): (u64, Value) = cmd.query(&mut conn)?;
-                let new_count = field_scan_2_value(
-                    &mut conn,
-                    &key_type,
-                    &mut scan_value,
-                    new_value,
-                    &key,
-                    &self.capabilities,
-                )?;
-
-                ready_count += new_count;
-                cc.now_cursor = next_cursor;
-
-                if next_cursor == 0 {
-                    cc.finished = true;
-                    break;
-                }
-
-                if !param.load_all && ready_count >= param.count as usize {
-                    break;
-                }
-            }
-            value = Some(field_scan_3_json(&key_type, &scan_value)?)
-        }
-
-        field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, length)
+        field_scan0(self.get_conn()?, param, &self.capabilities)
     }
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
@@ -448,14 +414,24 @@ impl MeClient for MeSingle {
         xinfo_consumers0(self.get_conn()?, key, group)
     }
 
+    fn key_slot(&self, _key: RedisKey) -> AnyResult<u64> {
+        Ok(0)
+    }
+
     fn key_node(&self, _key: RedisKey) -> AnyResult<Vec<RedisNode>> {
         let node = format!("{}:{}", self.conf.host, self.conf.port);
         Ok(vec![RedisNode {
-            id: self.base.id.clone(),
             node,
-            is_master: true,
-            slave_of_node: None,
+            ..RedisNode::default()
         }])
+    }
+
+    fn flush_db(&self) -> AnyResult<()> {
+        flush_db0(self.get_conn()?)
+    }
+
+    fn flush_all(&self) -> AnyResult<()> {
+        flush_all0(self.get_conn()?)
     }
 
     implement_pipeline_commands!(Pipeline);

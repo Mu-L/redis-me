@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { redisConfDict, valkeyConfDict } from '@/utils/redis.js'
 import { configTip as tips } from '@/utils/tip.js'
-import { meInvoke, meOk } from '@/utils/util.js'
+import { meCopy, meInvoke, meOk } from '@/utils/util.js'
 
 import NodeList from '../ext/NodeList.vue'
 
@@ -304,12 +304,14 @@ const rules = computed(() => ({
                 v-model="form.autoBroadcast"
                 :label="t('redisConfig.autoBroadcast')"
                 style="margin-left: 20px"
-                v-if="share.nodeList.length > 0" />
+                v-if="share.conn?.cluster" />
             </el-tooltip>
           </div>
         </el-form-item>
         <el-form-item :label="t('redisConfig.command')">
-          <el-text type="primary">{{ command }}</el-text>
+          <el-text :style="{ color: share.color }" @click="meCopy(command)">
+            {{ command }}
+          </el-text>
         </el-form-item>
       </el-form>
 

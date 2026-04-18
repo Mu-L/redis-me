@@ -208,10 +208,13 @@ api_model!(RedisInfo {
 });
 
 // 集群节点
-api_model!(RedisNode {
+api_model!(
+#[derive(Default)]
+RedisNode {
     id: String,
     node: String,
-    is_master: bool,
+    flags: String,
+    slots: Option<String>,
     slave_of_node: Option<String>
 });
 
