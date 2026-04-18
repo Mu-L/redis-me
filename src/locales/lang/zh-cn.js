@@ -261,7 +261,7 @@ export default {
     value: '值',
   },
 
-  nodeList: { placeholder: '指定节点【可选】', master: '主', slave: '从' },
+  nodeList: { placeholder: '指定节点【可选】'},
 
   keyBatch: {
     matchRequired: '键名表达式不能为空',

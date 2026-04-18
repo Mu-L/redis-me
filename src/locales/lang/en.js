@@ -268,7 +268,7 @@ export default {
     value: 'Value',
   },
 
-  nodeList: { placeholder: 'Node [Optional]', master: 'M', slave: 'S' },
+  nodeList: { placeholder: 'Node [Optional]' },
 
   keyBatch: {
     matchRequired: 'Key match expression required',
