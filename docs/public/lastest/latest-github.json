@@ -1,55 +1,55 @@
 {
-  "version": "2.8.0",
+  "version": "2.9.0",
   "notes": "See www.hepengju.com for more info",
-  "pub_date": "2026-04-16T14:39:52.675Z",
+  "pub_date": "2026-04-18T15:24:03.211Z",
   "platforms": {
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2RmZ1Z0blIzYWlJNWc0K1ZhYXQrd2JlVDhYMUJvSTFIMnkvcFF1dmJhb0F5ZWZlK0RwNUZMU0VsTUExa0ZBU0hVb05FTk5sY2tmY09Yc3Qvc1UyYVFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzQ5MjQ4CWZpbGU6UmVkaXNNRS5hcHAudGFyLmd6CnF5clJNR01vM011TjVxR1ZLWU1WUXVjRnh4TkdQN2JxenpKY093N21odkhCNExYbU9CNi8vOGFzTE1GRVJnQzZzTXlPRDZLMEZTcEpjUThxVGNoUEFnPT0K",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_x64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1lpdmlza1NSRGpVbFg0dkZZLzhwMFRRNWJUOGxXbmtoUm1nQ0VtTHd1NGJFb0JrMVgvVmVnMDNNeWJ0TnhtaWcvNFZ6em1Jekk5dFRlVjkyampiQWc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1NDk1CWZpbGU6UmVkaXNNRS5hcHAudGFyLmd6CkZZc1lvM0QvWlc4a1VKODdRZ29EOEI3c3VZZmVvWXh2aTBVTkpRNDg0VVdaTGVXdnNuUnRGaEZIZlM1aXFoOFpOQjZncEY0RG9JRmUzcTBlK25IUUJnPT0K",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_x64.app.tar.gz"
     },
     "darwin-x86_64-app": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2RmZ1Z0blIzYWlJNWc0K1ZhYXQrd2JlVDhYMUJvSTFIMnkvcFF1dmJhb0F5ZWZlK0RwNUZMU0VsTUExa0ZBU0hVb05FTk5sY2tmY09Yc3Qvc1UyYVFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzQ5MjQ4CWZpbGU6UmVkaXNNRS5hcHAudGFyLmd6CnF5clJNR01vM011TjVxR1ZLWU1WUXVjRnh4TkdQN2JxenpKY093N21odkhCNExYbU9CNi8vOGFzTE1GRVJnQzZzTXlPRDZLMEZTcEpjUThxVGNoUEFnPT0K",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_x64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1lpdmlza1NSRGpVbFg0dkZZLzhwMFRRNWJUOGxXbmtoUm1nQ0VtTHd1NGJFb0JrMVgvVmVnMDNNeWJ0TnhtaWcvNFZ6em1Jekk5dFRlVjkyampiQWc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1NDk1CWZpbGU6UmVkaXNNRS5hcHAudGFyLmd6CkZZc1lvM0QvWlc4a1VKODdRZ29EOEI3c3VZZmVvWXh2aTBVTkpRNDg0VVdaTGVXdnNuUnRGaEZIZlM1aXFoOFpOQjZncEY0RG9JRmUzcTBlK25IUUJnPT0K",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_x64.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1FnMnViOHVlR0k4dVU3d2JvcGlSWS81clBQamNxMjlzN1NIVGU0VHQyVkx1ZU01TWhSQm9YT2dVWWlVeEk1R2xOYS9pb1ZXTVpPbFFCUmFXSi9LVnc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzQ5MjQ5CWZpbGU6UmVkaXNNRS5hcHAudGFyLmd6CjR6RENYM2c3RGd0cTBwTDlmeDJjMW1PVWNlY2xLWk9EdlFpOXBmNzIvYmtEYU4zZnRrNTVlZ3Jqb1pxVkZGSWJoQnZ3ejFhbVVJN2lqVHhZTkVqdUN3PT0K",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2ZMRkl2ekgvcm1KL1BMQjdJWXZHT2hBSlpwenJ6eElLdVZZdEFjR3NBRTY4RlRqTkg0dnVzSFVRb3JacHpyYndUQjFkSno1OFAzV0FBbW1uZkk2eXdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1NTY0CWZpbGU6UmVkaXNNRS5hcHAudGFyLmd6CkZod0wwd2JLOUtNSWlCbEpvZGRzZXpUOTl3ZXpaYlpsd0grTmcxdGw0bUdHWFFxRHlHeVhrNUozc1F6amZLQ1paWjM1RW92bWZCQmM4QTNrQS9UU0R3PT0K",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_aarch64.app.tar.gz"
     },
     "darwin-aarch64-app": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1FnMnViOHVlR0k4dVU3d2JvcGlSWS81clBQamNxMjlzN1NIVGU0VHQyVkx1ZU01TWhSQm9YT2dVWWlVeEk1R2xOYS9pb1ZXTVpPbFFCUmFXSi9LVnc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzQ5MjQ5CWZpbGU6UmVkaXNNRS5hcHAudGFyLmd6CjR6RENYM2c3RGd0cTBwTDlmeDJjMW1PVWNlY2xLWk9EdlFpOXBmNzIvYmtEYU4zZnRrNTVlZ3Jqb1pxVkZGSWJoQnZ3ejFhbVVJN2lqVHhZTkVqdUN3PT0K",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_aarch64.app.tar.gz"
-    },
-    "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2F6TDlSMi9YMk80M3MxUHBVTGdpdkdpTlIyWnJ5Rk1BUUhGTkxYL0pYbldMNEZUMncwVER5ZmMyV1ptc2daa3RsL3g4QzJYWW1ZZkpuandZQXY4T3d3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzQ5NDk4CWZpbGU6UmVkaXNNRV8yLjguMF94NjQtc2V0dXAuZXhlCkJ0UzNqREhpbGtFTW1kNEdXd1RkeHpYYXVsTVFXM2F0Y01xTExxYmRNNnMxRzdjQVNVWi9KLzRWeDF2V1ZqdUR5cWNCSmdYTjRNRFIwUm1iaWkzR0F3PT0K",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_2.8.0_x64-setup.exe"
-    },
-    "windows-x86_64-nsis": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2F6TDlSMi9YMk80M3MxUHBVTGdpdkdpTlIyWnJ5Rk1BUUhGTkxYL0pYbldMNEZUMncwVER5ZmMyV1ptc2daa3RsL3g4QzJYWW1ZZkpuandZQXY4T3d3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzQ5NDk4CWZpbGU6UmVkaXNNRV8yLjguMF94NjQtc2V0dXAuZXhlCkJ0UzNqREhpbGtFTW1kNEdXd1RkeHpYYXVsTVFXM2F0Y01xTExxYmRNNnMxRzdjQVNVWi9KLzRWeDF2V1ZqdUR5cWNCSmdYTjRNRFIwUm1iaWkzR0F3PT0K",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_2.8.0_x64-setup.exe"
-    },
-    "windows-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2RyVE1Oak51UzQ5Vlo2T0cxQUozTUtYMEdBL1RvL3FqM1RSY1ErdFUxTjlUSkJVOTBmaUVoMStKOTZLQm5HMjhxclQxZ240b0ZLU2I0RURHc2N1RGdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzQ5NTUwCWZpbGU6UmVkaXNNRV8yLjguMF9hcm02NC1zZXR1cC5leGUKWXRicW9rVWRVTDRuSFpFQ3UwczdRbW1aU2VQTnRUQkYzaDdvdFZJeGp6ekJRMGtHVzhiL3dRdGwyL3p3c3JTSmkwa1QrQ2dCbThiY25oby9Bb3lYQ3c9PQo=",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_2.8.0_arm64-setup.exe"
-    },
-    "windows-aarch64-nsis": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2RyVE1Oak51UzQ5Vlo2T0cxQUozTUtYMEdBL1RvL3FqM1RSY1ErdFUxTjlUSkJVOTBmaUVoMStKOTZLQm5HMjhxclQxZ240b0ZLU2I0RURHc2N1RGdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzQ5NTUwCWZpbGU6UmVkaXNNRV8yLjguMF9hcm02NC1zZXR1cC5leGUKWXRicW9rVWRVTDRuSFpFQ3UwczdRbW1aU2VQTnRUQkYzaDdvdFZJeGp6ekJRMGtHVzhiL3dRdGwyL3p3c3JTSmkwa1QrQ2dCbThiY25oby9Bb3lYQ3c9PQo=",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_2.8.0_arm64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2ZMRkl2ekgvcm1KL1BMQjdJWXZHT2hBSlpwenJ6eElLdVZZdEFjR3NBRTY4RlRqTkg0dnVzSFVRb3JacHpyYndUQjFkSno1OFAzV0FBbW1uZkk2eXdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1NTY0CWZpbGU6UmVkaXNNRS5hcHAudGFyLmd6CkZod0wwd2JLOUtNSWlCbEpvZGRzZXpUOTl3ZXpaYlpsd0grTmcxdGw0bUdHWFFxRHlHeVhrNUozc1F6amZLQ1paWjM1RW92bWZCQmM4QTNrQS9UU0R3PT0K",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_aarch64.app.tar.gz"
     },
     "linux-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2UwbHl2ck81NExFVGdjTFZJSFlNWVFaTzFlajQ0Z3lpb2ZIQ2FqbkdFMjBiOExZNlJpbFkvZ0RrNUVUZStYL3dxOFVSaVpnenoyZ3BtdXIvTWdHY1FrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzUwMzgzCWZpbGU6UmVkaXNNRV8yLjguMF9hbWQ2NC5BcHBJbWFnZQpJV1V5TWJqZDJWc3U2bVVudzNpV1JwWDU3b1o5dW5jN1VFT2J6Z01NeHZnTU5qQ3FueThIaU9KbStFVmVOMUpiTVRBb3FQcWdYM3lUbFVBb3plV1RDUT09Cg==",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_2.8.0_amd64.AppImage"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1hpWGE3aGZ6ZHhyYUZsUDdidU9YWjBIZERaZkh3Z3dYSUVSeUExY2oyT0F6dWhzamlPa3FvNjdpeGMyMDZ1c2ZTNngxZjFOL3NUdkJZemluYjRqZXdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1NzM4CWZpbGU6UmVkaXNNRV8yLjkuMF9hbWQ2NC5BcHBJbWFnZQpDRGI3eFNNM1Q4SXlyUG5LMzJmWDVRQytHMnJKUm91WW90Y24za1c1Yml1RmdrOVJ2aWFMbEhwT1RvMEdvOVRpdlozQ25ETitqSDYxMmhKQ3ptY2lDUT09Cg==",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_2.9.0_amd64.AppImage"
     },
     "linux-x86_64-appimage": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2UwbHl2ck81NExFVGdjTFZJSFlNWVFaTzFlajQ0Z3lpb2ZIQ2FqbkdFMjBiOExZNlJpbFkvZ0RrNUVUZStYL3dxOFVSaVpnenoyZ3BtdXIvTWdHY1FrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzUwMzgzCWZpbGU6UmVkaXNNRV8yLjguMF9hbWQ2NC5BcHBJbWFnZQpJV1V5TWJqZDJWc3U2bVVudzNpV1JwWDU3b1o5dW5jN1VFT2J6Z01NeHZnTU5qQ3FueThIaU9KbStFVmVOMUpiTVRBb3FQcWdYM3lUbFVBb3plV1RDUT09Cg==",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_2.8.0_amd64.AppImage"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1hpWGE3aGZ6ZHhyYUZsUDdidU9YWjBIZERaZkh3Z3dYSUVSeUExY2oyT0F6dWhzamlPa3FvNjdpeGMyMDZ1c2ZTNngxZjFOL3NUdkJZemluYjRqZXdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1NzM4CWZpbGU6UmVkaXNNRV8yLjkuMF9hbWQ2NC5BcHBJbWFnZQpDRGI3eFNNM1Q4SXlyUG5LMzJmWDVRQytHMnJKUm91WW90Y24za1c1Yml1RmdrOVJ2aWFMbEhwT1RvMEdvOVRpdlozQ25ETitqSDYxMmhKQ3ptY2lDUT09Cg==",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_2.9.0_amd64.AppImage"
     },
     "linux-x86_64-deb": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL2ExazNIYUJ6N2l0TVRYa2V3enZQMk4zUFh5ZlZ2SXV3RnhUc1o3dkdmbGtnSDVMQkl5WXZ4L1ZiSXhETWdtZnpYRnh6QkM0K0tZK1FuRXlaVWhDbVFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzUwMzgzCWZpbGU6UmVkaXNNRV8yLjguMF9hbWQ2NC5kZWIKMFhoY2ZtczBsR0pqQ2xxZ0RmQjEzQnE1aG80aE9MTW1jRVNSR1dtOGJoWW4rUTFEbGlvbG5LejNUVDI4RWFjeVhCaTljd01xZEk3bUVVbWVYTzBZQVE9PQo=",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME_2.8.0_amd64.deb"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1ErcVZ5OTZ2c3dzUlpwWmNUMGwvYVpIODFjeUIrMnB1U1h4NVNFWE9mVDJWTG0vejRUbEd4K2ZEdHJ3ZUYvY1Z0cjZVd1htczdXd0c4cTh6dGtPTXc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1NzM4CWZpbGU6UmVkaXNNRV8yLjkuMF9hbWQ2NC5kZWIKN1VuNXdVdUMyUlJjMEk1cUYrRGxEQ0Y2WUVmdVBjVFZrOXM0eTVaSkVvZDNPUnBZeXJVTzRXUlNEUHpTaGFlQUlHc1pVbUNmRlNiS0xvdnJkOEs4RHc9PQo=",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_2.9.0_amd64.deb"
     },
     "linux-x86_64-rpm": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1lRU1NQaFNZMktuVUFsMTdLZjJDTm1BM2thUzZnQU1Fd1d5SDBBTGsvenVKa3hNQzBmUEtkMGpvOGVmUlMxM2dHTndzVWovNVBoUzNPTTZENHdKbXdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2MzUwMzgzCWZpbGU6UmVkaXNNRS0yLjguMC0xLng4Nl82NC5ycG0KRFZKbEF0U1lMQytiZHQ1RWk2ZFZhSzBKTmtiRkQ3YitJc2k2bUpXMHFKL2xEMEdERlIxaWxBeHBYK2QvbXBUYzZ0Z2Y4eWg3Vlg3dm1ONG9vRVhJQ3c9PQo=",
-      "url": "https://github.com/hepengju/redis-me/releases/download/v2.8.0/RedisME-2.8.0-1.x86_64.rpm"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1VUczVpVE9SZU01aFBUcEpRSnQwSmNxZEs3WG5McXhFMFJyRHJTWXpzdlJuUzloVW5ETXhUYWpWNEVuUEJZdDhicFZZUlNyNng4YklBMWlmeE1GK2c4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1NzM4CWZpbGU6UmVkaXNNRS0yLjkuMC0xLng4Nl82NC5ycG0KeU5tdmZvWmNwKzBITVNPazQvRTQxZmN3R1hMbTBFMjdjbDNLOHovSnlvaUFkV2syQ2tEYXhoUVpQWWJsZ0dIQmtvaWhuRktEbUpPR1F5N0pYMDRxQ2c9PQo=",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME-2.9.0-1.x86_64.rpm"
+    },
+    "windows-aarch64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1V6THRPMFBvYXhFM0Z3blQrT3VtTVU5eG9UejFpbm15aDAwWC9LSnBBMFhqdURFUnVqNHgvT3RRNnc3WEV2RFhvNkh1TXh6RnFKUGZ2Qi82cFJOdUF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1Nzg3CWZpbGU6UmVkaXNNRV8yLjkuMF9hcm02NC1zZXR1cC5leGUKell5Si9Cd1NhYWZRQ05aY1RqNmxrdEV1NDNTUXlNZW5OTlJ4L3V6L0JzcW1wYnE4a1dIT29lVlMxcmlXM0laNkpXb1F1OWNGM1IyWTJYbFpibUJ3QUE9PQo=",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_2.9.0_arm64-setup.exe"
+    },
+    "windows-aarch64-nsis": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1V6THRPMFBvYXhFM0Z3blQrT3VtTVU5eG9UejFpbm15aDAwWC9LSnBBMFhqdURFUnVqNHgvT3RRNnc3WEV2RFhvNkh1TXh6RnFKUGZ2Qi82cFJOdUF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1Nzg3CWZpbGU6UmVkaXNNRV8yLjkuMF9hcm02NC1zZXR1cC5leGUKell5Si9Cd1NhYWZRQ05aY1RqNmxrdEV1NDNTUXlNZW5OTlJ4L3V6L0JzcW1wYnE4a1dIT29lVlMxcmlXM0laNkpXb1F1OWNGM1IyWTJYbFpibUJ3QUE9PQo=",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_2.9.0_arm64-setup.exe"
+    },
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1ZsazR2dmI0cWZycGJpZDFyTExmRmkrMGRPRG85WUJJQm85Q3pSUHFGVC9vZk1VMFNiV1gvempIdHRKeHFzaGJhbjl1dW45MGVONS92SEVOMzJRZEEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1ODQwCWZpbGU6UmVkaXNNRV8yLjkuMF94NjQtc2V0dXAuZXhlCi90aHZkZ1pKbnh2bFZtUG91RGdsb0VyRGZOT0JtYjNRektzS2JKeTJuL1FNbngxU2MxL01SQzVEUUFpZytFOWkwSEhIRm9Rbk4vNC92bHg4eUxXNER3PT0K",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_2.9.0_x64-setup.exe"
+    },
+    "windows-x86_64-nsis": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMFViKzlOQXVhL1ZsazR2dmI0cWZycGJpZDFyTExmRmkrMGRPRG85WUJJQm85Q3pSUHFGVC9vZk1VMFNiV1gvempIdHRKeHFzaGJhbjl1dW45MGVONS92SEVOMzJRZEEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2NTI1ODQwCWZpbGU6UmVkaXNNRV8yLjkuMF94NjQtc2V0dXAuZXhlCi90aHZkZ1pKbnh2bFZtUG91RGdsb0VyRGZOT0JtYjNRektzS2JKeTJuL1FNbngxU2MxL01SQzVEUUFpZytFOWkwSEhIRm9Rbk4vNC92bHg4eUxXNER3PT0K",
+      "url": "https://github.com/hepengju/redis-me/releases/download/v2.9.0/RedisME_2.9.0_x64-setup.exe"
     }
   }
 }
