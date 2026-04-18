@@ -161,12 +161,13 @@ pub fn field_scan0(
         let mut ready_count = 0;
         loop {
             // 优化字段扫描个数
-            let mut count = param.count;
-            if param.load_all {
-                count = 1000
+            let count = if param.load_all {
+                1000
             } else if param.count <= 0 {
-                count = 20
-            }
+                20
+            } else {
+                param.count
+            };
 
             let cmd = field_scan_1_cmd(&key_type, &key, cc.now_cursor, count)?;
             let (next_cursor, new_value): (u64, Value) = cmd.query(&mut conn)?;

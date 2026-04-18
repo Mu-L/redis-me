@@ -417,7 +417,7 @@ impl MeClient for MeSingle {
     fn key_slot(&self, _key: RedisKey) -> AnyResult<u64> {
         Ok(0)
     }
-    
+
     fn key_node(&self, _key: RedisKey) -> AnyResult<Vec<RedisNode>> {
         let node = format!("{}:{}", self.conf.host, self.conf.port);
         Ok(vec![RedisNode {
