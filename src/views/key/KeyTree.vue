@@ -167,7 +167,7 @@ function buildTree(keyList) {
       // hepengju 这种键直接返回
       if (index === parts.length - 1) {
         // 叶子节点显示简称或全称, 保存原始值
-        const label = keyLabelShort.value ? part: rk.key
+        const label = keyLabelShort.value ? part : rk.key
         let node = { id: TREE_KEY_ID_PREFIX + rk.key, label, children: [], redisKey: rk }
         nowLevel.push(node)
         return
@@ -289,9 +289,11 @@ const keyLabelShort = computed(() => meTauri.settings.keyLabel === 'short' ?? tr
         :item-size="keyHeight"
         :show-checkbox="showCheckbox">
         <template #default="{ node }">
-          <div style="width: 100%; justify-content: flex-start; align-items: center"
-               v-if="node.isLeaf" :class="getNodeClass(node)"
-               class="me-flex">
+          <div
+            style="width: 100%; justify-content: flex-start; align-items: center"
+            v-if="node.isLeaf"
+            :class="getNodeClass(node)"
+            class="me-flex">
             <Suspense>
               <template #default>
                 <KeyTypeTag :conn-id="share.conn.id" :redis-key="node.data.redisKey" />
@@ -300,7 +302,7 @@ const keyLabelShort = computed(() => meTauri.settings.keyLabel === 'short' ?? tr
                 <el-tag size="small" disable-transitions type="info" effect="dark">?</el-tag>
               </template>
             </Suspense>
-            <div style="margin-left: 5px;">
+            <div style="margin-left: 5px">
               <span v-if="node.label">{{ node.label }}</span>
               <span v-else style="color: var(--el-color-info-light-3)">[EMPTY]</span>
             </div>

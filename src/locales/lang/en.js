@@ -81,7 +81,8 @@ export default {
 
     keyHeight: 'Key Height',
     keyLabel: 'Key Name',
-    keyLabelTip: 'Display of the names of child node keys when keys are presented in a tree structure',
+    keyLabelTip:
+      'Display of the names of child node keys when keys are presented in a tree structure',
     keyLabelFull: 'Full',
     keyLabelShort: 'Short',
   },

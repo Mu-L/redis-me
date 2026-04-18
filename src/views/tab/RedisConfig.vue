@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { redisConfDict, valkeyConfDict } from '@/utils/redis.js'
 import { configTip as tips } from '@/utils/tip.js'
-import {meCopy, meInvoke, meOk} from '@/utils/util.js'
+import { meCopy, meInvoke, meOk } from '@/utils/util.js'
 
 import NodeList from '../ext/NodeList.vue'
 
@@ -309,8 +309,8 @@ const rules = computed(() => ({
           </div>
         </el-form-item>
         <el-form-item :label="t('redisConfig.command')">
-          <el-text :style="{color: share.color}" @click="meCopy(command)">
-            {{command}}
+          <el-text :style="{ color: share.color }" @click="meCopy(command)">
+            {{ command }}
           </el-text>
         </el-form-item>
       </el-form>

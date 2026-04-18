@@ -99,7 +99,7 @@ const moreDefaultSettings = {
   keyShow: 'tree',
   keySort: 'count',
   keyHeight: 20,
-  keyLabel: 'short'
+  keyLabel: 'short',
 }
 
 // 任何一个字段不同则视为不同
@@ -265,32 +265,32 @@ function toDefault(name) {
         <el-form-item>
           <template #label>
             <me-icon
-                :name="t('setting.keyLabel')"
-                icon="el-icon-question-filled"
-                :info="t('setting.keyLabelTip')"
-                placement="top" />
+              :name="t('setting.keyLabel')"
+              icon="el-icon-question-filled"
+              :info="t('setting.keyLabelTip')"
+              placement="top" />
           </template>
           <el-segmented
-              v-model="settings.keyLabel"
-              :options="keyLabelList"
-              :disabled="settings.keyShow !== 'tree'" />
+            v-model="settings.keyLabel"
+            :options="keyLabelList"
+            :disabled="settings.keyShow !== 'tree'" />
         </el-form-item>
       </el-row>
 
       <el-row class="me-flex">
         <el-form-item :label="t('setting.keyHeight')">
           <el-input-number
-              v-model="settings.keyHeight"
-              :min="16"
-              :max="28"
-              style="width: 100px"
-              align="center" />
+            v-model="settings.keyHeight"
+            :min="16"
+            :max="28"
+            style="width: 100px"
+            align="center" />
         </el-form-item>
         <el-form-item :label="t('setting.keySort')">
           <el-segmented
-              v-model="settings.keySort"
-              :options="keySortList"
-              :disabled="settings.keyShow !== 'tree'" />
+            v-model="settings.keySort"
+            :options="keySortList"
+            :disabled="settings.keyShow !== 'tree'" />
         </el-form-item>
       </el-row>
     </el-form>

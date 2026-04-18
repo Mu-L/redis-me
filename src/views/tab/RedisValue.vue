@@ -645,7 +645,7 @@ const textLength = computed(() => {
 
           <!-- 保存 -->
           <me-button
-              :disabled="!(redisValue?.newValue)"
+            :disabled="!redisValue?.newValue"
             v-if="canSave"
             :info="t('save')"
             type="primary"
