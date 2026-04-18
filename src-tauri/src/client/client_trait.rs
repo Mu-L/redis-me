@@ -156,7 +156,15 @@ pub fn field_scan0(
         let mut scan_value = FieldScanValue::default();
         let mut ready_count = 0;
         loop {
-            let cmd = field_scan_1_cmd(&key_type, &key, cc.now_cursor, param.count)?;
+            // 优化字段扫描个数
+            let mut count = param.count;
+            if param.load_all {
+                count = 1000
+            } else if param.count <= 0 {
+                count = 20
+            }
+
+            let cmd = field_scan_1_cmd(&key_type, &key, cc.now_cursor, count)?;
             let (next_cursor, new_value): (u64, Value) = cmd.query(&mut conn)?;
             let new_count = field_scan_2_value(
                 &mut conn,
@@ -347,7 +355,6 @@ pub fn field_scan_1_cmd(
     // SSCAN key cursor [MATCH pattern] [COUNT count]
     // ZSCAN key cursor [MATCH pattern] [COUNT count]
     let mut cmd = redis::cmd(scan_command);
-    let count = if count == 0 { 10 } else { count };
     cmd.arg(key).arg(cursor).arg("count").arg(count);
     Ok(cmd)
 }
@@ -364,14 +371,14 @@ pub fn field_scan_2_value(
         ValueType::Hash => {
             let value: Vec<(Vec<u8>, Vec<u8>)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            scan_value.hash.extend(ui_hash_value(&value));
+            let mut new_value = ui_hash_value(&value);
 
             // 补充hash字段ttl
             if capabilities.hash_field_ttl {
-                let keys: Vec<&Vec<u8>> = value.iter().map(|(k, _)| k).collect();
-                let ttl_values: Vec<IntegerReplyOrNoOp> = conn.httl(key, keys)?;
+                let fields: Vec<&Vec<u8>> = value.iter().map(|(f, _)| f).collect();
+                let ttl_values: Vec<IntegerReplyOrNoOp> = conn.httl(key, fields)?;
 
-                for (item, ttl_reply) in scan_value.hash.iter_mut().zip(ttl_values) {
+                for (item, ttl_reply) in new_value.iter_mut().zip(ttl_values) {
                     item.ttl = match ttl_reply {
                         IntegerReplyOrNoOp::IntegerReply(ttl) => Some(ttl as i64),
                         IntegerReplyOrNoOp::NotExists => Some(-2),
@@ -380,6 +387,8 @@ pub fn field_scan_2_value(
                     };
                 }
             }
+
+            scan_value.hash.extend(new_value);
             new_count
         }
         ValueType::Set => {
