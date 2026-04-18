@@ -94,10 +94,7 @@ watch(
         share.tabName = 'info'
         share.capabilities = await meInvoke('connect', { id: newConn.id })
         connPrepared.value = true
-        const data = await meInvoke('node_list', { id: share.conn.id })
-        // 节点列表排序: 主节点在前面，相同类型节点按照node升序
-        const nodeList = sortBy(data, 'node').reverse()
-        share.nodeList = sortBy(nodeList, 'isMaster').reverse()
+        share.nodeList = await meInvoke('node_list', { id: share.conn.id })
       }
     } catch (e) {
       // 如果从连接列表页进入的，则返回连接列表页
