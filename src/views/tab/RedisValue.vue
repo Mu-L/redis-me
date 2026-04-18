@@ -355,7 +355,13 @@ const textLength = computed(() => {
         redisValue.value.value.length
 })
 
-// 查看此键所在集群节点
+// 查看此键所在节点
+async function showSlot() {
+  const data = await meInvoke('key_slot', { id: share.conn.id, key: share.redisKey })
+  meOk(data, true, t('redisValue.slotTitle'))
+}
+
+// 查看此键所在节点
 async function showLocation() {
   const data = await meInvoke('key_node', { id: share.conn.id, key: share.redisKey })
   const msg = data.map(item => item.node + ' | ' + item.flags.toUpperCase()).join('<br>')
@@ -609,10 +615,19 @@ async function showLocation() {
             @click="meCopy(showValue)"
             placement="top-start" />
 
-          <!-- 键所在节点信息 -->
+          <!-- 键所在槽位和节点信息 -->
           <me-icon
             v-if="share.conn.cluster"
-            style="font-size: 18px; margin-left: 5px"
+            style="margin-left: 5px"
+            :info="t('redisValue.slotHint')"
+            class="icon-btn"
+            icon="me-icon-slot"
+            @click="showSlot"
+            placement="top-start" />
+
+          <me-icon
+            v-if="share.conn.cluster"
+            style="margin-left: 5px"
             :info="t('redisValue.locationHint')"
             class="icon-btn"
             icon="el-icon-location"
