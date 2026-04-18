@@ -130,14 +130,21 @@ impl MeClient for MeCluster {
 
                 cc.now_cursor = next_cursor;
                 if next_cursor == 0 {
+                    cc.ready_nodes.push(node.clone());
+
+                    // 单个节点扫描完了就判断1次: 避免每个节点都800多个，导致返回2400个
+                    if !param.load_all && keys.len() >= param.count as usize {
+                        break 'outer;
+                    }
+
                     break 'inner;
                 }
 
-                if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
+                // 单个节点没有扫描完，也判断1次
+                if !param.load_all && keys.len() >= param.count as usize {
                     break 'outer;
                 }
             }
-            cc.ready_nodes.push(node.clone());
         }
 
         // 判断是否扫描完毕
