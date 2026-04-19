@@ -31,7 +31,7 @@ onUnmounted(() => bus.off(KEY_REFRESH, refreshKey))
 
 // 共享数据
 const share = inject('share')
-const canEdit = computed(() => !share.readonly && displayFormat.value === 'UTF8')
+const canEdit = computed(() => !share.readonly)
 const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value))
 
 // 值的显示方式
@@ -215,21 +215,22 @@ function renameKey() {
 // 保存值
 async function setValue() {
   let value = redisValue.value.newValue
-  const params = {
-    key: share.redisKey,
-    ttl: redisValue.value.ttl,
-    keyType: redisValue.value.type,
-  }
 
   // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
   try {
-    // 支持json5格式输入
-    if (params.keyType === 'json') {
-      value = meJsonNormal(value)
+    if (jsonType.value) {
+      value = meJsonNormal(value) // 支持json5格式输入
     }
   } catch {}
 
-  await meInvoke('set', { id: share.conn.id, ...params, value })
+  const param = {
+    key: share.redisKey,
+    value,
+    ttl: redisValue.value.ttl,
+    keyType: redisValue.value.type,
+    inputFormat: displayFormat.value.toLowerCase(),
+  }
+  await meInvoke('set', { id: share.conn.id, param })
   meOk(t('saveOk'))
   await refreshKey()
 }
