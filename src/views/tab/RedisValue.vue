@@ -369,7 +369,7 @@ async function showLocation() {
 }
 
 // 值显示方式: string(utf-8), binary, hex等
-// const displayFormat = ref('Raw')
+const displayFormat = ref('UTF8')
 </script>
 
 <template>
@@ -646,17 +646,14 @@ async function showLocation() {
         </div>
 
         <div class="me-flex" style="position: relative">
-          <!-- 查看方式
-          <el-select v-model="displayFormat" style="width: 90px; margin: 0 5px">
+          <el-select v-model="displayFormat" style="width: 90px; margin-right: 10px">
             <template #header>
-              <el-text style="font-weight: bold">查看方式</el-text>
+              <el-text style="font-weight: bold">{{t('redisValue.viewAs')}}</el-text>
             </template>
-            <el-option value="Raw"/>
+            <el-option value="UTF8"/>
             <el-option value="Hex"/>
             <el-option value="Binary"/>
           </el-select>
-          -->
-
           <!-- 加载更多、加载全部 -->
           <div class="me-flex" style="width: 45px; margin-right: 10px" v-if="showMore">
             <me-icon
@@ -778,13 +775,14 @@ async function showLocation() {
   }
 
   .value-footer {
-    height: 32px;
+    height: 30px;
     font-size: 20px;
 
     :deep(.el-select__wrapper) {
       min-height: 0;
-      height: 28px;
+      height: 30px;
       padding: 4px 4px 4px 10px;
+      //box-shadow: 0 0 0 1px var(--el-border-color);
     }
 
     :deep(.el-select-dropdown__item) {

@@ -540,6 +540,7 @@ export default {
     textMemory: 'Memory Usage: ',
     textLength: 'Bytes Length: ',
     textEntries: 'Entries: ',
+    viewAs: 'View As',
   },
 
   redisChart: {

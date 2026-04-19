@@ -735,8 +735,8 @@ function editDbName(db) {
       min-height: 0;
       height: 30px;
       padding: 4px 4px 4px 10px;
-      border-bottom-left-radius: 0;
-      box-shadow: 0 0 0 1px var(--el-border-color);
+      //border-bottom-left-radius: 0;
+      //box-shadow: 0 0 0 1px var(--el-border-color);
     }
 
     .tip {

@@ -535,6 +535,7 @@ export default {
     textMemory: '内存占用：',
     textLength: '字节长度：',
     textEntries: '条目：',
+    viewAs: '查看方式',
   },
 
   redisChart: {
