@@ -648,7 +648,11 @@ const displayFormat = ref('UTF8')
         </div>
 
         <div class="me-flex" style="position: relative">
-          <el-select v-model="displayFormat" style="width: 90px; margin-right: 10px" @change="refreshKey(false)">
+          <el-select
+            v-model="displayFormat"
+            style="width: 90px; margin-right: 10px"
+            v-show="!(jsonType || streamType)"
+            @change="refreshKey(false)">
             <template #header>
               <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
             </template>
