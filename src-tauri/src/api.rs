@@ -3,6 +3,7 @@ use crate::utils::model::*;
 use crate::utils::util::*;
 use crate::{api_commands, api_commands2};
 use std::collections::HashMap;
+use tauri::utils::platform::current_exe;
 use tauri::{AppHandle, command};
 
 // 默认示例
@@ -10,6 +11,15 @@ use tauri::{AppHandle, command};
 #[command]
 pub fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+// 应用程序目录
+#[command]
+pub fn app_dir() -> ApiResult<String> {
+    match current_exe() {
+        Ok(path) => Ok(path.parent().unwrap().to_string_lossy().to_string()),
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 // 测试连接
