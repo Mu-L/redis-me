@@ -454,6 +454,7 @@ api_model!(RedisFieldAdd {
     key_type: String,
     ttl: i64,
     value: String, // 字段类型为String时的值
+    input_format: Option<DisplayFormat>, // 输入格式（Hex/Binary/Base64 等）
 
     list_push_method: String, // lpush, rpush
     field_value_list: Vec<RedisFieldValue>,
@@ -469,6 +470,7 @@ api_model!(RedisFieldSet {
     field_value: String,
     field_score: f64,
     field_ttl: i64, // 字段 TTL（秒），仅 Redis/Valkey >= 7.4
+    input_format: Option<DisplayFormat>, // 输入格式（Hex/Binary/Base64 等）
 });
 
 // 字段值

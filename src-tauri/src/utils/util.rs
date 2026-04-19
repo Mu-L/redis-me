@@ -119,6 +119,39 @@ pub fn format_bytes(bytes: &[u8], format: &DisplayFormat) -> String {
     }
 }
 
+/// 解析指定格式的字符串为字节数组
+pub fn parse_bytes(input: &str, format: &DisplayFormat) -> AnyResult<Vec<u8>> {
+    match format {
+        DisplayFormat::Hex => {
+            // 直接解析十六进制
+            if input.len() % 2 != 0 {
+                bail!("Invalid hex string: odd number of characters");
+            }
+            (0..input.len())
+                .step_by(2)
+                .map(|i| u8::from_str_radix(&input[i..i + 2], 16)
+                    .map_err(|e| anyhow::anyhow!("Invalid hex character: {}", e)))
+                .collect()
+        }
+        DisplayFormat::Binary => {
+            // 直接解析二进制
+            if input.len() % 8 != 0 {
+                bail!("Invalid binary string: length not multiple of 8");
+            }
+            (0..input.len())
+                .step_by(8)
+                .map(|i| u8::from_str_radix(&input[i..i + 8], 2)
+                    .map_err(|e| anyhow::anyhow!("Invalid binary character: {}", e)))
+                .collect()
+        }
+        DisplayFormat::Base64 => {
+            BASE64_STANDARD.decode(input)
+                .map_err(|e| anyhow::anyhow!("Base64 decode error: {}", e))
+        }
+        DisplayFormat::UTF8 => Ok(input.as_bytes().to_vec()),
+    }
+}
+
 // 辅助函数
 pub fn tuple_to_key_size(keys: Vec<(Vec<u8>, u64, String)>) -> Vec<RedisKeySize> {
     let mut key_list: Vec<RedisKeySize> = keys.into_iter().map(RedisKeySize::from).collect();

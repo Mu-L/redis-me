@@ -544,31 +544,48 @@ pub fn field_add0(
     }
 
     let fv_list = param.field_value_list;
+    // 获取输入格式，默认为 UTF8
+    let input_format = param.input_format.as_ref().cloned().unwrap_or_default();
 
     match key_type {
-        ValueType::String => conn.set(&key, &param.value)?,
-        ValueType::Hash => fv_list
-            .iter()
-            .try_for_each(|f| conn.hset(&key, &f.field_key, &f.field_value))?,
+        ValueType::String => {
+            // 解析输入格式为字节，然后写入
+            let bytes = parse_bytes(&param.value, &input_format)?;
+            conn.set(&key, &bytes)?
+        }
+        ValueType::Hash => {
+            for f in &fv_list {
+                let key_bytes = parse_bytes(&f.field_key, &input_format)?;
+                let value_bytes = parse_bytes(&f.field_value, &input_format)?;
+                let _: () = conn.hset(&key, &key_bytes, &value_bytes)?;
+            }
+        }
         ValueType::List => {
             if "lpush" == param.list_push_method {
                 // 插入头部时保持原有顺序
-                fv_list
-                    .iter()
-                    .rev()
-                    .try_for_each(|fv| conn.lpush(&key, &fv.field_value))?;
+                for f in fv_list.iter().rev() {
+                    let bytes = parse_bytes(&f.field_value, &input_format)?;
+                    let _: () = conn.lpush(&key, &bytes)?;
+                }
             } else {
-                fv_list
-                    .iter()
-                    .try_for_each(|f| conn.rpush(&key, &f.field_value))?;
+                for f in &fv_list {
+                    let bytes = parse_bytes(&f.field_value, &input_format)?;
+                    let _: () = conn.rpush(&key, &bytes)?;
+                }
             }
         }
-        ValueType::Set => fv_list
-            .iter()
-            .try_for_each(|f| conn.sadd(&key, &f.field_value))?,
-        ValueType::ZSet => fv_list
-            .iter()
-            .try_for_each(|f| conn.zadd(&key, &f.field_value, f.field_score))?,
+        ValueType::Set => {
+            for f in &fv_list {
+                let bytes = parse_bytes(&f.field_value, &input_format)?;
+                let _: () = conn.sadd(&key, &bytes)?;
+            }
+        }
+        ValueType::ZSet => {
+            for f in &fv_list {
+                let bytes = parse_bytes(&f.field_value, &input_format)?;
+                let _: () = conn.zadd(&key, &bytes, f.field_score)?;
+            }
+        }
         ValueType::Stream => {
             let items: Vec<(String, String)> = fv_list
                 .iter()
@@ -608,26 +625,35 @@ pub fn field_set0(
 ) -> AnyResult<()> {
     let key: RedisKey = param.key;
     let key_type: ValueType = conn.key_type(&key)?;
+    // 获取输入格式，默认为 UTF8
+    let input_format = param.input_format.as_ref().cloned().unwrap_or_default();
 
     match key_type {
         ValueType::Hash => {
             // HSET 会清除字段级的 TTL，将其置为 -1（永久）。因此只需要处理>0的场景
-            let _: () = conn.hset(&key, &param.field_key, param.field_value)?;
+            let key_bytes = parse_bytes(&param.field_key, &input_format)?;
+            let value_bytes = parse_bytes(&param.field_value, &input_format)?;
+            let _: () = conn.hset(&key, &key_bytes, &value_bytes)?;
             if capabilities.hash_field_ttl && param.field_ttl > 0 {
                 let _: () =
-                    conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, param.field_key)?;
+                    conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, &key_bytes)?;
             }
         }
         ValueType::List => {
-            let _: () = conn.lset(&key, param.field_index, param.field_value)?;
+            let bytes = parse_bytes(&param.field_value, &input_format)?;
+            let _: () = conn.lset(&key, param.field_index, &bytes)?;
         }
         ValueType::Set => {
-            let _: () = conn.srem(&key, param.src_field_value)?;
-            let _: () = conn.sadd(&key, param.field_value)?;
+            let src_bytes = parse_bytes(&param.src_field_value, &input_format)?;
+            let bytes = parse_bytes(&param.field_value, &input_format)?;
+            let _: () = conn.srem(&key, &src_bytes)?;
+            let _: () = conn.sadd(&key, &bytes)?;
         }
         ValueType::ZSet => {
-            let _: () = conn.zrem(&key, param.src_field_value)?;
-            let _: () = conn.zadd(&key, param.field_value, param.field_score)?;
+            let src_bytes = parse_bytes(&param.src_field_value, &input_format)?;
+            let bytes = parse_bytes(&param.field_value, &input_format)?;
+            let _: () = conn.zrem(&key, &src_bytes)?;
+            let _: () = conn.zadd(&key, &bytes, param.field_score)?;
         }
         _ => {
             handle_other_value_type(&key_type, &key)?;
