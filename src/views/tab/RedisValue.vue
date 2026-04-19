@@ -69,8 +69,7 @@ const showValue = computed(() => {
       const str = streamType.value ? JSON.stringify(obj) : obj.toString()
       try {
         return str.startsWith('{') || str.startsWith('[')
-          ? // ? JSON.stringify(JSON.parse(str), null, 2)
-            meJsonFormat(str) // 格式化支持非标json
+          ? meJsonFormat(str) // 格式化支持非标json
           : str
       } catch {
         return str
