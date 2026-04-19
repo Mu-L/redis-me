@@ -185,7 +185,7 @@ export default {
     renameKey: 'Rename Key',
     checking: 'Checking for update, wait a moment...',
     updateHint: 'New version v{version}, Update?',
-    changelog: 'changelog',
+    changelog: 'ChangeLog',
     changelogUrl: 'https://www.hepengju.com/changelog/latest.html',
     downloadDown: 'Download done, install now?',
     updateDone: 'Update done, restart now?',
