@@ -273,6 +273,7 @@ function fieldSet(row, index) {
     srcFieldValue: row.value,
     type: redisValue.value.type,
     key: share.redisKey,
+    inputFormat: displayFormat.value.toLowerCase(),
   }
   if (redisValue.value.type === 'list') {
     // 此处不要直接取索引，而是重新去计算下（因为表格可能被关键字过滤过）

@@ -26,6 +26,7 @@ const initForm = readonly({
   fieldValue: '',
   fieldScore: 0,
   fieldTtl: -1,
+  inputFormat: 'utf8'
 })
 const form = ref(cloneDeep(initForm))
 
