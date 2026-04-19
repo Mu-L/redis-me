@@ -56,13 +56,7 @@ pub trait MeClient: Send + Sync {
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()>;
 
-    fn set(
-        &self,
-        key: RedisKey,
-        value: String,
-        ttl: i64,
-        key_type: Option<String>,
-    ) -> AnyResult<()>;
+    fn set(&self, param: RedisSetParam) -> AnyResult<()>;
 
     fn del(&self, key: RedisKey) -> AnyResult<()>;
 
@@ -481,26 +475,28 @@ pub fn ttl0(mut conn: MutexGuard<impl Commands>, key: RedisKey, ttl: i64) -> Any
 
 pub fn set0(
     mut conn: MutexGuard<impl Commands>,
-    key: RedisKey,
-    value: String,
-    ttl: i64,
-    key_type: Option<String>,
+    param: RedisSetParam,
 ) -> AnyResult<()> {
-    if key_type.unwrap_or_default() == ME_JSON_TYPE_NAME {
-        // json类型
+    let key = param.key;
+    let format = param.input_format.as_ref().cloned().unwrap_or_default();
+    // 解析输入格式为字节
+    let bytes = parse_bytes(&param.value, &format)?;
+
+    if param.key_type.unwrap_or_default() == ME_JSON_TYPE_NAME {
+        // json 类型
         let value: serde_json::Value =
-            serde_json::from_str(&value).with_context(|| "json parse error")?;
+            serde_json::from_str(&param.value).with_context(|| "json parse error")?;
         let _: () = conn.json_set(&key, "$", &value)?;
-        if ttl > 0 {
-            let _: () = conn.expire(&key, ttl)?;
+        if param.ttl > 0 {
+            let _: () = conn.expire(&key, param.ttl)?;
         }
     } else {
-        // string类型
-        if ttl > 0 {
-            let options = SetOptions::default().with_expiration(SetExpiry::EX(ttl as u64));
-            let _: () = conn.set_options(&key, value, options)?;
+        // string 类型
+        if param.ttl > 0 {
+            let options = SetOptions::default().with_expiration(SetExpiry::EX(param.ttl as u64));
+            let _: () = conn.set_options(&key, &bytes, options)?;
         } else {
-            let _: () = conn.set(&key, value)?;
+            let _: () = conn.set(&key, &bytes)?;
         };
     }
     Ok(())

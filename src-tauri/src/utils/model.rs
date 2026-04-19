@@ -490,6 +490,15 @@ api_model!(RedisFieldDel {
     stream_id: String, // stream
 });
 
+// 设置参数
+api_model!(RedisSetParam {
+    key: RedisKey,
+    value: String,
+    ttl: i64,
+    key_type: Option<String>,
+    input_format: Option<DisplayFormat>,
+});
+
 // 执行命令
 api_model!(RedisCommand {
     command: String,

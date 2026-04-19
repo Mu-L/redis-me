@@ -66,7 +66,7 @@ api_commands!(
     field_scan(param: FieldScanParam)  -> FieldScanResult;      // 字段扫描
     //get(key: RedisKey, hash_key: Option<String>) -> RedisValue; // 获取值(不扫描，直接获取所有)
     ttl(key: RedisKey, ttl: i64) -> ();                 // 设置TTL
-    set(key: RedisKey, value: String, ttl: i64, key_type: Option<String>) -> ();  // 设置值
+    set(param: RedisSetParam) -> ();  // 设置值
     del(key: RedisKey) -> ();                           // 删除键
     rename(key: RedisKey, new_key: RedisKey) -> ();     // 重命名键
     field_add(param: RedisFieldAdd) -> ();              // 新增字段

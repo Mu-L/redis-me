@@ -168,14 +168,8 @@ impl MeClient for MeCluster {
         ttl0(self.get_conn()?, key, ttl)
     }
 
-    fn set(
-        &self,
-        key: RedisKey,
-        value: String,
-        ttl: i64,
-        key_type: Option<String>,
-    ) -> AnyResult<()> {
-        set0(self.get_conn()?, key, value, ttl, key_type)
+    fn set(&self, param: RedisSetParam) -> AnyResult<()> {
+        set0(self.get_conn()?, param)
     }
 
     fn del(&self, key: RedisKey) -> AnyResult<()> {
