@@ -70,8 +70,10 @@ mod tests {
         let mut conf = conf_single();
         conf.port = 6380;
         conf.ssl = true;
-        conf.ssl_option.key= r"C:\Users\he_pe\software\redis\redis.key".into();
-        conf.ssl_option.cert= r"C:\Users\he_pe\software\redis\redis.crt".into();
+        conf.ssl_option.key = r"C:\Users\he_pe\redis\redis.key".into();
+        //conf.ssl_option.cert= r"C:\Users\he_pe\redis\redis.crt".into();
+        conf.ssl_option.key = r"~/redis/redis.key".into();
+        conf.ssl_option.cert = r"~\redis\redis.crt".into();
         MeSingle::init(&conf).unwrap()
     }
 
@@ -89,8 +91,10 @@ mod tests {
 
         // 秘钥方式登录
         conf.ssh_option.login_type = "pkfile".into();
-        conf.ssh_option.pkfile = r"C:\Users\he_pe\.ssh\id_rsa".into();
-        conf.ssh_option.pkfile = r"C:\Users\he_pe\.ssh\id_ed25519".into();
+        //conf.ssh_option.pkfile = r"C:\Users\he_pe\.ssh\id_rsa".into();
+        //conf.ssh_option.pkfile = r"C:\Users\he_pe\.ssh\id_ed25519".into();
+        conf.ssh_option.pkfile = "~/.ssh/id_rsa".into();
+        conf.ssh_option.pkfile = "~/.ssh/id_ed25519".into();
         conf.ssh_option.passphrase = "".into();
         MeSingle::init(&conf).unwrap()
     }

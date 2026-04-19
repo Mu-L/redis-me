@@ -50,6 +50,9 @@ chrono = "0.4"
 chrono-tz = "0.8"
 fern = { version = "0.7", features = ["colored"] }
 
+# 目录支持~和环境变量
+shellexpand = "3"
+
 # SSH 隧道支持（使用 russh 支持现代密钥格式）
 russh = { version = "0.60", default-features = false, features = ["flate2", "ring", "rsa"] }
 tokio = { version = "1", features = ["full"] }

@@ -1,5 +1,9 @@
 # 2.x 更新日志
 
+## v3.0.0
+
+- SSL/SSH等配置文件支持家目录开头路径
+
 ## [v2.9.0](https://mp.weixin.qq.com/s/WWc-iOfnxYtG5eiFRYCQQA) (2026-04-19)
 
 ### ✨ 新增功能

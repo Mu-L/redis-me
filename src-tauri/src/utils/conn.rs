@@ -1,7 +1,7 @@
 use crate::utils::error::AppError;
 use crate::utils::model::{ConnConfig, SslOption};
 use crate::utils::ssh_tunnel::SshTunnel;
-use crate::utils::util::{AnyResult, CONNECTION_CHECK_TIMEOUT};
+use crate::utils::util::{AnyResult, CONNECTION_CHECK_TIMEOUT, parse_path};
 use anyhow::{Context, bail};
 use log::info;
 use redis::cluster::{ClusterClient, ClusterConfig};
@@ -202,12 +202,12 @@ fn get_tls_certs(ssl_option: SslOption) -> AnyResult<Option<TlsCertificates>> {
     if ssl_option.key.is_empty() && ssl_option.cert.is_empty() && ssl_option.ca.is_empty() {
         return Ok(None);
     };
-    let cert_vec8 = fs::read(ssl_option.cert).context("公钥文件读取失败")?;
-    let key_vec8 = fs::read(ssl_option.key).context("私钥文件读取失败")?;
+    let cert_vec8 = fs::read(parse_path(&ssl_option.cert)).context("公钥文件读取失败")?;
+    let key_vec8 = fs::read(parse_path(&ssl_option.key)).context("私钥文件读取失败")?;
     let root_cert = if ssl_option.ca.is_empty() {
         None
     } else {
-        Some(fs::read(ssl_option.ca).context("授权文件读取失败")?)
+        Some(fs::read(parse_path(&ssl_option.ca)).context("授权文件读取失败")?)
     };
     let certs = TlsCertificates {
         client_tls: Some(ClientTlsConfig {

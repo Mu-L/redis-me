@@ -9,6 +9,7 @@ use rand::prelude::IteratorRandom;
 use redis::streams::{StreamId, StreamInfoConsumer, StreamInfoGroup, StreamRangeReply};
 use redis::{FromRedisValue, Value, ValueType};
 use std::collections::{HashMap, HashSet};
+use std::path::PathBuf;
 use std::time::Duration;
 
 // 统一应用返回值
@@ -386,6 +387,12 @@ pub fn parse_server_version(info_output: &str) -> String {
         .to_string()
 }
 
+/// 解析路径: shellexpand 自动处理 ~ 和环境变量
+pub fn parse_path(path: &str) -> PathBuf {
+    let expanded = shellexpand::full(path).unwrap_or_else(|_| std::borrow::Cow::Borrowed(path));
+    PathBuf::from(expanded.as_ref())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -432,5 +439,22 @@ mod tests {
     fn test_timestamp_to_string() {
         let timestamp = 1759409274;
         println!("{}", timestamp_to_string(timestamp));
+    }
+
+    #[test]
+    fn test_parse_path() {
+        // 支持多种格式
+        let paths = vec![
+            "~/.ssh/id_rsa",                  // Unix风格
+            r"~\.ssh\id_rsa",                 // Unix风格
+            "$HOME/.ssh/id_rsa",              // 环境变量
+            "C:\\Users\\he_pe\\.ssh\\id_rsa", // Windows风格
+            r"C:\Users\he_pe\.ssh\id_rsa",    // 原始字符串
+        ];
+
+        for path in paths {
+            println!("\nTrying: {}", path);
+            println!("Parsed: {:?}", parse_path(path))
+        }
     }
 }
