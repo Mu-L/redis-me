@@ -66,6 +66,16 @@ mod tests {
     }
 
     #[allow(unused)]
+    fn client_single_ssl() -> Box<dyn MeClient> {
+        let mut conf = conf_single();
+        conf.port = 6380;
+        conf.ssl = true;
+        conf.ssl_option.key= r"C:\Users\he_pe\software\redis\redis.key".into();
+        conf.ssl_option.cert= r"C:\Users\he_pe\software\redis\redis.crt".into();
+        MeSingle::init(&conf).unwrap()
+    }
+
+    #[allow(unused)]
     fn client_single_ssh() -> Box<dyn MeClient> {
         let mut conf = conf_single();
         conf.ssh = true;
@@ -79,15 +89,15 @@ mod tests {
 
         // 秘钥方式登录
         conf.ssh_option.login_type = "pkfile".into();
-        conf.ssh_option.pkfile = "C:\\Users\\he_pe\\.ssh\\id_rsa".into();
-        // conf.ssh_option.pkfile = "C:\\Users\\he_pe\\.ssh\\id_ed25519".into();
+        conf.ssh_option.pkfile = r"C:\Users\he_pe\.ssh\id_rsa".into();
+        conf.ssh_option.pkfile = r"C:\Users\he_pe\.ssh\id_ed25519".into();
         conf.ssh_option.passphrase = "".into();
         MeSingle::init(&conf).unwrap()
     }
 
     #[test]
     fn test_info() {
-        let client = client_cluster();
+        let client = client_single_ssl();
         let result = client.info(None).unwrap();
         println!("{result:#?}");
         let result = client.info(None).unwrap();
