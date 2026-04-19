@@ -15,7 +15,7 @@
     "dialog:default",
     "opener:default",
     "opener:allow-open-path",
-    { "identifier": "opener:allow-open-path", "allow": [{ "path": "**"}]},
+    { "identifier": "opener:allow-open-path", "allow": [{ "path": "**" }] },
     "store:default",
     "fs:default",
     "fs:allow-write-text-file",

@@ -1,12 +1,12 @@
 <script setup>
 import { getVersion } from '@tauri-apps/api/app'
+import { appConfigDir, appDataDir, appLogDir, resourceDir } from '@tauri-apps/api/path'
 import { openPath } from '@tauri-apps/plugin-opener'
 import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import {meCheckUpdate, meConfirm, meInvoke} from '@/utils/util.js'
-import {appConfigDir, appDataDir, appLogDir, resourceDir} from '@tauri-apps/api/path'
+import { meCheckUpdate, meConfirm, meInvoke } from '@/utils/util.js'
 
 const { t } = useI18n()
 const settings = window.meTauri.settings
@@ -160,7 +160,6 @@ async function openDir(dirType) {
       </div>
     </template>
     <el-form inline label-position="right" :label-width="t('setting.labelWidth')">
-
       <!-- 主题、语言 -->
       <el-row class="me-flex">
         <el-form-item :label="t('setting.theme')">
@@ -211,11 +210,17 @@ async function openDir(dirType) {
 
       <!-- 打开目录 -->
       <el-row>
-        <el-form-item :label="t('setting.dir')" style="width: 100%;">
+        <el-form-item :label="t('setting.dir')" style="width: 100%">
           <div class="me-flex" style="width: 100%">
-            <el-button icon="el-icon-document" @click="openDir('config')"> {{ t('setting.configDir') }}</el-button>
-            <el-button icon="el-icon-place" @click="openDir('app')">{{ t('setting.appDir') }}</el-button>
-            <el-button icon="el-icon-memo" @click="openDir('log')">{{ t('setting.logDir') }}</el-button>
+            <el-button icon="el-icon-document" @click="openDir('config')">
+              {{ t('setting.configDir') }}</el-button
+            >
+            <el-button icon="el-icon-place" @click="openDir('app')">{{
+              t('setting.appDir')
+            }}</el-button>
+            <el-button icon="el-icon-memo" @click="openDir('log')">{{
+              t('setting.logDir')
+            }}</el-button>
           </div>
         </el-form-item>
       </el-row>

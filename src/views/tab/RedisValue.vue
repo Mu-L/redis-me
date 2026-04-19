@@ -648,11 +648,11 @@ const displayFormat = ref('UTF8')
         <div class="me-flex" style="position: relative">
           <el-select v-model="displayFormat" style="width: 90px; margin-right: 10px">
             <template #header>
-              <el-text style="font-weight: bold">{{t('redisValue.viewAs')}}</el-text>
+              <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
             </template>
-            <el-option value="UTF8"/>
-            <el-option value="Hex"/>
-            <el-option value="Binary"/>
+            <el-option value="UTF8" />
+            <el-option value="Hex" />
+            <el-option value="Binary" />
           </el-select>
           <!-- 加载更多、加载全部 -->
           <div class="me-flex" style="width: 45px; margin-right: 10px" v-if="showMore">
