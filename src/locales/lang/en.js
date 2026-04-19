@@ -88,7 +88,7 @@ export default {
 
     dir: 'Directory',
     configDir: 'ConfigDir',
-    dataDir: 'DataDir',
+    appDir: 'AppDir',
     logDir: 'LogDir',
   },
 

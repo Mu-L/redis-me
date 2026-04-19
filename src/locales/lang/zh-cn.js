@@ -82,7 +82,7 @@ export default {
 
     dir: '目录',
     configDir: '配置目录',
-    dataDir: '数据目录',
+    appDir: '应用目录',
     logDir: '日志目录',
   },
 

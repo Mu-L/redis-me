@@ -5,8 +5,8 @@ import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meCheckUpdate, meConfirm } from '@/utils/util.js'
-import {appConfigDir, appDataDir, appLogDir} from '@tauri-apps/api/path'
+import {meCheckUpdate, meConfirm, meInvoke} from '@/utils/util.js'
+import {appConfigDir, appDataDir, appLogDir, resourceDir} from '@tauri-apps/api/path'
 
 const { t } = useI18n()
 const settings = window.meTauri.settings
@@ -139,8 +139,8 @@ async function openDir(dirType) {
   let dir = ''
   if (dirType === 'config') {
     dir = await appConfigDir()
-  } else if (dirType === 'data') {
-    dir = await appDataDir()
+  } else if (dirType === 'app') {
+    dir = await meInvoke('app_dir')
   } else {
     dir = await appLogDir()
   }
@@ -213,9 +213,9 @@ async function openDir(dirType) {
       <el-row>
         <el-form-item :label="t('setting.dir')" style="width: 100%;">
           <div class="me-flex" style="width: 100%">
-            <el-button icon="el-icon-setting" @click="openDir('config')"> {{ t('setting.configDir') }}</el-button>
-            <el-button icon="el-icon-data-analysis" @click="openDir('data')">{{ t('setting.dataDir') }}</el-button>
-            <el-button icon="el-icon-document" @click="openDir('log')">{{ t('setting.logDir') }}</el-button>
+            <el-button icon="el-icon-document" @click="openDir('config')"> {{ t('setting.configDir') }}</el-button>
+            <el-button icon="el-icon-place" @click="openDir('app')">{{ t('setting.appDir') }}</el-button>
+            <el-button icon="el-icon-memo" @click="openDir('log')">{{ t('setting.logDir') }}</el-button>
           </div>
         </el-form-item>
       </el-row>
