@@ -22,7 +22,7 @@ export const INFO_REFRESH = 'INFO_REFRESH'
 export const CONN_REFRESH = 'CONN_REFRESH'
 export const CONN_LIST_WINDOWS_SYNC = 'CONN_LIST_WINDOWS_SYNC'
 export const TREE_KEY_ID_PREFIX = '_TREE_KEY_ID_PREFIX_'
-
+export const DISPLAY_FORMAT = ['UTF8', 'Hex', 'Binary', 'Base64']
 // 预设颜色
 export const PREDEFINE_COLORS = [
   '#409eff', // primary

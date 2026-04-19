@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 
 import {
   bus,
+  DISPLAY_FORMAT,
   KEY_DELETE,
   KEY_REFRESH,
   meCopy,
@@ -165,7 +166,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       cursor: cursor.value,
       loadAll,
       meta: meta.value,
-      displayFormat: displayFormat.value.toLowerCase(),
+      displayFormat: displayFormat.value,
     }
 
     const data = await meInvoke('field_scan', { id: share.conn.id, param })
@@ -193,6 +194,12 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
     await setTimer(redisValue.value.ttl)
   } finally {
     loading.value = false
+
+    await nextTick(() => {
+      if (jsonType.value || streamType.value) {
+        displayFormat.value = 'utf8'
+      }
+    })
   }
 }
 
@@ -228,7 +235,7 @@ async function setValue() {
     value,
     ttl: redisValue.value.ttl,
     keyType: redisValue.value.type,
-    inputFormat: displayFormat.value.toLowerCase(),
+    inputFormat: displayFormat.value,
   }
   await meInvoke('set', { id: share.conn.id, param })
   meOk(t('saveOk'))
@@ -273,7 +280,7 @@ function fieldSet(row, index) {
     srcFieldValue: row.value,
     type: redisValue.value.type,
     key: share.redisKey,
-    inputFormat: displayFormat.value.toLowerCase(),
+    inputFormat: displayFormat.value,
   }
   if (redisValue.value.type === 'list') {
     // 此处不要直接取索引，而是重新去计算下（因为表格可能被关键字过滤过）
@@ -371,7 +378,7 @@ async function showLocation() {
 }
 
 // 值显示方式: string(utf-8), binary, hex等
-const displayFormat = ref('UTF8')
+const displayFormat = ref('utf8')
 </script>
 
 <template>
@@ -650,19 +657,16 @@ const displayFormat = ref('UTF8')
         <div class="me-flex" style="position: relative">
           <el-select
             v-model="displayFormat"
-            style="width: 90px; margin-right: 10px"
-            v-show="!(jsonType || streamType)"
+            :disabled="jsonType || streamType"
+            style="width: 90px"
             @change="refreshKey(false)">
             <template #header>
               <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
             </template>
-            <el-option value="UTF8" />
-            <el-option value="Hex" />
-            <el-option value="Binary" />
-            <el-option value="Base64" />
+            <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
           </el-select>
           <!-- 加载更多、加载全部 -->
-          <div class="me-flex" style="width: 45px; margin-right: 10px" v-if="showMore">
+          <div class="me-flex" style="width: 45px; margin-left: 10px" v-if="showMore">
             <me-icon
               :name="t('redisValue.loadMore')"
               icon="me-icon-load-more"
@@ -681,6 +685,7 @@ const displayFormat = ref('UTF8')
 
           <!-- 保存 -->
           <me-button
+            style="margin-left: 10px"
             :disabled="!redisValue?.newValue"
             v-if="canSave"
             :info="t('save')"
@@ -691,6 +696,7 @@ const displayFormat = ref('UTF8')
 
           <!-- string类型不显示，带有hashKey不显示 -->
           <el-segmented
+            style="margin-left: 10px"
             v-model="viewType"
             :options="viewTypeList"
             v-if="!(stringTypeOrWithHashKey || jsonType)">
