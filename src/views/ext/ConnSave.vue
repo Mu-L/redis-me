@@ -283,6 +283,8 @@ watch(
     draggable
     v-model="visible"
     width="600"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
     append-to-body
     destroy-on-close
     align-center>
