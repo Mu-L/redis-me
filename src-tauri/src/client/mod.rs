@@ -22,6 +22,10 @@ mod tests {
         client_cluster()
     }
 
+    fn get_redis_password() -> String {
+        std::env::var("REDIS_PASSWORD").expect("REDIS_PASSWORD environment variable not set")
+    }
+
     #[allow(unused)]
     fn conf_single() -> ConnConfig {
         ConnConfig {
@@ -30,7 +34,7 @@ mod tests {
             host: "ali.hepengju.com".into(),
             port: 6379,
             username: "".into(),
-            password: "hepengju&:2026".into(),
+            password: get_redis_password(),
             ..ConnConfig::default()
         }
     }
@@ -43,7 +47,7 @@ mod tests {
             host: "ali.hepengju.com".into(),
             port: 7001,
             username: "".into(),
-            password: "hepengju&:2026".into(),
+            password: get_redis_password(),
             db: 0,
             ..ConnConfig::default()
         }
@@ -83,7 +87,7 @@ mod tests {
 
     #[test]
     fn test_info() {
-        let client = client_single();
+        let client = client_cluster();
         let result = client.info(None).unwrap();
         println!("{result:#?}");
         let result = client.info(None).unwrap();
