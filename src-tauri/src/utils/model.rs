@@ -13,6 +13,28 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16};
 
+/// 数据显示格式
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DisplayFormat {
+    #[default]
+    UTF8, // 默认字符串（UTF-8 lossy）
+    Hex,    // 十六进制：00 FF 80
+    Binary, // 二进制：00000000 11111111 10000000
+    Base64, // Base64 编码
+}
+
+impl DisplayFormat {
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "hex" => DisplayFormat::Hex,
+            "binary" => DisplayFormat::Binary,
+            "base64" => DisplayFormat::Base64,
+            _ => DisplayFormat::UTF8,
+        }
+    }
+}
+
 // 连接信息
 api_model!(
     #[derive(Default)]
@@ -250,6 +272,7 @@ api_model!(FieldScanParam {
     cursor: Option<ScanCursor>,
     load_all: bool,
     meta: Option<FiledScanMeta>, // 扩展参数
+    display_format: Option<DisplayFormat>, // 显示格式
 });
 
 api_model!(FiledScanMeta {

@@ -212,6 +212,7 @@ mod tests {
             cursor: None,
             load_all: false,
             meta: None,
+            display_format: Some(DisplayFormat::Base64)
         }
     }
 

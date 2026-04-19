@@ -1,6 +1,8 @@
 use crate::utils::error::AppError;
 use crate::utils::model::*;
 use anyhow::bail;
+use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
 use chrono::DateTime;
 use log::error;
 use rand::Rng;
@@ -19,7 +21,7 @@ pub type ApiResult<T> = Result<T, String>;
 // 常量定义
 pub const REDIS_ME_FIELD_TO_DELETE_TMP_VALUE: &str = "REDIS_ME_FIELD_TO_DELETE_TMP_VALUE";
 pub const REDIS_ME_SUBSCRIBE_STOP_MESSAGE: &str = "REDIS_ME_SUBSCRIBE_STOP_MESSAGE";
-pub const CONNECTION_CHECK_SECONDS: i64 = 30; // 30s检查1次连接, 避免频繁检查
+pub const CONNECTION_CHECK_SECONDS: i64 = 30; // 30s 检查 1 次连接，避免频繁检查
 pub const CONNECTION_CHECK_TIMEOUT: Duration = Duration::from_secs(2); // 检查连接超时
 pub const CONNECTION_NORMAL_TIMEOUT: Duration = Duration::from_secs(30); // 连接操作默认操作时长
 
@@ -31,7 +33,7 @@ pub const EVENT_IMPORT: &str = "import";
 pub const ME_JSON_TYPE_NAME: &str = "json";
 pub const REDIS_JSON_TYPE_NAME: &str = "ReJSON-RL";
 
-// tauri的错误处理中需要返回的错误实现序列化, anyhow的错误并没有实现，因此简单返回字符串错误
+// tauri 的错误处理中需要返回的错误实现序列化，anyhow 的错误并没有实现，因此简单返回字符串错误
 pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
     match result {
         Ok(value) => Ok(value),
@@ -43,7 +45,7 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
                 return Err(serde_json::to_string(&app_error).unwrap_or(error_message));
             }
 
-            // 避免原始错误和source错误的字符串一致，提示两遍（比如connection timed out）
+            // 避免原始错误和 source 错误的字符串一致，提示两遍（比如 connection timed out）
             let message = match err.source() {
                 Some(source)
                     if !source.to_string().is_empty() && err.to_string() != source.to_string() =>
@@ -52,7 +54,7 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
                 }
                 _ => err.to_string(),
             };
-            error!("错误: {}", message);
+            error!("错误：{}", message);
             Err(message)
         }
     }
@@ -93,10 +95,28 @@ pub fn ui_xinfo_consumer(consumer: StreamInfoConsumer) -> XInfoConsumer {
     }
 }
 
-// 字节数组转字符串: 无效的 UTF-8 字节显示为十六进制转义（如 \xFF） [DeepSeek]
+// 字节数组转字符串：无效的 UTF-8 字节显示为十六进制转义（如 \xFF） [DeepSeek]
 // 实测十六进制转义并不好用，还是先采用比较简单的方法处理
 pub fn vec8_to_display_string(bytes: &[u8]) -> String {
     String::from_utf8_lossy(bytes).to_string()
+}
+
+/// 按指定格式转换字节数组
+pub fn format_bytes(bytes: &[u8], format: &DisplayFormat) -> String {
+    match format {
+        DisplayFormat::Hex => bytes
+            .iter()
+            .map(|b| format!("{:02X}", b))
+            .collect::<Vec<_>>()
+            .join(r"\x"),
+        DisplayFormat::Binary => bytes
+            .iter()
+            .map(|b| format!("{:08b}", b))
+            .collect::<Vec<_>>()
+            .join(""),
+        DisplayFormat::Base64 => BASE64_STANDARD.encode(bytes),
+        DisplayFormat::UTF8 => vec8_to_display_string(bytes),
+    }
 }
 
 // 辅助函数
@@ -116,16 +136,16 @@ pub fn ui_key_list(keys: Vec<Vec<u8>>) -> Vec<RedisKey> {
         .collect()
 }
 
-pub fn ui_list_value(value: &[Vec<u8>]) -> Vec<String> {
-    value.iter().map(|v| vec8_to_display_string(v)).collect()
+pub fn ui_list_value(value: &[Vec<u8>], format: &DisplayFormat) -> Vec<String> {
+    value.iter().map(|v| format_bytes(v, format)).collect()
 }
 
-pub fn ui_hash_value(value: &[(Vec<u8>, Vec<u8>)]) -> Vec<RedisHashItem> {
+pub fn ui_hash_value(value: &[(Vec<u8>, Vec<u8>)], format: &DisplayFormat) -> Vec<RedisHashItem> {
     value
         .iter()
         .map(|(key, value)| {
-            let key: String = vec8_to_display_string(key);
-            let value: String = vec8_to_display_string(value);
+            let key: String = format_bytes(key, format);
+            let value: String = format_bytes(value, format);
             RedisHashItem {
                 key,
                 value,
@@ -135,18 +155,18 @@ pub fn ui_hash_value(value: &[(Vec<u8>, Vec<u8>)]) -> Vec<RedisHashItem> {
         .collect()
 }
 
-pub fn ui_set_value(value: HashSet<Vec<u8>>) -> Vec<String> {
+pub fn ui_set_value(value: HashSet<Vec<u8>>, format: &DisplayFormat) -> Vec<String> {
     value
         .into_iter()
-        .map(|v| vec8_to_display_string(&v))
+        .map(|v| format_bytes(&v, format))
         .collect()
 }
 
-pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>) -> Vec<RedisZetItem> {
+pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>, format: &DisplayFormat) -> Vec<RedisZetItem> {
     value
         .into_iter()
         .map(|(value, score)| RedisZetItem {
-            value: vec8_to_display_string(&value),
+            value: format_bytes(&value, format),
             score,
         })
         .collect()
@@ -173,17 +193,17 @@ pub fn ui_stream_id(stream_id: HashMap<String, Value>) -> HashMap<String, String
         .collect()
 }
 
-// 字节数组转Base64字符串: RedisKey 的 bytes
+// 字节数组转 Base64 字符串：RedisKey 的 bytes
 // pub fn vec8_to_base64_string(bytes: &[u8]) -> String {
 //     BASE64_STANDARD.encode(bytes)
 // }
 
-// vec中随机选择一个
+// vec 中随机选择一个
 pub fn random_item<T>(vec: &[T]) -> &T {
     vec.iter().choose(&mut rand::rng()).unwrap()
 }
 
-// 随机N个字符
+// 随机 N 个字符
 pub fn random_string(len: usize) -> String {
     Alphanumeric.sample_string(&mut rand::rng(), len)
 }
@@ -193,7 +213,7 @@ pub fn random_range(min: i32, max: i32) -> i32 {
     rand::rng().random_range(min..=max)
 }
 
-// 解析命令: 主要考虑解析带有引号的参数, 比如: config set save "3600 1 300 100 60 10000"
+// 解析命令：主要考虑解析带有引号的参数，比如：config set save "3600 1 300 100 60 10000"
 pub fn parse_command(command: &str) -> AnyResult<(String, Vec<String>)> {
     let tokens = shell_words::split(command.trim())?;
     let first = tokens.first().cloned().unwrap_or_default();
@@ -234,7 +254,7 @@ pub fn redis_value_to_string(value: Value, sep: &str) -> String {
             .map(|(k, v)| format!("{}: {}", k, v))
             .collect::<Vec<String>>()
             .join(sep),
-        // 其余暂不解析, 直接转换为字符串
+        // 其余暂不解析，直接转换为字符串
         _ => format!("{:?}", value),
     }
 }
@@ -274,7 +294,7 @@ pub fn redis_value_to_log(value: Value, node: &str) -> AnyResult<RedisSlowLog> {
     })
 }
 
-// 时间戳(秒)转字符串
+// 时间戳 (秒) 转字符串
 pub fn timestamp_to_string(timestamp: i64) -> String {
     let datetime = DateTime::from_timestamp(timestamp, 0)
         .unwrap()
@@ -297,7 +317,7 @@ pub fn parse_client_info(client_info: &str) -> AnyResult<RedisClientInfo> {
     Ok(client)
 }
 
-// info信息转换成图表数据
+// info 信息转换成图表数据
 pub fn info_to_chart(redis_info: RedisInfo) -> AnyResult<RedisChart> {
     let mut chart = RedisChart::default();
 
@@ -387,7 +407,7 @@ pub fn parse_server_version(info_output: &str) -> String {
         .to_string()
 }
 
-/// 解析路径: shellexpand 自动处理 ~ 和环境变量
+/// 解析路径：shellexpand 自动处理 ~ 和环境变量
 pub fn parse_path(path: &str) -> PathBuf {
     let expanded = shellexpand::full(path).unwrap_or_else(|_| std::borrow::Cow::Borrowed(path));
     PathBuf::from(expanded.as_ref())
@@ -445,10 +465,10 @@ mod tests {
     fn test_parse_path() {
         // 支持多种格式
         let paths = vec![
-            "~/.ssh/id_rsa",                  // Unix风格
-            r"~\.ssh\id_rsa",                 // Unix风格
+            "~/.ssh/id_rsa",                  // Unix 风格
+            r"~\.ssh\id_rsa",                 // Unix 风格
             "$HOME/.ssh/id_rsa",              // 环境变量
-            "C:\\Users\\he_pe\\.ssh\\id_rsa", // Windows风格
+            "C:\\Users\\he_pe\\.ssh\\id_rsa", // Windows 风格
             r"C:\Users\he_pe\.ssh\id_rsa",    // 原始字符串
         ];
 

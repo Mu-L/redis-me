@@ -151,8 +151,12 @@ pub fn field_scan0(
     param: FieldScanParam,
     capabilities: &ServerCapabilities,
 ) -> AnyResult<FieldScanResult> {
+    // 提取显示格式参数
+    let display_format = param.display_format.as_ref().cloned().unwrap_or_default();
+
     // String, Json, List, Hash(WithKey), Stream(WithKey), Stream 直接获取得到值
-    let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
+    let (mut value, key_type, mut cc, length) =
+        field_scan_0_get(&mut conn, &param, &display_format)?;
 
     // Hash, Set, Zset 进行扫描(hscan, sscan, zscan)
     let key = param.key;
@@ -178,6 +182,7 @@ pub fn field_scan0(
                 new_value,
                 &key,
                 capabilities,
+                &display_format,
             )?;
 
             ready_count += new_count;
@@ -201,13 +206,14 @@ pub fn field_scan0(
 
 pub fn field_scan_0_get(
     mut conn: &mut MutexGuard<impl Commands>,
-    param: FieldScanParam,
+    param: &FieldScanParam,
+    display_format: &DisplayFormat,
 ) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor, usize)> {
-    let key = param.key;
-    let hash_key = param.hash_key;
+    let key = &param.key;
+    let hash_key = param.hash_key.clone();
 
     let key_type: ValueType = conn.key_type(&key)?;
-    let mut cc = param.cursor.unwrap_or_default();
+    let mut cc = param.cursor.clone().unwrap_or_default();
 
     // String类型的bytes长度
     let mut length = 0;
@@ -216,7 +222,7 @@ pub fn field_scan_0_get(
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             length = value.len();
-            let value: String = vec8_to_display_string(&value);
+            let value: String = format_bytes(&value, display_format);
             cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
@@ -235,7 +241,7 @@ pub fn field_scan_0_get(
                     Some(str) => {
                         length = str.len();
                         cc.finished = true;
-                        Some(serde_json::to_value(vec8_to_display_string(&str))?)
+                        Some(serde_json::to_value(format_bytes(&str, display_format))?)
                     }
                     None => bail!(AppError::FieldNotFound { hash_key }),
                 }
@@ -257,10 +263,10 @@ pub fn field_scan_0_get(
             let value: Vec<String> = if !param.load_all && value.len() > param.count as usize {
                 cc.finished = false;
                 cc.now_cursor += param.count;
-                ui_list_value(&value[0..param.count as usize])
+                ui_list_value(&value[0..param.count as usize], display_format)
             } else {
                 cc.finished = true;
-                ui_list_value(&value)
+                ui_list_value(&value, display_format)
             };
             Some(serde_json::to_value(value)?)
         }
@@ -371,12 +377,13 @@ pub fn field_scan_2_value(
     new_value: Value,
     key: &RedisKey,
     capabilities: &ServerCapabilities,
+    display_format: &DisplayFormat,
 ) -> AnyResult<usize> {
     let new_count = match key_type {
         ValueType::Hash => {
             let value: Vec<(Vec<u8>, Vec<u8>)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            let mut new_value = ui_hash_value(&value);
+            let mut new_value = ui_hash_value(&value, display_format);
 
             // 补充hash字段ttl
             if capabilities.hash_field_ttl {
@@ -399,14 +406,14 @@ pub fn field_scan_2_value(
         ValueType::Set => {
             let value: HashSet<Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            scan_value.set.extend(ui_set_value(value));
+            scan_value.set.extend(ui_set_value(value, display_format));
             new_count
         }
 
         ValueType::ZSet => {
             let value: Vec<(Vec<u8>, f64)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            scan_value.zset.extend(ui_zset_value(value));
+            scan_value.zset.extend(ui_zset_value(value, display_format));
             new_count
         }
         _ => bail!(AppError::FieldScanNotSupported {
