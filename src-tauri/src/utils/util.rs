@@ -129,8 +129,10 @@ pub fn parse_bytes(input: &str, format: &DisplayFormat) -> AnyResult<Vec<u8>> {
             }
             (0..input.len())
                 .step_by(2)
-                .map(|i| u8::from_str_radix(&input[i..i + 2], 16)
-                    .map_err(|e| anyhow::anyhow!("Invalid hex character: {}", e)))
+                .map(|i| {
+                    u8::from_str_radix(&input[i..i + 2], 16)
+                        .map_err(|e| anyhow::anyhow!("Invalid hex character: {}", e))
+                })
                 .collect()
         }
         DisplayFormat::Binary => {
@@ -140,14 +142,15 @@ pub fn parse_bytes(input: &str, format: &DisplayFormat) -> AnyResult<Vec<u8>> {
             }
             (0..input.len())
                 .step_by(8)
-                .map(|i| u8::from_str_radix(&input[i..i + 8], 2)
-                    .map_err(|e| anyhow::anyhow!("Invalid binary character: {}", e)))
+                .map(|i| {
+                    u8::from_str_radix(&input[i..i + 8], 2)
+                        .map_err(|e| anyhow::anyhow!("Invalid binary character: {}", e))
+                })
                 .collect()
         }
-        DisplayFormat::Base64 => {
-            BASE64_STANDARD.decode(input)
-                .map_err(|e| anyhow::anyhow!("Base64 decode error: {}", e))
-        }
+        DisplayFormat::Base64 => BASE64_STANDARD
+            .decode(input)
+            .map_err(|e| anyhow::anyhow!("Base64 decode error: {}", e)),
         DisplayFormat::UTF8 => Ok(input.as_bytes().to_vec()),
     }
 }

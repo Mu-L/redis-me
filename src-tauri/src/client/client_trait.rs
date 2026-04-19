@@ -473,10 +473,7 @@ pub fn ttl0(mut conn: MutexGuard<impl Commands>, key: RedisKey, ttl: i64) -> Any
     Ok(())
 }
 
-pub fn set0(
-    mut conn: MutexGuard<impl Commands>,
-    param: RedisSetParam,
-) -> AnyResult<()> {
+pub fn set0(mut conn: MutexGuard<impl Commands>, param: RedisSetParam) -> AnyResult<()> {
     let key = param.key;
     let format = param.input_format.as_ref().cloned().unwrap_or_default();
     // 解析输入格式为字节
@@ -631,8 +628,7 @@ pub fn field_set0(
             let value_bytes = parse_bytes(&param.field_value, &input_format)?;
             let _: () = conn.hset(&key, &key_bytes, &value_bytes)?;
             if capabilities.hash_field_ttl && param.field_ttl > 0 {
-                let _: () =
-                    conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, &key_bytes)?;
+                let _: () = conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, &key_bytes)?;
             }
         }
         ValueType::List => {
