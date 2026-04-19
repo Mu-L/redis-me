@@ -85,6 +85,11 @@ export default {
       'Display of the names of child node keys when keys are presented in a tree structure',
     keyLabelFull: 'Full',
     keyLabelShort: 'Short',
+
+    dir: 'Directory',
+    configDir: 'ConfigDir',
+    dataDir: 'DataDir',
+    logDir: 'LogDir',
   },
 
   conn: {

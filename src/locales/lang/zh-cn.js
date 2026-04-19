@@ -79,6 +79,11 @@ export default {
     keyLabelTip: '键树形展示时子节点键的名称显示',
     keyLabelFull: '全称',
     keyLabelShort: '简称',
+
+    dir: '目录',
+    configDir: '配置目录',
+    dataDir: '数据目录',
+    logDir: '日志目录',
   },
 
   conn: {

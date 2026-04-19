@@ -1,10 +1,12 @@
 <script setup>
 import { getVersion } from '@tauri-apps/api/app'
+import { openPath } from '@tauri-apps/plugin-opener'
 import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { meCheckUpdate, meConfirm } from '@/utils/util.js'
+import {appConfigDir, appDataDir, appLogDir} from '@tauri-apps/api/path'
 
 const { t } = useI18n()
 const settings = window.meTauri.settings
@@ -124,15 +126,30 @@ const isBaseDiff = computed(() =>
 const isMoreDiff = computed(() =>
   Object.keys(moreDefaultSettings).some(key => settings[key] !== moreDefaultSettings[key]),
 )
+
 // 恢复默认
 function toDefault(name) {
   meConfirm(t('setting.confirmToDefault', { name: t('setting.' + name) }), () => {
     Object.assign(settings, name === 'baseSetting' ? baseDefaultSettings : moreDefaultSettings)
   })
 }
+
+// 打开目录
+async function openDir(dirType) {
+  let dir = ''
+  if (dirType === 'config') {
+    dir = await appConfigDir()
+  } else if (dirType === 'data') {
+    dir = await appDataDir()
+  } else {
+    dir = await appLogDir()
+  }
+  await openPath(dir)
+}
 </script>
 
 <template>
+  <!-- 基础设置 -->
   <el-card>
     <template #header>
       <div class="me-flex" style="align-items: center">
@@ -143,6 +160,8 @@ function toDefault(name) {
       </div>
     </template>
     <el-form inline label-position="right" :label-width="t('setting.labelWidth')">
+
+      <!-- 主题、语言 -->
       <el-row class="me-flex">
         <el-form-item :label="t('setting.theme')">
           <el-segmented v-model="settings.theme" :options="themeList" />
@@ -158,6 +177,7 @@ function toDefault(name) {
         </el-form-item>
       </el-row>
 
+      <!-- 界面字体 -->
       <el-row>
         <el-form-item :label="t('setting.uiFont')" style="width: 100%">
           <el-select
@@ -172,6 +192,8 @@ function toDefault(name) {
           </el-select>
         </el-form-item>
       </el-row>
+
+      <!-- 代码字体 -->
       <el-row>
         <el-form-item :label="t('setting.codeFont')" style="width: 100%">
           <el-select
@@ -187,6 +209,18 @@ function toDefault(name) {
         </el-form-item>
       </el-row>
 
+      <!-- 打开目录 -->
+      <el-row>
+        <el-form-item :label="t('setting.dir')" style="width: 100%;">
+          <div class="me-flex" style="width: 100%">
+            <el-button icon="el-icon-setting" @click="openDir('config')"> {{ t('setting.configDir') }}</el-button>
+            <el-button icon="el-icon-data-analysis" @click="openDir('data')">{{ t('setting.dataDir') }}</el-button>
+            <el-button icon="el-icon-document" @click="openDir('log')">{{ t('setting.logDir') }}</el-button>
+          </div>
+        </el-form-item>
+      </el-row>
+
+      <!-- 更新设置 -->
       <el-row class="me-flex">
         <el-form-item :label="t('setting.update')">
           <el-tag v-if="isAppStore" type="info">{{ t('setting.updateAppStore') }}</el-tag>
@@ -212,6 +246,7 @@ function toDefault(name) {
     </el-form>
   </el-card>
 
+  <!-- 更多设置 -->
   <el-card style="margin-top: 20px">
     <template #header>
       <div class="me-flex" style="align-items: center">
@@ -222,6 +257,7 @@ function toDefault(name) {
       </div>
     </template>
     <el-form inline label-position="right" :label-width="t('setting.extLabelWidth')">
+      <!-- 扫描数量 -->
       <el-row class="me-flex">
         <el-form-item>
           <template #label>
@@ -257,6 +293,7 @@ function toDefault(name) {
         </el-form-item>
       </el-row>
 
+      <!-- 键展示方式1 -->
       <el-row class="me-flex">
         <el-form-item :label="t('setting.keyShow')">
           <el-segmented v-model="settings.keyShow" :options="keyShowList" />
@@ -277,6 +314,7 @@ function toDefault(name) {
         </el-form-item>
       </el-row>
 
+      <!-- 键展示方式2 -->
       <el-row class="me-flex">
         <el-form-item :label="t('setting.keyHeight')">
           <el-input-number
