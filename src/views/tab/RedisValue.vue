@@ -31,7 +31,7 @@ onUnmounted(() => bus.off(KEY_REFRESH, refreshKey))
 
 // 共享数据
 const share = inject('share')
-const canEdit = computed(() => !share.readonly)
+const canEdit = computed(() => !share.readonly && displayFormat.value === 'UTF8')
 const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value))
 
 // 值的显示方式
