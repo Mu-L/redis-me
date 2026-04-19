@@ -49,6 +49,7 @@ const initForm = computed(() => ({
       fieldTtl: -1,
     },
   ],
+  inputFormat: 'utf8',
 }))
 const form = ref(cloneDeep(toRaw(initForm.value)))
 const stringOrJsonType = computed(() => form.value.type === 'string' || form.value.type === 'json')
