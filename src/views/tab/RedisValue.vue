@@ -166,6 +166,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       cursor: cursor.value,
       loadAll,
       meta: meta.value,
+      displayFormat: displayFormat.value.toLowerCase(),
     }
 
     const data = await meInvoke('field_scan', { id: share.conn.id, param })
@@ -646,13 +647,14 @@ const displayFormat = ref('UTF8')
         </div>
 
         <div class="me-flex" style="position: relative">
-          <el-select v-model="displayFormat" style="width: 90px; margin-right: 10px">
+          <el-select v-model="displayFormat" style="width: 90px; margin-right: 10px" @change="refreshKey(false)">
             <template #header>
               <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
             </template>
             <el-option value="UTF8" />
             <el-option value="Hex" />
             <el-option value="Binary" />
+            <el-option value="Base64" />
           </el-select>
           <!-- 加载更多、加载全部 -->
           <div class="me-flex" style="width: 45px; margin-right: 10px" v-if="showMore">

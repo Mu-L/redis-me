@@ -106,9 +106,9 @@ pub fn format_bytes(bytes: &[u8], format: &DisplayFormat) -> String {
     match format {
         DisplayFormat::Hex => bytes
             .iter()
-            .map(|b| format!("{:02X}", b))
+            .map(|b| format!("\\x{:02X}", b))
             .collect::<Vec<_>>()
-            .join(r"\x"),
+            .join(""),
         DisplayFormat::Binary => bytes
             .iter()
             .map(|b| format!("{:08b}", b))

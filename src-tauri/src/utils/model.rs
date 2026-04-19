@@ -24,17 +24,6 @@ pub enum DisplayFormat {
     Base64, // Base64 编码
 }
 
-impl DisplayFormat {
-    pub fn from_str(s: &str) -> Self {
-        match s.to_lowercase().as_str() {
-            "hex" => DisplayFormat::Hex,
-            "binary" => DisplayFormat::Binary,
-            "base64" => DisplayFormat::Base64,
-            _ => DisplayFormat::UTF8,
-        }
-    }
-}
-
 // 连接信息
 api_model!(
     #[derive(Default)]
