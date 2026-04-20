@@ -518,7 +518,10 @@ pub fn field_add0(
     param: RedisFieldAdd,
     capabilities: &ServerCapabilities,
 ) -> AnyResult<()> {
-    let key: RedisKey = param.key.into();
+    // 获取输入格式，默认为 UTF8
+    let input_format = param.input_format.as_ref().cloned().unwrap_or_default();
+
+    let key: RedisKey = parse_bytes(&param.key, &input_format)?.into();
     let mode = param.mode;
     let mut key_type = to_key_type(&param.key_type);
 
@@ -537,8 +540,6 @@ pub fn field_add0(
     }
 
     let fv_list = param.field_value_list;
-    // 获取输入格式，默认为 UTF8
-    let input_format = param.input_format.as_ref().cloned().unwrap_or_default();
 
     match key_type {
         ValueType::String => {
