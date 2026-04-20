@@ -259,6 +259,7 @@ function fieldAdd() {
   fieldAddRef.value?.open({
     mode: 'field',
     type: redisValue.value.type,
+    inputFormat: displayFormat.value,
     ...share.redisKey,
   })
 }

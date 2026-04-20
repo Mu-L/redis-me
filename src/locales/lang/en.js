@@ -1,4 +1,4 @@
-export default {
+﻿export default {
   name: 'en',
 
   // 通用
@@ -250,6 +250,7 @@ export default {
     key: 'Key',
     field: 'Field',
     type: 'Type',
+    inputFormat: 'Char Encoder',
     ttl: 'TTL (-1 means Forever)',
     negativeOneHint: '-1 means Forever',
     forever: 'Forever',
