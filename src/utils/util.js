@@ -307,26 +307,45 @@ export function meRenameKey(id, redisKey, encoding = 'utf8') {
     encoding === 'utf8'
       ? t('util.renameKey')
       : t('util.renameKey') + ' (' + encoding.toUpperCase() + ')'
-  let inputValue = encoding === 'utf8'
-    ? redisKey.key
-    : meFormatBytes(redisKey.bytes, encoding)
+  let inputValue = encoding === 'utf8' ? redisKey.key : meFormatBytes(redisKey.bytes, encoding)
 
-  mePrompt(message, { inputValue, inputType: 'text' }, async ({ value }) => {
-    let newKey
-    if (encoding === 'utf8') {
-      newKey = { key: value, bytes: '' }
-    } else {
-      newKey = { key: '', bytes: meToBase64(value, encoding) }
-    }
+  mePrompt(
+    message,
+    {
+      inputValue,
+      inputType: 'text',
+      inputValidator: value => {
+        if (!value || value.trim() === '') {
+          return t('util.valueRequired')
+        }
+        // 非 UTF8 编码时检查 meToBase64 是否有报错
+        if (encoding !== 'utf8') {
+          try {
+            meToBase64(value, encoding)
+          } catch (e) {
+            return e.message
+          }
+        }
+        return true
+      },
+    },
+    async ({ value }) => {
+      let newKey
+      if (encoding === 'utf8') {
+        newKey = { key: value, bytes: '' }
+      } else {
+        newKey = { key: '', bytes: meToBase64(value, encoding) }
+      }
 
-    const params = { id, key: redisKey, newKey }
-    const apiNewKey = await meInvoke('rename', params)
+      const params = { id, key: redisKey, newKey }
+      const apiNewKey = await meInvoke('rename', params)
 
-    // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
-    redisKey.key = apiNewKey.key
-    redisKey.bytes = apiNewKey.bytes
-    meOk(t('actionOk'))
-  })
+      // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
+      redisKey.key = apiNewKey.key
+      redisKey.bytes = apiNewKey.bytes
+      meOk(t('actionOk'))
+    },
+  )
 }
 
 // 检查更新

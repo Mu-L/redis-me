@@ -190,6 +190,7 @@ export default {
     updateErr: '下载安装包失败',
     latestVersion: '当前为最新版本',
     checkUpdateErr: '检查更新失败',
+    valueRequired: '值不允许为空',
     invalidHexString: '无效的十六进制字符串：长度为奇数',
     invalidHexCharacter: '无效的十六进制字符',
     invalidBinaryString: '无效的二进制字符串：长度不是 8 的倍数',
