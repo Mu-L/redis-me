@@ -438,3 +438,37 @@ export function meJsonParse(jsonString) {
 export function meJsonNormal(jsonString) {
   return JSON.stringify(JSON5.parse(jsonString), null, 2)
 }
+
+// 转换显示格式
+export function meFormatBytes(base64, displayFormat) {
+  if (displayFormat === 'base64') return base64
+  if (displayFormat === 'hex') return meBase64ToHex(base64)
+  if (displayFormat === 'binary') return meBase64ToBinary(base64)
+  return 'Unknown displayFormat: ' + displayFormat
+}
+
+/**
+ * Base64 转换为 Hex 格式
+ * @param {string} base64 - Base64 编码字符串
+ * @returns {string} Hex 编码字符串（每字节 2 位十六进制，无分隔符）
+ */
+function meBase64ToHex(base64) {
+  if (!base64) return ''
+  const binary = atob(base64)
+  return Array.from(binary)
+    .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
+    .join('')
+}
+
+/**
+ * Base64 转换为 Binary 格式
+ * @param {string} base64 - Base64 编码字符串
+ * @returns {string} Binary 编码字符串（每字节 8 位二进制，空格分隔）
+ */
+function meBase64ToBinary(base64) {
+  if (!base64) return ''
+  const binary = atob(base64)
+  return Array.from(binary)
+    .map(char => char.charCodeAt(0).toString(2).padStart(8, '0'))
+    .join('')
+}

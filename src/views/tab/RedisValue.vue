@@ -9,7 +9,7 @@ import {
   KEY_DELETE,
   KEY_REFRESH,
   meCopy,
-  meDeleteKey,
+  meDeleteKey, meFormatBytes,
   meHumanSeconds,
   meHumanSize,
   meInvoke,
@@ -380,6 +380,12 @@ async function showLocation() {
 
 // 值显示方式: string(utf-8), binary, hex等
 const displayFormat = ref('utf8')
+// 键显示方式
+const showKey = computed(() => {
+  const rk = share.redisKey
+  if (displayFormat.value === 'utf8') return rk.key
+  return meFormatBytes(rk.bytes, displayFormat.value)
+})
 </script>
 
 <template>
@@ -389,7 +395,7 @@ const displayFormat = ref('utf8')
       <!-- 上方键 -->
       <div class="value-header">
         <!-- 键名称 -->
-        <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
+        <el-input type="text" v-model="showKey" readonly style="flex: 1">
           <template #prepend>
             <el-text :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
           </template>

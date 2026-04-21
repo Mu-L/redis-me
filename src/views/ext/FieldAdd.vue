@@ -190,7 +190,7 @@ watch(
 )
 
 // json和stream类型不支持编码
-function handleKeyTypeChange(){
+function handleKeyTypeChange() {
   if (streamOrJsonType.value) {
     form.value.inputFormat = 'utf8'
   }
@@ -253,7 +253,7 @@ function handleKeyTypeChange(){
 
       <!-- 键：新建键可编辑，新增字段时禁止编辑且前缀补充类型 -->
       <el-row :gutter="20">
-        <el-col :span="form.mode === 'key' ? 24: 16">
+        <el-col :span="form.mode === 'key' ? 24 : 16">
           <el-form-item :label="t('fieldAdd.key')" prop="key">
             <el-input type="text" v-model="form.key" :disabled="form.mode === 'field'">
               <template #prepend v-if="form.mode === 'field'">
@@ -265,7 +265,7 @@ function handleKeyTypeChange(){
         <el-col :span="8" v-if="form.mode !== 'key'">
           <el-form-item :label="t('fieldAdd.inputFormat')" prop="inputFormat">
             <el-select v-model="form.inputFormat" style="width: 100%" disabled>
-              <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()"/>
+              <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
             </el-select>
           </el-form-item>
         </el-col>
