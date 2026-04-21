@@ -9,7 +9,8 @@ import {
   KEY_DELETE,
   KEY_REFRESH,
   meCopy,
-  meDeleteKey, meFormatBytes,
+  meDeleteKey,
+  meFormatBytes,
   meHumanSeconds,
   meHumanSize,
   meInvoke,
@@ -216,7 +217,7 @@ function delKey() {
 }
 
 function renameKey() {
-  meRenameKey(share.conn.id, share.redisKey)
+  meRenameKey(share.conn.id, share.redisKey, displayFormat.value)
 }
 
 // 保存值

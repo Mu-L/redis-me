@@ -320,11 +320,11 @@ export function meRenameKey(id, redisKey, encoding = 'utf8') {
     }
 
     const params = { id, key: redisKey, newKey }
-    const rustNewKey = await meInvoke('rename', params)
+    const apiNewKey = await meInvoke('rename', params)
 
     // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
-    redisKey.key = rustNewKey.key
-    redisKey.bytes = rustNewKey.bytes
+    redisKey.key = apiNewKey.key
+    redisKey.bytes = apiNewKey.bytes
     meOk(t('actionOk'))
   })
 }
