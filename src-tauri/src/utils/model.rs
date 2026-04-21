@@ -338,6 +338,16 @@ impl RedisKey {
             &self.bytes
         }
     }
+
+    pub fn to_normal(&self) -> Self {
+        if self.key.is_empty() {
+            RedisKey::from(self.bytes.clone())
+        } else if self.bytes.is_empty() {
+            RedisKey::from(self.key.clone())
+        } else {
+            self.clone()
+        }
+    }
 }
 
 impl From<&str> for RedisKey {

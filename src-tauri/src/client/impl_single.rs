@@ -142,7 +142,7 @@ impl MeClient for MeSingle {
         del0(self.get_conn()?, key)
     }
 
-    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<()> {
+    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<RedisKey> {
         rename0(self.get_conn()?, key, new_key)
     }
 

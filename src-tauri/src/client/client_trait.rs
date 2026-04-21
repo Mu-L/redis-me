@@ -60,7 +60,7 @@ pub trait MeClient: Send + Sync {
 
     fn del(&self, key: RedisKey) -> AnyResult<()>;
 
-    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<()>;
+    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<RedisKey>;
 
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey>;
 
@@ -508,9 +508,9 @@ pub fn rename0(
     mut conn: MutexGuard<impl Commands>,
     key: RedisKey,
     new_key: RedisKey,
-) -> AnyResult<()> {
+) -> AnyResult<RedisKey> {
     let _: () = conn.rename(&key, &new_key)?;
-    Ok(())
+    Ok(new_key.to_normal())
 }
 
 pub fn field_add0(

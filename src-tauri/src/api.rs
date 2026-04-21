@@ -68,7 +68,7 @@ api_commands!(
     ttl(key: RedisKey, ttl: i64) -> ();                 // 设置TTL
     set(param: RedisSetParam) -> ();  // 设置值
     del(key: RedisKey) -> ();                           // 删除键
-    rename(key: RedisKey, new_key: RedisKey) -> ();     // 重命名键
+    rename(key: RedisKey, new_key: RedisKey) -> RedisKey; // 重命名键
     field_add(param: RedisFieldAdd) -> RedisKey;        // 新增字段
     field_set(param: RedisFieldSet) -> ();              // 编辑字段
     field_del(param: RedisFieldDel) -> ();              // 删除字段
