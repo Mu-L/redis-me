@@ -55,6 +55,7 @@ const initForm = computed(() => ({
 const form = ref(cloneDeep(toRaw(initForm.value)))
 
 const stringOrJsonType = computed(() => form.value.type === 'string' || form.value.type === 'json')
+const streamOrJsonType = computed(() => form.value.type === 'stream' || form.value.type === 'json')
 
 const rules = computed(() => ({
   key: [{ required: true, message: t('fieldAdd.keyRequired') }],
@@ -187,6 +188,13 @@ watch(
     formRef?.value?.validate()
   },
 )
+
+// json和stream类型不支持编码
+function handleKeyTypeChange(){
+  if (streamOrJsonType.value) {
+    form.value.inputFormat = 'utf8'
+  }
+}
 </script>
 
 <template>
@@ -204,7 +212,7 @@ watch(
       <el-row :gutter="20" v-if="form.mode === 'key'">
         <el-col :span="8">
           <el-form-item :label="t('fieldAdd.type')" prop="type">
-            <el-select v-model="form.type" style="width: 100%">
+            <el-select v-model="form.type" style="width: 100%" @change="handleKeyTypeChange">
               <el-option
                 v-for="item in KEY_TYPE_LIST"
                 :label="item.value"
@@ -221,7 +229,7 @@ watch(
 
         <el-col :span="8">
           <el-form-item :label="t('fieldAdd.inputFormat')" prop="inputFormat">
-            <el-select v-model="form.inputFormat" style="width: 100%">
+            <el-select v-model="form.inputFormat" style="width: 100%" :disabled="streamOrJsonType">
               <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
             </el-select>
           </el-form-item>
@@ -244,7 +252,6 @@ watch(
       </el-row>
 
       <!-- 键：新建键可编辑，新增字段时禁止编辑且前缀补充类型 -->
-
       <el-row :gutter="20">
         <el-col :span="form.mode === 'key' ? 24: 16">
           <el-form-item :label="t('fieldAdd.key')" prop="key">
@@ -264,13 +271,11 @@ watch(
         </el-col>
       </el-row>
 
-
       <!-- 值：新建键且类型为 string 或 json 时显示 -->
       <el-form-item
         :label="t('fieldAdd.value')"
         prop="value"
         v-if="form.mode === 'key' && stringOrJsonType">
-        <!-- <el-input type="textarea" :rows="6" v-model="form.value" clearable/>-->
         <me-code v-model="form.value" style="height: 150px; width: 100%" />
       </el-form-item>
 
