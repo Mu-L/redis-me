@@ -243,7 +243,7 @@ export default {
     key: '键',
     field: '字段',
     type: '类型',
-    inputFormat: '字符编码',
+    inputFormat: '数据编码',
     ttl: 'TTL超时时长 (-1代表永久)',
     negativeOneHint: '-1代表永久',
     permanent: '永久',
@@ -537,7 +537,7 @@ export default {
     textMemory: '内存占用：',
     textLength: '字节长度：',
     textEntries: '条目：',
-    viewAs: '查看方式',
+    viewAs: '数据编码',
   },
 
   redisChart: {

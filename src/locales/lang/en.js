@@ -250,7 +250,7 @@
     key: 'Key',
     field: 'Field',
     type: 'Type',
-    inputFormat: 'Char Encoder',
+    inputFormat: 'Encoding',
     ttl: 'TTL (-1 means Forever)',
     negativeOneHint: '-1 means Forever',
     forever: 'Forever',
@@ -541,7 +541,7 @@
     textMemory: 'Memory Usage: ',
     textLength: 'Bytes Length: ',
     textEntries: 'Entries: ',
-    viewAs: 'View As',
+    viewAs: 'Encoding',
   },
 
   redisChart: {
