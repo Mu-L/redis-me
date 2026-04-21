@@ -62,7 +62,7 @@ pub trait MeClient: Send + Sync {
 
     fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<()>;
 
-    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()>;
+    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey>;
 
     fn field_set(&self, param: RedisFieldSet) -> AnyResult<()>;
 
@@ -517,7 +517,7 @@ pub fn field_add0(
     mut conn: MutexGuard<impl Commands>,
     param: RedisFieldAdd,
     capabilities: &ServerCapabilities,
-) -> AnyResult<()> {
+) -> AnyResult<RedisKey> {
     // 获取输入格式，默认为 UTF8
     let input_format = param.input_format.as_ref().cloned().unwrap_or_default();
 
@@ -609,7 +609,7 @@ pub fn field_add0(
     if "key" == mode && param.ttl > 0 {
         let _: () = conn.expire(&key, param.ttl)?;
     }
-    Ok(())
+    Ok(key)
 }
 
 pub fn field_set0(

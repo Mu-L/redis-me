@@ -163,9 +163,9 @@ function submit() {
           fieldValueList: form.value.fieldValueList,
         },
       }
-      await meInvoke('field_add', params)
+      const redisKey = await meInvoke('field_add', params)
       visible.value = false
-      emit('success', { key: form.value.key, bytes: '' })
+      emit('success', redisKey)
       meOk(t('addOk'))
     } finally {
       isSaving.value = false

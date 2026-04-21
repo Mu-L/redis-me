@@ -146,7 +146,7 @@ impl MeClient for MeSingle {
         rename0(self.get_conn()?, key, new_key)
     }
 
-    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
+    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey> {
         field_add0(self.get_conn()?, param, &self.capabilities)
     }
 

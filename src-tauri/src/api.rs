@@ -69,7 +69,7 @@ api_commands!(
     set(param: RedisSetParam) -> ();  // 设置值
     del(key: RedisKey) -> ();                           // 删除键
     rename(key: RedisKey, new_key: RedisKey) -> ();     // 重命名键
-    field_add(param: RedisFieldAdd) -> ();              // 新增字段
+    field_add(param: RedisFieldAdd) -> RedisKey;        // 新增字段
     field_set(param: RedisFieldSet) -> ();              // 编辑字段
     field_del(param: RedisFieldDel) -> ();              // 删除字段
     execute_command(param: RedisCommand) -> String;     // 执行命令

@@ -344,22 +344,22 @@ impl From<&str> for RedisKey {
     fn from(s: &str) -> Self {
         RedisKey {
             key: s.to_string(),
-            bytes: Vec::new(),
+            bytes: Vec::from(s),
         }
     }
 }
 impl From<String> for RedisKey {
     fn from(s: String) -> Self {
         RedisKey {
-            key: s,
-            bytes: Vec::new(),
+            key: s.clone(),
+            bytes: Vec::from(s),
         }
     }
 }
 impl From<Vec<u8>> for RedisKey {
     fn from(bytes: Vec<u8>) -> Self {
         RedisKey {
-            key: "".to_string(),
+            key: vec8_to_display_string(&bytes),
             bytes,
         }
     }
