@@ -403,7 +403,7 @@ const showKey = computed(() => {
             <me-button
               :info="t('copy')"
               icon="el-icon-document-copy"
-              @click="meCopy(share.redisKey.key)"
+              @click="meCopy(showKey)"
               placement="top" />
           </template>
         </el-input>
