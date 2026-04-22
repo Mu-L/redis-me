@@ -464,6 +464,7 @@ const showKey = computed(() => {
         <me-code
           v-if="viewType === 'json'"
           :modelValue="showValue"
+          :mode="stringTypeOrWithHashKey && displayFormat !== 'utf8' ? 'ignore' :  'json'"
           @update:modelValue="newValue => (redisValue.newValue = newValue)"
           :read-only="!canSave" />
 
