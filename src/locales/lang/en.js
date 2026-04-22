@@ -466,6 +466,7 @@ export default {
     slowerMaxLen: 'Count',
     slowerGetCount: 'Limit',
     unit: '-',
+    unitMicrosecond: 'μs',
     keyword: 'Filter (Command / Client / ClientName）',
     command: 'Command',
     cost: 'Cost',
@@ -473,6 +474,10 @@ export default {
     time: 'DateTime',
     node: 'Node',
     client: 'Client',
+    editSlowParam: 'Edit Slow Param',
+    saveOk: 'Save Successful',
+    slowerThanRequired: 'Threshold is required',
+    slowerMaxLenRequired: 'Count is required',
   },
 
   redisTerminal: {

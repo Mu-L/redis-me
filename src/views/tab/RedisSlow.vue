@@ -3,12 +3,13 @@ import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
-import { meCopy, meInvoke } from '@/utils/util.js'
+import { meCopy, meInvoke, meOk } from '@/utils/util.js'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
 const share = inject('share')
+const canEdit = computed(() => !share.readonly)
 
 const slowerThan = ref(10000)
 const slowerMaxLen = ref(128)
@@ -76,6 +77,65 @@ async function refresh() {
   }
 }
 refresh()
+
+// 编辑慢参数
+const formRef = useTemplateRef('formRef')
+const editShow = ref(false)
+const editLoading = ref(false)
+const form = reactive({
+  slowerThan: 10,
+  slowerMaxLen: 128,
+})
+const commandList = computed(() => [
+  `CONFIG SET slowlog-log-slower-than ${form.slowerThan * 1000}`,
+  `CONFIG SET slowlog-max-len ${form.slowerMaxLen}`,
+])
+
+function openEditDialog() {
+  form.slowerThan = slowerThan.value / 1000 // 微秒转毫秒
+  form.slowerMaxLen = slowerMaxLen.value
+  nextTick(() => {
+    editShow.value = true
+  })
+}
+
+async function saveSlowParam() {
+  formRef.value.validate(async valid => {
+    if (!valid) return
+
+    editLoading.value = true
+    try {
+      // 保存慢日志阈值（毫秒转微秒）
+      await meInvoke('config_set', {
+        id: share.conn.id,
+        key: 'slowlog-log-slower-than',
+        value: String(form.slowerThan * 1000),
+        node: '*',
+      })
+      // 保存慢日志最大长度
+      await meInvoke('config_set', {
+        id: share.conn.id,
+        key: 'slowlog-max-len',
+        value: String(form.slowerMaxLen),
+        node: '*',
+      })
+      meOk(t('redisSlow.saveOk'))
+      await refresh()
+      editShow.value = false
+    } finally {
+      editLoading.value = false
+    }
+  })
+}
+
+const rules = computed(() => ({
+  slowerThan: [
+    { required: true, message: t('redisSlow.slowerThanRequired') },
+  ],
+  slowerMaxLen: [
+    { required: true, message: t('redisSlow.slowerMaxLenRequired') },
+  ],
+}))
 </script>
 
 <template>
@@ -83,7 +143,7 @@ refresh()
     <div class="me-flex header">
       <div class="me-flex">
         <el-dropdown placement="bottom-start" :hide-on-click="false" :teleported="false">
-          <el-button icon="el-icon-setting">{{ t('redisSlow.slowParam') }}</el-button>
+          <el-button icon="el-icon-data-board">{{ t('redisSlow.slowParam') }}</el-button>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item>
@@ -123,6 +183,13 @@ refresh()
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+        <me-button
+          icon="el-icon-edit"
+          :info="t('redisSlow.editSlowParam')"
+          style="margin-left: 10px"
+          v-if="canEdit"
+          placement="top"
+          @click="openEditDialog" />
         <node-list v-model="node" clearable style="margin-left: 10px" @change="refresh" />
         <me-website to="slowlog" />
       </div>
@@ -193,6 +260,47 @@ refresh()
           v-if="share.conn?.cluster" />
       </me-table>
     </div>
+
+    <!-- 编辑慢参数弹框 -->
+    <el-dialog :title="t('redisSlow.editSlowParam')" v-model="editShow" align-center width="450px" destroy-on-close>
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item :label="t('redisSlow.slowerThan')" prop="slowerThan">
+          <div style="width: 100%">
+            <el-input-number
+              v-model="form.slowerThan"
+              :min="1"
+              :precision="0"
+              style="width: 150px" />
+              <el-text type="info" style="margin-left: 30px">
+                {{ t('redisSlow.unitMicrosecond') }}: {{ form.slowerThan * 1000 }}
+              </el-text>
+          </div>
+        </el-form-item>
+
+        <el-form-item :label="t('redisSlow.slowerMaxLen')" prop="slowerMaxLen">
+          <el-input-number
+            v-model="form.slowerMaxLen"
+            :min="1"
+            :precision="0"
+            :max="1000000"
+            style="width: 150px" />
+        </el-form-item>
+
+        <el-form-item :label="t('redisConfig.command')">
+          <div v-for="(cmd, index) in commandList" :key="index">
+            <el-text @click="meCopy(cmd)" style="cursor: pointer" :style="{ color: share.color }">{{ cmd }}</el-text>
+            <br v-if="index < commandList.length - 1" />
+          </div>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="editShow = false">{{ t('cancel') }}</el-button>
+        <el-button type="primary" :loading="editLoading" @click="saveSlowParam">{{
+          t('save')
+        }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
