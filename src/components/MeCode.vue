@@ -14,9 +14,9 @@ const { mode, readOnly } = defineProps({
 
 const dark = useDark()
 const lang = computed(() => {
-  if (mode === 'json')  return json()
-  if (mode === 'properties')  return python()
-  if (mode === 'python')  return python()
+  if (mode === 'json') return json()
+  if (mode === 'properties') return python()
+  if (mode === 'python') return python()
   return null
 })
 // 暂未找到ini或properties的语法高亮，暂用python代替（也是#作为注释）

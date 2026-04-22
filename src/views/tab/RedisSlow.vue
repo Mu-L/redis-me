@@ -129,12 +129,8 @@ async function saveSlowParam() {
 }
 
 const rules = computed(() => ({
-  slowerThan: [
-    { required: true, message: t('redisSlow.slowerThanRequired') },
-  ],
-  slowerMaxLen: [
-    { required: true, message: t('redisSlow.slowerMaxLenRequired') },
-  ],
+  slowerThan: [{ required: true, message: t('redisSlow.slowerThanRequired') }],
+  slowerMaxLen: [{ required: true, message: t('redisSlow.slowerMaxLenRequired') }],
 }))
 </script>
 
@@ -262,7 +258,12 @@ const rules = computed(() => ({
     </div>
 
     <!-- 编辑慢参数弹框 -->
-    <el-dialog :title="t('redisSlow.editSlowParam')" v-model="editShow" align-center width="450px" destroy-on-close>
+    <el-dialog
+      :title="t('redisSlow.editSlowParam')"
+      v-model="editShow"
+      align-center
+      width="450px"
+      destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item :label="t('redisSlow.slowerThan')" prop="slowerThan">
           <div style="width: 100%">
@@ -271,9 +272,9 @@ const rules = computed(() => ({
               :min="1"
               :precision="0"
               style="width: 150px" />
-              <el-text type="info" style="margin-left: 30px">
-                {{ t('redisSlow.unitMicrosecond') }}: {{ form.slowerThan * 1000 }}
-              </el-text>
+            <el-text type="info" style="margin-left: 30px">
+              {{ t('redisSlow.unitMicrosecond') }}: {{ form.slowerThan * 1000 }}
+            </el-text>
           </div>
         </el-form-item>
 
@@ -288,7 +289,9 @@ const rules = computed(() => ({
 
         <el-form-item :label="t('redisConfig.command')">
           <div v-for="(cmd, index) in commandList" :key="index">
-            <el-text @click="meCopy(cmd)" style="cursor: pointer" :style="{ color: share.color }">{{ cmd }}</el-text>
+            <el-text @click="meCopy(cmd)" style="cursor: pointer" :style="{ color: share.color }">{{
+              cmd
+            }}</el-text>
             <br v-if="index < commandList.length - 1" />
           </div>
         </el-form-item>
