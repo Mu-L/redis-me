@@ -447,7 +447,7 @@ const showKey = computed(() => {
               icon="el-icon-edit"
               placement="top"
               @click="renameKey"
-              v-if="canEdit" />
+              v-if="canEdit && !share.conn.cluster" />
             <me-button
               :info="t('redisValue.deleteKey')"
               icon="el-icon-delete"
