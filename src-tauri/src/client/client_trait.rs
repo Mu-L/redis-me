@@ -504,17 +504,6 @@ pub fn del0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<()>
     Ok(())
 }
 
-pub fn rename0(
-    mut conn: MutexGuard<impl Commands>,
-    key: RedisKey,
-    new_key: RedisKey,
-) -> AnyResult<RedisKey> {
-    // https://redis.ac.cn/docs/latest/commands/rename/
-    // 注意: 在集群模式下，key 和 newkey 必须位于同一个 hash slot 中，这意味着实际上只有具有相同 hash tag 的键才能在集群中可靠地重命名。
-    let _: () = conn.rename(&key, &new_key)?;
-    Ok(new_key.to_normal())
-}
-
 pub fn field_add0(
     mut conn: MutexGuard<impl Commands>,
     param: RedisFieldAdd,

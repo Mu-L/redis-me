@@ -336,7 +336,7 @@ const keyLabelShort = computed(() => meTauri.settings.keyLabel !== 'full')
           <el-dropdown-item command="copyKey"
             ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')"
           /></el-dropdown-item>
-          <el-dropdown-item command="renameKey" v-if="!share.conn.cluster"
+          <el-dropdown-item command="renameKey"
             ><me-icon icon="el-icon-edit" :name="t('keyList.renameKey')"
           /></el-dropdown-item>
           <el-dropdown-item command="deleteKey" divided v-if="canEdit"

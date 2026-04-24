@@ -13,7 +13,7 @@ use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
 use redis::cluster_routing::{MultipleNodeRoutingInfo, ResponsePolicy, RoutingInfo, SingleNodeRoutingInfo};
-use redis::{ConnectionLike, FromRedisValue, Value};
+use redis::{Commands, ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;
@@ -177,7 +177,32 @@ impl MeClient for MeCluster {
     }
 
     fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<RedisKey> {
-        rename0(self.get_conn()?, key, new_key)
+        // https://redis.ac.cn/docs/latest/commands/rename/
+        // Redis Cluster 原生 RENAME 要求 key/newkey 在同一 hash slot。
+        // 为了支持跨 slot 的“无感重命名”，这里改用 DUMP + RESTORE + DEL 方案。
+
+        // 防止同名重命名导致 restore 后又 del 自己
+        if key.to_bytes() == new_key.to_bytes() {
+            return Ok(new_key.to_normal());
+        }
+
+        let mut conn = self.get_conn()?;
+        // 保留毫秒级 TTL（-1 永久键、-2 不存在键）
+        let ttl_ms: i64 = conn.pttl(&key)?;
+        let restore_ttl = if ttl_ms > 0 { ttl_ms } else { 0 };
+
+        // 优先使用连接封装；DUMP/RESTORE 在当前库中通过命令执行
+        let dump_value: Vec<u8> = redis::cmd("dump").arg(&key).query(&mut *conn)?;
+        let _: () = redis::cmd("restore")
+            .arg(&new_key)
+            .arg(restore_ttl)
+            .arg(dump_value)
+            .arg("replace")
+            .query(&mut *conn)?;
+
+        // 删除旧键，实现“重命名”效果
+        let _: () = conn.del(&key)?;
+        Ok(new_key.to_normal())
     }
 
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey> {
