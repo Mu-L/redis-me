@@ -5,10 +5,12 @@ import { useI18n } from 'vue-i18n'
 
 import {
   bus,
+  DISPLAY_FORMAT,
   KEY_DELETE,
   KEY_REFRESH,
   meCopy,
   meDeleteKey,
+  meFormatBytes,
   meHumanSeconds,
   meHumanSize,
   meInvoke,
@@ -69,8 +71,7 @@ const showValue = computed(() => {
       const str = streamType.value ? JSON.stringify(obj) : obj.toString()
       try {
         return str.startsWith('{') || str.startsWith('[')
-          ? // ? JSON.stringify(JSON.parse(str), null, 2)
-            meJsonFormat(str) // 格式化支持非标json
+          ? meJsonFormat(str) // 格式化支持非标json
           : str
       } catch {
         return str
@@ -166,6 +167,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       cursor: cursor.value,
       loadAll,
       meta: meta.value,
+      displayFormat: displayFormat.value,
     }
 
     const data = await meInvoke('field_scan', { id: share.conn.id, param })
@@ -193,6 +195,12 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
     await setTimer(redisValue.value.ttl)
   } finally {
     loading.value = false
+
+    await nextTick(() => {
+      if (jsonType.value || streamType.value) {
+        displayFormat.value = 'utf8'
+      }
+    })
   }
 }
 
@@ -209,27 +217,28 @@ function delKey() {
 }
 
 function renameKey() {
-  meRenameKey(share.conn.id, share.redisKey)
+  meRenameKey(share.conn.id, share.redisKey, displayFormat.value)
 }
 
 // 保存值
 async function setValue() {
   let value = redisValue.value.newValue
-  const params = {
-    key: share.redisKey,
-    ttl: redisValue.value.ttl,
-    keyType: redisValue.value.type,
-  }
 
   // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
   try {
-    // 支持json5格式输入
-    if (params.keyType === 'json') {
-      value = meJsonNormal(value)
+    if (jsonType.value) {
+      value = meJsonNormal(value) // 支持json5格式输入
     }
   } catch {}
 
-  await meInvoke('set', { id: share.conn.id, ...params, value })
+  const param = {
+    key: share.redisKey,
+    value,
+    ttl: redisValue.value.ttl,
+    keyType: redisValue.value.type,
+    inputFormat: displayFormat.value,
+  }
+  await meInvoke('set', { id: share.conn.id, param })
   meOk(t('saveOk'))
   await refreshKey()
 }
@@ -251,6 +260,7 @@ function fieldAdd() {
   fieldAddRef.value?.open({
     mode: 'field',
     type: redisValue.value.type,
+    inputFormat: displayFormat.value,
     ...share.redisKey,
   })
 }
@@ -272,6 +282,7 @@ function fieldSet(row, index) {
     srcFieldValue: row.value,
     type: redisValue.value.type,
     key: share.redisKey,
+    inputFormat: displayFormat.value,
   }
   if (redisValue.value.type === 'list') {
     // 此处不要直接取索引，而是重新去计算下（因为表格可能被关键字过滤过）
@@ -369,7 +380,13 @@ async function showLocation() {
 }
 
 // 值显示方式: string(utf-8), binary, hex等
-// const displayFormat = ref('Raw')
+const displayFormat = ref('utf8')
+// 键显示方式
+const showKey = computed(() => {
+  const rk = share.redisKey
+  if (displayFormat.value === 'utf8') return rk.key
+  return meFormatBytes(rk.bytes, displayFormat.value)
+})
 </script>
 
 <template>
@@ -379,7 +396,7 @@ async function showLocation() {
       <!-- 上方键 -->
       <div class="value-header">
         <!-- 键名称 -->
-        <el-input type="text" v-model="share.redisKey.key" readonly style="flex: 1">
+        <el-input type="text" v-model="showKey" readonly style="flex: 1">
           <template #prepend>
             <el-text :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
           </template>
@@ -387,7 +404,7 @@ async function showLocation() {
             <me-button
               :info="t('copy')"
               icon="el-icon-document-copy"
-              @click="meCopy(share.redisKey.key)"
+              @click="meCopy(showKey)"
               placement="top" />
           </template>
         </el-input>
@@ -447,6 +464,7 @@ async function showLocation() {
         <me-code
           v-if="viewType === 'json'"
           :modelValue="showValue"
+          :mode="stringTypeOrWithHashKey && displayFormat !== 'utf8' ? 'ignore' : 'json'"
           @update:modelValue="newValue => (redisValue.newValue = newValue)"
           :read-only="!canSave" />
 
@@ -646,19 +664,18 @@ async function showLocation() {
         </div>
 
         <div class="me-flex" style="position: relative">
-          <!-- 查看方式
-          <el-select v-model="displayFormat" style="width: 90px; margin: 0 5px">
+          <el-select
+            v-model="displayFormat"
+            :disabled="jsonType || streamType"
+            style="width: 90px"
+            @change="refreshKey(false)">
             <template #header>
-              <el-text style="font-weight: bold">查看方式</el-text>
+              <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
             </template>
-            <el-option value="Raw"/>
-            <el-option value="Hex"/>
-            <el-option value="Binary"/>
+            <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
           </el-select>
-          -->
-
           <!-- 加载更多、加载全部 -->
-          <div class="me-flex" style="width: 45px; margin-right: 10px" v-if="showMore">
+          <div class="me-flex" style="width: 45px; margin-left: 10px" v-if="showMore">
             <me-icon
               :name="t('redisValue.loadMore')"
               icon="me-icon-load-more"
@@ -677,6 +694,7 @@ async function showLocation() {
 
           <!-- 保存 -->
           <me-button
+            style="margin-left: 10px"
             :disabled="!redisValue?.newValue"
             v-if="canSave"
             :info="t('save')"
@@ -687,6 +705,7 @@ async function showLocation() {
 
           <!-- string类型不显示，带有hashKey不显示 -->
           <el-segmented
+            style="margin-left: 10px"
             v-model="viewType"
             :options="viewTypeList"
             v-if="!(stringTypeOrWithHashKey || jsonType)">
@@ -778,13 +797,14 @@ async function showLocation() {
   }
 
   .value-footer {
-    height: 32px;
+    height: 30px;
     font-size: 20px;
 
     :deep(.el-select__wrapper) {
       min-height: 0;
-      height: 28px;
+      height: 30px;
       padding: 4px 4px 4px 10px;
+      //box-shadow: 0 0 0 1px var(--el-border-color);
     }
 
     :deep(.el-select-dropdown__item) {

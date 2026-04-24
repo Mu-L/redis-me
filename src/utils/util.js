@@ -12,7 +12,7 @@ import mitt from 'mitt'
 
 import i18n from '@/locales'
 
-// 全局事件总线: setup直接导入，app全局属性也添加
+// 全局事件总线：setup 直接导入，app 全局属性也添加
 export const bus = mitt()
 
 // 常量
@@ -22,7 +22,7 @@ export const INFO_REFRESH = 'INFO_REFRESH'
 export const CONN_REFRESH = 'CONN_REFRESH'
 export const CONN_LIST_WINDOWS_SYNC = 'CONN_LIST_WINDOWS_SYNC'
 export const TREE_KEY_ID_PREFIX = '_TREE_KEY_ID_PREFIX_'
-
+export const DISPLAY_FORMAT = ['UTF8', 'Hex', 'Binary', 'Base64']
 // 预设颜色
 export const PREDEFINE_COLORS = [
   '#409eff', // primary
@@ -48,14 +48,14 @@ const keyTypeMap = new Map(KEY_TYPE_LIST.map(item => [item.value, item.type]))
 const keyShortMap = new Map(KEY_TYPE_LIST.map(item => [item.value, item.short]))
 
 /**
- * 键类型: el-text, el-tag的type
+ * 键类型：el-text, el-tag 的 type
  */
 export function meType(keyType) {
   return keyTypeMap.get(keyType?.toUpperCase()) || 'info'
 }
 
 /**
- * 键类型短: 避免String、Set的简称都是S
+ * 键类型短：避免 String、Set 的简称都是 S
  */
 export function meKeyShort(keyType, defaultValue = '?') {
   return keyShortMap.get(keyType?.toUpperCase()) || defaultValue
@@ -112,24 +112,24 @@ function translateAppError(appError) {
   return message
 }
 
-// invoke命令: 打印日志
+// invoke 命令：打印日志
 let retryCount = 0
 export async function meInvoke(command, params, alert = true) {
   const start = Date.now()
   try {
     const data = await invoke(command, params)
     const end = Date.now()
-    meLog(`命令: ${command}, 耗时: ${end - start}ms, 参数: `, params, '结果: ', data)
+    meLog(`命令：${command}, 耗时：${end - start}ms, 参数：`, params, '结果：', data)
     retryCount = 0 // 一旦调用成功则重置重试次数
     return data
   } catch (e) {
     const end = Date.now()
     const error = e.toString()
-    // 客户端断开后的自动重连(后端处理大部分，前端仅处理立刻的场景, 优化用户体验。避免无限递归，最多重试3次)
+    // 客户端断开后的自动重连 (后端处理大部分，前端仅处理立刻的场景，优化用户体验。避免无限递归，最多重试 3 次)
     if (error === 'unexpected end of file') {
       if (retryCount <= 3) {
         retryCount++
-        meLog(`第${retryCount}次重试: ${command}`)
+        meLog(`第${retryCount}次重试：${command}`)
         return await meInvoke(command, params, alert)
       }
     }
@@ -146,7 +146,7 @@ export async function meInvoke(command, params, alert = true) {
       }
     }
 
-    meLog(`命令: ${command}, 耗时: ${end - start}ms, 参数:`, params, `, 错误: ${error}`)
+    meLog(`命令：${command}, 耗时：${end - start}ms, 参数:`, params, `, 错误：${error}`)
     throw error
   }
 }
@@ -198,7 +198,7 @@ export function meCopy(text, hintContent, hint = true) {
   }
 }
 
-// 随机N个字符
+// 随机 N 个字符
 const CHAR_ARRAY = Array.from('abcdefghigklmnopqrstuvwxyz0123456789')
 export function meRandomString(n) {
   return sampleSize(CHAR_ARRAY, n).join('')
@@ -223,7 +223,7 @@ export function meHumanSize(size, zeroShow = '0B', fractionDigits = 2) {
     }
   }
 
-  return size + 'B' // 小于1KB的情况
+  return size + 'B' // 小于 1KB 的情况
 }
 
 // 人类可读的大小
@@ -244,10 +244,10 @@ export function meHumanNums(size, zeroShow = '0', fractionDigits = 2) {
     }
   }
 
-  return size // 小于1000的情况
+  return size // 小于 1000 的情况
 }
 
-// w天 xx:yy:zz 的格式
+// w 天 xx:yy:zz 的格式
 export function meHumanSeconds(seconds) {
   if (seconds === undefined || seconds === null) return '-'
   if (seconds <= 0) return seconds
@@ -302,18 +302,47 @@ export function meDeleteKey(id, redisKey, thenFn) {
 }
 
 // 重命名键
-export function meRenameKey(id, redisKey) {
+export function meRenameKey(id, redisKey, encoding = 'utf8') {
+  let message =
+    encoding === 'utf8'
+      ? t('util.renameKey')
+      : t('util.renameKey') + ' (' + encoding.toUpperCase() + ')'
+  let inputValue = encoding === 'utf8' ? redisKey.key : meFormatBytes(redisKey.bytes, encoding)
+
   mePrompt(
-    t('util.renameKey'),
-    { inputValue: redisKey.key, inputType: 'text' },
+    message,
+    {
+      inputValue,
+      inputType: 'text',
+      inputValidator: value => {
+        if (!value || value.trim() === '') {
+          return t('util.valueRequired')
+        }
+        // 非 UTF8 编码时检查 meToBase64 是否有报错
+        if (encoding !== 'utf8') {
+          try {
+            meToBase64(value, encoding)
+          } catch (e) {
+            return e.message
+          }
+        }
+        return true
+      },
+    },
     async ({ value }) => {
-      const newKey = { key: value, bytes: '' }
+      let newKey
+      if (encoding === 'utf8') {
+        newKey = { key: value, bytes: '' }
+      } else {
+        newKey = { key: '', bytes: meToBase64(value, encoding) }
+      }
+
       const params = { id, key: redisKey, newKey }
-      await meInvoke('rename', params)
+      const apiNewKey = await meInvoke('rename', params)
 
       // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
-      redisKey.key = newKey.key
-      redisKey.bytes = newKey.bytes
+      redisKey.key = apiNewKey.key
+      redisKey.bytes = apiNewKey.bytes
       meOk(t('actionOk'))
     },
   )
@@ -362,14 +391,14 @@ export async function meDownloadUpdate(quiet = true, update, app) {
           style: 'color: var(--el-color-primary); text-decoration: none; margin-left: 5px; ',
           onClick: e => {
             e.preventDefault()
-            void openUrl(changelogUrl) // a 和 el-link都无法打开外部链接，使用openUrl可以
+            void openUrl(changelogUrl) // a 和 el-link 都无法打开外部链接，使用 openUrl 可以
           },
         },
         changelog,
       ),
     ])
 
-  // 更新过程中的提示: 避免Esc及点击遮罩层关闭提示框
+  // 更新过程中的提示：避免 Esc 及点击遮罩层关闭提示框
   meConfirm(
     'MessageInvalid',
     async () => {
@@ -397,7 +426,7 @@ export async function meDownloadUpdate(quiet = true, update, app) {
           }
         }
 
-        // 在 Windows 上，由于 Windows 安装程序的限制，应用程序在执行安装步骤时将自动退出。Mac等其他系统，下载和安装都可以在后台运行
+        // 在 Windows 上，由于 Windows 安装程序的限制，应用程序在执行安装步骤时将自动退出。Mac 等其他系统，下载和安装都可以在后台运行
         const isWindows = type() === 'windows'
         if (isWindows) {
           await update.download(downloadingHandle)
@@ -421,12 +450,12 @@ export function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-// 支持注释等非标格式（vscode 同款）- genericFastjson格式化Set时不是标准的json
+// 支持注释等非标格式（vscode 同款）- genericFastjson 格式化 Set 时不是标准的 json
 export function meJsonFormat(jsonString) {
   return applyEdits(jsonString, format(jsonString, undefined, { insertSpaces: true, tabSize: 2 }))
 }
 
-// 支持json5格式的输入(key可以不加引号，key-value可以为单引号，允许注释等)
+// 支持 json5 格式的输入 (key 可以不加引号，key-value 可以为单引号，允许注释等)
 export function meJsonParse(jsonString) {
   if (!jsonString) return null
   if (jsonString === 'undefined') return null
@@ -434,7 +463,87 @@ export function meJsonParse(jsonString) {
   return JSON5.parse(jsonString)
 }
 
-// json5格式转普通json
+// json5 格式转普通 json
 export function meJsonNormal(jsonString) {
   return JSON.stringify(JSON5.parse(jsonString), null, 2)
+}
+
+// base64 的 bytes 转换为显示格式
+export function meFormatBytes(base64, displayFormat) {
+  if (displayFormat === 'base64') return base64
+  if (displayFormat === 'hex') return base64ToHex(base64)
+  if (displayFormat === 'binary') return base64ToBinary(base64)
+  return 'Unknown displayFormat: ' + displayFormat
+}
+
+// 指定格式的 bytes 转换为 base64
+export function meToBase64(bytes, encoding) {
+  if (encoding === 'base64') return bytes
+  if (encoding === 'hex') return hexToBase64(bytes)
+  if (encoding === 'binary') return binaryToBase64(bytes)
+  return 'Unknown encoding: ' + encoding
+}
+
+function base64ToHex(base64) {
+  if (!base64) return ''
+  const binary = atob(base64)
+  return Array.from(binary)
+    .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
+    .join('')
+}
+
+function base64ToBinary(base64) {
+  if (!base64) return ''
+  const binary = atob(base64)
+  return Array.from(binary)
+    .map(char => char.charCodeAt(0).toString(2).padStart(8, '0'))
+    .join('')
+}
+
+function hexToBase64(hex) {
+  if (!hex) return ''
+  // 校验：长度必须是偶数
+  if (hex.length % 2 !== 0) {
+    throw new Error(t('util.invalidHexString'))
+  }
+  // 校验：每个字符必须是有效的十六进制字符
+  if (!/^[0-9a-fA-F]+$/.test(hex)) {
+    throw new Error(t('util.invalidHexCharacter'))
+  }
+  // 每 2 个字符处理为一个字节
+  const bytes = []
+  for (let i = 0; i < hex.length; i += 2) {
+    const byte = parseInt(hex.slice(i, i + 2), 16)
+    if (isNaN(byte)) {
+      throw new Error(t('util.invalidHexCharacter'))
+    }
+    bytes.push(byte)
+  }
+  // 转换为二进制字符串
+  const binary = bytes.map(byte => String.fromCharCode(byte)).join('')
+  return btoa(binary)
+}
+
+function binaryToBase64(binary) {
+  if (!binary) return ''
+  // 校验：长度必须是 8 的倍数
+  if (binary.length % 8 !== 0) {
+    throw new Error(t('util.invalidBinaryString'))
+  }
+  // 校验：每个字符必须是 0 或 1
+  if (!/^[01]+$/.test(binary)) {
+    throw new Error(t('util.invalidBinaryCharacter'))
+  }
+  // 每 8 个字符处理为一个字节
+  const bytes = []
+  for (let i = 0; i < binary.length; i += 8) {
+    const byte = parseInt(binary.slice(i, i + 8), 2)
+    if (isNaN(byte)) {
+      throw new Error(t('util.invalidBinaryCharacter'))
+    }
+    bytes.push(byte)
+  }
+  // 转换为二进制字符串
+  const binaryStr = bytes.map(byte => String.fromCharCode(byte)).join('')
+  return btoa(binaryStr)
 }

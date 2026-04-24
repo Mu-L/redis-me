@@ -79,6 +79,11 @@ export default {
     keyLabelTip: '键树形展示时子节点键的名称显示',
     keyLabelFull: '全称',
     keyLabelShort: '简称',
+
+    dir: '目录',
+    configDir: '配置目录',
+    appDir: '应用目录',
+    logDir: '日志目录',
   },
 
   conn: {
@@ -185,6 +190,11 @@ export default {
     updateErr: '下载安装包失败',
     latestVersion: '当前为最新版本',
     checkUpdateErr: '检查更新失败',
+    valueRequired: '值不允许为空',
+    invalidHexString: '无效的十六进制字符串：长度为奇数',
+    invalidHexCharacter: '无效的十六进制字符',
+    invalidBinaryString: '无效的二进制字符串：长度不是 8 的倍数',
+    invalidBinaryCharacter: '无效的二进制字符',
   },
 
   tabMain: {
@@ -238,6 +248,7 @@ export default {
     key: '键',
     field: '字段',
     type: '类型',
+    inputFormat: '数据编码',
     ttl: 'TTL超时时长 (-1代表永久)',
     negativeOneHint: '-1代表永久',
     permanent: '永久',
@@ -411,6 +422,7 @@ export default {
     keyword: '键模糊筛选',
     startScan: '开启分析',
     type: '类型',
+    inputFormat: '输入格式',
     key: '键',
     size: '大小',
     chooseKey: '详情',
@@ -459,6 +471,12 @@ export default {
     time: '执行时间',
     node: '节点',
     client: '客户端',
+    editSlowParam: '编辑慢参数',
+    saveOk: '保存成功',
+    slowerThanRequired: '阈值不能为空',
+    slowerThanDisabled: '禁用',
+    slowerThanRecordAll: '记录所有',
+    slowerMaxLenRequired: '数量不能为空',
   },
 
   redisTerminal: {
@@ -530,6 +548,7 @@ export default {
     textMemory: '内存占用：',
     textLength: '字节长度：',
     textEntries: '条目：',
+    viewAs: '数据编码',
   },
 
   redisChart: {

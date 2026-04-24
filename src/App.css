@@ -115,6 +115,11 @@ svg {
   background-color: unset;
 }
 
+/* 下拉框头部文字居中对齐 */
+.el-select-dropdown__header {
+  text-align: center;
+}
+
 /* 单行文本省略号 */
 .single-line-ellipsis {
   white-space: nowrap; /* 禁止文本换行 */

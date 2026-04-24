@@ -37,6 +37,7 @@ pub fn run() {
         .manage(AppState::default()) // 状态管理，保持Redis连接
         .invoke_handler(tauri::generate_handler![
             greet,
+            app_dir,
             test_conn,
             masters,
             conn_list,

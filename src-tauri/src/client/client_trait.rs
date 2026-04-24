@@ -56,19 +56,13 @@ pub trait MeClient: Send + Sync {
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()>;
 
-    fn set(
-        &self,
-        key: RedisKey,
-        value: String,
-        ttl: i64,
-        key_type: Option<String>,
-    ) -> AnyResult<()>;
+    fn set(&self, param: RedisSetParam) -> AnyResult<()>;
 
     fn del(&self, key: RedisKey) -> AnyResult<()>;
 
-    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<()>;
+    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<RedisKey>;
 
-    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()>;
+    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey>;
 
     fn field_set(&self, param: RedisFieldSet) -> AnyResult<()>;
 
@@ -151,8 +145,12 @@ pub fn field_scan0(
     param: FieldScanParam,
     capabilities: &ServerCapabilities,
 ) -> AnyResult<FieldScanResult> {
+    // 提取显示格式参数
+    let display_format = param.display_format.as_ref().cloned().unwrap_or_default();
+
     // String, Json, List, Hash(WithKey), Stream(WithKey), Stream 直接获取得到值
-    let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, param.clone())?;
+    let (mut value, key_type, mut cc, length) =
+        field_scan_0_get(&mut conn, &param, &display_format)?;
 
     // Hash, Set, Zset 进行扫描(hscan, sscan, zscan)
     let key = param.key;
@@ -178,6 +176,7 @@ pub fn field_scan0(
                 new_value,
                 &key,
                 capabilities,
+                &display_format,
             )?;
 
             ready_count += new_count;
@@ -201,13 +200,14 @@ pub fn field_scan0(
 
 pub fn field_scan_0_get(
     mut conn: &mut MutexGuard<impl Commands>,
-    param: FieldScanParam,
+    param: &FieldScanParam,
+    display_format: &DisplayFormat,
 ) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor, usize)> {
-    let key = param.key;
-    let hash_key = param.hash_key;
+    let key = &param.key;
+    let hash_key = param.hash_key.clone();
 
     let key_type: ValueType = conn.key_type(&key)?;
-    let mut cc = param.cursor.unwrap_or_default();
+    let mut cc = param.cursor.clone().unwrap_or_default();
 
     // String类型的bytes长度
     let mut length = 0;
@@ -216,7 +216,7 @@ pub fn field_scan_0_get(
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
             length = value.len();
-            let value: String = vec8_to_display_string(&value);
+            let value: String = format_bytes(&value, display_format);
             cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
@@ -235,7 +235,7 @@ pub fn field_scan_0_get(
                     Some(str) => {
                         length = str.len();
                         cc.finished = true;
-                        Some(serde_json::to_value(vec8_to_display_string(&str))?)
+                        Some(serde_json::to_value(format_bytes(&str, display_format))?)
                     }
                     None => bail!(AppError::FieldNotFound { hash_key }),
                 }
@@ -257,10 +257,10 @@ pub fn field_scan_0_get(
             let value: Vec<String> = if !param.load_all && value.len() > param.count as usize {
                 cc.finished = false;
                 cc.now_cursor += param.count;
-                ui_list_value(&value[0..param.count as usize])
+                ui_list_value(&value[0..param.count as usize], display_format)
             } else {
                 cc.finished = true;
-                ui_list_value(&value)
+                ui_list_value(&value, display_format)
             };
             Some(serde_json::to_value(value)?)
         }
@@ -371,12 +371,13 @@ pub fn field_scan_2_value(
     new_value: Value,
     key: &RedisKey,
     capabilities: &ServerCapabilities,
+    display_format: &DisplayFormat,
 ) -> AnyResult<usize> {
     let new_count = match key_type {
         ValueType::Hash => {
             let value: Vec<(Vec<u8>, Vec<u8>)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            let mut new_value = ui_hash_value(&value);
+            let mut new_value = ui_hash_value(&value, display_format);
 
             // 补充hash字段ttl
             if capabilities.hash_field_ttl {
@@ -399,14 +400,14 @@ pub fn field_scan_2_value(
         ValueType::Set => {
             let value: HashSet<Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            scan_value.set.extend(ui_set_value(value));
+            scan_value.set.extend(ui_set_value(value, display_format));
             new_count
         }
 
         ValueType::ZSet => {
             let value: Vec<(Vec<u8>, f64)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            scan_value.zset.extend(ui_zset_value(value));
+            scan_value.zset.extend(ui_zset_value(value, display_format));
             new_count
         }
         _ => bail!(AppError::FieldScanNotSupported {
@@ -472,28 +473,27 @@ pub fn ttl0(mut conn: MutexGuard<impl Commands>, key: RedisKey, ttl: i64) -> Any
     Ok(())
 }
 
-pub fn set0(
-    mut conn: MutexGuard<impl Commands>,
-    key: RedisKey,
-    value: String,
-    ttl: i64,
-    key_type: Option<String>,
-) -> AnyResult<()> {
-    if key_type.unwrap_or_default() == ME_JSON_TYPE_NAME {
-        // json类型
+pub fn set0(mut conn: MutexGuard<impl Commands>, param: RedisSetParam) -> AnyResult<()> {
+    let key = param.key;
+    let format = param.input_format.as_ref().cloned().unwrap_or_default();
+    // 解析输入格式为字节
+    let bytes = parse_bytes(&param.value, &format)?;
+
+    if param.key_type.unwrap_or_default() == ME_JSON_TYPE_NAME {
+        // json 类型
         let value: serde_json::Value =
-            serde_json::from_str(&value).with_context(|| "json parse error")?;
+            serde_json::from_str(&param.value).with_context(|| "json parse error")?;
         let _: () = conn.json_set(&key, "$", &value)?;
-        if ttl > 0 {
-            let _: () = conn.expire(&key, ttl)?;
+        if param.ttl > 0 {
+            let _: () = conn.expire(&key, param.ttl)?;
         }
     } else {
-        // string类型
-        if ttl > 0 {
-            let options = SetOptions::default().with_expiration(SetExpiry::EX(ttl as u64));
-            let _: () = conn.set_options(&key, value, options)?;
+        // string 类型
+        if param.ttl > 0 {
+            let options = SetOptions::default().with_expiration(SetExpiry::EX(param.ttl as u64));
+            let _: () = conn.set_options(&key, &bytes, options)?;
         } else {
-            let _: () = conn.set(&key, value)?;
+            let _: () = conn.set(&key, &bytes)?;
         };
     }
     Ok(())
@@ -504,21 +504,15 @@ pub fn del0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<()>
     Ok(())
 }
 
-pub fn rename0(
-    mut conn: MutexGuard<impl Commands>,
-    key: RedisKey,
-    new_key: RedisKey,
-) -> AnyResult<()> {
-    let _: () = conn.rename(&key, &new_key)?;
-    Ok(())
-}
-
 pub fn field_add0(
     mut conn: MutexGuard<impl Commands>,
     param: RedisFieldAdd,
     capabilities: &ServerCapabilities,
-) -> AnyResult<()> {
-    let key: RedisKey = param.key.into();
+) -> AnyResult<RedisKey> {
+    // 获取输入格式，默认为 UTF8
+    let input_format = param.input_format.as_ref().cloned().unwrap_or_default();
+
+    let key: RedisKey = parse_bytes(&param.key, &input_format)?.into();
     let mode = param.mode;
     let mut key_type = to_key_type(&param.key_type);
 
@@ -539,29 +533,44 @@ pub fn field_add0(
     let fv_list = param.field_value_list;
 
     match key_type {
-        ValueType::String => conn.set(&key, &param.value)?,
-        ValueType::Hash => fv_list
-            .iter()
-            .try_for_each(|f| conn.hset(&key, &f.field_key, &f.field_value))?,
+        ValueType::String => {
+            // 解析输入格式为字节，然后写入
+            let bytes = parse_bytes(&param.value, &input_format)?;
+            conn.set(&key, &bytes)?
+        }
+        ValueType::Hash => {
+            for f in &fv_list {
+                let key_bytes = parse_bytes(&f.field_key, &input_format)?;
+                let value_bytes = parse_bytes(&f.field_value, &input_format)?;
+                let _: () = conn.hset(&key, &key_bytes, &value_bytes)?;
+            }
+        }
         ValueType::List => {
             if "lpush" == param.list_push_method {
                 // 插入头部时保持原有顺序
-                fv_list
-                    .iter()
-                    .rev()
-                    .try_for_each(|fv| conn.lpush(&key, &fv.field_value))?;
+                for f in fv_list.iter().rev() {
+                    let bytes = parse_bytes(&f.field_value, &input_format)?;
+                    let _: () = conn.lpush(&key, &bytes)?;
+                }
             } else {
-                fv_list
-                    .iter()
-                    .try_for_each(|f| conn.rpush(&key, &f.field_value))?;
+                for f in &fv_list {
+                    let bytes = parse_bytes(&f.field_value, &input_format)?;
+                    let _: () = conn.rpush(&key, &bytes)?;
+                }
             }
         }
-        ValueType::Set => fv_list
-            .iter()
-            .try_for_each(|f| conn.sadd(&key, &f.field_value))?,
-        ValueType::ZSet => fv_list
-            .iter()
-            .try_for_each(|f| conn.zadd(&key, &f.field_value, f.field_score))?,
+        ValueType::Set => {
+            for f in &fv_list {
+                let bytes = parse_bytes(&f.field_value, &input_format)?;
+                let _: () = conn.sadd(&key, &bytes)?;
+            }
+        }
+        ValueType::ZSet => {
+            for f in &fv_list {
+                let bytes = parse_bytes(&f.field_value, &input_format)?;
+                let _: () = conn.zadd(&key, &bytes, f.field_score)?;
+            }
+        }
         ValueType::Stream => {
             let items: Vec<(String, String)> = fv_list
                 .iter()
@@ -591,7 +600,7 @@ pub fn field_add0(
     if "key" == mode && param.ttl > 0 {
         let _: () = conn.expire(&key, param.ttl)?;
     }
-    Ok(())
+    Ok(key)
 }
 
 pub fn field_set0(
@@ -601,26 +610,34 @@ pub fn field_set0(
 ) -> AnyResult<()> {
     let key: RedisKey = param.key;
     let key_type: ValueType = conn.key_type(&key)?;
+    // 获取输入格式，默认为 UTF8
+    let input_format = param.input_format.as_ref().cloned().unwrap_or_default();
 
     match key_type {
         ValueType::Hash => {
             // HSET 会清除字段级的 TTL，将其置为 -1（永久）。因此只需要处理>0的场景
-            let _: () = conn.hset(&key, &param.field_key, param.field_value)?;
+            let key_bytes = parse_bytes(&param.field_key, &input_format)?;
+            let value_bytes = parse_bytes(&param.field_value, &input_format)?;
+            let _: () = conn.hset(&key, &key_bytes, &value_bytes)?;
             if capabilities.hash_field_ttl && param.field_ttl > 0 {
-                let _: () =
-                    conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, param.field_key)?;
+                let _: () = conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, &key_bytes)?;
             }
         }
         ValueType::List => {
-            let _: () = conn.lset(&key, param.field_index, param.field_value)?;
+            let bytes = parse_bytes(&param.field_value, &input_format)?;
+            let _: () = conn.lset(&key, param.field_index, &bytes)?;
         }
         ValueType::Set => {
-            let _: () = conn.srem(&key, param.src_field_value)?;
-            let _: () = conn.sadd(&key, param.field_value)?;
+            let src_bytes = parse_bytes(&param.src_field_value, &input_format)?;
+            let bytes = parse_bytes(&param.field_value, &input_format)?;
+            let _: () = conn.srem(&key, &src_bytes)?;
+            let _: () = conn.sadd(&key, &bytes)?;
         }
         ValueType::ZSet => {
-            let _: () = conn.zrem(&key, param.src_field_value)?;
-            let _: () = conn.zadd(&key, param.field_value, param.field_score)?;
+            let src_bytes = parse_bytes(&param.src_field_value, &input_format)?;
+            let bytes = parse_bytes(&param.field_value, &input_format)?;
+            let _: () = conn.zrem(&key, &src_bytes)?;
+            let _: () = conn.zadd(&key, &bytes, param.field_score)?;
         }
         _ => {
             handle_other_value_type(&key_type, &key)?;

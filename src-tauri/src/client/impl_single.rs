@@ -9,7 +9,7 @@ use anyhow::bail;
 use chrono::Utc;
 use log::{info, warn};
 use parking_lot::{Mutex, MutexGuard};
-use redis::{Client, Connection, ConnectionLike, Pipeline, Value};
+use redis::{Client, Commands, Connection, ConnectionLike, Pipeline, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::atomic::Ordering::Relaxed;
@@ -134,25 +134,27 @@ impl MeClient for MeSingle {
         ttl0(self.get_conn()?, key, ttl)
     }
 
-    fn set(
-        &self,
-        key: RedisKey,
-        value: String,
-        ttl: i64,
-        key_type: Option<String>,
-    ) -> AnyResult<()> {
-        set0(self.get_conn()?, key, value, ttl, key_type)
+    fn set(&self, param: RedisSetParam) -> AnyResult<()> {
+        set0(self.get_conn()?, param)
     }
 
     fn del(&self, key: RedisKey) -> AnyResult<()> {
         del0(self.get_conn()?, key)
     }
 
-    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<()> {
-        rename0(self.get_conn()?, key, new_key)
+    fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<RedisKey> {
+        // 防止同名重命名时执行无意义操作
+        if key.to_bytes() == new_key.to_bytes() {
+            return Ok(new_key.to_normal());
+        }
+
+        let mut conn = self.get_conn()?;
+        // https://redis.ac.cn/docs/latest/commands/rename/
+        let _: () = conn.rename(&key, &new_key)?;
+        Ok(new_key.to_normal())
     }
 
-    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<()> {
+    fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey> {
         field_add0(self.get_conn()?, param, &self.capabilities)
     }
 
@@ -436,6 +438,7 @@ impl MeClient for MeSingle {
 
     implement_pipeline_commands!(Pipeline);
 }
+
 
 // 个性化方法
 impl MeSingle {

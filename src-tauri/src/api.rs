@@ -3,6 +3,7 @@ use crate::utils::model::*;
 use crate::utils::util::*;
 use crate::{api_commands, api_commands2};
 use std::collections::HashMap;
+use tauri::utils::platform::current_exe;
 use tauri::{AppHandle, command};
 
 // 默认示例
@@ -10,6 +11,15 @@ use tauri::{AppHandle, command};
 #[command]
 pub fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+// 应用程序目录
+#[command]
+pub fn app_dir() -> ApiResult<String> {
+    match current_exe() {
+        Ok(path) => Ok(path.parent().unwrap().to_string_lossy().to_string()),
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 // 测试连接
@@ -56,10 +66,10 @@ api_commands!(
     field_scan(param: FieldScanParam)  -> FieldScanResult;      // 字段扫描
     //get(key: RedisKey, hash_key: Option<String>) -> RedisValue; // 获取值(不扫描，直接获取所有)
     ttl(key: RedisKey, ttl: i64) -> ();                 // 设置TTL
-    set(key: RedisKey, value: String, ttl: i64, key_type: Option<String>) -> ();  // 设置值
+    set(param: RedisSetParam) -> ();  // 设置值
     del(key: RedisKey) -> ();                           // 删除键
-    rename(key: RedisKey, new_key: RedisKey) -> ();     // 重命名键
-    field_add(param: RedisFieldAdd) -> ();              // 新增字段
+    rename(key: RedisKey, new_key: RedisKey) -> RedisKey; // 重命名键
+    field_add(param: RedisFieldAdd) -> RedisKey;        // 新增字段
     field_set(param: RedisFieldSet) -> ();              // 编辑字段
     field_del(param: RedisFieldDel) -> ();              // 删除字段
     execute_command(param: RedisCommand) -> String;     // 执行命令

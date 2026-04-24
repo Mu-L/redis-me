@@ -524,8 +524,14 @@ function editDbName(db) {
           v-model="share.conn.db"
           @change="selectDB"
           style="width: 120px"
+          filterable
           v-if="!share.conn.cluster">
-          <el-option v-for="item in dbList" :key="item.db" :value="item.db">
+          <!-- label for filterable -->
+          <el-option
+            v-for="item in dbList"
+            :key="item.db"
+            :value="item.db"
+            :label="'db' + item.db + (share.conn?.meta?.['db' + item.db] || '')">
             <div class="me-flex" style="align-items: center">
               <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
               <div style="display: flex">
@@ -718,7 +724,7 @@ function editDbName(db) {
   }
 
   .key-footer {
-    height: 32px;
+    height: 30px;
     border: 1px solid var(--el-border-color);
     border-top: none;
 
@@ -730,8 +736,10 @@ function editDbName(db) {
 
     :deep(.el-select__wrapper) {
       min-height: 0;
-      height: 28px;
+      height: 30px;
       padding: 4px 4px 4px 10px;
+      //border-bottom-left-radius: 0;
+      //box-shadow: 0 0 0 1px var(--el-border-color);
     }
 
     .tip {

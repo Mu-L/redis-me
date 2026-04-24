@@ -13,6 +13,17 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16};
 
+/// 数据显示格式
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DisplayFormat {
+    #[default]
+    UTF8, // 默认字符串（UTF-8 lossy）
+    Hex,    // 十六进制：00 FF 80
+    Binary, // 二进制：00000000 11111111 10000000
+    Base64, // Base64 编码
+}
+
 // 连接信息
 api_model!(
     #[derive(Default)]
@@ -250,6 +261,7 @@ api_model!(FieldScanParam {
     cursor: Option<ScanCursor>,
     load_all: bool,
     meta: Option<FiledScanMeta>, // 扩展参数
+    display_format: Option<DisplayFormat>, // 显示格式
 });
 
 api_model!(FiledScanMeta {
@@ -326,28 +338,38 @@ impl RedisKey {
             &self.bytes
         }
     }
+
+    pub fn to_normal(&self) -> Self {
+        if self.key.is_empty() {
+            RedisKey::from(self.bytes.clone())
+        } else if self.bytes.is_empty() {
+            RedisKey::from(self.key.clone())
+        } else {
+            self.clone()
+        }
+    }
 }
 
 impl From<&str> for RedisKey {
     fn from(s: &str) -> Self {
         RedisKey {
             key: s.to_string(),
-            bytes: Vec::new(),
+            bytes: Vec::from(s),
         }
     }
 }
 impl From<String> for RedisKey {
     fn from(s: String) -> Self {
         RedisKey {
-            key: s,
-            bytes: Vec::new(),
+            key: s.clone(),
+            bytes: Vec::from(s),
         }
     }
 }
 impl From<Vec<u8>> for RedisKey {
     fn from(bytes: Vec<u8>) -> Self {
         RedisKey {
-            key: "".to_string(),
+            key: vec8_to_display_string(&bytes),
             bytes,
         }
     }
@@ -442,6 +464,7 @@ api_model!(RedisFieldAdd {
     key_type: String,
     ttl: i64,
     value: String, // 字段类型为String时的值
+    input_format: Option<DisplayFormat>, // 输入格式（Hex/Binary/Base64 等）
 
     list_push_method: String, // lpush, rpush
     field_value_list: Vec<RedisFieldValue>,
@@ -457,6 +480,7 @@ api_model!(RedisFieldSet {
     field_value: String,
     field_score: f64,
     field_ttl: i64, // 字段 TTL（秒），仅 Redis/Valkey >= 7.4
+    input_format: Option<DisplayFormat>, // 输入格式（Hex/Binary/Base64 等）
 });
 
 // 字段值
@@ -474,6 +498,15 @@ api_model!(RedisFieldDel {
     field_key: String,
     field_value: String,
     stream_id: String, // stream
+});
+
+// 设置参数
+api_model!(RedisSetParam {
+    key: RedisKey,
+    value: String,
+    ttl: i64,
+    key_type: Option<String>,
+    input_format: Option<DisplayFormat>,
 });
 
 // 执行命令

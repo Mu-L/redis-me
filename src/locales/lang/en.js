@@ -85,6 +85,11 @@ export default {
       'Display of the names of child node keys when keys are presented in a tree structure',
     keyLabelFull: 'Full',
     keyLabelShort: 'Short',
+
+    dir: 'Directory',
+    configDir: 'ConfigDir',
+    appDir: 'AppDir',
+    logDir: 'LogDir',
   },
 
   conn: {
@@ -185,13 +190,18 @@ export default {
     renameKey: 'Rename Key',
     checking: 'Checking for update, wait a moment...',
     updateHint: 'New version v{version}, Update?',
-    changelog: 'changelog',
+    changelog: 'ChangeLog',
     changelogUrl: 'https://www.hepengju.com/changelog/latest.html',
     downloadDown: 'Download done, install now?',
     updateDone: 'Update done, restart now?',
     updateErr: 'Download Package Fail',
     latestVersion: "You're up-to-date",
     checkUpdateErr: 'Check Update Fail',
+    valueRequired: 'Value required',
+    invalidHexString: 'Invalid hex string: odd number of characters',
+    invalidHexCharacter: 'Invalid hex character',
+    invalidBinaryString: 'Invalid binary string: length not multiple of 8',
+    invalidBinaryCharacter: 'Invalid binary character',
   },
 
   tabMain: {
@@ -245,6 +255,7 @@ export default {
     key: 'Key',
     field: 'Field',
     type: 'Type',
+    inputFormat: 'Encoding',
     ttl: 'TTL (-1 means Forever)',
     negativeOneHint: '-1 means Forever',
     forever: 'Forever',
@@ -462,6 +473,12 @@ export default {
     time: 'DateTime',
     node: 'Node',
     client: 'Client',
+    editSlowParam: 'Edit Slow Param',
+    saveOk: 'Save Successful',
+    slowerThanRequired: 'Threshold is required',
+    slowerThanDisabled: 'Disabled',
+    slowerThanRecordAll: 'Record all',
+    slowerMaxLenRequired: 'Count is required',
   },
 
   redisTerminal: {
@@ -535,6 +552,7 @@ export default {
     textMemory: 'Memory Usage: ',
     textLength: 'Bytes Length: ',
     textEntries: 'Entries: ',
+    viewAs: 'Encoding',
   },
 
   redisChart: {

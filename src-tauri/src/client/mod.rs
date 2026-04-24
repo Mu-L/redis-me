@@ -22,6 +22,10 @@ mod tests {
         client_cluster()
     }
 
+    fn get_redis_password() -> String {
+        std::env::var("REDIS_PASSWORD").expect("REDIS_PASSWORD environment variable not set")
+    }
+
     #[allow(unused)]
     fn conf_single() -> ConnConfig {
         ConnConfig {
@@ -30,7 +34,7 @@ mod tests {
             host: "ali.hepengju.com".into(),
             port: 6379,
             username: "".into(),
-            password: "hepengju&:2026".into(),
+            password: get_redis_password(),
             ..ConnConfig::default()
         }
     }
@@ -43,7 +47,7 @@ mod tests {
             host: "ali.hepengju.com".into(),
             port: 7001,
             username: "".into(),
-            password: "hepengju&:2026".into(),
+            password: get_redis_password(),
             db: 0,
             ..ConnConfig::default()
         }
@@ -62,6 +66,18 @@ mod tests {
     }
 
     #[allow(unused)]
+    fn client_single_ssl() -> Box<dyn MeClient> {
+        let mut conf = conf_single();
+        conf.port = 6380;
+        conf.ssl = true;
+        conf.ssl_option.key = r"C:\Users\he_pe\redis\redis.key".into();
+        //conf.ssl_option.cert= r"C:\Users\he_pe\redis\redis.crt".into();
+        conf.ssl_option.key = r"~/redis/redis.key".into();
+        conf.ssl_option.cert = r"~\redis\redis.crt".into();
+        MeSingle::init(&conf).unwrap()
+    }
+
+    #[allow(unused)]
     fn client_single_ssh() -> Box<dyn MeClient> {
         let mut conf = conf_single();
         conf.ssh = true;
@@ -75,15 +91,17 @@ mod tests {
 
         // 秘钥方式登录
         conf.ssh_option.login_type = "pkfile".into();
-        conf.ssh_option.pkfile = "C:\\Users\\he_pe\\.ssh\\id_rsa".into();
-        // conf.ssh_option.pkfile = "C:\\Users\\he_pe\\.ssh\\id_ed25519".into();
+        //conf.ssh_option.pkfile = r"C:\Users\he_pe\.ssh\id_rsa".into();
+        //conf.ssh_option.pkfile = r"C:\Users\he_pe\.ssh\id_ed25519".into();
+        conf.ssh_option.pkfile = "~/.ssh/id_rsa".into();
+        conf.ssh_option.pkfile = "~/.ssh/id_ed25519".into();
         conf.ssh_option.passphrase = "".into();
         MeSingle::init(&conf).unwrap()
     }
 
     #[test]
     fn test_info() {
-        let client = client_single();
+        let client = client_single_ssl();
         let result = client.info(None).unwrap();
         println!("{result:#?}");
         let result = client.info(None).unwrap();
@@ -194,6 +212,7 @@ mod tests {
             cursor: None,
             load_all: false,
             meta: None,
+            display_format: Some(DisplayFormat::Base64),
         }
     }
 
@@ -229,6 +248,7 @@ mod tests {
                 list_push_method: "".into(),
                 field_value_list: vec![],
                 stream_id: "".to_string(),
+                input_format: None
             })
             .unwrap();
 
@@ -255,6 +275,7 @@ mod tests {
                     },
                 ],
                 stream_id: "".to_string(),
+                input_format: None
             })
             .unwrap();
     }

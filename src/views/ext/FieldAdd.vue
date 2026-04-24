@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import {
   KEY_TYPE_LIST,
+  DISPLAY_FORMAT,
   meInvoke,
   meOk,
   meJsonParse,
@@ -28,13 +29,13 @@ const share = inject('share')
 const visible = ref(false)
 const isSaving = ref(false)
 const initForm = computed(() => ({
-  mode: 'key', // key-新增键, field-新增字段
+  mode: 'key', // key-新增键，field-新增字段
   key: '',
   type: 'string',
   ttl: -1,
   value: '',
 
-  streamId: '*', // stream格式的id, 默认为*，表示由redis生成
+  streamId: '*', // stream 格式的 id, 默认为*，表示由 redis 生成
 
   listPushMethod: 'rpush',
   listPushOptions: [
@@ -49,9 +50,12 @@ const initForm = computed(() => ({
       fieldTtl: -1,
     },
   ],
+  inputFormat: 'utf8',
 }))
 const form = ref(cloneDeep(toRaw(initForm.value)))
+
 const stringOrJsonType = computed(() => form.value.type === 'string' || form.value.type === 'json')
+const streamOrJsonType = computed(() => form.value.type === 'stream' || form.value.type === 'json')
 
 const rules = computed(() => ({
   key: [{ required: true, message: t('fieldAdd.keyRequired') }],
@@ -73,7 +77,7 @@ const rules = computed(() => ({
       validator: (rule, value, callback) => {
         if (form.value.type === 'json') {
           try {
-            meJsonParse(value) // json合法性校验
+            meJsonParse(value) // json 输入支持 json5 格式，此处转换为正常 json 字符串
           } catch (e) {
             callback(new Error(t('fieldAdd.jsonValidator')))
           }
@@ -144,7 +148,7 @@ function submit() {
 
     isSaving.value = true
     try {
-      // json输入支持json5格式, 此处转换为正常json字符串
+      // json 输入支持 json5 格式，此处转换为正常 json 字符串
       const value = form.value.type === 'json' ? meJsonNormal(form.value.value) : form.value.value
       form.value.fieldValueList.forEach(item => {
         if (item.fieldTtl === null) item.fieldTtl = -1
@@ -159,9 +163,9 @@ function submit() {
           fieldValueList: form.value.fieldValueList,
         },
       }
-      await meInvoke('field_add', params)
+      const redisKey = await meInvoke('field_add', params)
       visible.value = false
-      emit('success', { key: form.value.key, bytes: '' })
+      emit('success', redisKey)
       meOk(t('addOk'))
     } finally {
       isSaving.value = false
@@ -177,13 +181,20 @@ const hint = computed(() => {
   return ''
 })
 
-// me-code的值发生变化时进行自动验证
+// me-code 的值发生变化时进行自动验证
 watch(
   () => form.value.value,
   () => {
     formRef?.value?.validate()
   },
 )
+
+// json和stream类型不支持编码
+function handleKeyTypeChange() {
+  if (streamOrJsonType.value) {
+    form.value.inputFormat = 'utf8'
+  }
+}
 </script>
 
 <template>
@@ -197,11 +208,11 @@ watch(
     :close-on-click-modal="false"
     draggable>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-      <!-- 键类型和TTL: 仅新建键时显示 -->
-      <el-row :gutter="40" v-if="form.mode === 'key'">
-        <el-col :span="12">
+      <!-- 键类型、输入格式和 TTL: 仅新建键时显示 -->
+      <el-row :gutter="20" v-if="form.mode === 'key'">
+        <el-col :span="8">
           <el-form-item :label="t('fieldAdd.type')" prop="type">
-            <el-select v-model="form.type" style="width: 100%">
+            <el-select v-model="form.type" style="width: 100%" @change="handleKeyTypeChange">
               <el-option
                 v-for="item in KEY_TYPE_LIST"
                 :label="item.value"
@@ -216,7 +227,15 @@ watch(
           </el-form-item>
         </el-col>
 
-        <el-col :span="12">
+        <el-col :span="8">
+          <el-form-item :label="t('fieldAdd.inputFormat')" prop="inputFormat">
+            <el-select v-model="form.inputFormat" style="width: 100%" :disabled="streamOrJsonType">
+              <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="8">
           <el-form-item :label="t('fieldAdd.ttl')" prop="ttl">
             <el-input v-model.number="form.ttl" style="flex: 1">
               <template #append>
@@ -232,37 +251,47 @@ watch(
         </el-col>
       </el-row>
 
-      <!-- 键: 新建键可编辑, 新增字段时禁止编辑且前缀补充类型 -->
-      <el-form-item :label="t('fieldAdd.key')" prop="key">
-        <el-input type="text" v-model="form.key" :disabled="form.mode === 'field'">
-          <template #prepend v-if="form.mode === 'field'">
-            <el-text :type="meType(form.type)">{{ form.type.toUpperCase() }}</el-text>
-          </template>
-        </el-input>
-      </el-form-item>
+      <!-- 键：新建键可编辑，新增字段时禁止编辑且前缀补充类型 -->
+      <el-row :gutter="20">
+        <el-col :span="form.mode === 'key' ? 24 : 16">
+          <el-form-item :label="t('fieldAdd.key')" prop="key">
+            <el-input type="text" v-model="form.key" :disabled="form.mode === 'field'">
+              <template #prepend v-if="form.mode === 'field'">
+                <el-text :type="meType(form.type)">{{ form.type.toUpperCase() }}</el-text>
+              </template>
+            </el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8" v-if="form.mode !== 'key'">
+          <el-form-item :label="t('fieldAdd.inputFormat')" prop="inputFormat">
+            <el-select v-model="form.inputFormat" style="width: 100%" disabled>
+              <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
 
-      <!-- 值: 新建键且类型为string或json时显示 -->
+      <!-- 值：新建键且类型为 string 或 json 时显示 -->
       <el-form-item
         :label="t('fieldAdd.value')"
         prop="value"
         v-if="form.mode === 'key' && stringOrJsonType">
-        <!-- <el-input type="textarea" :rows="6" v-model="form.value" clearable/>-->
         <me-code v-model="form.value" style="height: 150px; width: 100%" />
       </el-form-item>
 
-      <!-- list类型的添加方式: rpush、lpush -->
+      <!-- list 类型的添加方式：rpush、lpush -->
       <el-form-item
         :label="t('fieldAdd.type')"
         v-if="form.mode === 'field' && form.type === 'list'">
         <el-segmented v-model="form.listPushMethod" :options="form.listPushOptions" />
       </el-form-item>
 
-      <!-- streamId: 仅stream类型显示 -->
+      <!-- streamId: 仅 stream 类型显示 -->
       <el-form-item :label="t('fieldAdd.streamId')" prop="streamId" v-if="form.type === 'stream'">
         <el-input v-model="form.streamId" clearable />
       </el-form-item>
 
-      <!-- key, value, score: 非string和json类型 -->
+      <!-- key, value, score: 非 string 和 json 类型 -->
       <el-form-item
         :label="t('fieldAdd.element') + ' ' + hint"
         prop="fieldValueList"

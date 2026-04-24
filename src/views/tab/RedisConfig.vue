@@ -180,12 +180,12 @@ async function configSet() {
 
     editLoading.value = true
     try {
-      const param = {
-        command: command.value,
-        node: form.autoBroadcast ? '' : node.value,
-        autoBroadcast: form.autoBroadcast,
-      }
-      await meInvoke('execute_command', { id: share.conn.id, param })
+      await meInvoke('config_set', {
+        id: share.conn.id,
+        key: form.param,
+        value: form.value,
+        node: form.autoBroadcast ? '*' : node.value,
+      })
       meOk(t('saveOk'))
       await refresh()
       editShow.value = false

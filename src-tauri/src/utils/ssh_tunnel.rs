@@ -1,6 +1,6 @@
 use crate::utils::error::AppError;
 use crate::utils::model::SshOption;
-use crate::utils::util::AnyResult;
+use crate::utils::util::{AnyResult, parse_path};
 use log::{info, warn};
 use russh::client;
 use russh::client::AuthResult;
@@ -209,10 +209,8 @@ impl SshTunnel {
                     Some(ssh_option.passphrase.as_str())
                 };
 
-                let key_pair = russh::keys::load_secret_key(
-                    std::path::Path::new(&ssh_option.pkfile),
-                    passphrase,
-                )?;
+                let key_pair =
+                    russh::keys::load_secret_key(parse_path(&ssh_option.pkfile), passphrase)?;
                 let key_pair = PrivateKeyWithHashAlg::new(Arc::new(key_pair), None);
 
                 info!("开始 SSH 公钥认证，用户: {}", username);

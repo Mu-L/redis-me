@@ -266,7 +266,7 @@ function setCurrentKey(redisKey) {
 
 // 键高度配置, 键显示模式
 const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
-const keyLabelShort = computed(() => meTauri.settings.keyLabel === 'short' ?? true)
+const keyLabelShort = computed(() => meTauri.settings.keyLabel !== 'full')
 </script>
 
 <template>

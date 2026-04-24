@@ -50,20 +50,35 @@ const downloadMenu = computed(() => {
       icon: Apple,
     },
     {
-      text: 'Linux amd64 (.deb)',
+      text: 'Linux x64 (.deb)',
       link: downloadLink(`RedisME_${version}_amd64.deb`),
       icon: Linux,
     },
     {
-      text: 'Linux amd64 (.rpm)',
+      text: 'Linux x64 (.rpm)',
       link: downloadLink(`RedisME-${version}-1.x86_64.rpm`),
       icon: Linux,
     },
     {
-      text: 'Linux amd64 (.AppImage)',
+      text: 'Linux x64 (.AppImage)',
       link: downloadLink(`RedisME_${version}_amd64.AppImage`),
       icon: Linux,
     },
+    // {
+    //   text: 'Linux arm64 (.deb)',
+    //   link: downloadLink(`RedisME_${version}_amd64.deb`),
+    //   icon: Linux,
+    // },
+    // {
+    //   text: 'Linux arm64 (.rpm)',
+    //   link: downloadLink(`RedisME-${version}-1.x86_64.rpm`),
+    //   icon: Linux,
+    // },
+    // {
+    //   text: 'Linux arm64 (.AppImage)',
+    //   link: downloadLink(`RedisME_${version}_amd64.AppImage`),
+    //   icon: Linux,
+    // },
   ]
 })
 </script>
