@@ -466,7 +466,6 @@ export default {
     slowerMaxLen: 'Count',
     slowerGetCount: 'Limit',
     unit: '-',
-    unitMicrosecond: 'μs',
     keyword: 'Filter (Command / Client / ClientName）',
     command: 'Command',
     cost: 'Cost',
@@ -477,6 +476,8 @@ export default {
     editSlowParam: 'Edit Slow Param',
     saveOk: 'Save Successful',
     slowerThanRequired: 'Threshold is required',
+    slowerThanDisabled: 'Disabled',
+    slowerThanRecordAll: 'Record all',
     slowerMaxLenRequired: 'Count is required',
   },
 

@@ -464,7 +464,6 @@ export default {
     slowerMaxLen: '数量',
     slowerGetCount: '限制',
     unit: '个',
-    unitMicrosecond: '微秒',
     keyword: '模糊筛选（命令、客户端、名称）',
     command: '命令',
     cost: '耗时',
@@ -475,6 +474,8 @@ export default {
     editSlowParam: '编辑慢参数',
     saveOk: '保存成功',
     slowerThanRequired: '阈值不能为空',
+    slowerThanDisabled: '禁用',
+    slowerThanRecordAll: '记录所有',
     slowerMaxLenRequired: '数量不能为空',
   },
 

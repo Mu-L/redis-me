@@ -87,9 +87,14 @@ const form = reactive({
   slowerMaxLen: 128,
 })
 const commandList = computed(() => [
-  `CONFIG SET slowlog-log-slower-than ${form.slowerThan * 1000}`,
+  `CONFIG SET slowlog-log-slower-than ${form.slowerThan === -1 ? -1 : form.slowerThan * 1000}`,
   `CONFIG SET slowlog-max-len ${form.slowerMaxLen}`,
 ])
+const slowerThanNote = computed(() => {
+  if (form.slowerThan === -1) return t('redisSlow.slowerThanDisabled')
+  if (form.slowerThan === 0) return t('redisSlow.slowerThanRecordAll')
+  return ''
+})
 
 function openEditDialog() {
   form.slowerThan = slowerThan.value / 1000 // 微秒转毫秒
@@ -109,7 +114,7 @@ async function saveSlowParam() {
       await meInvoke('config_set', {
         id: share.conn.id,
         key: 'slowlog-log-slower-than',
-        value: String(form.slowerThan * 1000),
+        value: String(form.slowerThan === -1 ? -1 : form.slowerThan * 1000),
         node: '*',
       })
       // 保存慢日志最大长度
@@ -129,7 +134,19 @@ async function saveSlowParam() {
 }
 
 const rules = computed(() => ({
-  slowerThan: [{ required: true, message: t('redisSlow.slowerThanRequired') }],
+  slowerThan: [
+    { required: true, message: t('redisSlow.slowerThanRequired') },
+    {
+      validator: (_rule, value, callback) => {
+        if (value < -1) {
+          callback(new Error(t('redisSlow.slowerThanRequired')))
+          return
+        }
+        callback()
+      },
+      trigger: 'blur',
+    },
+  ],
   slowerMaxLen: [{ required: true, message: t('redisSlow.slowerMaxLenRequired') }],
 }))
 </script>
@@ -269,11 +286,14 @@ const rules = computed(() => ({
           <div style="width: 100%">
             <el-input-number
               v-model="form.slowerThan"
-              :min="1"
+              :min="-1"
               :precision="0"
               style="width: 150px" />
             <el-text type="info" style="margin-left: 30px">
-              {{ t('redisSlow.unitMicrosecond') }}: {{ form.slowerThan * 1000 }}
+              <template v-if="slowerThanNote">（{{ slowerThanNote }}）</template>
+              <template v-else>
+                {{ form.slowerThan * 1000 }} μs
+              </template>
             </el-text>
           </div>
         </el-form-item>
