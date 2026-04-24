@@ -531,7 +531,7 @@ function editDbName(db) {
             v-for="item in dbList"
             :key="item.db"
             :value="item.db"
-            :label="'db' + item.db + share.conn?.meta?.['db' + item.db] || ''">
+            :label="'db' + item.db + (share.conn?.meta?.['db' + item.db] || '')">
             <div class="me-flex" style="align-items: center">
               <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
               <div style="display: flex">
