@@ -1,15 +1,20 @@
 # 2.x Changelog
 
-## v3.0.0
+## [v3.0.0](https://mp.weixin.qq.com/s/37hqIYE7AuYbvoGJXippdg) (2026-04-25)
 
-- Data Encoding: Added support for UTF8, Hex, Binary, and Base64 formats
+### ✨ New Features
+
+- **Data Encoding**: Added support for UTF8, Hex, Binary, and Base64 formats
   - New Key, Rename Key
   - Value Display: key shown on top, main value area supports display/save, insert field, edit field
-- Package: Added Linux ARM architecture support
+- Package: **Added Linux ARM architecture support**
 - Key Display: Database dropdown now supports filtering with improved style
 - Slow Log: Quick adjustment for server slow log parameters
 - Settings: Added quick-open buttons for config/app/log directories
 - Path Resolution: SSL/SSH file paths now support home directory and environment variables
+
+### 🐞 Bug Fixes
+
 - Cluster Mode: More permissive support for renaming keys (Redis normally requires old/new keys in the same hash slot)
 
 ## [v2.9.0](https://mp.weixin.qq.com/s/WWc-iOfnxYtG5eiFRYCQQA) (2026-04-19)
