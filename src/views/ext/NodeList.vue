@@ -49,6 +49,16 @@ const nodeList = computed(() => {
     }
   })
 
+  // 从节点不自带槽位字段，tooltip 用所属主节点的槽位
+  tempList.forEach(item => {
+    if (item.isSlave && item.slaveOfNode) {
+      const master = tempList.find(m => m.isMaster && m.node === item.slaveOfNode)
+      if (master?.slots) {
+        item.masterSlots = master.slots
+      }
+    }
+  })
+
   // 其他节点
   /*
   myself：你正在连接的节点。
@@ -66,6 +76,17 @@ const nodeList = computed(() => {
       item.shortLabel = item.flags?.slice(0, 1).toUpperCase() || 'F'
     }
   })
+
+  tempList.forEach(item => {
+    if (item.isMaster && item.slots) {
+      item.slotsTooltip = t('nodeList.slotsTooltip', { slots: item.slots })
+    } else if (item.isSlave && item.masterSlots) {
+      item.slotsTooltip = t('nodeList.slotsReplicaTooltip', { slots: item.masterSlots })
+    } else {
+      item.slotsTooltip = ''
+    }
+  })
+
   return tempList
 })
 
@@ -85,7 +106,7 @@ if (initNode && masterNodeList.value.length > 0) {
     <el-option v-for="item in nodeList" :key="item.node" :value="item.node">
       <el-text effect="dark" :type="item.isMaster ? 'primary' : 'info'">
         {{ item.node }} |
-        <el-tooltip :content="'Slots: ' + item.slots" placement="top" :disabled="!item.isMaster">
+        <el-tooltip :content="item.slotsTooltip" placement="top" :disabled="!item.slotsTooltip">
           {{ item.shortLabel }}
         </el-tooltip>
       </el-text>

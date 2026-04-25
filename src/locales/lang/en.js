@@ -279,7 +279,11 @@ export default {
     value: 'Value',
   },
 
-  nodeList: { placeholder: 'Node [Optional]' },
+  nodeList: {
+    placeholder: 'Node [Optional]',
+    slotsTooltip: 'Slots: {slots}',
+    slotsReplicaTooltip: "Master's slots: {slots}",
+  },
 
   keyBatch: {
     matchRequired: 'Key match expression required',
