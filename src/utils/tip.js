@@ -366,7 +366,7 @@ const zhConfigTip = {
   port: '监听的 TCP 端口，默认 6379，设为 0 则不监听 TCP 套接字',
   'tcp-backlog': 'TCP 监听队列长度，实际值受系统 /proc/sys/net/core/somaxconn 限制，默认 511',
   unixsocket: 'Unix 域套接字路径，未指定则不监听 Unix 域套接字',
-  unixsocketperm: 'Unix 域套接字的权限，默认 700',
+  unixsocketperm: 'Unix 域套接字文件权限（八进制），常见示例 700；设为 0 时由版本/平台使用内置默认',
   timeout: '客户端空闲超时时间（秒），0 表示禁用超时关闭连接，默认 0',
   'tcp-keepalive':
     'TCP 保活时间（秒），非 0 值启用 SO_KEEPALIVE 选项，用于检测死连接和维持网络连接，默认 300',
@@ -384,7 +384,7 @@ const zhConfigTip = {
   'tls-ca-cert-file': 'CA 证书文件路径，用于认证 TLS 客户端和节点，Redis 不默认使用系统 CA 配置',
   'tls-ca-cert-dir': 'CA 证书目录路径，功能同 tls-ca-cert-file',
   'tls-auth-clients':
-    '控制 TLS 客户端证书认证要求，可选值 no（不要求也不接受客户端证书）、optional（可选，提供则需有效），默认要求客户端证书',
+    'TLS 客户端证书要求：no 不要求、optional 可选但必须有效、yes 必须提供，默认多为 yes（启用 TLS 时常见）',
   'tls-replication': '是否为复制链路启用 TLS，默认 no',
   'tls-cluster': '是否为集群总线启用 TLS，默认 no',
   'tls-protocols':
@@ -459,7 +459,7 @@ const zhConfigTip = {
   'replica-ignore-disk-write-errors':
     '从节点写入磁盘失败时是否忽略错误，默认 no（崩溃），yes 仅日志警告并执行命令',
   'replica-announced':
-    '从节点是否被 Redis Sentinel 纳入报告，默认 yes，设为 no 则不被 sentinel replicas 命令显示，但仍可晋升为主节点（需配合 replica-priority 0 禁用晋升）',
+    '是否通过 replica-announce-* 与 REPLCONF 向主节点/拓扑宣告本副本地址，默认 yes；与 Sentinel 展示无必然绑定',
   'min-replicas-to-write':
     '主节点接受写入所需的最小在线从节点数量，默认 0（禁用），需与 min-replicas-max-lag 配合使用',
   'min-replicas-max-lag': '主节点接受写入时，从节点的最大延迟时间（秒），默认 10',
@@ -483,7 +483,7 @@ const zhConfigTip = {
   'maxmemory-samples':
     'LRU/LFU/TTL 淘汰算法的采样数量，默认 5，值越大越接近真实结果但 CPU 消耗越高，最大 64',
   'maxmemory-eviction-tenacity':
-    '键淘汰处理的激进程度，0 为最低延迟、10 为默认、100 为优先处理淘汰忽略延迟，默认 10',
+    '键淘汰的激进程度，0 更偏向低延迟、10 默认、100 更偏向尽快腾出内存（可能增加延迟尖刺），默认 10',
   'replica-ignore-maxmemory':
     '从节点是否忽略自身 maxmemory 配置，默认 yes（由主节点处理淘汰），仅当从节点可写或需独立内存限制时修改',
   'active-expire-effort':
@@ -500,7 +500,7 @@ const zhConfigTip = {
   'oom-score-adj':
     '是否控制内核 OOM killer 的进程优先级，可选 no（默认）、yes（等同于 relative）、absolute、relative，用于优先淘汰后台子进程和从节点',
   'oom-score-adj-values':
-    'OOM 优先级调整值，依次为主节点、从节点、后台子进程，取值 - 2000 至 2000，默认 0 200 800',
+    'OOM 分数调整值，依次对应主实例、副本、子进程（顺序以文档为准），范围约 -2000～2000，默认 0 200 800',
   'disable-thp':
     '是否禁用 Redis 进程的透明大页（THP），默认 yes，避免 fork 和写时复制（CoW）导致的延迟问题',
   appendonly: '是否启用 AOF 持久化，默认 no，AOF 与 RDB 可同时启用，启动时优先加载 AOF',
@@ -522,7 +522,7 @@ const zhConfigTip = {
   'aof-timestamp-enabled':
     '是否在 AOF 中记录时间戳注释，支持按时间点恢复，默认 no，启用后可能与部分 AOF 解析器不兼容',
   'shutdown-timeout':
-    '关闭时等待从节点同步的最大时间（秒），仅对有从节点的实例生效，默认 0（禁用）',
+    '优雅关闭阶段的最长等待时间（秒），用于复制追赶等收尾，超时后仍会继续关闭，默认 0 表示使用内置默认',
   'shutdown-on-sigint':
     '接收 SIGINT 信号时的关闭行为，可选 default（默认）、save、nosave、now、force，可组合（save 和 nosave 不可同时使用）',
   'shutdown-on-sigterm': '接收 SIGTERM 信号时的关闭行为，可选值同 shutdown-on-sigint，默认 default',
@@ -549,7 +549,7 @@ const zhConfigTip = {
   'cluster-allow-pubsubshard-when-down':
     '集群故障时，节点是否仍为自身负责的槽提供 Pub/Sub 服务，默认 yes',
   'cluster-link-sendbuf-limit':
-    '集群总线连接的发送缓冲区内存限制（字节），默认 0（禁用），建议最小 1gb，用于防止缓冲区无限增长',
+    '单条集群总线连接的发送缓冲上限（字节），非 0 时可限制对端过慢导致的积压内存，0 表示不单独设限',
   'cluster-announce-hostname': '集群节点对外宣布的主机名，用于 SNI 或 DNS 路由，默认空字符串',
   'cluster-announce-human-nodename': '集群节点的人性化名称，用于调试和管理，默认空字符串',
   'cluster-preferred-endpoint-type':
@@ -561,7 +561,7 @@ const zhConfigTip = {
   'cluster-slot-migration-write-pause-timeout':
     '槽迁移过程中，源节点暂停写入的超时时间（毫秒），默认 10000，防止写入长期阻塞',
   'cluster-slot-migration-handoff-max-lag-bytes':
-    '槽迁移触发切换阶段的最大复制延迟（字节），默认 1mb，剩余延迟低于此值时源节点暂停写入',
+    '槽迁移交接阶段允许的最大复制滞后（字节），滞后足够小源节点才暂停写入并完成切换，默认约 1mb',
   'cluster-announce-ip': '集群节点对外宣布的 IP 地址，用于 NAT 或容器环境',
   'cluster-announce-tls-port': '集群节点对外宣布的 TLS 端口，tls-cluster 启用时生效',
   'cluster-announce-bus-port': '集群节点对外宣布的总线端口',
@@ -578,7 +578,7 @@ const zhConfigTip = {
   'hash-max-listpack-entries': '哈希对象使用紧凑编码的最大条目数，超出则转为哈希表，默认 512',
   'hash-max-listpack-value': '哈希对象使用紧凑编码的最大值大小（字节），超出则转为哈希表，默认 64',
   'list-max-listpack-size':
-    '列表对象使用紧凑编码的节点大小限制，负值表示按字节（-1=4Kb、-2=8Kb 等），正值表示按元素数，默认 - 2',
+    '列表紧凑编码节点大小：负值为每节点字节上限（-1≈4KB、-2≈8KB 等），正值为每节点最大元素数，默认 -2',
   'list-compress-depth': '列表对象的压缩深度，0 禁用压缩，正值表示首尾不压缩的节点数，默认 0',
   'set-max-intset-entries': '集合对象使用整数集合编码的最大条目数，超出则转为哈希表，默认 512',
   'set-max-listpack-entries': '非整数集合使用紧凑编码的最大条目数，超出则转为哈希表，默认 128',
@@ -624,6 +624,111 @@ const zhConfigTip = {
   'aof-rewrite-cpulist': 'AOF 重写子进程的 CPU 亲和性，格式同 taskset 命令',
   'bgsave-cpulist': 'BGSAVE 子进程的 CPU 亲和性，格式同 taskset 命令',
   'ignore-warnings': '需要抑制的 Redis 启动警告列表，空格分隔，如 ARM64-COW-BUG',
+  'repl-ping-slave-period':
+    '主库向从库发 PING 的间隔（秒），与 repl-ping-replica-period 同义（旧名）',
+  'min-slaves-to-write': '主库接受写之前需达标的在线从库数，与 min-replicas-to-write 同义（旧名）',
+  'min-slaves-max-lag': '主库检查从库延迟的上限（秒），与 min-replicas-max-lag 同义（旧名）',
+  slaveof: '指定本实例所复制的主机与端口，与 replicaof 同义（旧名），空表示不复制',
+  'slave-read-only': '从库是否只读，与 replica-read-only 同义（旧名）',
+  'slave-serve-stale-data': '复制中断时是否仍返回旧数据，与 replica-serve-stale-data 同义（旧名）',
+  'slave-priority': 'Sentinel 选主时的从库优先级，与 replica-priority 同义（旧名）',
+  'slave-announce-ip': '从库对外声明的 IP，与 replica-announce-ip 同义（旧名）',
+  'slave-announce-port': '从库对外声明的端口，与 replica-announce-port 同义（旧名）',
+  'slave-ignore-maxmemory': '从库是否忽略本机 maxmemory，与 replica-ignore-maxmemory 同义（旧名）',
+  'slave-lazy-flush': '全量同步时是否惰性清空库，与 replica-lazy-flush 同义（旧名）',
+  'cluster-slave-no-failover':
+    '是否禁止从库自动故障转移，与 cluster-replica-no-failover 同义（旧名）',
+  'cluster-slave-validity-factor':
+    '从库数据陈旧度因子，与 cluster-replica-validity-factor 同义（旧名）',
+  server_cpulist: '主进程与 IO 线程 CPU 亲和性，与 server-cpulist 相同（下划线键名）',
+  bio_cpulist: '后台 IO 线程 CPU 亲和性，与 bio-cpulist 相同（下划线键名）',
+  bgsave_cpulist: 'BGSAVE 子进程 CPU 亲和性，与 bgsave-cpulist 相同（下划线键名）',
+  aof_rewrite_cpulist: 'AOF 重写子进程 CPU 亲和性，与 aof-rewrite-cpulist 相同（下划线键名）',
+  'cluster-announce-port':
+    '对客户端宣告的命令端口（非 TLS），0 常表示跟随 port 或未单独指定，用于 NAT/容器',
+  'hash-max-ziplist-entries':
+    '哈希使用 ziplist 紧凑编码时的最大字段数，超出转哈希表（旧编码名，新配置多为 listpack）',
+  'hash-max-ziplist-value': '哈希 ziplist 单项最大字节，超出转哈希表（旧编码名）',
+  'zset-max-ziplist-entries': '有序集合 ziplist 编码最大元素数，超出转跳表（旧编码名）',
+  'zset-max-ziplist-value': '有序集合 ziplist 单项最大字节（旧编码名）',
+  'list-max-ziplist-size': '列表 ziplist 节点大小阈值，语义接近 list-max-listpack-size（旧编码名）',
+  'client-output-buffer-limit':
+    '单行配置各角色输出缓冲硬/软限制，格式含 normal、slave、pubsub 等段，与分项 client-output-buffer-limit * 等价',
+  'key-memory-histograms': '是否采集键尺寸等直方图供观测（如 INFO Keysizes），默认关闭以降低开销',
+  'bf-initial-size': 'RedisBloom 布隆过滤器默认初始容量（预估元素规模）',
+  'bf-error-rate': '布隆过滤器目标误判率（0~1 小数）',
+  'bf-expansion-factor': '布隆空间不足时扩容倍数',
+  'cf-initial-size': 'RedisBloom Cuckoo 过滤器初始槽位数',
+  'cf-bucket-size': 'Cuckoo 每桶可容纳条目数',
+  'cf-max-iterations': '插入冲突时最大置换迭代次数',
+  'cf-expansion-factor': 'Cuckoo 过滤器扩容因子',
+  'cf-max-expansions': '允许的最大扩容次数',
+  'stream-idmp-duration':
+    '流键渐进修剪（incremental trimming）的时间步长或周期相关参数，随模块版本定义',
+  'stream-idmp-maxsize': '渐进修剪每批最多处理的条目或字节数，用于控制单次 CPU/延迟',
+  'tls-auth-clients-user':
+    '是否将 TLS 客户端证书映射到 ACL 用户（如 off/on），用于证书身份与 ACL 联动，语义随版本扩展',
+  'vset-force-single-threaded-execution': 'VectorSet 模块是否强制单线程执行（调试用或特定部署）',
+  'ts-encoding': '时间序列样本默认编码，如 compressed 或 uncompressed',
+  'ts-chunk-size-bytes': '每个时间序列 chunk 目标大小（字节）',
+  'ts-retention-policy': '保留时长（毫秒），0 表示不按时间裁剪',
+  'ts-duplicate-policy': '相同时间戳再次写入时的策略，如 block、last、first、sum 等',
+  'ts-ignore-max-time-diff': '与上次样本时间差超过该阈值（毫秒）则拒绝或特殊处理，0 常表示关闭',
+  'ts-ignore-max-val-diff': '与上次样本值差超过该阈值则拒绝或特殊处理，用于去噪',
+  'ts-num-threads': '时间序列模块用于计算的线程数',
+  'ts-compaction-policy': '降采样与压实规则 DSL，空表示不自动压实',
+  'search-threads': 'RediSearch 主工作线程数',
+  'search-workers': '附加 worker 线程数，0 常表示按默认推导',
+  'search-io-threads': '模块侧 IO/卸载线程数',
+  'search-timeout': '查询超时时间（毫秒）',
+  'search-on-timeout': '查询超时策略（模块枚举，如 return），具体语义见 RediSearch 文档',
+  'search-on-oom': '内存不足时策略（模块枚举，如 return），具体语义见 RediSearch 文档',
+  'search-default-dialect': 'FT 查询默认方言版本',
+  'search-default-scorer': '全文默认打分器名称，如 BM25STD',
+  'search-max-search-results': '单次搜索允许返回的最大命中数',
+  'search-max-aggregate-results': '聚合管道允许的最大中间/结果规模',
+  'search-max-doctablesize': '文档表最大行数上限',
+  'search-max-prefix-expansions': '前缀扩展最大分支数，防止组合爆炸',
+  'search-min-prefix': '前缀查询最小长度',
+  'search-min-stem-len': '词干提取最小词长',
+  'search-min-phonetic-term-len': '语音匹配最小词长',
+  'search-multi-text-slop': '多字段短语匹配的 slop/跨度',
+  'search-bm25std-tanh-factor': 'BM25STD 打分中 tanh 相关平滑因子',
+  'search-union-iterator-heap': '并集迭代器堆容量相关阈值',
+  'search-cursor-max-idle': '游标最大空闲时间（毫秒）后回收',
+  'search-cursor-reply-threshold': '游标批量回复条数/字节阈值',
+  'search-index-cursor-limit': '索引构建游标并发或队列限制',
+  'search-indexer-yield-every-ops': '索引器每处理多少操作后让出事件循环',
+  'search-workers-priority-bias-threshold': 'worker 调度优先级偏置阈值',
+  'search-min-operation-workers': '执行某类操作所需最少 worker 数',
+  'search-conn-per-shard': '每分片连接池大小，0 为默认',
+  'search-gc-scan-size': '索引 GC 每批扫描的条目规模',
+  'search-fork-gc-run-interval': 'fork 子进程 GC 周期间隔（秒）',
+  'search-fork-gc-retry-interval': 'fork GC 失败重试间隔（秒）',
+  'search-fork-gc-clean-threshold': '触发清理的文档/垃圾计数阈值',
+  'search-fork-gc-sleep-before-exit': 'fork GC 退出前休眠（毫秒），缓和突发 IO',
+  'search-no-gc': '是否禁用搜索索引垃圾回收',
+  'search-no-mem-pools': '是否禁用模块内存池（调试用）',
+  'search-partial-indexed-docs': '是否允许尚未完全索引的文档参与部分查询（视版本语义）',
+  'search-raw-docid-encoding': '是否使用原始 docid 编码优化存储',
+  'search-enable-unstable-features': '是否启用实验/不稳定特性',
+  'search-topology-validation-timeout': '集群拓扑校验超时（毫秒）',
+  'search-tiered-hnsw-buffer-limit': '分层 HNSW 向量索引缓冲上限',
+  'search-vss-max-resize': '向量索引 resize 上限，0 常表示不额外限制',
+  'search-friso-ini': 'Friso 中文分词 ini 配置文件路径',
+  'search-ext-load': 'RediSearch 扩展/插件加载路径',
+  'search-bg-index-sleep-gap': '后台索引节流间隔（毫秒），降低与主线程争用',
+  'search-_bg-index-mem-pct-thr': '后台索引占用系统内存百分比阈值（内部参数）',
+  'search-_bg-index-oom-pause-time': '后台索引遇 OOM 时暂停时长（内部参数）',
+  'search-_min-trim-delay-ms': '修剪任务最小延迟（毫秒，内部）',
+  'search-_max-trim-delay-ms': '修剪任务最大延迟（毫秒，内部）',
+  'search-_trimming-state-check-delay-ms': '修剪状态轮询间隔（毫秒，内部）',
+  'search-_numeric-ranges-parents': '数值范围索引父节点结构相关开关（内部）',
+  'search-_numeric-compress': '是否压缩数值范围索引（内部）',
+  'search-_prioritize-intersect-union-children': '交并查询子迭代器调度策略（内部）',
+  'search-_simulate-in-flex': '灵活查询路径模拟（内部/调试）',
+  'search-_free-resource-on-thread': '是否在线程上释放部分资源（内部）',
+  'search-_print-profile-clock': '是否打印查询剖析时钟（内部/调试）',
 }
 const zhClientTip = {
   id: '唯一的 64 位客户端 ID',
@@ -832,7 +937,7 @@ const enInfoTip = {
   current_save_keys_processed: 'Number of keys processed by the current save operation',
   current_save_keys_total: 'Number of keys at the beginning of the current save operation',
   rdb_changes_since_last_save: 'Number of changes since the last dump',
-  rdb_bgsave_in_progress: 'Flag indicating a RDB save is on-going',
+  rdb_bgsave_in_progress: 'Flag indicating an RDB save is on-going',
   rdb_last_save_time: 'Epoch-based timestamp of last successful RDB save',
   rdb_last_bgsave_status: 'Status of the last RDB save operation',
   rdb_last_bgsave_time_sec: 'Duration of the last RDB save operation in seconds',
@@ -1200,7 +1305,8 @@ const enConfigTip = {
     'The length of the TCP listen queue, the actual value is limited by the system /proc/sys/net/core/somaxconn, default 511',
   unixsocket:
     'The path of the Unix domain socket, if not specified, Redis will not listen on a Unix domain socket',
-  unixsocketperm: 'The permissions of the Unix domain socket, default 700',
+  unixsocketperm:
+    'Octal permission bits for the Unix socket file (e.g. 700); 0 may mean use the build/platform default',
   timeout:
     'Client idle timeout (seconds), 0 means disabling timeout to close connections, default 0',
   'tcp-keepalive':
@@ -1223,7 +1329,7 @@ const enConfigTip = {
     'Path to the CA certificate file, used to authenticate TLS clients and nodes, Redis does not use the system CA configuration by default',
   'tls-ca-cert-dir': 'Path to the CA certificate directory, same function as tls-ca-cert-file',
   'tls-auth-clients':
-    'Control the requirement for TLS client certificate authentication, optional values: no (do not require or accept client certificates), optional (optional, valid if provided), client certificates are required by default',
+    'TLS client cert policy: no, optional (must be valid if sent), or yes; default is often yes when TLS is enabled',
   'tls-replication': 'Whether to enable TLS for replication links, default no',
   'tls-cluster': 'Whether to enable TLS for the cluster bus, default no',
   'tls-protocols':
@@ -1317,7 +1423,7 @@ const enConfigTip = {
   'replica-ignore-disk-write-errors':
     'Whether the replica node ignores errors when writing to disk fails, default no (crash), yes only logs a warning and executes the command',
   'replica-announced':
-    "Whether the replica node is included in Redis Sentinel's reports, default yes, setting to no will not be displayed by the sentinel replicas command, but can still be promoted to master node (need to set replica-priority 0 to disable promotion)",
+    'Whether to announce this replica’s addressing to the master/topology via replica-announce-* and REPLCONF, default yes; not specific to Sentinel visibility',
   'min-replicas-to-write':
     'Minimum number of online replica nodes required for the master node to accept writes, default 0 (disabled), need to be used with min-replicas-max-lag',
   'min-replicas-max-lag':
@@ -1347,7 +1453,7 @@ const enConfigTip = {
   'maxmemory-samples':
     'Sampling number of LRU/LFU/TTL eviction algorithms, default 5, the larger the value, the closer to the real result but the higher the CPU consumption, maximum 64',
   'maxmemory-eviction-tenacity':
-    'Aggressiveness of key eviction processing, 0 for minimum latency, 10 for default, 100 for prioritizing eviction regardless of latency, default 10',
+    'How aggressively to reclaim memory during eviction: 0 favors lower latency, 10 default, 100 favors freeing memory sooner (may add latency spikes), default 10',
   'replica-ignore-maxmemory':
     'Whether the replica node ignores its own maxmemory configuration, default yes (eviction is handled by the master node), modify only when the replica node is writable or needs an independent memory limit',
   'active-expire-effort':
@@ -1392,7 +1498,7 @@ const enConfigTip = {
   'aof-timestamp-enabled':
     'Whether to record timestamp annotations in AOF to support point-in-time recovery, default no, enabling may be incompatible with some AOF parsers',
   'shutdown-timeout':
-    'Maximum time (seconds) to wait for replica nodes to synchronize when shutting down, only effective for instances with replica nodes, default 0 (disabled)',
+    'Upper bound (seconds) for graceful shutdown steps (e.g. replication catch-up); 0 uses the server default, shutdown still proceeds after timeout',
   'shutdown-on-sigint':
     'Shutdown behavior when receiving the SIGINT signal, optional default, save, nosave, now, force, can be combined (save and nosave cannot be used simultaneously)',
   'shutdown-on-sigterm':
@@ -1424,7 +1530,7 @@ const enConfigTip = {
   'cluster-allow-pubsubshard-when-down':
     'Whether nodes still provide Pub/Sub services for the slots they are responsible for when the cluster fails, default yes',
   'cluster-link-sendbuf-limit':
-    'Memory limit (bytes) for the send buffer of cluster bus connections, default 0 (disabled), minimum 1gb is recommended to prevent unlimited buffer growth',
+    'Per cluster-bus connection outbound buffer cap (bytes); non-zero limits memory if a peer is slow, 0 means no explicit cap',
   'cluster-announce-hostname':
     'Hostname announced by cluster nodes to the outside, used for SNI or DNS routing, default empty string',
   'cluster-announce-human-nodename':
@@ -1438,7 +1544,7 @@ const enConfigTip = {
   'cluster-slot-migration-write-pause-timeout':
     'Timeout time (milliseconds) for the source node to pause writes during the slot migration handoff phase, default 10000, preventing long-term write blocking',
   'cluster-slot-migration-handoff-max-lag-bytes':
-    'Maximum replication lag (bytes) for triggering the slot handoff phase during slot migration, default 1mb, the source node pauses writes when the remaining lag is below this value',
+    'Max replication lag (bytes) allowed before finishing slot handoff; the source pauses writes only once lag is small enough, default about 1mb',
   'cluster-announce-ip':
     'IP address announced by cluster nodes to the outside, used in NAT or container environments',
   'cluster-announce-tls-port':
@@ -1461,7 +1567,7 @@ const enConfigTip = {
   'hash-max-listpack-value':
     'Maximum value size (bytes) for hash objects to use compact encoding, converted to hash table when exceeded, default 64',
   'list-max-listpack-size':
-    'Node size limit for list objects to use compact encoding, negative values represent by bytes (-1=4Kb, -2=8Kb, etc.), positive values represent by the number of elements, default -2',
+    'List compact-encoding node size: negative means max bytes per node (-1≈4KB, -2≈8KB, etc.), positive means max elements per node, default -2',
   'list-compress-depth':
     'Compression depth of list objects, 0 disables compression, positive values indicate the number of nodes not compressed at both ends, default 0',
   'set-max-intset-entries':
@@ -1529,6 +1635,130 @@ const enConfigTip = {
   'bgsave-cpulist': 'CPU affinity of the BGSAVE child process, format same as the taskset command',
   'ignore-warnings':
     'List of Redis startup warnings to suppress, separated by spaces, such as ARM64-COW-BUG',
+  'repl-ping-slave-period':
+    'Interval (seconds) for the master to PING replicas, same as repl-ping-replica-period (legacy name)',
+  'min-slaves-to-write':
+    'Min good replicas before the master accepts writes, same as min-replicas-to-write (legacy name)',
+  'min-slaves-max-lag':
+    'Max replica lag (seconds) for the master write quorum, same as min-replicas-max-lag (legacy name)',
+  slaveof:
+    'Host and port of the master to replicate, same as replicaof (legacy name), empty disables replication',
+  'slave-read-only': 'Whether the replica is read-only, same as replica-read-only (legacy name)',
+  'slave-serve-stale-data':
+    'Serve possibly stale data while disconnected, same as replica-serve-stale-data (legacy name)',
+  'slave-priority':
+    'Replica priority for Sentinel failover, same as replica-priority (legacy name)',
+  'slave-announce-ip': 'Announced replica IP, same as replica-announce-ip (legacy name)',
+  'slave-announce-port': 'Announced replica port, same as replica-announce-port (legacy name)',
+  'slave-ignore-maxmemory':
+    'Whether the replica ignores maxmemory, same as replica-ignore-maxmemory (legacy name)',
+  'slave-lazy-flush': 'Lazy flush DB during full sync, same as replica-lazy-flush (legacy name)',
+  'cluster-slave-no-failover':
+    'Disable automatic replica failover, same as cluster-replica-no-failover (legacy name)',
+  'cluster-slave-validity-factor':
+    'Replica validity factor for failover, same as cluster-replica-validity-factor (legacy name)',
+  server_cpulist:
+    'CPU affinity for server and I/O threads, same as server-cpulist (underscore key)',
+  bio_cpulist: 'CPU affinity for BIO threads, same as bio-cpulist (underscore key)',
+  bgsave_cpulist: 'CPU affinity for BGSAVE child, same as bgsave-cpulist (underscore key)',
+  aof_rewrite_cpulist:
+    'CPU affinity for AOF rewrite child, same as aof-rewrite-cpulist (underscore key)',
+  'cluster-announce-port':
+    'Announced TCP command port (non-TLS) for clients; 0 often means same as port or unset, for NAT/containers',
+  'hash-max-ziplist-entries':
+    'Max hash fields in ziplist encoding before converting to a hash table (legacy; listpack is preferred)',
+  'hash-max-ziplist-value':
+    'Max size of one hash value in ziplist encoding before converting to a hash table (legacy)',
+  'zset-max-ziplist-entries':
+    'Max elements in zset ziplist encoding before converting to a skiplist (legacy)',
+  'zset-max-ziplist-value':
+    'Max size of one zset element in ziplist encoding before converting to a skiplist (legacy)',
+  'list-max-ziplist-size':
+    'List ziplist node size threshold, similar role to list-max-listpack-size (legacy encoding name)',
+  'client-output-buffer-limit':
+    'One-line limits for normal/replica/pubsub output buffers; equivalent to separate client-output-buffer-limit * directives',
+  'key-memory-histograms':
+    'Whether to collect key-size histograms for observability (e.g. INFO Keysizes), off by default to save CPU',
+  'bf-initial-size': 'RedisBloom default initial capacity (estimated entry count)',
+  'bf-error-rate': 'Target false-positive rate for Bloom filters (decimal 0–1)',
+  'bf-expansion-factor': 'Expansion factor when a Bloom filter needs more space',
+  'cf-initial-size': 'Initial number of slots for a Cuckoo filter',
+  'cf-bucket-size': 'Number of entries per Cuckoo bucket',
+  'cf-max-iterations': 'Max displacement iterations on insert',
+  'cf-expansion-factor': 'Cuckoo filter expansion factor',
+  'cf-max-expansions': 'Max number of expansions allowed',
+  'stream-idmp-duration':
+    'Time step or period for incremental stream key trimming; exact meaning depends on the streams module version',
+  'stream-idmp-maxsize':
+    'Max entries or bytes processed per incremental trim batch to cap latency per tick',
+  'tls-auth-clients-user':
+    'Map TLS client certificates to ACL users (e.g. off/on); ties cert identity to ACL, semantics vary by release',
+  'vset-force-single-threaded-execution':
+    'Force single-threaded execution in the VectorSet module (debug or special deployments)',
+  'ts-encoding': 'Default encoding for time-series samples, e.g. compressed or uncompressed',
+  'ts-chunk-size-bytes': 'Target size in bytes for each time-series chunk',
+  'ts-retention-policy': 'Retention in milliseconds, 0 keeps samples indefinitely',
+  'ts-duplicate-policy': 'Policy for duplicate timestamps, e.g. block, last, first, sum',
+  'ts-ignore-max-time-diff':
+    'Reject or special-case samples when time delta exceeds this (ms); 0 often disables',
+  'ts-ignore-max-val-diff':
+    'Reject or special-case samples when value delta exceeds this (noise filter)',
+  'ts-num-threads': 'Number of computation threads for the time-series module',
+  'ts-compaction-policy': 'Downsampling/compaction rules DSL; empty disables automatic compaction',
+  'search-threads': 'Number of RediSearch worker threads',
+  'search-workers': 'Additional worker threads; 0 lets the module pick a default',
+  'search-io-threads': 'Module I/O or offload thread count',
+  'search-timeout': 'Query timeout in milliseconds',
+  'search-on-timeout':
+    'Policy name on query timeout (module enum, e.g. return); see RediSearch docs',
+  'search-on-oom': 'Policy name on search OOM (module enum, e.g. return); see RediSearch docs',
+  'search-default-dialect': 'Default FT query dialect version',
+  'search-default-scorer': 'Default full-text scorer name, e.g. BM25STD',
+  'search-max-search-results': 'Max hits returned for one search',
+  'search-max-aggregate-results': 'Cap on aggregate pipeline intermediate/final size',
+  'search-max-doctablesize': 'Max rows in the internal document table',
+  'search-max-prefix-expansions': 'Max prefix expansions to limit combinatorial blow-up',
+  'search-min-prefix': 'Minimum prefix length for prefix queries',
+  'search-min-stem-len': 'Minimum token length for stemming',
+  'search-min-phonetic-term-len': 'Minimum length for phonetic matching',
+  'search-multi-text-slop': 'Slop/span for multi-field phrase queries',
+  'search-bm25std-tanh-factor': 'Tanh-related smoothing factor in BM25STD scoring',
+  'search-union-iterator-heap': 'Heap size related threshold for union iterators',
+  'search-cursor-max-idle': 'Cursor idle time in ms before it is reclaimed',
+  'search-cursor-reply-threshold': 'Batch threshold for cursor replies',
+  'search-index-cursor-limit': 'Indexer cursor concurrency or queue limit',
+  'search-indexer-yield-every-ops': 'Indexer yields after this many operations',
+  'search-workers-priority-bias-threshold': 'Worker scheduling priority bias threshold',
+  'search-min-operation-workers': 'Minimum workers required for certain operations',
+  'search-conn-per-shard': 'Connections per shard; 0 uses default',
+  'search-gc-scan-size': 'Batch size for index garbage collection scans',
+  'search-fork-gc-run-interval': 'Interval in seconds between forked GC runs',
+  'search-fork-gc-retry-interval': 'Retry interval in seconds if fork GC fails',
+  'search-fork-gc-clean-threshold': 'Threshold of garbage docs/bytes to trigger cleanup',
+  'search-fork-gc-sleep-before-exit': 'Sleep in ms before fork GC child exits to smooth IO',
+  'search-no-gc': 'Disable search index garbage collection',
+  'search-no-mem-pools': 'Disable module memory pools (mostly for debugging)',
+  'search-partial-indexed-docs': 'Allow partially indexed docs in some queries (version-specific)',
+  'search-raw-docid-encoding': 'Use raw doc ID encoding optimization',
+  'search-enable-unstable-features': 'Enable experimental or unstable RediSearch features',
+  'search-topology-validation-timeout': 'Cluster topology validation timeout in milliseconds',
+  'search-tiered-hnsw-buffer-limit': 'Buffer limit for tiered HNSW vector indexes',
+  'search-vss-max-resize': 'Max vector index resize; 0 often means no extra cap',
+  'search-friso-ini': 'Path to Friso Chinese tokenizer ini file',
+  'search-ext-load': 'Path to load RediSearch extensions/plugins',
+  'search-bg-index-sleep-gap': 'Throttle gap in ms for background indexing',
+  'search-_bg-index-mem-pct-thr': 'Background indexer system-RSS percentage threshold (internal)',
+  'search-_bg-index-oom-pause-time': 'Pause time when background indexer hits OOM (internal)',
+  'search-_min-trim-delay-ms': 'Minimum trim delay in ms (internal)',
+  'search-_max-trim-delay-ms': 'Maximum trim delay in ms (internal)',
+  'search-_trimming-state-check-delay-ms': 'Trimming state poll interval in ms (internal)',
+  'search-_numeric-ranges-parents': 'Numeric range index parent structure toggle (internal)',
+  'search-_numeric-compress': 'Compress numeric range indexes (internal)',
+  'search-_prioritize-intersect-union-children':
+    'Intersect/union child iterator scheduling (internal)',
+  'search-_simulate-in-flex': 'Simulate flexible query path (internal/debug)',
+  'search-_free-resource-on-thread': 'Free some resources on the thread (internal)',
+  'search-_print-profile-clock': 'Print profiling clock (internal/debug)',
 }
 const enClientTip = {
   id: 'a unique 64-bit client ID',
