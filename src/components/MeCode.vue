@@ -1,11 +1,20 @@
 <script setup>
 import { json } from '@codemirror/lang-json'
-import { python } from '@codemirror/lang-python'
+import { StreamLanguage, syntaxHighlighting } from '@codemirror/language'
+import { properties as propertiesMode } from '@codemirror/legacy-modes/mode/properties'
 import { useDark } from '@vueuse/core'
 import CodeMirror from 'vue-codemirror6'
 
-import { meBasicSetup, zhPhrases } from '@/plugins/codemirror.js'
+import {
+  meBasicSetup,
+  propertiesDarkSyntax,
+  propertiesEagerParse,
+  zhPhrases,
+} from '@/plugins/codemirror.js'
 import { isZh } from '@/utils/util.js'
+
+/** Java .properties 流式解析：适配 Redis INFO/CONFIG（key:value、# 段注释、续行） */
+const propertiesLang = StreamLanguage.define(propertiesMode)
 
 const { mode, readOnly } = defineProps({
   mode: { type: String, default: 'json' },
@@ -15,13 +24,17 @@ const { mode, readOnly } = defineProps({
 const dark = useDark()
 const lang = computed(() => {
   if (mode === 'json') return json()
-  if (mode === 'properties') return python()
-  if (mode === 'python') return python()
+  if (mode === 'properties') return propertiesLang
   return null
 })
-// 暂未找到ini或properties的语法高亮，暂用python代替（也是#作为注释）
 const phrases = computed(() => (isZh.value ? zhPhrases : {}))
-const extensions = [meBasicSetup] // 不使用默认的basicSetup，自己定义扩展（取消高亮当前行等）
+const extensions = computed(() => {
+  const list = [meBasicSetup]
+  if (mode === 'properties') {
+    list.push(syntaxHighlighting(propertiesDarkSyntax), propertiesEagerParse)
+  }
+  return list
+})
 </script>
 
 <template>
@@ -32,7 +45,7 @@ const extensions = [meBasicSetup] // 不使用默认的basicSetup，自己定义
     :lang
     :phrases
     :readonly="readOnly"
-    :extensions
+    :extensions="extensions"
     :class="readOnly ? ['codemirror-opacity', 'is-disabled'] : []" />
 </template>
 
