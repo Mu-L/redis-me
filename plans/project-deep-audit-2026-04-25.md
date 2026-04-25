@@ -1,5 +1,9 @@
 # redis-me 项目深度审查与优化建议（2026-04-25）
 
+## 关联文档
+
+- 竞品差距专项：`plans/redis-client-competitive-gap-2026-04-25.md`
+
 ## 审查范围
 
 - 代码架构与模块边界（前端 Vue + Rust Tauri）
