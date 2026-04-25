@@ -387,7 +387,7 @@ async function openTopology() {
     <RedisConfig :init-node="node || infoNode" :init-version="share.serverVersion" />
   </me-dialog>
 
-  <el-dialog v-model="dialog.topology" :title="t('redisInfo.clusterTopology')" width="520px">
+  <el-dialog v-model="dialog.topology" :title="t('redisInfo.clusterTopology')" width="520px" draggable>
     <template #header>
       <me-icon icon="me-icon-cluster" :name="t('redisInfo.clusterTopology')" />
     </template>
