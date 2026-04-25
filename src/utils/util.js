@@ -7,7 +7,7 @@ import { useClipboard, useDark } from '@vueuse/core'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import JSON5 from 'json5'
 import { applyEdits, format } from 'jsonc-parser'
-import { sampleSize } from 'lodash'
+import { sampleSize, sortBy } from 'lodash'
 import mitt from 'mitt'
 
 import i18n from '@/locales'
@@ -59,6 +59,57 @@ export function meType(keyType) {
  */
 export function meKeyShort(keyType, defaultValue = '?') {
   return keyShortMap.get(keyType?.toUpperCase()) || defaultValue
+}
+
+/**
+ * 将 node_list 接口数据排序并补充与 UI 一致的字段。
+ */
+export function enrichClusterNodes(rawList) {
+  if (!rawList?.length) {
+    return []
+  }
+  const sorted = sortBy(rawList, 'node').map(n => ({ ...n }))
+
+  sorted.forEach(item => {
+    item.isMaster = item.flags?.includes('master')
+    item.isSlave = item.flags?.includes('slave')
+  })
+
+  const masterLabelMap = new Map()
+  let masterIndex = 0
+  sorted.forEach(item => {
+    if (item.isMaster) {
+      masterIndex++
+      item.shortLabel = 'M' + masterIndex
+      masterLabelMap.set(item.node, masterIndex)
+    }
+  })
+
+  sorted.forEach(item => {
+    if (item.isSlave && item.slaveOfNode) {
+      const idx = masterLabelMap.get(item.slaveOfNode)
+      if (idx != null) {
+        item.shortLabel = 'S' + idx
+      }
+    }
+  })
+
+  sorted.forEach(item => {
+    if (item.isSlave && item.slaveOfNode) {
+      const master = sorted.find(m => m.isMaster && m.node === item.slaveOfNode)
+      if (master?.slots) {
+        item.masterSlots = master.slots
+      }
+    }
+  })
+
+  sorted.forEach(item => {
+    if (!item.shortLabel) {
+      item.shortLabel = item.flags?.slice(0, 1).toUpperCase() || 'F'
+    }
+  })
+
+  return sorted
 }
 
 // 是否开发模式

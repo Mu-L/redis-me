@@ -402,6 +402,7 @@ export default {
     client: 'Client',
     runConfig: 'Run Config',
     cacheRatio: 'Cache Hit Ratio',
+    clusterTopology: 'Cluster Topology',
   },
 
   redisMemory: {

@@ -400,6 +400,7 @@ export default {
     client: '客户端',
     runConfig: '运行配置',
     cacheRatio: '缓存命中率',
+    clusterTopology: '集群拓扑',
   },
 
   redisMemory: {
