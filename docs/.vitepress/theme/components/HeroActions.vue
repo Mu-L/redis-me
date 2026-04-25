@@ -20,64 +20,70 @@ function downloadLink(fileName) {
 const downloadMenu = computed(() => {
   return [
     {
-      text: `Windows x64 (.exe)`,
-      link: downloadLink(`RedisME_${version}_x64-setup.exe`),
+      os: 'Windows',
       icon: Windows,
+      items: [
+        {
+          text: 'x64 (.exe)',
+          link: downloadLink(`RedisME_${version}_x64-setup.exe`),
+        },
+        {
+          text: 'x64 (.zip)',
+          link: downloadLink(`RedisME_${version}_portable_x64.zip`),
+        },
+        {
+          text: 'arm64 (.exe)',
+          link: downloadLink(`RedisME_${version}_arm64-setup.exe`),
+        },
+        {
+          text: 'arm64 (.zip)',
+          link: downloadLink(`RedisME_${version}_portable_arm64.zip`),
+        },
+      ],
     },
     {
-      text: `Windows x64 (.zip)`,
-      link: downloadLink(`RedisME_${version}_portable_x64.zip`),
-      icon: Windows,
-    },
-    {
-      text: `Windows arm64 (.exe)`,
-      link: downloadLink(`RedisME_${version}_arm64-setup.exe`),
-      icon: Windows,
-    },
-    {
-      text: `Windows arm64 (.zip)`,
-      link: downloadLink(`RedisME_${version}_portable_arm64.zip`),
-      icon: Windows,
-    },
-    {
-      text: 'MacOS x64 (.dmg)',
-      link: downloadLink(`RedisME_${version}_x64.dmg`),
+      os: 'macOS',
       icon: Apple,
+      items: [
+        {
+          text: 'x64 (.dmg)',
+          link: downloadLink(`RedisME_${version}_x64.dmg`),
+        },
+        {
+          text: 'arm64 (.dmg)',
+          link: downloadLink(`RedisME_${version}_aarch64.dmg`),
+        },
+      ],
     },
     {
-      text: 'MacOS arm64 (.dmg)',
-      link: downloadLink(`RedisME_${version}_aarch64.dmg`),
-      icon: Apple,
-    },
-    {
-      text: 'Linux x64 (.deb)',
-      link: downloadLink(`RedisME_${version}_amd64.deb`),
+      os: 'Linux',
       icon: Linux,
-    },
-    {
-      text: 'Linux x64 (.rpm)',
-      link: downloadLink(`RedisME-${version}-1.x86_64.rpm`),
-      icon: Linux,
-    },
-    {
-      text: 'Linux x64 (.AppImage)',
-      link: downloadLink(`RedisME_${version}_amd64.AppImage`),
-      icon: Linux,
-    },
-    {
-      text: 'Linux arm64 (.deb)',
-      link: downloadLink(`RedisME_${version}_arm64.deb`),
-      icon: Linux,
-    },
-    {
-      text: 'Linux arm64 (.rpm)',
-      link: downloadLink(`RedisME-${version}-1.aarch64.rpm`),
-      icon: Linux,
-    },
-    {
-      text: 'Linux arm64 (.AppImage)',
-      link: downloadLink(`RedisME_${version}_aarch64.AppImage`),
-      icon: Linux,
+      items: [
+        {
+          text: 'x64 (.deb)',
+          link: downloadLink(`RedisME_${version}_amd64.deb`),
+        },
+        {
+          text: 'x64 (.rpm)',
+          link: downloadLink(`RedisME-${version}-1.x86_64.rpm`),
+        },
+        {
+          text: 'x64 (.AppImage)',
+          link: downloadLink(`RedisME_${version}_amd64.AppImage`),
+        },
+        {
+          text: 'arm64 (.deb)',
+          link: downloadLink(`RedisME_${version}_arm64.deb`),
+        },
+        {
+          text: 'arm64 (.rpm)',
+          link: downloadLink(`RedisME-${version}-1.aarch64.rpm`),
+        },
+        {
+          text: 'arm64 (.AppImage)',
+          link: downloadLink(`RedisME_${version}_aarch64.AppImage`),
+        },
+      ],
     },
   ]
 })
@@ -91,10 +97,15 @@ const downloadMenu = computed(() => {
         <span>{{ downloadText }}</span>
       </a>
       <ul class="dropdown-menu">
-        <li v-for="(m, i) in downloadMenu" :key="i" style="font-size: 14px">
-          <component :is="m.icon" />
-          <a :href="m.link" target="_blank">{{ m.text }}</a>
-        </li>
+        <template v-for="(group, i) in downloadMenu" :key="group.os">
+          <li class="group-title" :class="{ 'group-title-first': i === 0 }">
+            <component :is="group.icon" />
+            <span>{{ group.os }}</span>
+          </li>
+          <li v-for="item in group.items" :key="item.link" class="group-item" style="font-size: 14px">
+            <a :href="item.link" target="_blank">{{ item.text }}</a>
+          </li>
+        </template>
       </ul>
     </div>
     <div class="action">
@@ -172,9 +183,9 @@ const downloadMenu = computed(() => {
   margin: 5px 0 0;
   padding: 5px;
   border-radius: 10px;
-  border: 1px solid var(--vp-button-brand-border);
-  background-color: var(--vp-button-brand-bg);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--vp-c-divider);
+  background-color: var(--vp-c-bg-soft);
+  box-shadow: var(--vp-shadow-2);
   z-index: 1;
   display: none;
 }
@@ -187,12 +198,39 @@ const downloadMenu = computed(() => {
   flex-direction: row;
   gap: 5px;
   align-items: center;
-  color: var(--vp-button-brand-text);
+  color: var(--vp-c-text-1);
 }
 
 .dropdown-menu li:hover {
-  background-color: #f0f0f066;
+  background-color: var(--vp-c-default-soft);
   border-radius: 10px;
+}
+
+.dropdown-menu .group-title {
+  padding: 8px 8px 4px;
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--vp-c-text-2);
+  cursor: default;
+  margin-top: 6px;
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+.dropdown-menu .group-title-first {
+  margin-top: 0;
+  border-top: none;
+}
+
+.dropdown-menu .group-title:hover {
+  background-color: transparent;
+}
+
+.dropdown-menu .group-item {
+  padding: 6px 8px 6px 30px;
 }
 
 /* 新增a标签图标 */
