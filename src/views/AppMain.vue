@@ -1,18 +1,18 @@
 <script setup>
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { check } from '@tauri-apps/plugin-updater'
-import { sortBy } from 'lodash'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
   bus,
-  CONN_LIST_WINDOWS_SYNC,
   CONN_REFRESH,
+  CONN_LIST_WINDOWS_SYNC,
   DoNothing,
+  enrichNodeList,
   meInvoke,
-  meOk,
   meJsonParse,
+  meOk,
 } from '@/utils/util.js'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
@@ -26,6 +26,7 @@ const { t } = useI18n()
 const share = reactive({
   conn: null, // 当前连接
   connList: meTauri.connList, // 连接列表, 初始化从存储中已读取
+  nodeList: [], // 节点列表，刷新连接才会更新
   loading: false, // 整个主体界面loading（其他地方也会使用到）
   color: 'var(--el-color-primary)', // 即 share.conn.color（便于使用和移植）
   readonly: false, // 即 share.conn.readonly 当前连接是否只读(此处另外存储1份，避免影响连接默认的只读设置)
@@ -92,6 +93,8 @@ watch(
         share.readonly = !!newConn.readonly
         share.tabName = 'info'
         share.capabilities = await meInvoke('connect', { id: newConn.id })
+        const nodeList = await meInvoke('node_list', { id: share.conn.id })
+        share.nodeList = enrichNodeList(nodeList || [])
         connPrepared.value = true
       }
     } catch (e) {

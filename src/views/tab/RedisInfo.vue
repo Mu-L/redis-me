@@ -4,10 +4,11 @@ import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/utils/tip.js'
-import { bus, enrichClusterNodes, INFO_REFRESH, meInvoke } from '@/utils/util.js'
+import { bus, INFO_REFRESH, meInvoke } from '@/utils/util.js'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 
+import { enrichNodeList } from '../../utils/util'
 import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
@@ -156,22 +157,13 @@ function goMemory() {
 }
 
 // 新增功能：Redis 集群拓扑弹框
-const clusterRawList = ref([])
-const clusterShardGroups = computed(() => {
-  if (!share.conn?.cluster) {
-    return
-  }
-  const enriched = enrichClusterNodes(clusterRawList.value)
-  const masters = enriched.filter(n => n.isMaster)
+const nodeGroups = computed(() => {
+  const masters = share.nodeList.filter(n => n.isMaster)
   return masters.map(m => ({
     master: m,
     slaves: enriched.filter(n => n.isSlave && n.slaveOfNode === m.node),
   }))
 })
-async function openTopology() {
-  dialog.topology = true
-  clusterRawList.value = (await meInvoke('node_list', { id: share.conn.id })) || []
-}
 </script>
 
 <template>
@@ -200,7 +192,7 @@ async function openTopology() {
               style="margin-left: 10px; font-size: 16px; color: var(--el-color-primary)"
               icon="me-icon-cluster"
               :info="t('redisInfo.clusterTopology')"
-              @click="openTopology" />
+              @click="dialog.topology = true" />
           </div>
           <div class="me-flex">
             <me-icon
@@ -387,13 +379,17 @@ async function openTopology() {
     <RedisConfig :init-node="node || infoNode" :init-version="share.serverVersion" />
   </me-dialog>
 
-  <el-dialog v-model="dialog.topology" :title="t('redisInfo.clusterTopology')" width="520px" draggable>
+  <el-dialog
+    v-model="dialog.topology"
+    :title="t('redisInfo.clusterTopology')"
+    width="520px"
+    draggable>
     <template #header>
       <me-icon icon="me-icon-cluster" :name="t('redisInfo.clusterTopology')" />
     </template>
     <div class="cluster-topology-wrap">
       <el-card
-        v-for="(group, groupIdx) in clusterShardGroups"
+        v-for="(group, groupIdx) in nodeGroups"
         :key="group.master.node"
         shadow="hover"
         :style="{ marginTop: groupIdx ? '10px' : '0' }">

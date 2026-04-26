@@ -64,51 +64,46 @@ export function meKeyShort(keyType, defaultValue = '?') {
 /**
  * 将 node_list 接口数据排序并补充与 UI 一致的字段。
  */
-export function enrichClusterNodes(rawList) {
-  if (!rawList?.length) {
-    return []
-  }
-  const sorted = sortBy(rawList, 'node').map(n => ({ ...n }))
+export function enrichNodeList(rawList) {
+  if (!rawList?.length) return []
+  const sorted = sortBy(rawList, 'node')
 
+  let masterIndex = 0
+  const masterMap = new Map()
+  // 记录master/slave节点信息, master节点先记录
   sorted.forEach(item => {
     item.isMaster = item.flags?.includes('master')
     item.isSlave = item.flags?.includes('slave')
-  })
-
-  const masterLabelMap = new Map()
-  let masterIndex = 0
-  sorted.forEach(item => {
     if (item.isMaster) {
       masterIndex++
       item.shortLabel = 'M' + masterIndex
-      masterLabelMap.set(item.node, masterIndex)
+      masterMap.set(item.node, { idx: masterIndex, slots: item.slots })
     }
   })
-
+  // 补充从节点信息, 从节点依赖master节点信息
   sorted.forEach(item => {
     if (item.isSlave && item.slaveOfNode) {
-      const idx = masterLabelMap.get(item.slaveOfNode)
-      if (idx != null) {
-        item.shortLabel = 'S' + idx
-      }
-    }
-  })
-
-  sorted.forEach(item => {
-    if (item.isSlave && item.slaveOfNode) {
-      const master = sorted.find(m => m.isMaster && m.node === item.slaveOfNode)
-      if (master?.slots) {
+      const master = masterMap.get(item.slaveOfNode)
+      if (master) {
+        item.shortLabel = 'S' + master.idx
         item.masterSlots = master.slots
       }
     }
-  })
 
-  sorted.forEach(item => {
+    // tooltip 优化合并
+    if (item.isMaster && item.slots) {
+      item.slotsTooltip = t('nodeList.slotsTooltip', { slots: item.slots })
+    } else if (item.isSlave && item.masterSlots) {
+      item.slotsTooltip = t('nodeList.slotsReplicaTooltip', { slots: item.masterSlots })
+    } else {
+      item.slotsTooltip = ''
+    }
+
+    // Fallback
     if (!item.shortLabel) {
       item.shortLabel = item.flags?.slice(0, 1).toUpperCase() || 'F'
     }
   })
-
   return sorted
 }
 
