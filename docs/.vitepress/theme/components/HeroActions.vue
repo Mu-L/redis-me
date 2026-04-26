@@ -102,7 +102,11 @@ const downloadMenu = computed(() => {
             <component :is="group.icon" />
             <span>{{ group.os }}</span>
           </li>
-          <li v-for="item in group.items" :key="item.link" class="group-item" style="font-size: 14px">
+          <li
+            v-for="item in group.items"
+            :key="item.link"
+            class="group-item"
+            style="font-size: 14px">
             <a :href="item.link" target="_blank">{{ item.text }}</a>
           </li>
         </template>

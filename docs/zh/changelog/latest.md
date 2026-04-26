@@ -2,9 +2,10 @@
 
 ## v3.1.0
 
-- 信息/配置
-  - 使用 properties 高亮并优化深色与全文解析
-  - 使用AI完善优化中英文说明字段
+- 新增集群拓扑图展示
+- 信息和配置的高亮与说明优化
+  - 使用 properties 高亮并优化深色模式
+  - AI补充完善与优化中英文说明字段
 
 ## [v3.0.0](https://mp.weixin.qq.com/s/37hqIYE7AuYbvoGJXippdg) (2026-04-25)
 
