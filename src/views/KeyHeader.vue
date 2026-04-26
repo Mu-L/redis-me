@@ -23,7 +23,7 @@ const dialog = reactive({
 // 处理额外命令
 async function handleCommand(command) {
   if (command === 'refreshConn') {
-    await meInvoke('connect', { id: share.conn.id })
+    share.capabilities = await meInvoke('connect', { id: share.conn.id })
     bus.emit(CONN_REFRESH)
   } else if ('closeConn' === command) {
     share.conn = null

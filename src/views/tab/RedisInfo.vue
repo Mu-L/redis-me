@@ -4,11 +4,10 @@ import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/utils/tip.js'
-import { bus, INFO_REFRESH, meInvoke } from '@/utils/util.js'
+import { bus, INFO_REFRESH, meInvoke, enrichNodeList } from '@/utils/util.js'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 
-import { enrichNodeList } from '../../utils/util'
 import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
@@ -155,6 +154,12 @@ function goMemory() {
   // dialog.memory = true
   share.tabName = 'memory'
 }
+
+// 节点列表在此组件中设置（刷新连接时自动重新获取）
+onMounted(async () => {
+  const nodeList = await meInvoke('node_list', { id: share.conn.id })
+  share.nodeList = enrichNodeList(nodeList || [])
+})
 
 // 新增功能：Redis 集群拓扑弹框
 const nodeGroups = computed(() => {

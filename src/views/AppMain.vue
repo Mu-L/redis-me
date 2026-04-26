@@ -6,10 +6,9 @@ import { useI18n } from 'vue-i18n'
 
 import {
   bus,
-  CONN_REFRESH,
   CONN_LIST_WINDOWS_SYNC,
+  CONN_REFRESH,
   DoNothing,
-  enrichNodeList,
   meInvoke,
   meJsonParse,
   meOk,
@@ -70,7 +69,7 @@ watch(
     oldConn = meJsonParse(oldConn)
 
     // 触发连接列表更新（保存和同步到后端） #72
-    const index = share.connList.findIndex(c => c.id === share.conn.id)
+    const index = share.connList.findIndex(c => c.id === newConn?.id)
     if (index !== -1) {
       share.connList[index] = newConn
     }
@@ -93,8 +92,6 @@ watch(
         share.readonly = !!newConn.readonly
         share.tabName = 'info'
         share.capabilities = await meInvoke('connect', { id: newConn.id })
-        const nodeList = await meInvoke('node_list', { id: share.conn.id })
-        share.nodeList = enrichNodeList(nodeList || [])
         connPrepared.value = true
       }
     } catch (e) {
