@@ -15,7 +15,7 @@ const { initNode } = defineProps({
 const firstMaster = computed(() => share.nodeList.find(item => item.isMaster))
 onMounted(() => {
   if (initNode) {
-    emit('update:modelValue', firstMaster.value.node)
+    emit('update:modelValue', firstMaster.value?.node || '')
   }
 })
 </script>
