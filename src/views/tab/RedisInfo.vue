@@ -387,7 +387,7 @@ const nodeGroups = computed(() => {
   <el-dialog
     v-model="dialog.topology"
     :title="t('redisInfo.clusterTopology')"
-    width="520px"
+    width="600px"
     draggable>
     <template #header>
       <me-icon icon="me-icon-cluster" :name="t('redisInfo.clusterTopology')" />
@@ -398,20 +398,15 @@ const nodeGroups = computed(() => {
         :key="group.master.node"
         shadow="hover"
         :style="{ marginTop: groupIdx ? '10px' : '0' }">
-        <div class="me-flex" style="align-items: center; gap: 10px">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
           <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
             <el-tag type="primary" effect="dark" size="small">{{ group.master.shortLabel }}</el-tag>
             <el-text effect="dark" type="primary" style="font-size: 13px; font-weight: 600">
               {{ group.master.node }}
             </el-text>
           </div>
-          <el-text
-            v-if="group.master.slots"
-            effect="dark"
-            type="info"
-            size="small"
-            style="flex-shrink: 0; text-align: right">
-            {{ t('nodeList.slotsTooltip', { slots: group.master.slots }) }}
+          <el-text type="info" style="font-size: 12px">
+            {{ group.master.id }}
           </el-text>
         </div>
         <div
@@ -424,14 +419,27 @@ const nodeGroups = computed(() => {
           <div
             v-for="(s, idx) in group.slaves"
             :key="s.node"
-            style="display: flex; align-items: center; gap: 10px"
+            style="display: flex; align-items: center; justify-content: space-between; gap: 10px"
             :style="{ marginTop: idx ? '8px' : '0' }">
-            <el-tag type="info" effect="dark" size="small">{{ s.shortLabel }}</el-tag>
-            <el-text effect="dark" type="info" style="font-size: 13px; font-weight: 500">
-              {{ s.node }}
+            <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+              <el-tag type="info" effect="dark" size="small">{{ s.shortLabel }}</el-tag>
+              <el-text effect="dark" type="info" style="font-size: 13px; font-weight: 500">
+                {{ s.node }}
+              </el-text>
+            </div>
+            <el-text type="info" style="font-size: 12px">
+              {{ s.id }}
             </el-text>
           </div>
         </div>
+        <el-text
+          v-if="group.master.slots"
+          effect="dark"
+          type="info"
+          size="small"
+          style="display: block; margin-top: 10px; text-align: right">
+          Slots: {{ group.master.slots }}
+        </el-text>
       </el-card>
     </div>
   </el-dialog>
