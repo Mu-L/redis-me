@@ -161,7 +161,7 @@ const nodeGroups = computed(() => {
   const masters = share.nodeList.filter(n => n.isMaster)
   return masters.map(m => ({
     master: m,
-    slaves: enriched.filter(n => n.isSlave && n.slaveOfNode === m.node),
+    slaves: share.nodeList.filter(n => n.isSlave && n.slaveOfNode === m.node),
   }))
 })
 </script>

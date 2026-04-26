@@ -11,12 +11,11 @@ const emit = defineEmits(['update:modelValue'])
 const { initNode } = defineProps({
   initNode: { type: Boolean, default: false },
 })
-const firstMaster = computed(() => share.nodeList.find(item => item.isMaster))
 
+const firstMaster = computed(() => share.nodeList.find(item => item.isMaster))
 onMounted(() => {
-  if (!share.conn?.cluster) return
-  if (initNode && firstMaster.value) {
-    emit('update:modelValue', firstMaster.node)
+  if (initNode) {
+    emit('update:modelValue', firstMaster.value.node)
   }
 })
 </script>
