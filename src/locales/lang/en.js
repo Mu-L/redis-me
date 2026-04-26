@@ -279,7 +279,11 @@ export default {
     value: 'Value',
   },
 
-  nodeList: { placeholder: 'Node [Optional]' },
+  nodeList: {
+    placeholder: 'Node [Optional]',
+    slotsTooltip: 'Slots: {slots}',
+    slotsReplicaTooltip: "Master's slots: {slots}",
+  },
 
   keyBatch: {
     matchRequired: 'Key match expression required',
@@ -398,6 +402,7 @@ export default {
     client: 'Client',
     runConfig: 'Run Config',
     cacheRatio: 'Cache Hit Ratio',
+    clusterTopology: 'Cluster Topology',
   },
 
   redisMemory: {

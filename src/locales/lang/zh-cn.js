@@ -272,7 +272,11 @@ export default {
     value: '值',
   },
 
-  nodeList: { placeholder: '指定节点【可选】' },
+  nodeList: {
+    placeholder: '指定节点【可选】',
+    slotsTooltip: '槽位：{slots}',
+    slotsReplicaTooltip: '所属主节点槽位：{slots}',
+  },
 
   keyBatch: {
     matchRequired: '键名表达式不能为空',
@@ -396,6 +400,7 @@ export default {
     client: '客户端',
     runConfig: '运行配置',
     cacheRatio: '缓存命中率',
+    clusterTopology: '集群拓扑',
   },
 
   redisMemory: {

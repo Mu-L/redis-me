@@ -46,6 +46,13 @@ const tableKeyword = ref('')
 const redisValue = ref(null)
 const cursor = ref(null) // 新增游标，支持list/hash/set/zset的扫描，避免一次性获取所有数据
 const loading = ref(false)
+const suppressCodeUpdate = ref(false)
+
+// 处理CodeMirror的更新事件
+function onCodeUpdate(newValue) {
+  if (suppressCodeUpdate.value || !redisValue.value) return
+  redisValue.value.newValue = newValue
+}
 
 // 刷新值的扩展参数
 const meta = ref({
@@ -54,7 +61,6 @@ const meta = ref({
 })
 
 // 计算属性
-
 const hashType = computed(() => 'hash' === redisValue.value?.type)
 const stringType = computed(() => 'string' === redisValue.value?.type)
 const jsonType = computed(() => 'json' === redisValue.value?.type)
@@ -148,6 +154,7 @@ function resetParam() {
 }
 async function refreshKey(reset = true, useCursor = false, loadAll = false) {
   fieldSetInit() // 关闭字段编辑
+  suppressCodeUpdate.value = true
 
   if (reset) {
     resetParam()
@@ -155,7 +162,6 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
 
   if (!useCursor) {
     cursor.value = null // 不使用游标时重置游标
-    redisValue.value = null // 不使用游标时重置值（String, JSON的保存按钮-发生变化时才能点击）
   }
 
   loading.value = true
@@ -195,6 +201,10 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
     await setTimer(redisValue.value.ttl)
   } finally {
     loading.value = false
+    if (redisValue.value) {
+      redisValue.value.newValue = ''
+    }
+    suppressCodeUpdate.value = false
 
     await nextTick(() => {
       if (jsonType.value || streamType.value) {
@@ -465,7 +475,7 @@ const showKey = computed(() => {
           v-if="viewType === 'json'"
           :modelValue="showValue"
           :mode="stringTypeOrWithHashKey && displayFormat !== 'utf8' ? 'ignore' : 'json'"
-          @update:modelValue="newValue => (redisValue.newValue = newValue)"
+          @update:modelValue="onCodeUpdate"
           :read-only="!canSave" />
 
         <!-- 表格显示 -->

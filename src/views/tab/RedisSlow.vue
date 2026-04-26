@@ -291,9 +291,7 @@ const rules = computed(() => ({
               style="width: 150px" />
             <el-text type="info" style="margin-left: 30px">
               <template v-if="slowerThanNote">（{{ slowerThanNote }}）</template>
-              <template v-else>
-                {{ form.slowerThan * 1000 }} μs
-              </template>
+              <template v-else> {{ form.slowerThan * 1000 }} μs </template>
             </el-text>
           </div>
         </el-form-item>

@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/utils/tip.js'
-import { bus, INFO_REFRESH, meInvoke } from '@/utils/util.js'
+import { bus, INFO_REFRESH, meInvoke, enrichNodeList } from '@/utils/util.js'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 
@@ -28,6 +28,7 @@ const dialog = reactive({
   client: false,
   config: false,
   memory: false,
+  topology: false,
 })
 const loading = ref(false)
 const config = ref('')
@@ -153,6 +154,21 @@ function goMemory() {
   // dialog.memory = true
   share.tabName = 'memory'
 }
+
+// 节点列表在此组件中设置（刷新连接时自动重新获取）
+onMounted(async () => {
+  const nodeList = await meInvoke('node_list', { id: share.conn.id })
+  share.nodeList = enrichNodeList(nodeList || [])
+})
+
+// 新增功能：Redis 集群拓扑弹框
+const nodeGroups = computed(() => {
+  const masters = share.nodeList.filter(n => n.isMaster)
+  return masters.map(m => ({
+    master: m,
+    slaves: share.nodeList.filter(n => n.isSlave && n.slaveOfNode === m.node),
+  }))
+})
 </script>
 
 <template>
@@ -160,7 +176,7 @@ function goMemory() {
     <el-descriptions border>
       <template #title>
         <div class="me-flex" style="align-items: center">
-          <div>
+          <div class="me-flex">
             <el-text size="large" style="margin-left: 5px">{{ infoNode }}</el-text>
             <el-tag style="margin-left: 10px" effect="plain">
               {{ share.isValkey ? 'Valkey' : 'Redis' }} {{ share.serverVersion }}
@@ -175,6 +191,13 @@ function goMemory() {
             <el-tag type="success" style="margin-left: 10px" v-if="dic['role']" effect="plain">{{
               dic['role']
             }}</el-tag>
+            <me-icon
+              v-if="share.conn?.cluster"
+              class="icon-btn"
+              style="margin-left: 10px; font-size: 16px; color: var(--el-color-primary)"
+              icon="me-icon-cluster"
+              :info="t('redisInfo.clusterTopology')"
+              @click="dialog.topology = true" />
           </div>
           <div class="me-flex">
             <me-icon
@@ -360,6 +383,66 @@ function goMemory() {
     :close-on-click-modal="false">
     <RedisConfig :init-node="node || infoNode" :init-version="share.serverVersion" />
   </me-dialog>
+
+  <el-dialog
+    v-model="dialog.topology"
+    :title="t('redisInfo.clusterTopology')"
+    width="600px"
+    draggable>
+    <template #header>
+      <me-icon icon="me-icon-cluster" :name="t('redisInfo.clusterTopology')" />
+    </template>
+    <div class="cluster-topology-wrap">
+      <el-card
+        v-for="(group, groupIdx) in nodeGroups"
+        :key="group.master.node"
+        shadow="hover"
+        :style="{ marginTop: groupIdx ? '10px' : '0' }">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+            <el-tag type="primary" effect="dark" size="small">{{ group.master.shortLabel }}</el-tag>
+            <el-text effect="dark" type="primary" style="font-size: 13px; font-weight: 600">
+              {{ group.master.node }}
+            </el-text>
+          </div>
+          <el-text type="info" style="font-size: 12px">
+            {{ group.master.id }}
+          </el-text>
+        </div>
+        <div
+          v-if="group.slaves.length"
+          style="
+            margin-top: 10px;
+            padding-left: 14px;
+            border-left: 2px solid var(--el-border-color-lighter);
+          ">
+          <div
+            v-for="(s, idx) in group.slaves"
+            :key="s.node"
+            style="display: flex; align-items: center; justify-content: space-between; gap: 10px"
+            :style="{ marginTop: idx ? '8px' : '0' }">
+            <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+              <el-tag type="info" effect="dark" size="small">{{ s.shortLabel }}</el-tag>
+              <el-text effect="dark" type="info" style="font-size: 13px; font-weight: 500">
+                {{ s.node }}
+              </el-text>
+            </div>
+            <el-text type="info" style="font-size: 12px">
+              {{ s.id }}
+            </el-text>
+          </div>
+        </div>
+        <el-text
+          v-if="group.master.slots"
+          effect="dark"
+          type="info"
+          size="small"
+          style="display: block; margin-top: 10px; text-align: right">
+          Slots: {{ group.master.slots }}
+        </el-text>
+      </el-card>
+    </div>
+  </el-dialog>
 </template>
 
 <style scoped lang="scss">
@@ -415,5 +498,11 @@ function goMemory() {
       }
     }
   }
+}
+
+.cluster-topology-wrap {
+  height: 100%;
+  overflow: auto;
+  padding: 4px 2px 12px;
 }
 </style>

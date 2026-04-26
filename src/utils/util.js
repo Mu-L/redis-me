@@ -7,7 +7,7 @@ import { useClipboard, useDark } from '@vueuse/core'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import JSON5 from 'json5'
 import { applyEdits, format } from 'jsonc-parser'
-import { sampleSize } from 'lodash'
+import { sampleSize, sortBy } from 'lodash'
 import mitt from 'mitt'
 
 import i18n from '@/locales'
@@ -59,6 +59,52 @@ export function meType(keyType) {
  */
 export function meKeyShort(keyType, defaultValue = '?') {
   return keyShortMap.get(keyType?.toUpperCase()) || defaultValue
+}
+
+/**
+ * 将 node_list 接口数据排序并补充与 UI 一致的字段。
+ */
+export function enrichNodeList(rawList) {
+  if (!rawList?.length) return []
+  const sorted = sortBy(rawList, 'node')
+
+  let masterIndex = 0
+  const masterMap = new Map()
+  // 记录master/slave节点信息, master节点先记录
+  sorted.forEach(item => {
+    item.isMaster = item.flags?.includes('master')
+    item.isSlave = item.flags?.includes('slave')
+    if (item.isMaster) {
+      masterIndex++
+      item.shortLabel = 'M' + masterIndex
+      masterMap.set(item.node, { idx: masterIndex, slots: item.slots })
+    }
+  })
+  // 补充从节点信息, 从节点依赖master节点信息
+  sorted.forEach(item => {
+    if (item.isSlave && item.slaveOfNode) {
+      const master = masterMap.get(item.slaveOfNode)
+      if (master) {
+        item.shortLabel = 'S' + master.idx
+        item.masterSlots = master.slots
+      }
+    }
+
+    // tooltip 优化合并
+    if (item.isMaster && item.slots) {
+      item.slotsTooltip = t('nodeList.slotsTooltip', { slots: item.slots })
+    } else if (item.isSlave && item.masterSlots) {
+      item.slotsTooltip = t('nodeList.slotsReplicaTooltip', { slots: item.masterSlots })
+    } else {
+      item.slotsTooltip = ''
+    }
+
+    // Fallback
+    if (!item.shortLabel) {
+      item.shortLabel = item.flags?.slice(0, 1).toUpperCase() || 'F'
+    }
+  })
+  return sorted
 }
 
 // 是否开发模式

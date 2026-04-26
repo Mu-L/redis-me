@@ -6,13 +6,16 @@ import {
   rectangularSelection,
   crosshairCursor,
   keymap,
+  ViewPlugin,
   // highlightActiveLineGutter
 } from '@codemirror/view'
 
 export { EditorView } from '@codemirror/view'
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands'
 import {
+  HighlightStyle,
   foldGutter,
+  forceParsing,
   indentOnInput,
   syntaxHighlighting,
   defaultHighlightStyle,
@@ -21,6 +24,7 @@ import {
 } from '@codemirror/language'
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search'
 import { EditorState } from '@codemirror/state'
+import { tags } from '@lezer/highlight'
 // import {closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap} from '@codemirror/autocomplete'
 // import {lintKeymap} from '@codemirror/lint'
 
@@ -53,6 +57,45 @@ export const meBasicSetup = [
     // ...lintKeymap
   ]),
 ]
+
+/**
+ * properties / Redis INFO·CONFIG 等在深色下的高亮补丁：默认 key 为 #00f 不适配暗底。
+ * themeType: dark 会禁用 fallback，须覆盖本模式用到的 token；key 与 Element Plus 主色一致。
+ */
+export const propertiesDarkSyntax = HighlightStyle.define(
+  [
+    { tag: tags.definition(tags.variableName), color: 'var(--el-color-primary)' },
+    { tag: tags.heading, color: '#c678dd' },
+    { tag: tags.comment, color: '#75715e' },
+    { tag: tags.quote, color: '#e6db74' },
+    { tag: tags.string, color: '#e6db74' },
+  ],
+  { themeType: 'dark' },
+)
+
+/**
+ * StreamLanguage 默认按 viewport 增量解析，滚动时语法树才延伸，高亮会「追着」视口出现。
+ * INFO/CONFIG 等文本很短，挂载后 / 文档变化时一次性 parse 到文末即可（大文档跳过以免卡 UI）。
+ */
+const PROPERTIES_EAGER_PARSE_MAX = 400_000
+
+export const propertiesEagerParse = ViewPlugin.fromClass(
+  class {
+    constructor(view) {
+      this.schedule(view)
+    }
+    update(u) {
+      if (u.docChanged) this.schedule(u.view)
+    }
+    schedule(view) {
+      const len = view.state.doc.length
+      if (len === 0 || len > PROPERTIES_EAGER_PARSE_MAX) return
+      queueMicrotask(() => {
+        forceParsing(view, len, 20_000)
+      })
+    }
+  },
+)
 
 // 语言切换及功能提示
 export const zhPhrases = {
