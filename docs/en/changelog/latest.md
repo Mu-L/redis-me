@@ -7,7 +7,7 @@
 - Added cluster topology graph visualization
 - Highlight: Optimized CodeMirror language styling for Info and Config tabs
 - Description: AI supplemented and improved explanation fields in both Chinese and English
-- Info: Optimized display style when executable path or config values are too long
+- Info: Optimized display style when executable path or config values are too long #81
 - Website: Grouped download files by Windows/macOS/Linux
 
 ### 🐞 Bug Fixes
