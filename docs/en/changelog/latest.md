@@ -1,5 +1,19 @@
 # 2.x Changelog
 
+## [v3.1.0](https://mp.weixin.qq.com/s/c1H-_54UwnRUPUEaEa89hQ) (2026-04-25)
+
+### ✨ New Features
+
+- Added cluster topology graph visualization
+- Highlight: Optimized CodeMirror language styling for Info and Config tabs
+- Description: AI supplemented and improved explanation fields in both Chinese and English
+- Info: Optimized display style when executable path or config values are too long
+- Website: Grouped download files by Windows/macOS/Linux
+
+### 🐞 Bug Fixes
+
+- Compatibility with third-party cache databases (e.g. Tencent Cloud Redis) that do not support `MEMORY USAGE` #81
+
 ## [v3.0.0](https://mp.weixin.qq.com/s/37hqIYE7AuYbvoGJXippdg) (2026-04-25)
 
 ### ✨ New Features

@@ -1,15 +1,18 @@
 # 2.x 更新日志
 
-## v3.1.0
+## [v3.1.0](https://mp.weixin.qq.com/s/c1H-_54UwnRUPUEaEa89hQ) (2026-04-25)
+
+### ✨ 新增优化
 
 - 新增集群拓扑图展示
-- 信息和配置的高亮与说明优化
-  - 使用 properties 高亮并优化深色模式
-  - AI补充完善与优化中英文说明字段
-- 序列化优化
-  - 后端仅支持Utf8, Base64两种
-  - 前端支持各种序列化
-- 兼容腾讯云Redis等不支持memory usage的第三方缓存数据库
+- 高亮: 优化信息和配置的CodeMirror语言样式
+- 说明: AI补充完善与优化中英文的解释说明字段
+- 信息: 优化执行程序和配置过长时的显示样式
+- 网址：Window/MacOS/Linux下载文件分组展示
+
+### 🐞 修复问题
+
+- 兼容腾讯云Redis等不支持memory usage的第三方缓存数据库 #81
 
 ## [v3.0.0](https://mp.weixin.qq.com/s/37hqIYE7AuYbvoGJXippdg) (2026-04-25)
 
