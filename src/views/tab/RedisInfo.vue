@@ -276,8 +276,8 @@ const nodeGroups = computed(() => {
           ><me-icon :name="t('redisInfo.executable')" icon="el-icon-video-play"
         /></template>
         <div class="me-flex">
-          {{ dic['executable'] }}
-          <el-text type="info" style="margin-left: 10px">
+          <el-text truncated style="max-width: 300px; color: unset">{{ dic['executable'] }}</el-text>
+          <el-text type="info" style="margin-left: 10px;max-width: 300px;" truncated>
             [
             <el-link underline="never" @click="goConfig" type="primary">{{
               t('redisInfo.config')
