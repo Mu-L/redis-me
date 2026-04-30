@@ -444,7 +444,9 @@ pub fn field_scan_4_return(
     let size: u64 = redis::cmd("memory")
         .arg("usage")
         .arg(&key)
-        .query(&mut conn)?;
+        .query(&mut conn)
+        // 兼容腾讯云Redis等不支持memory usage的第三方缓存数据库 #81
+        .unwrap_or(0); 
 
     Ok(FieldScanResult {
         key_type: ui_key_type(key_type),
