@@ -365,7 +365,11 @@ async function showGroups() {
 }
 
 // 内存占用和条目
-const textMemory = computed(() => redisValue.value?.size > 0 ? (t('redisValue.textMemory') + meHumanSize(redisValue.value?.size)) : '')
+const textMemory = computed(() =>
+  redisValue.value?.size > 0
+    ? t('redisValue.textMemory') + meHumanSize(redisValue.value?.size)
+    : '',
+)
 const textLength = computed(() => {
   if (jsonType.value || (streamType.value && withHashKey.value)) return ''
   return stringTypeOrWithHashKey.value
