@@ -4,7 +4,7 @@
 
 ### ✨ New Features
 
-- Added cluster topology graph visualization
+- **Added cluster topology graph visualization**
 - Highlight: Optimized CodeMirror language styling for Info and Config tabs
 - Description: AI supplemented and improved explanation fields in both Chinese and English
 - Info: Optimized display style when executable path or config values are too long #81
