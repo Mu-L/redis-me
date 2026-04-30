@@ -21,9 +21,9 @@ jobs:
             args: ''
           - platform: 'ubuntu-22.04-arm' # for ARM64 Linux (aarch64).
             args: '--target aarch64-unknown-linux-gnu'
-          - platform: 'windows-latest'
+          - platform: 'windows-2022'
             args: '--target x86_64-pc-windows-msvc'
-          - platform: 'windows-latest'
+          - platform: 'windows-2022'
             args: '--target aarch64-pc-windows-msvc'
 
     runs-on: ${{ matrix.platform }}
@@ -43,7 +43,7 @@ jobs:
 
         # failed to build app: Target aarch64-pc-windows-msvc is not installed (installed targets: i686-pc-windows-msvc, x86_64-pc-windows-gnu, x86_64-pc-windows-msvc). Please run `rustup target add aarch64-pc-windows-msvc`.
       - name: Install rust target
-        if: ${{ matrix.platform == 'windows-latest' }}
+        if: ${{ matrix.platform == 'windows-2022' }}
         run: rustup target add aarch64-pc-windows-msvc
 
       - name: Install rust target (Linux ARM64)
@@ -73,7 +73,7 @@ jobs:
           args: ${{ matrix.args }}
 
       - name: Create portable zip (Windows)
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-2022'
         shell: pwsh
         run: |
           $arch = if ('${{ matrix.args }}' -match 'aarch64') { 'arm64' } else { 'x64' }
@@ -85,7 +85,7 @@ jobs:
           Write-Host "Created: $zipName"
 
       - name: Upload portable zip to release (Windows)
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-2022'
         uses: softprops/action-gh-release@v2
         with:
           files: RedisME_*_portable_*.zip
