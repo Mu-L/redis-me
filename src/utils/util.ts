@@ -231,7 +231,7 @@ async function spectaGuard<T>(
   }
 }
 
-/** 与 `commands` 一一对应；末尾多传 `false` 时失败不弹窗 */
+/** 与 Specta `commands`（`import { commands as spectaCommands }`）同键；包装耗时/错误提示；末尾多传 `false` 时失败不弹窗 */
 export const meCommands = Object.fromEntries(
   Object.entries(spectaCommands).map(([name, fn]) => {
     if (typeof fn !== 'function') return [name, fn]

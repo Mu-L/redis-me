@@ -26,7 +26,10 @@ withDefaults(
     append-to-body>
     <template #header>
       <div class="me-flex">
+        <!-- 带图标的标题 -->
         <me-icon :name="title" :icon="icon" />
+
+        <!-- 最大化按钮 -->
         <me-icon
           :icon="fullscreen ? 'me-icon-window-restore' : 'me-icon-window-maximize'"
           class="fullscreen-icon"
@@ -36,7 +39,7 @@ withDefaults(
 
     <template #default>
       <div :style="{ height: fullscreen ? 'calc(100vh - 70px)' : '60vh' }">
-        <slot name="default"></slot>
+        <slot name="default" />
       </div>
     </template>
   </el-dialog>

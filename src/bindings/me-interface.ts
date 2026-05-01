@@ -88,7 +88,10 @@ type WrapSpectaCommand<F> = F extends (...args: infer A) => infer R
 
 type SpectaCommandsMap = typeof spectaCommands
 
-/** `meCommands`：与 specta `commands` 同签名，返回值已解包；末尾可传 `false` 关闭错误弹窗 */
+/**
+ * `MeCommands`（及运行时 `meCommands`）：与 `@/bindings/tauri-specta` 里 **`export const commands`**
+ * 逐项同键、同入参（本文件以 `spectaCommands` 取类型）；成功时返回解包后的 `data`；末尾可传 `false` 关闭错误弹窗。
+ */
 export type MeCommands = {
   [K in keyof SpectaCommandsMap]: SpectaCommandsMap[K] extends (...args: never[]) => unknown
     ? WrapSpectaCommand<SpectaCommandsMap[K]>

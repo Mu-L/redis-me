@@ -51,8 +51,8 @@ const extensions = computed(() => {
     :dark
     :lang
     :phrases
+    :extensions
     :readonly="props.readOnly"
-    :extensions="extensions"
     :class="props.readOnly ? ['codemirror-opacity', 'is-disabled'] : []" />
 </template>
 

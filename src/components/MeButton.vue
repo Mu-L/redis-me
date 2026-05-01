@@ -15,18 +15,21 @@ withDefaults(
 </script>
 
 <template>
-  <el-tooltip :content="info" :show-after="1000" :placement="placement">
+  <el-tooltip :content="info" :show-after="1000" :placement>
+    <!-- Element Plus 原生图标 -->
     <el-button v-bind="$attrs" :icon="icon" v-if="icon.startsWith('el-icon')">
-      <template v-for="(item, key, index) in $slots" :key="index" v-slot:[key]>
-        <slot :name="key"></slot>
+      <template v-for="(, key) in $slots" v-slot:[key]>
+        <slot :name="key" />
       </template>
     </el-button>
+
+    <!-- 项目中自定义的SVG图标 -->
     <el-button v-bind="$attrs" v-else>
       <template #icon>
         <SvgIcon :name="icon" />
       </template>
-      <template v-for="(item, key, index) in $slots" :key="index" v-slot:[key]>
-        <slot :name="key"></slot>
+      <template v-for="(, key) in $slots" v-slot:[key]>
+        <slot :name="key" />
       </template>
     </el-button>
   </el-tooltip>

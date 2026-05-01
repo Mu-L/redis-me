@@ -43,7 +43,7 @@ function handleClose(isOpen: boolean): void {
     trigger="contextmenu"
     placement="bottom-start">
     <template #dropdown>
-      <slot></slot>
+      <slot />
     </template>
   </el-dropdown>
 </template>

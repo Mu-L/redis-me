@@ -20,7 +20,7 @@ async function openDialog(): Promise<void> {
   let file: string | null = null
   if (props.filePrefix) {
     const fileName = `${props.filePrefix}_${dayjs().format('YYYYMMDDHHmmss')}.${props.fileSuffix}`
-    file = await save({ multiple: false, directory: true, filters, defaultPath: fileName })
+    file = await save({ filters, defaultPath: fileName })
   } else {
     file = await open({ multiple: false, directory: false, filters })
   }
