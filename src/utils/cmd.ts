@@ -1,9 +1,20 @@
 import { cloneDeep } from 'lodash'
+import { computed } from 'vue'
 
-import { isZh } from '@/utils/util.js'
+import { isZh } from '@/utils/util'
+
+export interface CommandHelpRow {
+  key: string
+  title: string
+  group: string
+  summary: string
+  since: string
+  usage: string
+  description?: string
+}
 
 // 英文命令
-const enCommands = [
+const enCommands: CommandHelpRow[] = [
   {
     key: 'ACL CAT',
     title: 'ACL CAT',

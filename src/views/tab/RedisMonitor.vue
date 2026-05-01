@@ -3,7 +3,7 @@ import { listen } from '@tauri-apps/api/event'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { meConfirm, meCopy, meCommands, meOk } from '@/utils/util.js'
+import { meConfirm, meCopy, meCommands, meOk } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()

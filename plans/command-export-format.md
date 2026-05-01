@@ -599,7 +599,7 @@ const exportFileSuffix = computed(() => (form.value.exportFormat === 'command' ?
 
 ```vue
 <script setup>
-import { meCopy, meInvoke, meOk } from '@/utils/util.js'
+import { meCopy, meCommands, meErr, meOk } from '@/utils/util'
 
 // 新增: 复制选中的键为命令
 async function copyCheckedAsCommand() {
@@ -607,10 +607,7 @@ async function copyCheckedAsCommand() {
 
   try {
     loading.value = true
-    const commands = await meInvoke('get_keys_commands', {
-      id: share.conn.id,
-      keys: checkedKeyList.value,
-    })
+    const commands = await meCommands.getKeysCommands(share.conn.id, checkedKeyList.value)
 
     const commandText = commands.join('\n')
     meCopy(commandText, t('keyMain.copyCommandOk'))

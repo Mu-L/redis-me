@@ -1,4 +1,9 @@
-export const mockApiCommands = [
+export interface MockApiCommand {
+  command: string
+  param: Record<string, unknown>
+}
+
+export const mockApiCommands: MockApiCommand[] = [
   { command: 'connect', param: { id: 'test' } },
   { command: 'disconnect', param: { id: 'test' } },
   { command: 'info', param: { id: 'test', node: null } },

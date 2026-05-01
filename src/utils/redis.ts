@@ -2,7 +2,11 @@
 
 // 以Docker版本为基准
 // docker run -d --name redis --network host redis:8.6 redis-server
-export const redisConfDict = {
+/** 版本 -> 配置项 -> 默认值（字符串，与 CONFIG GET 展示一致） */
+export type RedisVersionConf = Record<string, string>
+export type RedisConfDictRoot = Record<string, RedisVersionConf>
+
+export const redisConfDict: RedisConfDictRoot = {
   'Redis6.2': {
     'acl-pubsub-default': 'allchannels',
     aclfile: '',
@@ -1856,7 +1860,7 @@ export const redisConfDict = {
 }
 
 // docker run -d --name valkey --network host valkey/valkey:9.0 valkey-server
-export const valkeyConfDict = {
+export const valkeyConfDict: RedisConfDictRoot = {
   // ValKey7.2的默认值与Redis7.2的默认值完全一致
   'Valkey7.2': {
     'acl-pubsub-default': 'resetchannels',

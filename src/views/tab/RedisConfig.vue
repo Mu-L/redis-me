@@ -3,9 +3,9 @@ import { sortBy } from 'lodash'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { redisConfDict, valkeyConfDict } from '@/utils/redis.js'
-import { configTip as tips } from '@/utils/tip.js'
-import { meCopy, meCommands, meOk } from '@/utils/util.js'
+import { redisConfDict, valkeyConfDict } from '@/utils/redis'
+import { configTip as tips } from '@/utils/tip'
+import { meCopy, meCommands, meOk } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
 

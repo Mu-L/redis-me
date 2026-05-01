@@ -14,7 +14,7 @@ import {
   meCommands,
   meOk,
   meType,
-} from '@/utils/util.js'
+} from '@/utils/util'
 
 const { t } = useI18n()
 // 共享数据

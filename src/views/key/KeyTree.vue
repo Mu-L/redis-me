@@ -4,7 +4,7 @@ import { computed } from 'vue'
 // 共享数据
 import { useI18n } from 'vue-i18n'
 
-import { TREE_KEY_ID_PREFIX } from '@/utils/util.js'
+import { TREE_KEY_ID_PREFIX } from '@/utils/util'
 
 import KeyTypeTag from './KeyTypeTag.vue'
 

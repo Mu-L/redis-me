@@ -47,11 +47,11 @@
 
 ### Medium
 
-1. `src/utils/util.js` 职责过载，建议按 service/shared/domain 拆分。
+1. `src/utils/util.ts` 职责过载，建议按 service/shared/domain 拆分。
 2. 状态入口分散（`share` + `window.*`），建议收敛单一状态边界。
 3. `JSON.stringify` 深度 watch 影响性能，建议改关键字段监听。
 4. 大页面组件建议拆 composable + 子组件（`RedisValue`、`KeyMain`、`RedisInfo`、`RedisChart`）。
-5. 大静态字典（`redis.js`、`cmd.js`）建议分片并按需加载。
+5. 大静态字典（`redis.ts`、`cmd.ts`）建议分片并按需加载。
 6. `KeyTree` 与图表裁剪存在可优化热点，建议 `Map/Set` 与增量化策略。
 
 ### Low
@@ -69,7 +69,7 @@
 
 ### 31-60 天（可维护性提升）
 
-- 拆分 `util.js`，收敛全局状态入口，减少 `window.*` 直连。
+- 拆分 `util.ts`，收敛全局状态入口，减少 `window.*` 直连。
 - 拆分核心大页面，抽复用 composable。
 - 替换深度 stringify watch。
 
@@ -113,7 +113,7 @@
 #### 中优先级
 
 - 错误反馈缺少下一步行动建议（如连接失败后检查项），建议在高频错误中补“诊断建议 + 快速入口”。  
-  位置：`src/utils/util.js`、`src/locales/lang/zh-cn.js`
+  位置：`src/utils/util.ts`、`src/locales/lang/zh-cn.js`
 - 存在 `TODO` 兜底命令分支，建议禁用未实现入口并明确提示“不支持”。  
   位置：`src/views/KeyMain.vue`、`src/views/KeyHeader.vue`
 
@@ -208,9 +208,9 @@
 #### 高优先级
 
 1. 超大工具文件影响理解与演进
-   - 位置：`src/utils/util.js`
+   - 位置：`src/utils/util.ts`
    - 问题：一个文件承担 API 调用、UI 提示、格式转换、业务动作等多类职责。
-   - 建议：按职责拆为 `services` / `shared` / `domain`，`util.js` 仅做轻量导出聚合。
+   - 建议：按职责拆为 `services` / `shared` / `domain`，`util.ts` 仅做轻量导出聚合。
 
 2. 核心页面组件过重
    - 位置：`src/views/tab/RedisInfo.vue`、`src/views/tab/RedisConfig.vue`、`src/views/tab/RedisValue.vue`、`src/views/KeyMain.vue`
@@ -257,7 +257,7 @@
 
 ## 简洁性/易读性 Backlog（高收益优先）
 
-1. 拆分 `util.js`（最高优先）
+1. 拆分 `util.ts`（最高优先）
    - 目标：按职责拆到 `src/services`、`src/shared`、`src/domain`
 2. 拆分 `KeyMain` 与 `RedisValue` 容器逻辑
    - 目标：容器层仅编排，细节逻辑下沉 composable

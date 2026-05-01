@@ -1,8 +1,8 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core'
 
-import { mockApiCommands } from '@/utils/mock.js'
-import { meJsonParse } from '@/utils/util.js'
+import { mockApiCommands } from '@/utils/mock'
+import { meJsonParse } from '@/utils/util'
 
 // 测试集群或单机
 let testClient = 'single'

@@ -16,7 +16,7 @@ import {
   meLog,
   meOk,
   PREDEFINE_COLORS,
-} from '@/utils/util.js'
+} from '@/utils/util'
 import ConnSave from '@/views/ext/ConnSave.vue'
 
 const { t } = useI18n()

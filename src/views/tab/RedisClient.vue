@@ -1,8 +1,8 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 
-import { clientTip as tips } from '@/utils/tip.js'
-import { meConfirm, meHumanSeconds, meCommands, meOk } from '@/utils/util.js'
+import { clientTip as tips } from '@/utils/tip'
+import { meConfirm, meHumanSeconds, meCommands, meOk } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()

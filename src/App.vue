@@ -1,7 +1,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 
-import { isDark } from '@/utils/util.js'
+import { isDark } from '@/utils/util'
 import AppMain from '@/views/AppMain.vue'
 import AppTitle from '@/views/ext/AppTitle.vue'
 

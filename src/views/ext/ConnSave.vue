@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 import { ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meCommands, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util.js'
+import { meCommands, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util'
 const { t } = useI18n()
 
 const emit = defineEmits(['success', 'closed'])

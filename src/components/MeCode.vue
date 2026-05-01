@@ -11,7 +11,7 @@ import {
   propertiesEagerParse,
   zhPhrases,
 } from '@/plugins/codemirror.js'
-import { isZh } from '@/utils/util.js'
+import { isZh } from '@/utils/util'
 
 /** Java .properties 流式解析：适配 Redis INFO/CONFIG（key:value、# 段注释、续行） */
 const propertiesLang = StreamLanguage.define(propertiesMode)

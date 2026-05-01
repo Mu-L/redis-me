@@ -6,7 +6,7 @@ import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util.js'
+import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util'
 
 const { t } = useI18n()
 const settings = window.meTauri.settings

@@ -11,7 +11,7 @@ import { openUrl } from '@tauri-apps/plugin-opener'
 import { locale } from '@tauri-apps/plugin-os'
 import { LazyStore } from '@tauri-apps/plugin-store'
 
-import { meLog } from '@/utils/util.js'
+import { meLog } from '@/utils/util'
 
 // 打包后关闭右键菜单
 if (import.meta.env.PROD) {

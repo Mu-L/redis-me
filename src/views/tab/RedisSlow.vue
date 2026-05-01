@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
-import { meCopy, meCommands, meOk } from '@/utils/util.js'
+import { meCopy, meCommands, meOk } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()

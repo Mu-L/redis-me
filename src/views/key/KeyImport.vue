@@ -2,7 +2,7 @@
 import { cloneDeep } from 'lodash'
 import { useI18n } from 'vue-i18n'
 
-import { meCommands } from '@/utils/util.js'
+import { meCommands } from '@/utils/util'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])

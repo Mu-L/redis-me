@@ -3,7 +3,7 @@ import { listen } from '@tauri-apps/api/event'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { meCopy, meCommands, meOk } from '@/utils/util.js'
+import { meCopy, meCommands, meOk } from '@/utils/util'
 
 const { t } = useI18n()
 // 共享数据

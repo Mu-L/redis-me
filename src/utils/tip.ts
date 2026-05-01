@@ -1,6 +1,8 @@
 // https://redis.ac.cn/docs/latest/commands/info/
 
-import { isZh } from '@/utils/util.js'
+import { computed } from 'vue'
+
+import { isZh } from '@/utils/util'
 
 const zhInfoTip = {
   monotonic_clock:

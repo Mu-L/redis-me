@@ -20,7 +20,7 @@ import {
   mePrompt,
   meRenameKey,
   sleep,
-} from '@/utils/util.js'
+} from '@/utils/util'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
 import KeyImport from '@/views/key/KeyImport.vue'

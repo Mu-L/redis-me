@@ -4,7 +4,7 @@ import { type } from '@tauri-apps/plugin-os'
 import { nanoid } from 'nanoid'
 import { useI18n } from 'vue-i18n'
 
-import { bus, CONN_REFRESH, meCommands, meErr, meOk } from '@/utils/util.js'
+import { bus, CONN_REFRESH, meCommands, meErr, meOk } from '@/utils/util'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
 import Setting from '@/views/ext/Setting.vue'

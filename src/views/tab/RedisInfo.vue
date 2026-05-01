@@ -3,8 +3,8 @@ import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { infoTip as tips } from '@/utils/tip.js'
-import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util.js'
+import { infoTip as tips } from '@/utils/tip'
+import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 

@@ -11,7 +11,7 @@ import {
   meJsonNormal,
   meTtlSeconds,
   meType,
-} from '@/utils/util.js'
+} from '@/utils/util'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])

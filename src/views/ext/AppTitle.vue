@@ -2,7 +2,7 @@
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { type } from '@tauri-apps/plugin-os'
 
-import { meOk } from '@/utils/util.js'
+import { meOk } from '@/utils/util'
 
 // 模拟窗口操作
 // const appWindow = new Window('main')

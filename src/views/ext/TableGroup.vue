@@ -2,7 +2,7 @@
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meCommands } from '@/utils/util.js'
+import { meCommands } from '@/utils/util'
 
 const { t } = useI18n()
 const share = inject('share')

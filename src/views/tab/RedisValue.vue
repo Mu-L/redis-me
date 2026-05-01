@@ -19,7 +19,7 @@ import {
   meOk,
   meRenameKey,
   meType,
-} from '@/utils/util.js'
+} from '@/utils/util'
 import TableGroup from '@/views/ext/TableGroup.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
 

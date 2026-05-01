@@ -12,7 +12,7 @@ import {
   DoNothing,
   meJsonParse,
   meOk,
-} from '@/utils/util.js'
+} from '@/utils/util'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
 import TabConn from '@/views/TabConn.vue'

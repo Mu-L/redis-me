@@ -2,8 +2,8 @@
 import { useI18n } from 'vue-i18n'
 
 import MeIcon from '@/components/MeIcon.vue'
-import { commandHelp } from '@/utils/cmd.js'
-import { meCopy, meCommands } from '@/utils/util.js'
+import { commandHelp } from '@/utils/cmd'
+import { meCopy, meCommands } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
 

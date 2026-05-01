@@ -1,5 +1,5 @@
 <script setup>
-import { meCommands, meKeyShort, meType } from '@/utils/util.js'
+import { meCommands, meKeyShort, meType } from '@/utils/util'
 
 const share = inject('share')
 const props = defineProps({

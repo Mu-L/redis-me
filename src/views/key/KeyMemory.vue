@@ -2,7 +2,7 @@
 import { useVirtualList } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 
-import { meHumanSize, meCommands } from '@/utils/util.js'
+import { meHumanSize, meCommands } from '@/utils/util'
 
 const { t } = useI18n()
 defineExpose({ open })

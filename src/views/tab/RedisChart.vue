@@ -16,7 +16,7 @@ import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import { Line } from 'vue-chartjs'
 import { useI18n } from 'vue-i18n'
 
-import { isDark, meHumanNums, meCommands, meLog, PREDEFINE_COLORS } from '@/utils/util.js'
+import { isDark, meHumanNums, meCommands, meLog, PREDEFINE_COLORS } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
 // 只注册必要的组件即可

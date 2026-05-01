@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { Terminal } from 'vue-web-terminal'
 
-import { isDark } from '@/utils/util.js'
+import { isDark } from '@/utils/util'
 
 const { welcome, prefix, execCommand, commandHelp } = defineProps({
   welcome: {
