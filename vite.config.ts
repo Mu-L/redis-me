@@ -10,11 +10,17 @@ const host = process.env.TAURI_DEV_HOST
 // https://vitejs.dev/config/
 export default defineConfig({
   staged: { '*': 'vp check --fix' },
-  lint: { options: { typeAware: true, typeCheck: true } },
+  lint: {
+    // 生成文件含 serde_json 递归类型，当前导出器未生成 Value 别名，避免类型检查误报
+    ignorePatterns: ['src/bindings/**'],
+    options: { typeAware: true, typeCheck: true },
+  },
 
   // 这个选项目前验证只能在ts文件中才会生效，否则报错（应该是vp的bug）
   // 配置选项: https://oxc.rs/docs/guide/usage/formatter/config-file-reference.html
   fmt: {
+    // tauri-specta 生成文件，格式与 oxfmt 规则不一致，避免每次导出后触发 check 失败
+    ignorePatterns: ['src/bindings/**'],
     arrowParens: 'avoid', // 单参数箭头函数去掉括号
     bracketSameLine: true, // 把html的>放在同一行
     objectWrap: 'collapse', // 可以显示在一行的对象字面量不要换行
