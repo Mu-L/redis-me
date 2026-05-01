@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+import { computed, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { isDark } from '@/utils/util'
@@ -17,14 +18,13 @@ watch(
   { immediate: true },
 )
 
-// 语言切换
-let locale = null
+const locale = shallowRef<Record<string, unknown> | undefined>(undefined)
 watch(
   () => meTauri.settings.language,
   newValue => {
     const language = newValue === 'system' ? meTauri.systemLanguage : newValue
-    locale = window.ElementPlusLanguageMap[language] // ElementPlus的语言切换
-    i18nLocale.value = language // RedisME的语言切换, 只能在组件中使用
+    locale.value = window.ElementPlusLanguageMap?.[language] as Record<string, unknown> | undefined
+    i18nLocale.value = language
   },
   { immediate: true },
 )

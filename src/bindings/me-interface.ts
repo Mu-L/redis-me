@@ -1,5 +1,12 @@
+import type { Update } from '@tauri-apps/plugin-updater'
+
 import { commands as spectaCommands } from '@/bindings/tauri-specta'
-import type { RedisNode } from '@/bindings/tauri-specta'
+import type {
+  ConnConfig,
+  RedisKey_Deserialize,
+  RedisNode,
+  ServerCapabilities,
+} from '@/bindings/tauri-specta'
 
 /** node_list 原始项经 enrich 后供 UI 使用 */
 export interface EnrichedRedisNode extends RedisNode {
@@ -20,6 +27,54 @@ export interface KeyTypeListItem {
 export interface MeAppUpdateState {
   downloading: boolean
   downloadPercentage: number
+}
+
+/** 存储/列表中的连接 + 界面字段（颜色、只读等） */
+export type UiConn = ConnConfig & {
+  color?: string
+  readonly?: boolean
+  meta?: Record<string, unknown>
+}
+
+/** AppMain `provide('share')` 的响应式状态 */
+export interface AppMainShare {
+  conn: UiConn | null
+  connList: UiConn[]
+  nodeList: EnrichedRedisNode[]
+  loading: boolean
+  color: string
+  readonly: boolean
+  redisKey: RedisKey_Deserialize | null
+  tabName: string
+  dbSizeMap: Record<string, string | number>
+  exportImporting: boolean
+  exportImportingTip: string
+  exportImportingPercentage: number
+  isValkey: boolean
+  serverVersion: string
+  capabilities: ServerCapabilities
+}
+
+/** AppMain `provide('app')`：更新检查与下载进度 */
+export interface AppMainInject extends MeAppUpdateState {
+  update: Update | null
+}
+
+/** 多窗口连接列表同步（与 `CONN_LIST_WINDOWS_SYNC` 事件对应） */
+export interface ConnListWindowsSyncPayload {
+  connList: UiConn[]
+  label: string
+}
+
+/** vue-web-terminal 命令提示项（与 commands-help 等本地 JSON 结构兼容） */
+export interface MeXtermCommandItem {
+  key: string
+  summary?: string
+  description?: string
+  usage?: string
+  group?: string
+  title?: string
+  since?: string
 }
 
 type UnwrapSpectaPromise<R> =

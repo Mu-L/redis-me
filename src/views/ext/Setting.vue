@@ -1,11 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { getVersion } from '@tauri-apps/api/app'
 import { appConfigDir, appDataDir, appLogDir, resourceDir } from '@tauri-apps/api/path'
 import { openPath } from '@tauri-apps/plugin-opener'
 import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
-import { ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainInject } from '@/bindings/me-interface'
 import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util'
 
 const { t } = useI18n()
@@ -62,7 +63,7 @@ getVersion()
   .then(res => (appVersion.value = res))
   .catch(_ => {})
 const loading = ref(false)
-const app = inject('app')
+const app = inject('app') as AppMainInject
 async function checkUpdate() {
   loading.value = true
   try {

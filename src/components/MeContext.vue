@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // 说明: 自定义右键菜单（使用el-dropdown的虚拟触发实现）
 import { ref, useTemplateRef } from 'vue'
 
@@ -11,8 +11,7 @@ const triggerRef = ref({
   getBoundingClientRect: () => position.value,
 })
 
-// 显示菜单
-function showMenu(e) {
+function showMenu(e: MouseEvent): void {
   const { clientX, clientY } = e
   position.value = DOMRect.fromRect({
     x: clientX,
@@ -22,13 +21,11 @@ function showMenu(e) {
   dropdownRef.value?.handleOpen()
 }
 
-// 处理上下文命令
-function handleCommand(command) {
+function handleCommand(command: string): void {
   emit('handleCommand', command)
 }
 
-// 右键菜单关闭
-function handleClose(isOpen) {
+function handleClose(isOpen: boolean): void {
   if (!isOpen) {
     emit('handleClose')
   }

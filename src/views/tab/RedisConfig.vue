@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { sortBy } from 'lodash'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { redisConfDict, valkeyConfDict } from '@/utils/redis'
 import { configTip as tips } from '@/utils/tip'
@@ -11,7 +12,7 @@ import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share')
+const share = inject('share') as AppMainShare
 const canEdit = computed(() => !share.readonly)
 const { initNode, initVersion } = defineProps({
   initNode: { type: String, default: '' },

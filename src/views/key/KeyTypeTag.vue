@@ -1,13 +1,16 @@
-<script setup>
+<script setup lang="ts">
+import { inject } from 'vue'
+
+import type { AppMainShare } from '@/bindings/me-interface'
+import type { RedisKey_Deserialize } from '@/bindings/tauri-specta'
 import { meCommands, meKeyShort, meType } from '@/utils/util'
 
-const share = inject('share')
-const props = defineProps({
-  redisKey: { type: Object, required: true },
-})
+const share = inject('share') as AppMainShare
+const props = defineProps<{
+  redisKey: RedisKey_Deserialize & { keyType?: string }
+}>()
 
-// 如果还没有类型，触发异步加载
-if (!props.redisKey.keyType) {
+if (!props.redisKey.keyType && share.conn) {
   try {
     const data = await meCommands.keyType(share.conn.id, props.redisKey)
     props.redisKey.keyType = data?.toUpperCase()

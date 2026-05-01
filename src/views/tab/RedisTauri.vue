@@ -1,5 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core'
+import { ref } from 'vue'
 
 import { mockApiCommands } from '@/utils/mock'
 import { meJsonParse } from '@/utils/util'
@@ -19,7 +20,7 @@ const apiCommand = ref({
 })
 const param = ref('{"name": "RedisME"}')
 
-function selectChange(item) {
+function selectChange(item: (typeof apiCommands)[number]): void {
   param.value = JSON.stringify(item.param, null, 2)
   apiCommand.value = item
 }

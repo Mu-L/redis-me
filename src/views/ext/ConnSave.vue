@@ -1,9 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { cloneDeep } from 'lodash'
 import { nanoid } from 'nanoid'
 import { ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
 import { meCommands, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util'
 const { t } = useI18n()
 
@@ -157,7 +158,7 @@ function open(modeValue, data) {
 }
 
 // 提交表单
-const share = inject('share')
+const share = inject('share') as AppMainShare
 const formRef = useTemplateRef('formRef')
 function submit() {
   formRef.value.validate(valid => {

@@ -1,13 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
 import { clientTip as tips } from '@/utils/tip'
 import { meConfirm, meHumanSeconds, meCommands, meOk } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share')
+const share = inject('share') as AppMainShare
 const canEdit = computed(() => !share.readonly)
 const { initNode } = defineProps({
   initNode: { type: String, default: '' },

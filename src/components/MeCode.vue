@@ -1,8 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { json } from '@codemirror/lang-json'
-import { StreamLanguage, syntaxHighlighting } from '@codemirror/language'
+import { LanguageSupport, StreamLanguage, syntaxHighlighting } from '@codemirror/language'
 import { properties as propertiesMode } from '@codemirror/legacy-modes/mode/properties'
 import { useDark } from '@vueuse/core'
+import { computed } from 'vue'
 import CodeMirror from 'vue-codemirror6'
 
 import {
@@ -14,23 +15,29 @@ import {
 import { isZh } from '@/utils/util'
 
 /** Java .properties 流式解析：适配 Redis INFO/CONFIG（key:value、# 段注释、续行） */
-const propertiesLang = StreamLanguage.define(propertiesMode)
+const propertiesLang = new LanguageSupport(StreamLanguage.define(propertiesMode))
 
-const { mode, readOnly } = defineProps({
-  mode: { type: String, default: 'json' },
-  readOnly: { type: Boolean, default: false, required: false },
-})
+const props = withDefaults(
+  defineProps<{
+    mode?: string
+    readOnly?: boolean
+  }>(),
+  {
+    mode: 'json',
+    readOnly: false,
+  },
+)
 
 const dark = useDark()
 const lang = computed(() => {
-  if (mode === 'json') return json()
-  if (mode === 'properties') return propertiesLang
-  return null
+  if (props.mode === 'json') return json()
+  if (props.mode === 'properties') return propertiesLang
+  return undefined
 })
 const phrases = computed(() => (isZh.value ? zhPhrases : {}))
 const extensions = computed(() => {
   const list = [meBasicSetup]
-  if (mode === 'properties') {
+  if (props.mode === 'properties') {
     list.push(syntaxHighlighting(propertiesDarkSyntax), propertiesEagerParse)
   }
   return list
@@ -44,9 +51,9 @@ const extensions = computed(() => {
     :dark
     :lang
     :phrases
-    :readonly="readOnly"
+    :readonly="props.readOnly"
     :extensions="extensions"
-    :class="readOnly ? ['codemirror-opacity', 'is-disabled'] : []" />
+    :class="props.readOnly ? ['codemirror-opacity', 'is-disabled'] : []" />
 </template>
 
 <style scoped lang="scss">

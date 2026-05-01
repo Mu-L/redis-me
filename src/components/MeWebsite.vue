@@ -1,14 +1,20 @@
-<script setup>
+<script setup lang="ts">
 // 跳转到官网: Redis中英文/Valkey中英文
 import { openUrl } from '@tauri-apps/plugin-opener'
 
 import { isZh, meOk } from '@/utils/util'
 
-const { to } = defineProps({
-  to: { type: String, required: true },
-  placement: { type: String, default: 'right' },
-  marginLeft: { type: String, default: '10px' },
-})
+const props = withDefaults(
+  defineProps<{
+    to: string
+    placement?: string
+    marginLeft?: string
+  }>(),
+  {
+    placement: 'right',
+    marginLeft: '10px',
+  },
+)
 
 // 官网站点
 const websize = {
@@ -60,23 +66,24 @@ const pubsub = {
   valkey: '/commands/psubscribe/',
 }
 
-function handleCommand(cmd) {
-  let part = cmd.split('-')[0]
-  openUrl(websize[cmd] + info[part])
-  if (to === 'info') {
-    openUrl(websize[cmd] + info[part])
-  } else if (to === 'config') {
-    openUrl(websize[cmd] + config[part])
-  } else if (to === 'client') {
-    openUrl(websize[cmd] + client[part])
-  } else if (to === 'command') {
-    openUrl(websize[cmd] + command[part])
-  } else if (to === 'slowlog') {
-    openUrl(websize[cmd] + slowlog[part])
-  } else if (to === 'monitor') {
-    openUrl(websize[cmd] + monitor[part])
-  } else if (to === 'pubsub') {
-    openUrl(websize[cmd] + pubsub[part])
+function handleCommand(cmd: string): void {
+  const part = cmd.split('-')[0] as keyof typeof info
+  const base = websize[cmd as keyof typeof websize]
+  void openUrl(base + info[part])
+  if (props.to === 'info') {
+    void openUrl(base + info[part])
+  } else if (props.to === 'config') {
+    void openUrl(base + config[part])
+  } else if (props.to === 'client') {
+    void openUrl(base + client[part])
+  } else if (props.to === 'command') {
+    void openUrl(base + command[part])
+  } else if (props.to === 'slowlog') {
+    void openUrl(base + slowlog[part])
+  } else if (props.to === 'monitor') {
+    void openUrl(base + monitor[part])
+  } else if (props.to === 'pubsub') {
+    void openUrl(base + pubsub[part])
   } else {
     meOk(`TODO: ${cmd}`)
   }

@@ -1,11 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { type } from '@tauri-apps/plugin-os'
+import { type as getOsType } from '@tauri-apps/plugin-os'
+import { computed, ref } from 'vue'
 
 import { meOk } from '@/utils/util'
 
-// 模拟窗口操作
-// const appWindow = new Window('main')
 const appWindow = getCurrentWindow()
 const isFullScreen = ref(false)
 const isMaximized = ref(false)
@@ -16,7 +15,7 @@ appWindow.onResized(async () => {
 })
 
 // MacOS且未全屏时 留出最大化最小化按钮空间
-const isMacOS = type() === 'macos'
+const isMacOS = getOsType() === 'macos'
 const marginLeft = computed(() => {
   if (isFullScreen.value) {
     return '5px'

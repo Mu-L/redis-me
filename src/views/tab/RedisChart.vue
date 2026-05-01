@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -12,10 +12,11 @@ import {
 } from 'chart.js'
 import dayjs from 'dayjs'
 import { cloneDeep, merge } from 'lodash'
-import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import { Line } from 'vue-chartjs'
+import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
 import { isDark, meHumanNums, meCommands, meLog, PREDEFINE_COLORS } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
@@ -35,7 +36,7 @@ ChartJS.register(
 
 const { t } = useI18n()
 
-const share = inject('share')
+const share = inject('share') as AppMainShare
 const node = ref('') // 指定节点
 const autoRefresh = ref(true) // 自动刷新
 const refreshInterval = ref(5) // 刷新间隔（秒）

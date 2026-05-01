@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { capitalize } from 'lodash'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import {
   bus,
@@ -18,7 +19,7 @@ import {
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share')
+const share = inject('share') as AppMainShare
 const canEdit = computed(() => !share.readonly)
 const hint = computed(() => {
   const params = {

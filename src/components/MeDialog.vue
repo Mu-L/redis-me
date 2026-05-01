@@ -1,10 +1,18 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 // 说明: 自定义弹框，支持最大化
 const fullscreen = ref(false)
-defineProps({
-  title: String,
-  icon: String,
-})
+withDefaults(
+  defineProps<{
+    title?: string
+    icon?: string
+  }>(),
+  {
+    title: '',
+    icon: '',
+  },
+)
 </script>
 
 <template>

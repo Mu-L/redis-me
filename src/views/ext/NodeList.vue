@@ -1,10 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { computed, inject, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
+
 const { t } = useI18n()
 
-const share = inject('share')
+const share = inject('share') as AppMainShare
 const node = defineModel()
 const emit = defineEmits(['update:modelValue'])
 

@@ -1,10 +1,17 @@
-<script setup>
+<script setup lang="ts">
 // 说明: 支持tooltip的按钮
-defineProps({
-  info: { type: String, default: '请添加按钮提示' },
-  placement: { type: String, default: 'auto' },
-  icon: { type: String, default: '' },
-})
+withDefaults(
+  defineProps<{
+    info?: string
+    placement?: string
+    icon?: string
+  }>(),
+  {
+    info: '请添加按钮提示',
+    placement: 'auto',
+    icon: '',
+  },
+)
 </script>
 
 <template>

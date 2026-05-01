@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { cloneDeep } from 'lodash'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
 import { meCommands, meOk, meTtlSeconds } from '@/utils/util'
 
 const { t } = useI18n()
@@ -15,7 +16,7 @@ function open(data) {
 }
 
 // 共享数据
-const share = inject('share')
+const share = inject('share') as AppMainShare
 
 // 表单数据
 const visible = ref(false)

@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/utils/tip'
 import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util'
@@ -12,7 +13,7 @@ import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share')
+const share = inject('share') as AppMainShare
 
 // 数据
 const node = ref('') // 指定节点

@@ -1,8 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import dayjs from 'dayjs'
 import { parseInt } from 'lodash/string.js'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
 import {
   bus,
   DISPLAY_FORMAT,
@@ -32,7 +33,7 @@ onMounted(() => bus.on(KEY_REFRESH, refreshKey))
 onUnmounted(() => bus.off(KEY_REFRESH, refreshKey))
 
 // 共享数据
-const share = inject('share')
+const share = inject('share') as AppMainShare
 const canEdit = computed(() => !share.readonly)
 const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value))
 

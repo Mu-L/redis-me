@@ -1,15 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { nanoid } from 'nanoid'
 import { computed } from 'vue'
 // 共享数据
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
 import { TREE_KEY_ID_PREFIX } from '@/utils/util'
 
 import KeyTypeTag from './KeyTypeTag.vue'
 
 const { t } = useI18n()
-const share = inject('share')
+const share = inject('share') as AppMainShare
 const canEdit = computed(() => !share.readonly)
 
 defineExpose({ setCurrentKey })

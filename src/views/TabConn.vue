@@ -1,12 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { open, save } from '@tauri-apps/plugin-dialog'
 import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
 import dayjs from 'dayjs'
+import type { TableInstance } from 'element-plus'
 import { debounce } from 'lodash'
 import { Sortable } from 'sortablejs'
-import { nextTick, useTemplateRef } from 'vue'
+import { computed, inject, nextTick, onMounted, reactive, ref, toRaw, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainInject, AppMainShare, UiConn } from '@/bindings/me-interface'
 import { checkConnList } from '@/plugins/tauri'
 import {
   meConfirm,
@@ -20,7 +22,7 @@ import {
 import ConnSave from '@/views/ext/ConnSave.vue'
 
 const { t } = useI18n()
-const share = inject('share')
+const share = inject('share') as AppMainShare
 
 const keyword = ref('')
 const filterDataList = computed(() => {
@@ -33,31 +35,27 @@ const filterDataList = computed(() => {
   )
 })
 
-const connRef = useTemplateRef('conn')
+const connRef = useTemplateRef<InstanceType<typeof ConnSave>>('conn')
 const dialog = reactive({
   conn: false,
 })
 
-// 新增连接
-function addConn() {
+function addConn(): void {
   dialog.conn = true
-  nextTick(() => connRef.value.open('add'))
+  void nextTick(() => connRef.value?.open('add'))
 }
 
-// 复制连接
-function copyConn(conn) {
+function copyConn(conn: UiConn): void {
   dialog.conn = true
-  nextTick(() => connRef.value.open('add', conn))
+  void nextTick(() => connRef.value?.open('add', conn))
 }
 
-// 编辑连接
-function editConn(conn) {
+function editConn(conn: UiConn): void {
   dialog.conn = true
-  nextTick(() => connRef.value.open('edit', conn))
+  void nextTick(() => connRef.value?.open('edit', conn))
 }
 
-// 删除连接
-function deleteConn(conn) {
+function deleteConn(conn: UiConn): void {
   meConfirm(t('conn.deleteConn', { name: conn.name }), () => {
     const index = share.connList.indexOf(conn)
     if (index > -1) {
@@ -66,29 +64,26 @@ function deleteConn(conn) {
   })
 }
 
-// 选中连接: 添加防抖函数，避免连接不可用时多次点击导致的多次报错
-const selectConn = debounce(async conn => {
-  // 测试连接成功后再发送所有连接信息到后端，AppMain中监控连接变化自动处理
-  // await meCommands.testConn(conn)
+const selectConn = debounce(async (conn: UiConn) => {
   share.conn = conn
 }, 200)
 
-// 单元格样式: 颜色显示
-function cellStyle({ row }) {
-  if (row.color) return { color: row.color } // 优先考虑列中定义的颜色
+function cellStyle({ row }: { row: UiConn }): Record<string, string> | undefined {
+  if (row.color) return { color: row.color }
+  return undefined
 }
 
-// 行可拖拽 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// https://sortablejs.com/options
-const table = useTemplateRef('table')
-// 正常浏览器中式可以的，但tauri中不支持
-// 原因: tauri v2里的配置文件默认监听了tauri的webview的拖拽功能，导致了HTML5的拖拽功能失效。
-// 参考: https://owl.xylib.top/posts/tauri-drag-drop
-function rowDrag() {
-  Sortable.create(table.value.$el.querySelector('.el-table__body-wrapper tbody'), {
-    // handle：selector 格式为简单css选择器的字符串，使列表单元中符合选择器的元素成为拖动的手柄，只有按住拖动手柄才能使列表单元进行拖动；
+const table = useTemplateRef<TableInstance>('table')
+
+function rowDrag(): void {
+  const inst = table.value
+  if (!inst) return
+  const tbody = inst.$el.querySelector('.el-table__body-wrapper tbody')
+  if (!tbody) return
+  Sortable.create(tbody as HTMLElement, {
     handle: '.drag-handle',
     onEnd: ({ oldIndex, newIndex }) => {
+      if (oldIndex === undefined || newIndex === undefined) return
       const dragRow = share.connList.splice(oldIndex, 1)[0]
       share.connList.splice(newIndex, 0, dragRow)
     },
@@ -97,20 +92,17 @@ function rowDrag() {
 
 onMounted(() => rowDrag())
 
-// 导入导出的公共属性
-const filters = [{ name: '', extensions: ['json'] }]
+const filters = [{ name: '', extensions: ['json'] as const }]
 
-// 导入导出下拉框命令处理
-function handleCommand(command) {
+function handleCommand(command: string): void {
   if (command === 'export') {
-    exportConn()
+    void exportConn()
   } else if (command === 'import') {
-    importConn()
+    void importConn()
   }
 }
 
-// 导出连接
-async function exportConn() {
+async function exportConn(): Promise<void> {
   const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss')
   const path = await save({ multiple: false, directory: true, filters, defaultPath: fileName })
   if (path) {
@@ -118,23 +110,21 @@ async function exportConn() {
       await writeTextFile(path, JSON.stringify(share.connList, null, 2))
       meOk(t('conn.exportOk'))
     } catch (e) {
-      meErr(e, t('conn.exportErr'))
+      meErr(e instanceof Error ? e : String(e), t('conn.exportErr'))
     }
   }
 }
 
-// 导入连接
-async function importConn() {
+async function importConn(): Promise<void> {
   const file = await open({ multiple: false, directory: false, filters })
   if (file) {
-    // 读取文件并检查文件内容是否符合要求
     try {
       const content = await readTextFile(file)
       const impConnList = await checkImportContent(content)
       meLog('impConnList', impConnList)
       const impIds = impConnList.map(conn => conn.id)
 
-      const newConnList = []
+      const newConnList: UiConn[] = []
       newConnList.push(...share.connList.filter(conn => !impIds.includes(conn.id)))
       newConnList.push(...impConnList)
 
@@ -142,41 +132,37 @@ async function importConn() {
       share.connList = newConnList
       meOk(t('conn.importOk'))
     } catch (e) {
-      meErr(e, t('conn.importErr'))
+      meErr(e instanceof Error ? e : String(e), t('conn.importErr'))
     }
   }
 }
 
-// 导入连接检查
-async function checkImportContent(content) {
-  let connList
+async function checkImportContent(content: string): Promise<UiConn[]> {
+  let connList: unknown
   try {
     connList = meJsonParse(content)
-
-    // 导入的时候检查1次
-    checkConnList(connList)
-  } catch (e) {
+    checkConnList(connList as Parameters<typeof checkConnList>[0])
+  } catch {
     throw new Error(t('conn.importJsonErr'))
   }
 
-  // 数组检查
   if (!Array.isArray(connList) || connList.length === 0) {
     throw new Error(t('conn.importConnErr'))
   }
 
-  // 属性检查（简单检查）
-  connList.forEach(conn => {
+  for (const conn of connList as UiConn[]) {
     if (!conn.id || !conn.name || !conn.host || !conn.port) {
       throw new Error(t('conn.importFormatErr'))
     }
-  })
-  return connList
+  }
+  return connList as UiConn[]
 }
 
-// 应用更新
-const app = inject('app')
-function clickNew() {
-  meDownloadUpdate(false, toRaw(app.update), app)
+const app = inject('app') as AppMainInject
+function clickNew(): void {
+  const u = app.update
+  if (!u) return
+  void meDownloadUpdate(false, toRaw(u), app)
 }
 </script>
 

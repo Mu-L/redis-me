@@ -1,28 +1,28 @@
-<script setup>
+<script setup lang="ts">
 import { getAllWebviewWindows, WebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { type } from '@tauri-apps/plugin-os'
+import { type as getOsType } from '@tauri-apps/plugin-os'
 import { nanoid } from 'nanoid'
+import { inject, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import type { AppMainShare } from '@/bindings/me-interface'
 import { bus, CONN_REFRESH, meCommands, meErr, meOk } from '@/utils/util'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
 import Setting from '@/views/ext/Setting.vue'
 
-// 共享数据
-const share = inject('share')
+const share = inject('share') as AppMainShare
 const { t } = useI18n()
 
-// 弹出框
 const dialog = reactive({
-  setting: false, // 基础设置
-  info: false, // 应用信息
-  social: false, // 公众号
+  setting: false,
+  info: false,
+  social: false,
 })
 
-// 处理额外命令
-async function handleCommand(command) {
+async function handleCommand(command: string): Promise<void> {
   if (command === 'refreshConn') {
+    if (!share.conn) return
     share.capabilities = await meCommands.connect(share.conn.id)
     bus.emit(CONN_REFRESH)
   } else if ('closeConn' === command) {
@@ -42,10 +42,9 @@ async function handleCommand(command) {
 
 // 新建窗口: 便于同时查看多个Redis实例数据
 // https://tauri.app/zh-cn/reference/javascript/api/namespacewebview/
-async function newWindow() {
-  const isMacOS = type() === 'macos'
+async function newWindow(): Promise<void> {
+  const isMacOS = getOsType() === 'macos'
 
-  // 获取所有窗口, 如果不包含main窗口则label设置为main (测试发现: 如果main窗口已关闭，创建新的窗口时, 会自动创建一个空白的main窗口)
   const windows = await getAllWebviewWindows()
   const hasMainWindow = !!windows.find(item => item.label === 'main')
 
@@ -53,21 +52,18 @@ async function newWindow() {
   const appWindow = new WebviewWindow(label, {
     url: 'index.html',
 
-    // tauri.conf.json
     title: 'RedisME',
     hiddenTitle: true,
     width: 1200,
     height: 800 + 25,
     dragDropEnabled: false,
 
-    // src-tauri/src/utils/setup.rs:45
     titleBarStyle: 'overlay',
     decorations: isMacOS,
   })
 
-  appWindow.once('tauri://created', function () {})
-  appWindow.once('tauri://error', function (e) {
-    //console.log(e)
+  appWindow.once('tauri://created', () => {})
+  appWindow.once('tauri://error', () => {
     meErr(t('keyHeader.newWindowError'))
   })
 }

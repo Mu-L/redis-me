@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { getVersion } from '@tauri-apps/api/app'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -6,7 +6,7 @@ const { t } = useI18n()
 const appVersion = ref('')
 getVersion()
   .then(res => (appVersion.value = res))
-  .catch(_ => {})
+  .catch(() => {})
 </script>
 
 <template>
