@@ -25,14 +25,29 @@ import fs from 'fs'
 
 import frontMatter from 'front-matter'
 
-const commands = []
+interface CmdMdAttributes {
+  title?: string
+  syntax_fmt?: string
+  summary?: string
+  group?: string
+  since?: string
+}
+
+const commands: {
+  key: string
+  title: string
+  group: string
+  summary: string
+  since: string
+  usage: string
+}[] = []
 const summarys = []
 const dir = 'C:/Users/he_pe/Desktop/work/docs/content/commands/'
 fs.readdirSync(dir).forEach(file => {
   if (file.endsWith('.md')) {
     const content = fs.readFileSync(dir + file, 'utf8')
     const parsed = frontMatter(content)
-    const { title, syntax_fmt, summary, group, since } = parsed.attributes
+    const { title, syntax_fmt, summary, group, since } = parsed.attributes as CmdMdAttributes
 
     if (!title || !syntax_fmt || !summary || !group || !since) {
       console.log('缺少属性', file)

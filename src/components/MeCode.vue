@@ -10,7 +10,7 @@ import {
   propertiesDarkSyntax,
   propertiesEagerParse,
   zhPhrases,
-} from '@/plugins/codemirror.js'
+} from '@/plugins/codemirror'
 import { isZh } from '@/utils/util'
 
 /** Java .properties 流式解析：适配 Redis INFO/CONFIG（key:value、# 段注释、续行） */

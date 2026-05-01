@@ -71,7 +71,7 @@ tot-net-out: total network output bytes sent to this client.
 tot-cmds: total count of commands this client executed.
 `
 // 转换为json格式输出
-const json = {}
+const json: Record<string, string> = {}
 str
   .trim()
   .split('\n')

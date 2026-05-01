@@ -408,7 +408,7 @@ allocator_frag_bytes_lua: Delta between allocator_active_lua and allocator_alloc
 
 `.trim()
 
-const obj = {}
+const obj: Record<string, string> = {}
 str.split('\n').forEach(line => {
   const index = line.indexOf(':')
   if (index > 0) {

@@ -96,11 +96,20 @@ export type FieldScanParam_Serialize = {
 	displayFormat: DisplayFormat | null,
 };
 
+/** Specta 生成体中引用的递归值类型（生成器未单独导出别名时在此补全） */
+export type Value =
+	| "Null"
+	| ({ Bool: boolean }) & { Array?: never; Number?: never; Object?: never; String?: never }
+	| ({ Number: ({ f64: number }) & { i64?: never; u64?: never } | ({ i64: number }) & { f64?: never; u64?: never } | ({ u64: number }) & { f64?: never; i64?: never } }) & { Array?: never; Bool?: never; Object?: never; String?: never }
+	| ({ String: string }) & { Array?: never; Bool?: never; Number?: never; Object?: never }
+	| ({ Array: Value[] }) & { Bool?: never; Number?: never; Object?: never; String?: never }
+	| ({ Object: { [key in string]: Value } }) & { Array?: never; Bool?: never; Number?: never; String?: never };
+
 export type FieldScanResult = {
 	type: string,
 	ttl: number,
 	size: number,
-	value: "Null" | ({ Bool: boolean }) & { Array?: never; Number?: never; Object?: never; String?: never } | ({ Number: ({ f64: number }) & { i64?: never; u64?: never } | ({ i64: number }) & { f64?: never; u64?: never } | ({ u64: number }) & { f64?: never; i64?: never } }) & { Array?: never; Bool?: never; Object?: never; String?: never } | ({ String: string }) & { Array?: never; Bool?: never; Number?: never; Object?: never } | ({ Array: Value[] }) & { Bool?: never; Number?: never; Object?: never; String?: never } | ({ Object: { [key in string]: Value } }) & { Array?: never; Bool?: never; Number?: never; String?: never },
+	value: Value,
 	cursor: ScanCursor,
 	length: number,
 };

@@ -7,6 +7,8 @@ import {
   crosshairCursor,
   keymap,
   ViewPlugin,
+  type EditorView,
+  type ViewUpdate,
   // highlightActiveLineGutter
 } from '@codemirror/view'
 
@@ -81,13 +83,13 @@ const PROPERTIES_EAGER_PARSE_MAX = 400_000
 
 export const propertiesEagerParse = ViewPlugin.fromClass(
   class {
-    constructor(view) {
+    constructor(view: EditorView) {
       this.schedule(view)
     }
-    update(u) {
+    update(u: ViewUpdate) {
       if (u.docChanged) this.schedule(u.view)
     }
-    schedule(view) {
+    schedule(view: EditorView) {
       const len = view.state.doc.length
       if (len === 0 || len > PROPERTIES_EAGER_PARSE_MAX) return
       queueMicrotask(() => {
@@ -98,7 +100,7 @@ export const propertiesEagerParse = ViewPlugin.fromClass(
 )
 
 // 语言切换及功能提示
-export const zhPhrases = {
+export const zhPhrases: Record<string, string> = {
   // @codemirror/view
   'Control character': '控制字符',
   // @codemirror/commands

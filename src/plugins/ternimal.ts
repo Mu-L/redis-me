@@ -1,3 +1,4 @@
+import type { App } from 'vue'
 import { createTerminal } from 'vue-web-terminal'
 
 const terminal = createTerminal()
@@ -14,6 +15,6 @@ const terminal = createTerminal()
 // import customTheme from '/your-style-dir/terminal-custom-theme1.css?inline'
 // terminal.configTheme('my-custom-theme', customTheme)
 
-export default function (app) {
+export default function setupTernimal(app: App): void {
   app.use(terminal)
 }

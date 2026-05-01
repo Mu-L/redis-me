@@ -15,7 +15,6 @@ import { applyEdits, format } from 'jsonc-parser'
 import { sampleSize, sortBy } from 'lodash'
 import mitt from 'mitt'
 import { computed, h } from 'vue'
-import type { ComposerTranslation } from 'vue-i18n'
 
 import type {
   MeAppUpdateState,
@@ -132,7 +131,7 @@ export function enrichNodeList(rawList: RedisNode[] | null | undefined): Enriche
 }
 
 const isDev = import.meta.env.DEV
-const t = i18n.global.t as ComposerTranslation
+const t = i18n.global.t
 
 // 打印日志（仅开发环境）
 export function meLog(...args: unknown[]): void {

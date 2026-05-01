@@ -7,7 +7,7 @@ import { Sortable } from 'sortablejs'
 import { nextTick, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { checkConnList } from '@/plugins/tauri.js'
+import { checkConnList } from '@/plugins/tauri'
 import {
   meConfirm,
   meDownloadUpdate,

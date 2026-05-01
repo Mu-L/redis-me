@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n'
 
-import en from './lang/en.js'
-import zhCN from './lang/zh-cn.js'
+import en from './lang/en'
+import zhCN from './lang/zh-cn'
 
 // 创建 i18n
 const i18n = createI18n({
