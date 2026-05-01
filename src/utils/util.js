@@ -10,6 +10,7 @@ import { applyEdits, format } from 'jsonc-parser'
 import { sampleSize, sortBy } from 'lodash'
 import mitt from 'mitt'
 
+import { commands as spectaCommands } from '@/bindings/tauri-specta'
 import i18n from '@/locales'
 
 // 全局事件总线：setup 直接导入，app 全局属性也添加
@@ -160,23 +161,45 @@ function translateAppError(appError) {
 
 // invoke 命令：打印日志
 let retryCount = 0
-export async function meInvoke(command, params, alert = true) {
+
+function errString(e) {
+  if (e instanceof Error) return e.message
+  if (typeof e === 'string') return e
+  try {
+    return JSON.stringify(e)
+  } catch {
+    return Object.prototype.toString.call(e)
+  }
+}
+
+function unwrapSpectaResult(result) {
+  if (result?.status === 'ok') return result.data
+  if (result?.status === 'error') throw result.error
+  return result
+}
+
+function camelToSnake(name) {
+  return name.replace(/[A-Z]/g, s => '_' + s.toLowerCase())
+}
+
+async function invokeWithGuard(command, params, run, alert = true) {
   const start = Date.now()
   try {
-    const data = await invoke(command, params)
+    const raw = await run()
+    const data = unwrapSpectaResult(raw)
     const end = Date.now()
     meLog(`命令：${command}, 耗时：${end - start}ms, 参数：`, params, '结果：', data)
     retryCount = 0 // 一旦调用成功则重置重试次数
     return data
   } catch (e) {
     const end = Date.now()
-    const error = e.toString()
+    const error = errString(e)
     // 客户端断开后的自动重连 (后端处理大部分，前端仅处理立刻的场景，优化用户体验。避免无限递归，最多重试 3 次)
     if (error === 'unexpected end of file') {
       if (retryCount <= 3) {
         retryCount++
         meLog(`第${retryCount}次重试：${command}`)
-        return await meInvoke(command, params, alert)
+        return await invokeWithGuard(command, params, run, alert)
       }
     }
 
@@ -195,6 +218,29 @@ export async function meInvoke(command, params, alert = true) {
     meLog(`命令：${command}, 耗时：${end - start}ms, 参数:`, params, `, 错误：${error}`)
     throw error
   }
+}
+
+// 业务侧推荐使用：meCommands.xxx(...)，同时保留统一日志/错误/重试处理
+export const meCommands = new Proxy(spectaCommands, {
+  get(target, prop, receiver) {
+    const value = Reflect.get(target, prop, receiver)
+    if (typeof prop !== 'string' || typeof value !== 'function') return value
+    const command = camelToSnake(prop)
+    return (...args) => {
+      let alert = true
+      let invokeArgs = args
+      if (invokeArgs.length > 0 && invokeArgs[invokeArgs.length - 1] === false) {
+        alert = false
+        invokeArgs = invokeArgs.slice(0, -1)
+      }
+      return invokeWithGuard(command, invokeArgs, () => value(...invokeArgs), alert)
+    }
+  },
+})
+
+// 字符串命令 + 载荷对象：走原生 invoke。强类型请用 meCommands。
+export async function meInvoke(command, params, alert = true) {
+  return await invokeWithGuard(command, params, () => invoke(command, params), alert)
 }
 
 // ~~~~~~~~~~~~~确认、提示、错误
@@ -338,7 +384,7 @@ export function meFilterHandler(value, row, column) {
 // 删除键
 export function meDeleteKey(id, redisKey, thenFn) {
   meConfirm(t('util.deleteKey', { key: redisKey.key }), async () => {
-    await meInvoke('del', { id, key: redisKey })
+    await meCommands.del(id, redisKey)
     bus.emit(KEY_DELETE, redisKey)
     meOk(t('deleteOk'))
     if (thenFn) {
@@ -369,7 +415,7 @@ export function meRenameKey(id, redisKey, encoding = 'utf8') {
           try {
             meToBase64(value, encoding)
           } catch (e) {
-            return e.message
+            return errString(e)
           }
         }
         return true
@@ -383,8 +429,7 @@ export function meRenameKey(id, redisKey, encoding = 'utf8') {
         newKey = { key: '', bytes: meToBase64(value, encoding) }
       }
 
-      const params = { id, key: redisKey, newKey }
-      const apiNewKey = await meInvoke('rename', params)
+      const apiNewKey = await meCommands.rename(id, redisKey, newKey)
 
       // 注意此处不要整个替换，逐个替换可以保证左侧的键列表也实时修改
       redisKey.key = apiNewKey.key
@@ -482,7 +527,7 @@ export async function meDownloadUpdate(quiet = true, update, app) {
           meConfirm(t('util.updateDone'), async () => await relaunch(), manualCloseOptions)
         }
       } catch (e) {
-        meErr(t('util.updateErr', { message: e.message }))
+        meErr(t('util.updateErr', { message: errString(e) }))
       } finally {
         app.downloading = false
       }

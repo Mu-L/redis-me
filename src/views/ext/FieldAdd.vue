@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import {
   KEY_TYPE_LIST,
   DISPLAY_FORMAT,
-  meInvoke,
+  meCommands,
   meOk,
   meJsonParse,
   meJsonNormal,
@@ -154,16 +154,12 @@ function submit() {
         if (item.fieldTtl === null) item.fieldTtl = -1
       })
 
-      const params = {
-        id: share.conn.id,
-        param: {
-          ...form.value,
-          value,
-          ttl: meTtlSeconds(form.value.ttl, ttlUnit.value),
-          fieldValueList: form.value.fieldValueList,
-        },
-      }
-      const redisKey = await meInvoke('field_add', params)
+      const redisKey = await meCommands.fieldAdd(share.conn.id, {
+        ...form.value,
+        value,
+        ttl: meTtlSeconds(form.value.ttl, ttlUnit.value),
+        fieldValueList: form.value.fieldValueList,
+      })
       visible.value = false
       emit('success', redisKey)
       meOk(t('addOk'))

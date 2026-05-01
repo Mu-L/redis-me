@@ -3,7 +3,7 @@ import { useVirtualList } from '@vueuse/core'
 import { cloneDeep } from 'lodash'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke, meOk } from '@/utils/util.js'
+import { meCommands, meOk } from '@/utils/util.js'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
@@ -63,10 +63,11 @@ function submit() {
 
     loading.value = true
     try {
-      await meInvoke(isExport.value ? 'export_csv' : 'batch_del', {
-        id: share.conn.id,
-        param: form.value,
-      })
+      if (isExport.value) {
+        await meCommands.exportCsv(share.conn.id, form.value)
+      } else {
+        await meCommands.batchDel(share.conn.id, form.value)
+      }
       if (!isExport.value) {
         meOk(t('deleteOk'))
       }
@@ -90,7 +91,7 @@ async function scanKey() {
       loadAll: true,
       cursor: null,
     }
-    const data = await meInvoke('scan', { id: share.conn.id, param: params })
+    const data = await meCommands.scan(share.conn.id, params)
     form.value.keyList = data.keyList
     showScan.value = false
   } finally {

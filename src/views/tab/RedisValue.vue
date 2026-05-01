@@ -13,7 +13,7 @@ import {
   meFormatBytes,
   meHumanSeconds,
   meHumanSize,
-  meInvoke,
+  meCommands,
   meJsonFormat,
   meJsonNormal,
   meOk,
@@ -176,7 +176,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       displayFormat: displayFormat.value,
     }
 
-    const data = await meInvoke('field_scan', { id: share.conn.id, param })
+    const data = await meCommands.fieldScan(share.conn.id, param)
     cursor.value = data.cursor
     withHashKey.value = !!hashKey.value
 
@@ -248,7 +248,7 @@ async function setValue() {
     keyType: redisValue.value.type,
     inputFormat: displayFormat.value,
   }
-  await meInvoke('set', { id: share.conn.id, param })
+  await meCommands.set(share.conn.id, param)
   meOk(t('saveOk'))
   await refreshKey()
 }
@@ -341,7 +341,7 @@ async function fieldDel(row) {
     param.fieldValue = '' // 后端接收需要是String
   }
 
-  await meInvoke('field_del', { id: share.conn.id, param })
+  await meCommands.fieldDel(share.conn.id, param)
   meOk(t('deleteOk'))
   await refreshKey()
 }
@@ -360,7 +360,7 @@ function streamIdToDate(id) {
 const groupDataList = ref([])
 const tableGroupVisible = ref(false)
 async function showGroups() {
-  groupDataList.value = await meInvoke('xinfo_groups', { id: share.conn.id, key: share.redisKey })
+  groupDataList.value = await meCommands.xinfoGroups(share.conn.id, share.redisKey)
   tableGroupVisible.value = true
 }
 
@@ -382,13 +382,13 @@ const textLength = computed(() => {
 
 // 查看此键所在节点
 async function showSlot() {
-  const data = await meInvoke('key_slot', { id: share.conn.id, key: share.redisKey })
+  const data = await meCommands.keySlot(share.conn.id, share.redisKey)
   meOk(data, true, t('redisValue.slotTitle'))
 }
 
 // 查看此键所在节点
 async function showLocation() {
-  const data = await meInvoke('key_node', { id: share.conn.id, key: share.redisKey })
+  const data = await meCommands.keyNode(share.conn.id, share.redisKey)
   const msg = data.map(item => item.node + ' | ' + item.flags.toUpperCase()).join('<br>')
   meOk(msg, true, t('redisValue.locationTitle'), { dangerouslyUseHTMLString: true })
 }

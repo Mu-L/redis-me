@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
-import { meCopy, meInvoke, meOk } from '@/utils/util.js'
+import { meCopy, meCommands, meOk } from '@/utils/util.js'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
@@ -55,15 +55,13 @@ function sortChange({ prop, order }) {
 }
 
 async function apiConfigGet() {
-  const params = { id: share.conn.id, pattern: 'slowlog*', node: node.value }
-  const data = await meInvoke('config_get', params)
+  const data = await meCommands.configGet(share.conn.id, 'slowlog*', node.value)
   slowerThan.value = data['slowlog-log-slower-than']
   slowerMaxLen.value = data['slowlog-max-len']
 }
 
 async function apiSlowLog() {
-  const params = { id: share.conn.id, count: slowerGetCount.value, node: node.value }
-  const data = await meInvoke('slow_log', params)
+  const data = await meCommands.slowLog(share.conn.id, slowerGetCount.value, node.value)
   dataList.value = data || []
 }
 
@@ -111,19 +109,14 @@ async function saveSlowParam() {
     editLoading.value = true
     try {
       // 保存慢日志阈值（毫秒转微秒）
-      await meInvoke('config_set', {
-        id: share.conn.id,
-        key: 'slowlog-log-slower-than',
-        value: String(form.slowerThan === -1 ? -1 : form.slowerThan * 1000),
-        node: '*',
-      })
+      await meCommands.configSet(
+        share.conn.id,
+        'slowlog-log-slower-than',
+        String(form.slowerThan === -1 ? -1 : form.slowerThan * 1000),
+        '*',
+      )
       // 保存慢日志最大长度
-      await meInvoke('config_set', {
-        id: share.conn.id,
-        key: 'slowlog-max-len',
-        value: String(form.slowerMaxLen),
-        node: '*',
-      })
+      await meCommands.configSet(share.conn.id, 'slowlog-max-len', String(form.slowerMaxLen), '*')
       meOk(t('redisSlow.saveOk'))
       await refresh()
       editShow.value = false

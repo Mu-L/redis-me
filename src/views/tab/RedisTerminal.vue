@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 
 import MeIcon from '@/components/MeIcon.vue'
 import { commandHelp } from '@/utils/cmd.js'
-import { meCopy, meInvoke } from '@/utils/util.js'
+import { meCopy, meCommands } from '@/utils/util.js'
 
 import NodeList from '../ext/NodeList.vue'
 
@@ -34,7 +34,7 @@ async function execCommand(command) {
 
   try {
     const param = { command, node: node.value, autoBroadcast: autoBroadcast.value }
-    const data = await meInvoke('execute_command', { id: share.conn.id, param }, false)
+    const data = await meCommands.executeCommand(share.conn.id, param, false)
     autoCopyIfNeed(data)
     const html = data.split(/\r?\n/).join('<br/>')
     return colorText('var(--el-color-success)', html)

@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 
 import { clientTip as tips } from '@/utils/tip.js'
-import { meConfirm, meHumanSeconds, meInvoke, meOk } from '@/utils/util.js'
+import { meConfirm, meHumanSeconds, meCommands, meOk } from '@/utils/util.js'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
@@ -51,8 +51,7 @@ function sortChange({ prop, order }) {
 async function refresh() {
   loading.value = true
   try {
-    const params = { id: share.conn.id, node: node.value, clientType: clientType.value }
-    dataList.value = await meInvoke('client_list', params)
+    dataList.value = await meCommands.clientList(share.conn.id, node.value, clientType.value)
   } finally {
     loading.value = false
   }
@@ -62,7 +61,7 @@ refresh()
 async function killClient(row) {
   meConfirm(t('redisClient.killClientConfirm', { client: row.addr }), async () => {
     const param = { command: `client kill ${row.addr}`, node: node.value }
-    await meInvoke('execute_command', { id: share.conn.id, param })
+    await meCommands.executeCommand(share.conn.id, param)
     meOk(t('redisClient.killClientOk'))
     await refresh()
   })

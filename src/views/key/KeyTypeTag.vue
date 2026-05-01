@@ -1,5 +1,5 @@
 <script setup>
-import { meInvoke, meKeyShort, meType } from '@/utils/util.js'
+import { meCommands, meKeyShort, meType } from '@/utils/util.js'
 
 const share = inject('share')
 const props = defineProps({
@@ -9,7 +9,7 @@ const props = defineProps({
 // 如果还没有类型，触发异步加载
 if (!props.redisKey.keyType) {
   try {
-    const data = await meInvoke('key_type', { id: share.conn.id, key: props.redisKey })
+    const data = await meCommands.keyType(share.conn.id, props.redisKey)
     props.redisKey.keyType = data?.toUpperCase()
   } catch {}
 }

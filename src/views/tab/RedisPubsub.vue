@@ -3,7 +3,7 @@ import { listen } from '@tauri-apps/api/event'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { meCopy, meInvoke, meOk } from '@/utils/util.js'
+import { meCopy, meCommands, meOk } from '@/utils/util.js'
 
 const { t } = useI18n()
 // 共享数据
@@ -31,12 +31,12 @@ const subscribe = async () => {
   try {
     if (subscribing.value) {
       await unlisten()
-      await meInvoke('subscribe_stop', { id: share.conn.id })
+      await meCommands.subscribeStop(share.conn.id)
       subscribing.value = false
       meOk(t('redisPubSub.subscribeStopped'))
     } else {
       await tauriListen()
-      await meInvoke('subscribe', { id: share.conn.id, channel: channel.value })
+      await meCommands.subscribe(share.conn.id, channel.value)
       subscribing.value = true
       meOk(t('redisPubSub.subscribeStarted'))
     }
@@ -52,11 +52,7 @@ const sendLoading = ref(false)
 async function publish() {
   sendLoading.value = true
   try {
-    await meInvoke('publish', {
-      id: share.conn.id,
-      channel: sendChannel.value,
-      message: sendMessage.value,
-    })
+    await meCommands.publish(share.conn.id, sendChannel.value, sendMessage.value)
     meOk(t('redisPubSub.publishOk'))
   } finally {
     sendLoading.value = false

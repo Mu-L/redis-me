@@ -11,7 +11,7 @@ import {
   meDeleteKey,
   meFilterHandler,
   meHumanSize,
-  meInvoke,
+  meCommands,
   meOk,
   meType,
 } from '@/utils/util.js'
@@ -92,7 +92,7 @@ async function refresh() {
       sleepMillis: sleepMillis.value,
       needKeyType: true,
     }
-    dataList.value = await meInvoke('memory_usage', { id: share.conn.id, param })
+    dataList.value = await meCommands.memoryUsage(share.conn.id, param)
   } finally {
     loading.value = false
   }
@@ -136,7 +136,7 @@ function batchDelKey() {
         match: '',
         keyList: selection.value.map(row => ({ key: row.key, bytes: row.bytes })),
       }
-      await meInvoke('batch_del', { id: share.conn.id, param })
+      await meCommands.batchDel(share.conn.id, param)
       meOk(t('deleteOk'))
       const keyBytesArr = param.keyList.map(rk => rk.bytes)
       dataList.value = dataList.value.filter(rk => keyBytesArr.indexOf(rk.bytes) < 0)

@@ -12,9 +12,9 @@ import {
   KEY_REFRESH,
   KEY_TYPE_LIST,
   meConfirm,
+  meCommands,
   meCopy,
   meDeleteKey,
-  meInvoke,
   meKeyShort,
   meOk,
   mePrompt,
@@ -102,7 +102,7 @@ async function scanKey(useCursor = false, loadAll = false) {
       loadAll: loadAll,
       cursor: cursor.value,
     }
-    const data = await meInvoke('scan', { id: share.conn.id, param: params })
+    const data = await meCommands.scan(share.conn.id, params)
     cursor.value = data.cursor
 
     // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
@@ -131,7 +131,7 @@ function deleteKey(redisKey) {
 // 数据库列表
 const dbList = ref([])
 async function refreshDbList() {
-  dbList.value = await meInvoke('db_list', { id: share.conn.id })
+  dbList.value = await meCommands.dbList(share.conn.id)
 
   // 超出范围后台连接忽略（即连接db0），前端也改为0
   if (share.conn.db >= dbList.value.length) {
@@ -141,7 +141,7 @@ async function refreshDbList() {
 refreshDbList()
 
 async function selectDB() {
-  await meInvoke('select_db', { id: share.conn.id, db: share.conn.db })
+  await meCommands.selectDb(share.conn.id, share.conn.db)
   await refresh() // RedisInfo的键数量需要更新下
 }
 
@@ -338,7 +338,7 @@ async function handleCommand(command) {
 // 清空数据库
 function flushDb() {
   meConfirm(t('keyMain.flushDbConfirm'), async () => {
-    await meInvoke('flush_db', { id: share.conn.id })
+    await meCommands.flushDb(share.conn.id)
     meOk(t('keyMain.flushDbOk'))
     bus.emit(CONN_REFRESH)
     bus.emit(INFO_REFRESH)
@@ -367,7 +367,7 @@ async function mockData() {
       try {
         while (value > 0) {
           const count = Math.min(value, 10)
-          await meInvoke('mock_data', { id: share.conn.id, count })
+          await meCommands.mockData(share.conn.id, count)
           value = value - count
           share.exportImportingPercentage = Math.round(((total - value) / total) * 100)
           await sleep(10) // 睡眠10ms以便其他动作可以获取到锁, 同时避免UI界面卡顿

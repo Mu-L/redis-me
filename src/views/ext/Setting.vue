@@ -6,7 +6,7 @@ import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meCheckUpdate, meConfirm, meInvoke } from '@/utils/util.js'
+import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util.js'
 
 const { t } = useI18n()
 const settings = window.meTauri.settings
@@ -140,7 +140,7 @@ async function openDir(dirType) {
   if (dirType === 'config') {
     dir = await appConfigDir()
   } else if (dirType === 'app') {
-    dir = await meInvoke('app_dir')
+    dir = await meCommands.appDir()
   } else {
     dir = await appLogDir()
   }

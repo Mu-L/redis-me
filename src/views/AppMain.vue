@@ -8,8 +8,8 @@ import {
   bus,
   CONN_LIST_WINDOWS_SYNC,
   CONN_REFRESH,
+  meCommands,
   DoNothing,
-  meInvoke,
   meJsonParse,
   meOk,
 } from '@/utils/util.js'
@@ -83,7 +83,7 @@ watch(
     try {
       // 关闭旧连接
       if (oldConn) {
-        await meInvoke('disconnect', { id: oldConn.id })
+        await meCommands.disconnect(oldConn.id)
       }
 
       // 打开新连接
@@ -91,7 +91,7 @@ watch(
         share.color = newConn.color
         share.readonly = !!newConn.readonly
         share.tabName = 'info'
-        share.capabilities = await meInvoke('connect', { id: newConn.id })
+        share.capabilities = await meCommands.connect(newConn.id)
         connPrepared.value = true
       }
     } catch (e) {
@@ -114,7 +114,7 @@ watch(
     meTauri.connList = connList // 保证导入导出连接时也进行持久化更新
 
     // 后端同步 和 多窗口同步
-    await meInvoke('conn_list', { connList })
+    await meCommands.connList(connList)
     await window.emit(CONN_LIST_WINDOWS_SYNC, { connList, label: window.label })
   },
   { immediate: true },

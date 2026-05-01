@@ -2,7 +2,7 @@
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke } from '@/utils/util.js'
+import { meCommands } from '@/utils/util.js'
 
 const { t } = useI18n()
 const share = inject('share')
@@ -25,11 +25,7 @@ async function handleExpand(row, expandedRows) {
 
   loading.value = true
   try {
-    consumerData.value = await meInvoke('xinfo_consumers', {
-      id: share.conn.id,
-      key: share.redisKey,
-      group: row.name,
-    })
+    consumerData.value = await meCommands.xinfoConsumers(share.conn.id, share.redisKey, row.name)
   } finally {
     loading.value = false
   }

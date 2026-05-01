@@ -2,7 +2,7 @@
 import { cloneDeep } from 'lodash'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke, meOk, meTtlSeconds } from '@/utils/util.js'
+import { meCommands, meOk, meTtlSeconds } from '@/utils/util.js'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
@@ -49,10 +49,10 @@ function submit() {
       const seconds = meTtlSeconds(form.value.ttl, form.value.ttlUnit)
       if (isBatch.value) {
         const param = { ttl: seconds, keyList: form.value.keyList }
-        await meInvoke('batch_ttl', { id: share.conn.id, param })
+        await meCommands.batchTtl(share.conn.id, param)
         meOk(t('ttlSet.ttlOkBatch'))
       } else {
-        await meInvoke('ttl', { id: share.conn.id, ttl: seconds, key: share.redisKey })
+        await meCommands.ttl(share.conn.id, share.redisKey, seconds)
         meOk(t('ttlSet.ttlOk'))
       }
 

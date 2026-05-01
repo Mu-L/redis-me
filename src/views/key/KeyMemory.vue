@@ -2,7 +2,7 @@
 import { useVirtualList } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 
-import { meHumanSize, meInvoke } from '@/utils/util.js'
+import { meHumanSize, meCommands } from '@/utils/util.js'
 
 const { t } = useI18n()
 defineExpose({ open })
@@ -34,7 +34,7 @@ const keyList = ref([])
 async function keyMemory() {
   loading.value = true
   try {
-    const data = await meInvoke('memory_usage', { id: share.conn.id, param: form.value })
+    const data = await meCommands.memoryUsage(share.conn.id, form.value)
     keyList.value = data
   } finally {
     loading.value = false

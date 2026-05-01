@@ -2,7 +2,7 @@
 import { cloneDeep } from 'lodash'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke } from '@/utils/util.js'
+import { meCommands } from '@/utils/util.js'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
@@ -53,9 +53,9 @@ function submit() {
     loading.value = true
     try {
       if (isCmdFile.value) {
-        await meInvoke('import_cmd', { id: share.conn.id, file: form.value.file })
+        await meCommands.importCmd(share.conn.id, form.value.file)
       } else {
-        await meInvoke('import_csv', { id: share.conn.id, param: form.value })
+        await meCommands.importCsv(share.conn.id, form.value)
       }
       emit('success')
       visible.value = false

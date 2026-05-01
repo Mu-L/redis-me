@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 import { ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util.js'
+import { meCommands, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util.js'
 const { t } = useI18n()
 
 const emit = defineEmits(['success', 'closed'])
@@ -198,7 +198,7 @@ function testConn() {
     if (!valid) return
     loading.value = true
     try {
-      await meInvoke('test_conn', { conf: form })
+      await meCommands.testConn(form)
       meOk(t('conn.testOk'))
     } finally {
       loading.value = false
@@ -210,7 +210,7 @@ function testConn() {
 const masters = ref([])
 async function autoDiscover(alert = false) {
   try {
-    masters.value = await meInvoke('masters', { conf: form }, false)
+    masters.value = await meCommands.masters(form, false)
     if (!form.sentinelOption.masterName && masters.value.length > 0) {
       form.sentinelOption.masterName = masters.value[0].name
     }

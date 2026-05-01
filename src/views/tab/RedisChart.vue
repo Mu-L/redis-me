@@ -16,7 +16,7 @@ import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import { Line } from 'vue-chartjs'
 import { useI18n } from 'vue-i18n'
 
-import { isDark, meHumanNums, meInvoke, meLog, PREDEFINE_COLORS } from '@/utils/util.js'
+import { isDark, meHumanNums, meCommands, meLog, PREDEFINE_COLORS } from '@/utils/util.js'
 import NodeList from '@/views/ext/NodeList.vue'
 
 // 只注册必要的组件即可
@@ -87,7 +87,7 @@ if (!share.conn?.cluster) {
 // 从后台获取原始数据
 async function getData() {
   try {
-    const res = await meInvoke('chart', { id: share.conn.id, node: node.value })
+    const res = await meCommands.chart(share.conn.id, node.value)
     const label = Date.now()
     addChartData(label, res, 'command', 'instantaneousOpsPerSec')
     addChartData(label, res, 'memory', 'usedMemory')

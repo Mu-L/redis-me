@@ -3,7 +3,7 @@ import { listen } from '@tauri-apps/api/event'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { meConfirm, meCopy, meInvoke, meOk } from '@/utils/util.js'
+import { meConfirm, meCopy, meCommands, meOk } from '@/utils/util.js'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
@@ -26,13 +26,13 @@ const monitor = async () => {
   try {
     if (monitoring.value) {
       await unlisten()
-      await meInvoke('monitor_stop', { id: share.conn.id })
+      await meCommands.monitorStop(share.conn.id)
       monitoring.value = false
       meOk(t('redisMonitor.monitorStopped'))
     } else {
       meConfirm(t('redisMonitor.monitorHint'), async () => {
         await tauriListen()
-        await meInvoke('monitor', { id: share.conn.id, node: node.value })
+        await meCommands.monitor(share.conn.id, node.value)
         monitoring.value = true
         meOk(t('redisMonitor.monitorStarted'))
       })

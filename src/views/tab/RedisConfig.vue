@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { redisConfDict, valkeyConfDict } from '@/utils/redis.js'
 import { configTip as tips } from '@/utils/tip.js'
-import { meCopy, meInvoke, meOk } from '@/utils/util.js'
+import { meCopy, meCommands, meOk } from '@/utils/util.js'
 
 import NodeList from '../ext/NodeList.vue'
 
@@ -128,7 +128,7 @@ function getSummaries() {
 }
 
 async function apiConfigGet() {
-  const data = await meInvoke('config_get', { id: share.conn.id, pattern: '*', node: node.value })
+  const data = await meCommands.configGet(share.conn.id, '*', node.value)
   const tableData = []
   Object.entries(data).forEach(([key, value]) => tableData.push({ param: key, value }))
   dataList.value = sortBy(tableData, ['param'])
@@ -180,12 +180,12 @@ async function configSet() {
 
     editLoading.value = true
     try {
-      await meInvoke('config_set', {
-        id: share.conn.id,
-        key: form.param,
-        value: form.value,
-        node: form.autoBroadcast ? '*' : node.value,
-      })
+      await meCommands.configSet(
+        share.conn.id,
+        form.param,
+        form.value,
+        form.autoBroadcast ? '*' : node.value,
+      )
       meOk(t('saveOk'))
       await refresh()
       editShow.value = false

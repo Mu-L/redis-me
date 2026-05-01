@@ -2,7 +2,7 @@
 import { cloneDeep } from 'lodash'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke, meOk } from '@/utils/util.js'
+import { meCommands, meOk } from '@/utils/util.js'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
@@ -59,7 +59,7 @@ function submit() {
 
     isSaving.value = true
     try {
-      await meInvoke('field_set', { id: share.conn.id, param: form.value })
+      await meCommands.fieldSet(share.conn.id, form.value)
       visible.value = false
       emit('success')
       meOk(t('editOk'))

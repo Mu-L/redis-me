@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/utils/tip.js'
-import { bus, INFO_REFRESH, meInvoke, enrichNodeList } from '@/utils/util.js'
+import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util.js'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 
@@ -125,16 +125,12 @@ onUnmounted(() => bus.off(INFO_REFRESH, refresh))
 async function refresh(withConfigGet = false) {
   loading.value = true
   try {
-    const data = await meInvoke('info', { id: share.conn.id, node: node.value })
+    const data = await meCommands.info(share.conn.id, node.value)
     raw.value = data.info || ''
     infoNode.value = data.node || share.conn.host + ':' + share.conn.port
 
     if (withConfigGet) {
-      const data2 = await meInvoke('config_get', {
-        id: share.conn.id,
-        pattern: 'save',
-        node: node.value,
-      })
+      const data2 = await meCommands.configGet(share.conn.id, 'save', node.value)
       config.value = data2 || ''
     }
   } finally {
@@ -157,7 +153,7 @@ function goMemory() {
 
 // 节点列表在此组件中设置（刷新连接时自动重新获取）
 onMounted(async () => {
-  const nodeList = await meInvoke('node_list', { id: share.conn.id })
+  const nodeList = await meCommands.nodeList(share.conn.id)
   share.nodeList = enrichNodeList(nodeList || [])
 })
 

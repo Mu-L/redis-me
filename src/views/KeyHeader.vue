@@ -4,7 +4,7 @@ import { type } from '@tauri-apps/plugin-os'
 import { nanoid } from 'nanoid'
 import { useI18n } from 'vue-i18n'
 
-import { bus, CONN_REFRESH, meErr, meInvoke, meOk } from '@/utils/util.js'
+import { bus, CONN_REFRESH, meCommands, meErr, meOk } from '@/utils/util.js'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
 import Setting from '@/views/ext/Setting.vue'
@@ -23,7 +23,7 @@ const dialog = reactive({
 // 处理额外命令
 async function handleCommand(command) {
   if (command === 'refreshConn') {
-    share.capabilities = await meInvoke('connect', { id: share.conn.id })
+    share.capabilities = await meCommands.connect(share.conn.id)
     bus.emit(CONN_REFRESH)
   } else if ('closeConn' === command) {
     share.conn = null
