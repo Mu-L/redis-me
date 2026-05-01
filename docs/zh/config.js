@@ -102,6 +102,7 @@ function sidebarChangelog() {
       text: '更新日志',
       items: [
         { text: 'latest', link: 'latest' },
+        { text: '2.x', link: '2.x' },
         { text: '1.x', link: '1.x' },
         { text: '0.x', link: '0.x' },
       ],
