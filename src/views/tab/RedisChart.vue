@@ -12,6 +12,7 @@ import {
 } from 'chart.js'
 import dayjs from 'dayjs'
 import { cloneDeep, merge } from 'lodash'
+import { computed, inject, onUnmounted, ref, shallowRef, useTemplateRef, watch } from 'vue'
 import { Line } from 'vue-chartjs'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import { useI18n } from 'vue-i18n'

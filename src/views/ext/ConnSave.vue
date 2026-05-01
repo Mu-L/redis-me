@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { cloneDeep } from 'lodash'
 import { nanoid } from 'nanoid'
-import { ref, useTemplateRef } from 'vue'
+import { inject, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { AppMainShare } from '@/bindings/me-interface'

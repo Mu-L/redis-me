@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { useTemplateRef } from 'vue'
+import {
+  computed,
+  inject,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  useTemplateRef,
+  watchEffect,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { AppMainShare } from '@/bindings/me-interface'

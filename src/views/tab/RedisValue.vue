@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { parseInt } from 'lodash/string.js'
+import {
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  useTemplateRef,
+  watchEffect,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { AppMainShare } from '@/bindings/me-interface'

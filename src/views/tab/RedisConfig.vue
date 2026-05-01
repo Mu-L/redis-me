@@ -1,5 +1,15 @@
 <script setup lang="ts">
 import { sortBy } from 'lodash'
+import {
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  reactive,
+  ref,
+  useTemplateRef,
+  watchEffect,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { AppMainShare } from '@/bindings/me-interface'

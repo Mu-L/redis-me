@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { capitalize } from 'lodash'
+import { computed, h, inject, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { AppMainShare } from '@/bindings/me-interface'

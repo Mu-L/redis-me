@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nanoid } from 'nanoid'
-import { computed } from 'vue'
+import { computed, inject, ref, useTemplateRef, watch } from 'vue'
 // 共享数据
 import { useI18n } from 'vue-i18n'
 

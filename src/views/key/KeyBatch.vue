@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useVirtualList } from '@vueuse/core'
 import { cloneDeep } from 'lodash'
+import { computed, inject, readonly, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { AppMainShare } from '@/bindings/me-interface'

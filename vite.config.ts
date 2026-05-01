@@ -1,7 +1,7 @@
 import * as path from 'path'
 
 import vue from '@vitejs/plugin-vue'
-import AutoImport from 'unplugin-auto-import/vite'
+// import AutoImport from 'unplugin-auto-import/vite'
 import UnpluginSvgComponent from 'unplugin-svg-component/vite'
 import { defineConfig } from 'vite-plus'
 
@@ -40,9 +40,9 @@ export default defineConfig({
   plugins: [
     vue(),
 
-    AutoImport({
-      imports: ['vue'], // 自动导入 Vue 相关函数，如：ref, reactive, toRef 等
-    }),
+    // AutoImport({
+    //   imports: ['vue'], // 自动导入 Vue 相关函数，如：ref, reactive, toRef 等
+    // }),
 
     // SVG图标: 解决IconsResolver无法动态引入图标的问题
     // https://github.com/Jevon617/unplugin-svg-component
