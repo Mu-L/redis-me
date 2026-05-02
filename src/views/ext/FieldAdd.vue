@@ -218,7 +218,7 @@ function handleKeyTypeChange() {
   <el-dialog
     :title="form.mode === 'key' ? t('fieldAdd.newKey') : t('fieldAdd.newField')"
     v-model="visible"
-    :width="600"
+    :width="666"
     @closed="emit('closed')"
     destroy-on-close
     :close-on-press-escape="false"
