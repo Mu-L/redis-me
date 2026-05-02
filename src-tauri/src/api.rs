@@ -1,10 +1,11 @@
 use crate::client::state::ClientAccess;
+use crate::utils::app_store;
 use crate::utils::model::*;
 use crate::utils::util::*;
 use crate::{api_commands, api_commands2};
+use specta::specta;
 use std::collections::HashMap;
 use tauri::utils::platform::current_exe;
-use specta::specta;
 use tauri::{AppHandle, command};
 
 // 默认示例
@@ -23,6 +24,13 @@ pub fn app_dir() -> ApiResult<String> {
         Ok(path) => Ok(path.parent().unwrap().to_string_lossy().to_string()),
         Err(e) => Err(e.to_string()),
     }
+}
+
+/// 是否通过应用商店类渠道安装（内置更新应关闭）。具体判断在 `utils/app_store.rs`。
+#[command]
+#[specta]
+pub fn is_app_store() -> bool {
+    app_store::detect()
 }
 
 // 测试连接

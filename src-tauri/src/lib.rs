@@ -9,12 +9,13 @@ use rustls::crypto::ring::default_provider;
 use specta_typescript::Typescript;
 use std::path::PathBuf;
 use tauri::Manager;
-use tauri_specta::{collect_commands, Builder, Commands};
+use tauri_specta::{Builder, Commands, collect_commands};
 
 fn tauri_specta_commands() -> Commands<tauri::Wry> {
     collect_commands![
         greet,
         app_dir,
+        is_app_store,
         test_conn,
         masters,
         conn_list,

@@ -12,7 +12,9 @@ use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
-use redis::cluster_routing::{MultipleNodeRoutingInfo, ResponsePolicy, RoutingInfo, SingleNodeRoutingInfo};
+use redis::cluster_routing::{
+    MultipleNodeRoutingInfo, ResponsePolicy, RoutingInfo, SingleNodeRoutingInfo,
+};
 use redis::{Commands, ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -254,11 +256,16 @@ impl MeClient for MeCluster {
     fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()> {
         let mut conn = self.get_conn()?;
         if "*" == node.clone().unwrap_or_default() {
-            let route = RoutingInfo::MultiNode((MultipleNodeRoutingInfo::AllNodes, Some(ResponsePolicy::AllSucceeded)));
-            let _ = conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
+            let route = RoutingInfo::MultiNode((
+                MultipleNodeRoutingInfo::AllNodes,
+                Some(ResponsePolicy::AllSucceeded),
+            ));
+            let _ =
+                conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
         } else {
             let (route, _) = self.get_node_route(node)?;
-            let _ = conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
+            let _ =
+                conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
         }
         Ok(())
     }

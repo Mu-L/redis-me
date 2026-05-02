@@ -446,7 +446,7 @@ pub fn field_scan_4_return(
         .arg(&key)
         .query(&mut conn)
         // 兼容腾讯云Redis等不支持memory usage的第三方缓存数据库 #81
-        .unwrap_or(0); 
+        .unwrap_or(0);
 
     Ok(FieldScanResult {
         key_type: ui_key_type(key_type),

@@ -6,6 +6,8 @@ import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
 export const commands = {
 	greet: (name: string) => __TAURI_INVOKE<string>("greet", { name }),
 	appDir: () => typedError<string, string>(__TAURI_INVOKE("app_dir")),
+	// 是否通过应用商店类渠道安装（内置更新应关闭）。具体判断在 `utils/app_store.rs`。
+	isAppStore: () => __TAURI_INVOKE<boolean>("is_app_store"),
 	testConn: (conf: ConnConfig) => typedError<null, string>(__TAURI_INVOKE("test_conn", { conf })),
 	masters: (conf: ConnConfig) => typedError<{ [key in string]: string }[], string>(__TAURI_INVOKE("masters", { conf })),
 	connList: (connList: ConnConfig[]) => typedError<null, string>(__TAURI_INVOKE("conn_list", { connList })),

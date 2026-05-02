@@ -439,7 +439,6 @@ impl MeClient for MeSingle {
     implement_pipeline_commands!(Pipeline);
 }
 
-
 // 个性化方法
 impl MeSingle {
     pub fn init(redis_conn: &ConnConfig) -> AnyResult<Box<dyn MeClient>> {
