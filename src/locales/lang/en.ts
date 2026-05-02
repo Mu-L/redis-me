@@ -310,7 +310,7 @@ export default {
   keyImport: {
     title: 'Import Data',
     file: 'Import File',
-    fileTip: 'select file to import ({tip})',
+    fileTip: 'Select file to import ({tip})',
     fileRequired: 'import file required',
     handleConflict: 'On Key Conflict',
     replace: 'Replace',

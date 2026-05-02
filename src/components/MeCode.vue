@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { json } from '@codemirror/lang-json'
 import { LanguageSupport, StreamLanguage, syntaxHighlighting } from '@codemirror/language'
 import { properties as propertiesMode } from '@codemirror/legacy-modes/mode/properties'
 import { useDark } from '@vueuse/core'
+import { json5 as cmJson5 } from 'codemirror-json5'
 import { computed } from 'vue'
 import CodeMirror from 'vue-codemirror6'
 
@@ -19,6 +19,7 @@ const propertiesLang = new LanguageSupport(StreamLanguage.define(propertiesMode)
 
 const props = withDefaults(
   defineProps<{
+    /** `json` / `json5` 均使用 JSON5 语法高亮（合法 JSON 也可）；`properties` 为 Redis INFO/CONFIG */
     mode?: string
     readOnly?: boolean
   }>(),
@@ -30,7 +31,7 @@ const props = withDefaults(
 
 const dark = useDark()
 const lang = computed(() => {
-  if (props.mode === 'json') return json()
+  if (props.mode === 'json' || props.mode === 'json5') return cmJson5()
   if (props.mode === 'properties') return propertiesLang
   return undefined
 })
@@ -97,6 +98,11 @@ html.dark .vue-codemirror {
   /* Json的数字值 */
   :deep(.ͼd) {
     color: var(--el-color-success);
+  }
+
+  /* Json5的注释 */
+  :deep(.ͼm) {
+    color: #75715e;
   }
 }
 </style>

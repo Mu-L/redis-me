@@ -5,6 +5,7 @@
 - 全部升级TypeScript
 - CodeMirror支持配置是否自动换行
 - 应用商店安装时取消内置的自动升级，依赖商店本身更新
+- 支持导入AnotherRDM, TinyRDM的连接数据
 
 ## [v3.1.0](https://mp.weixin.qq.com/s/c1H-_54UwnRUPUEaEa89hQ) (2026-04-30)
 

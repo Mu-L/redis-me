@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.3",
-    "@codemirror/lang-json": "^6.0.2",
     "@codemirror/language": "^6.12.3",
     "@codemirror/legacy-modes": "^6.5.2",
     "@codemirror/search": "^6.7.0",
@@ -41,6 +40,7 @@
     "chart.js": "^4.5.1",
     "chartjs-adapter-dayjs-4": "^1.0.4",
     "codemirror": "^6.0.2",
+    "codemirror-json5": "^1.0.3",
     "dayjs": "^1.11.20",
     "element-plus": "2.13.5",
     "json5": "^2.2.3",
