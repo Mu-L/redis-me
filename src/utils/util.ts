@@ -1,3 +1,4 @@
+// 应用级通用工具；以下 `// #region` / `// #endregion` 可在 VS Code / Cursor 中折叠浏览。
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { type } from '@tauri-apps/plugin-os'
 import { relaunch } from '@tauri-apps/plugin-process'
@@ -33,13 +34,16 @@ export type {
   MeCommands,
 } from '@/bindings/me-interface'
 
+// #region 本文件内部类型（Specta / 应用错误载荷）
 type SpectaResult<T> = { status: 'ok'; data: T } | { status: 'error'; error: unknown }
 
 interface AppErrorPayload {
   code: string
   [key: string]: unknown
 }
+// #endregion
 
+// #region 全局总线、常量、Redis 键类型与节点列表 enrich
 // 全局事件总线：setup 直接导入，app 全局属性也添加
 export const bus = mitt<Record<string, unknown>>()
 
@@ -129,7 +133,9 @@ export function enrichNodeList(rawList: RedisNode[] | null | undefined): Enriche
   })
   return sorted
 }
+// #endregion
 
+// #region 开发日志、界面语言、暗色主题
 const isDev = import.meta.env.DEV
 const t = i18n.global.t
 
@@ -149,7 +155,9 @@ export const isZh = computed(() => {
 
 // 是否黑色主题
 export const isDark = useDark()
+// #endregion
 
+// #region Specta 命令包装（meCommands / 重试 / 错误弹窗）
 function tryParseAppError(errorStr: string): AppErrorPayload | null {
   try {
     const parsed = JSON.parse(errorStr) as unknown
@@ -246,8 +254,9 @@ export const meCommands = Object.fromEntries(
     ]
   }),
 ) as MeCommands
+// #endregion
 
-// ~~~~~~~~~~~~~确认、提示、错误
+// #region Element Plus 提示、确认框、剪贴板
 export const DoNothing = (): void => {}
 
 export function meOk(
@@ -301,7 +310,9 @@ export function meCopy(text: string, hintContent?: string, hint = true): void {
     meOk(hintContent || t('copyOk'))
   }
 }
+// #endregion
 
+// #region 随机串、可读数量/时间、表格列过滤
 const CHAR_ARRAY = Array.from('abcdefghigklmnopqrstuvwxyz0123456789')
 export function meRandomString(n: number): string {
   return sampleSize(CHAR_ARRAY, n).join('')
@@ -393,7 +404,9 @@ export function meFilterHandler<T extends Record<string, unknown>>(
   if (!property) return false
   return row[property] === value
 }
+// #endregion
 
+// #region Redis 键：删除 / 重命名（组合确认框与 meCommands）
 export function meDeleteKey(id: string, redisKey: RedisKey_Deserialize, thenFn?: () => void): void {
   meConfirm(t('util.deleteKey', { key: redisKey.key }), async () => {
     await meCommands.del(id, redisKey)
@@ -445,7 +458,9 @@ export function meRenameKey(id: string, redisKey: RedisKey_Deserialize, encoding
     },
   )
 }
+// #endregion
 
+// #region 应用内自动更新（Tauri updater）
 export async function meCheckUpdate(
   quiet = true,
   checkOptions: CheckOptions = {},
@@ -550,7 +565,9 @@ export async function meDownloadUpdate(
     { ...manualCloseOptions, message },
   )
 }
+// #endregion
 
+// #region sleep、JSON 格式化与解析
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -569,7 +586,9 @@ export function meJsonParse(jsonString: string | null | undefined): unknown {
 export function meJsonNormal(jsonString: string): string {
   return JSON.stringify(JSON5.parse(jsonString), null, 2)
 }
+// #endregion
 
+// #region Base64 / Hex / Binary 展示与互转（键编辑等）
 export function meFormatBytes(base64: string, displayFormat: string): string {
   if (displayFormat === 'base64') return base64
   if (displayFormat === 'hex') return base64ToHex(base64)
@@ -639,3 +658,4 @@ function binaryToBase64(binary: string): string {
   const binaryStr = bytes.map(b => String.fromCharCode(b)).join('')
   return btoa(binaryStr)
 }
+// #endregion
