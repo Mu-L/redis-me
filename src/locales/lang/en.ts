@@ -544,7 +544,7 @@ export default {
     ttl: 'TTL',
     value: 'Value',
     score: 'Score',
-    deleteConfirm: 'Confirm Delete ?',
+    deleteConfirm: 'Delete ?',
     jsonView: 'JSON View',
     tableView: 'Table View',
     noKeySelected: 'No Key Selected',
