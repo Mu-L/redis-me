@@ -1,10 +1,9 @@
 import { defineConfig } from 'vitepress'
 
 /** 子路径部署时改为 `/仓库名/`（建议以 / 结尾），与 Vite `base` 一致 */
-const siteBase = '/'
+const siteBase: string = '/'
 
-const viteBase =
-  siteBase === '/' ? '/' : siteBase.endsWith('/') ? siteBase : `${siteBase}/`
+const viteBase = siteBase === '/' ? '/' : siteBase.endsWith('/') ? siteBase : `${siteBase}/`
 
 function siteAsset(path: string) {
   const p = path.replace(/^\//, '')

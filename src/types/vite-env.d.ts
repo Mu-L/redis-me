@@ -33,10 +33,7 @@ declare global {
      * https://wicg.github.io/local-font-access/
      */
     queryLocalFonts?: () => Promise<
-      ReadonlyArray<{
-        readonly style: string
-        readonly fullName: string
-      }>
+      ReadonlyArray<{ readonly style: string; readonly fullName: string }>
     >
   }
 }
