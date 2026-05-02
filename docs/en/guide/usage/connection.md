@@ -13,9 +13,9 @@ The connection management in [RedisME](https://www.hepengju.com) is simple and e
   - **Sentinel**: Choose any sentinel, and fill in the sentinel's address, port, and password according to the sentinel configuration
   - **Read-only**: All edit, delete, and write buttons are hidden. You can **dynamically switch between read-only and read-write modes** via the lock icon
 
-![table.png](/images/connnection/table.png)
-![readonly.png](/images/connnection/readonly.png)
-![simple.png](/images/connnection/simple.png)
-![ssh.png](/images/connnection/ssh.png)
-![ssl.png](/images/connnection/ssl.png)
-![sentinel.png](/images/connnection/sentinel.png)
+![table.png](../../../public/images/connnection/table.png)
+![readonly.png](../../../public/images/connnection/readonly.png)
+![simple.png](../../../public/images/connnection/simple.png)
+![ssh.png](../../../public/images/connnection/ssh.png)
+![ssl.png](../../../public/images/connnection/ssl.png)
+![sentinel.png](../../../public/images/connnection/sentinel.png)

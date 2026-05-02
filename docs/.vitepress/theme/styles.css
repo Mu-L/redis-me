@@ -29,7 +29,8 @@
 }
 
 /* used in reference/default-theme-search */
-img[src='/search.png'] {
+img[src$='/search.png'],
+img[src='search.png'] {
   width: 100%;
   aspect-ratio: 1 / 1;
 }

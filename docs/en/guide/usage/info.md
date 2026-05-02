@@ -16,8 +16,8 @@ The info page (`info`) in [RedisME](https://www.hepengju.com) is the default tab
 - **Raw Info**: Click the book icon to view the raw info output
 - **Specify Node**: In cluster mode, supports fetching **info for specific nodes**
 
-![main.png](/images/info/main.png)
-![client.png](/images/info/client.png)
-![config.png](/images/info/config.png)
-![raw.png](/images/info/raw.png)
-![cluster.png](/images/info/cluster.png)
+![main.png](../../../public/images/info/main.png)
+![client.png](../../../public/images/info/client.png)
+![config.png](../../../public/images/info/config.png)
+![raw.png](../../../public/images/info/raw.png)
+![cluster.png](../../../public/images/info/cluster.png)

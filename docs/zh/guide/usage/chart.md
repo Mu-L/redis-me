@@ -10,9 +10,9 @@
 - **丰富定制功能**: 是否自动刷新，刷新间隔、保留时长和最大点数（时间均分算法）
 - **集群指定节点**: 集群模式下支持监控某个主节点或从节点的数据
 
-![main.png](/images/chart/main.png)
-![more.png](/images/chart/more.png)
-![chartjs.png](/images/chart/chartjs.png)
+![main.png](../../../public/images/chart/main.png)
+![more.png](../../../public/images/chart/more.png)
+![chartjs.png](../../../public/images/chart/chartjs.png)
 
 ## 指标详情
 

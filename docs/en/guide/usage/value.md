@@ -34,7 +34,7 @@ Support entering hash keys to obtain only hash values
 Structures like hash/set are displayed in JSON by default and can be switched to table display for addition, deletion,
 and modification
 
-![string.png](/images/value/string.png)
-![string-json-dark.png](/images/value/string-json-dark.png)
-![hash.png](/images/value/hash.png)
-![hash-table.png](/images/value/hash-table.png)
+![string.png](../../../public/images/value/string.png)
+![string-json-dark.png](../../../public/images/value/string-json-dark.png)
+![hash.png](../../../public/images/value/hash.png)
+![hash-table.png](../../../public/images/value/hash-table.png)

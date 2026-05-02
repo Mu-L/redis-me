@@ -5,7 +5,7 @@ hero:
   name: 'RedisME'
   tagline: 现代、轻量、跨平台的Redis桌面客户端
   image:
-    src: /images/logo-color.svg
+    src: ../images/logo-color.svg
     alt: RedisME
 
 features:

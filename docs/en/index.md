@@ -5,7 +5,7 @@ hero:
   name: 'RedisME'
   tagline: Modern, Lightweight, Cross-Platform RDM
   image:
-    src: /images/logo-color.svg
+    src: ./images/logo-color.svg
     alt: RedisME
 
 features:
