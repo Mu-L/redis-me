@@ -1,4 +1,5 @@
 import {
+  EditorView,
   lineNumbers,
   highlightSpecialChars,
   drawSelection,
@@ -7,12 +8,11 @@ import {
   crosshairCursor,
   keymap,
   ViewPlugin,
-  type EditorView,
   type ViewUpdate,
   // highlightActiveLineGutter
 } from '@codemirror/view'
 
-export { EditorView } from '@codemirror/view'
+export { EditorView }
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands'
 import {
   HighlightStyle,
@@ -32,6 +32,7 @@ import { tags } from '@lezer/highlight'
 
 // import { basicSetup } from "codemirror"
 export const meBasicSetup = [
+  EditorView.lineWrapping,
   lineNumbers(),
   // highlightActiveLineGutter(), // 关闭高亮激活行的行号区域
   highlightSpecialChars(),
