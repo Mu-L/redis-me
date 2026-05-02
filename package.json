@@ -12,7 +12,9 @@
     "tauri:build": "tauri build",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "check-locale-keys": "node scripts/check-locale-keys.mjs",
+    "check-locale-keys:strict": "node scripts/check-locale-keys.mjs --strict-full"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.3",
