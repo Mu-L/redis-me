@@ -100,10 +100,19 @@ onUnmounted(() => tauriUnlisten())
           placement="top" />
         <el-input
           v-model="channel"
-          style="width: 160px; margin-left: 10px"
+          style="width: 200px; margin-left: 10px"
           :placeholder="t('redisPubSub.subscribeChannel')"
           :disabled="subscribing"
-          clearable />
+          clearable>
+          <template #prefix>
+            <me-icon
+              icon="el-icon-question-filled"
+              :info="t('redisPubSub.psubscribePatternHint')"
+              raw-content
+              placement="bottom-start"
+              :show-after="200" />
+          </template>
+        </el-input>
         <me-website to="pubsub" />
       </div>
       <div>
@@ -176,5 +185,6 @@ onUnmounted(() => tauriUnlisten())
   .footer {
     display: flex;
   }
+
 }
 </style>

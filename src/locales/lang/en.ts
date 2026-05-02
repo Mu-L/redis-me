@@ -448,6 +448,8 @@ export default {
   },
 
   redisPubSub: {
+    psubscribePatternHint:
+      'The <b>PSUBSCRIBE</b> command supports glob-style subscription patterns <br/><br/>Examples:<br/>h?llo — subscribes to hello, hallo, and hxllo<br/>h*llo — subscribes to hllo and heeeello<br/>h[ae]llo — subscribes to hello and hallo, but not hillo',
     subscribeStarted: 'Subscribe Started',
     subscribeStopped: 'Subscribe Stopped',
     publishOk: 'Publish Success',

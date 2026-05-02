@@ -446,6 +446,8 @@ export default {
   },
 
   redisPubSub: {
+    psubscribePatternHint:
+      '<b>PSUBSCRIBE</b> 命令，支持 glob 风格的订阅模式 <br/><br/>示例：<br/>h?llo 订阅 hello、hallo 和 hxllo<br/>h*llo 订阅 hllo 和 heeeello<br/>h[ae]llo 订阅 hello 和 hallo，但不订阅 hillo',
     subscribeStarted: '订阅已开始',
     subscribeStopped: '订阅已停止',
     publishOk: '发布消息成功',
