@@ -32,7 +32,6 @@ import { tags } from '@lezer/highlight'
 
 // import { basicSetup } from "codemirror"
 export const meBasicSetup = [
-  EditorView.lineWrapping,
   lineNumbers(),
   // highlightActiveLineGutter(), // 关闭高亮激活行的行号区域
   highlightSpecialChars(),

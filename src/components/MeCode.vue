@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { LanguageSupport, StreamLanguage, syntaxHighlighting } from '@codemirror/language'
 import { properties as propertiesMode } from '@codemirror/legacy-modes/mode/properties'
+import { Compartment, Prec } from '@codemirror/state'
+import { EditorView, keymap } from '@codemirror/view'
 import { useDark } from '@vueuse/core'
 import { json5 as cmJson5 } from 'codemirror-json5'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import CodeMirror from 'vue-codemirror6'
 
 import {
@@ -16,6 +18,40 @@ import { isZh } from '@/utils/util'
 
 /** Java .properties 流式解析：适配 Redis INFO/CONFIG（key:value、# 段注释、续行） */
 const propertiesLang = new LanguageSupport(StreamLanguage.define(propertiesMode))
+
+/** 在编辑器聚焦时 F11：对 `.cm-editor` 调用 Fullscreen API（再按 F11 或 Esc 退出） */
+function toggleCmEditorFullscreen(el: HTMLElement) {
+  const doc = el.ownerDocument
+  if (doc.fullscreenElement === el) {
+    void doc.exitFullscreen().catch(() => {})
+    return
+  }
+  void el.requestFullscreen().catch(() => {})
+}
+
+/** 自动换行默认开启 */
+const lineWrap = ref(true)
+const lineWrapCompartment = new Compartment()
+
+const meCodePrecKeymap = Prec.highest(
+  keymap.of([
+    {
+      key: 'F11',
+      run: view => {
+        toggleCmEditorFullscreen(view.dom)
+        return true
+      },
+    },
+    {
+      key: 'Ctrl-l',
+      run: () => {
+        console.log('Ctrl-L');
+        lineWrap.value = !lineWrap.value
+        return true
+      },
+    },
+  ]),
+)
 
 const props = withDefaults(
   defineProps<{
@@ -37,7 +73,15 @@ const lang = computed(() => {
 })
 const phrases = computed(() => (isZh.value ? zhPhrases : {}))
 const extensions = computed(() => {
-  const list = [meBasicSetup]
+  const list = [
+    meBasicSetup,
+    meCodePrecKeymap,
+  ]
+
+  if (lineWrap.value) {
+    list.push(EditorView.lineWrapping)
+  }
+
   if (props.mode === 'properties') {
     list.push(syntaxHighlighting(propertiesDarkSyntax), propertiesEagerParse)
   }
@@ -71,6 +115,20 @@ const extensions = computed(() => {
     height: 100%;
   }
 
+  /* F11 全屏时填满视口（普通 DOM 全屏，非整窗 Tauri F11） */
+  :deep(.cm-editor:fullscreen) {
+    box-sizing: border-box;
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    background-color: var(--el-bg-color-page, var(--el-bg-color, #fff));
+  }
+
+  :deep(.cm-editor:fullscreen .cm-scroller) {
+    flex: 1;
+    min-height: 0;
+  }
+
   /* 字体设置 */
   :deep(.cm-scroller) {
     font-family: var(--code-font);
@@ -79,6 +137,10 @@ const extensions = computed(() => {
 
 html.dark .vue-codemirror {
   background-color: #272822;
+
+  :deep(.cm-editor:fullscreen) {
+    background-color: #272822;
+  }
 
   :deep(.ͼ3 .cm-gutters) {
     background-color: #272822;
