@@ -78,6 +78,8 @@ const redisValue = ref<FieldScanViewState | null>(null)
 const cursor = ref<ScanCursor | null>(null) // 新增游标，支持list/hash/set/zset的扫描，避免一次性获取所有数据
 const loading = ref(false)
 const suppressCodeUpdate = ref(false)
+/** 每次 fieldScan 成功后递增，用于强制 me-code 与服务器内容同步（未保存编辑时 modelValue 字符串可能与上次相同，子组件 watch 不触发） */
+const valueEditorRemountKey = ref(0)
 
 /** 值表格行（fieldScan 各类型字段混合） */
 type ValueTableRow = Record<string, unknown> & {
@@ -261,6 +263,7 @@ async function refreshKey(
       redisValue.value.newValue = ''
     }
     suppressCodeUpdate.value = false
+    valueEditorRemountKey.value++
 
     await nextTick(() => {
       if (jsonType.value || streamType.value) {
@@ -545,6 +548,7 @@ const showKey = computed(() => {
         <!-- json显示 -->
         <me-code
           v-if="viewType === 'json'"
+          :key="valueEditorRemountKey"
           :modelValue="showValue"
           :mode="stringTypeOrWithHashKey && displayFormat !== 'utf8' ? 'ignore' : 'json'"
           @update:modelValue="onCodeUpdate"
