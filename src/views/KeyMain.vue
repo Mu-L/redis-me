@@ -4,7 +4,7 @@ import { sortBy } from 'lodash'
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
 import {
   bus,
@@ -41,7 +41,7 @@ interface ImportExportProgressPayload {
 }
 
 const { t } = useI18n()
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 
 async function refresh(): Promise<void> {
@@ -107,7 +107,7 @@ async function scanKey(useCursor = false, loadAll = false): Promise<void> {
       loadAll,
       cursor: cursor.value,
     }
-    const data = await meCommands.scan(share.conn.id, params)
+    const data = await meCommands.scan(share.conn!.id, params)
     cursor.value = data.cursor
 
     // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
@@ -136,7 +136,7 @@ function deleteKey(redisKey: RedisKey_Deserialize): void {
 const dbList = ref<RedisDB[]>([])
 async function refreshDbList(): Promise<void> {
   if (!share.conn) return
-  dbList.value = await meCommands.dbList(share.conn.id)
+  dbList.value = await meCommands.dbList(share.conn!.id)
 
   if (share.conn.db >= dbList.value.length) {
     share.conn.db = 0
@@ -146,7 +146,7 @@ void refreshDbList()
 
 async function selectDB(): Promise<void> {
   if (!share.conn) return
-  await meCommands.selectDb(share.conn.id, share.conn.db)
+  await meCommands.selectDb(share.conn!.id, share.conn.db)
   await refresh()
 }
 
@@ -174,9 +174,9 @@ function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
   } else if (command === 'copyKey') {
     meCopy(redisKey.key)
   } else if (command === 'deleteKey') {
-    meDeleteKey(share.conn.id, redisKey)
+    meDeleteKey(share.conn!.id, redisKey)
   } else if (command === 'renameKey') {
-    meRenameKey(share.conn.id, redisKey)
+    meRenameKey(share.conn!.id, redisKey)
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -248,7 +248,7 @@ function batchKeyOk(mode: string): void {
 }
 
 const keyImportRef = useTemplateRef<InstanceType<typeof KeyImport>>('keyImportRef')
-function importData(isCmdFile = false): void {
+function importData(isCmdFile: boolean = false): void {
   keyImportRef.value?.open(isCmdFile)
 }
 function importStart(): void {
@@ -263,7 +263,7 @@ let unlisten: UnlistenFn | null = null
 async function tauriListen(eventName: 'export' | 'import'): Promise<void> {
   unlisten = await listen<ImportExportProgressPayload>(eventName, event => {
     const payload = event.payload
-    if (!share.conn || payload.id !== share.conn.id) return
+    if (!share.conn || payload.id !== share.conn!.id) return
     share.exportImportingPercentage = Math.round(
       ((payload.okCount + payload.errCount + payload.ignoreCount) / payload.totalCount) * 100,
     )
@@ -301,7 +301,7 @@ const keyShowTree = computed({
   get() {
     return meTauri.settings.keyShow === 'tree'
   },
-  set(newValue) {
+  set(newValue: boolean) {
     meTauri.settings.keyShow = newValue ? 'tree' : 'list'
   },
 })
@@ -310,7 +310,7 @@ const sortByCount = computed({
   get() {
     return meTauri.settings.keySort === 'count'
   },
-  set(newValue) {
+  set(newValue: boolean) {
     meTauri.settings.keySort = newValue ? 'count' : 'alphabet'
   },
 })

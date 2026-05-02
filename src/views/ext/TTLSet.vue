@@ -1,15 +1,16 @@
 <script setup lang="ts">
+import type { FormItemRule } from 'element-plus'
 import { cloneDeep } from 'lodash'
 import { computed, inject, readonly, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { meCommands, meOk, meTtlSeconds } from '@/utils/util'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({ open })
-function open(data) {
+function open(data: { ttl?: number; keyList?: string[] }) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
   form.value.ttl = data.ttl || -1
@@ -17,7 +18,7 @@ function open(data) {
 }
 
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 
 // 表单数据
 const visible = ref(false)
@@ -32,7 +33,11 @@ const rules = computed(() => ({
   ttl: [
     { required: true, message: t('ttlSet.ttlRequired') },
     {
-      validator: (rule, value, callback) => {
+      validator: (
+        _rule: FormItemRule,
+        _value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
         if (!(form.value.ttl === -1 || form.value.ttl > 0)) {
           callback(new Error(t('ttlSet.ttlValidator')))
         }
@@ -43,7 +48,7 @@ const rules = computed(() => ({
 }))
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     loading.value = true
@@ -51,10 +56,10 @@ function submit() {
       const seconds = meTtlSeconds(form.value.ttl, form.value.ttlUnit)
       if (isBatch.value) {
         const param = { ttl: seconds, keyList: form.value.keyList }
-        await meCommands.batchTtl(share.conn.id, param)
+        await meCommands.batchTtl(share.conn!.id, param)
         meOk(t('ttlSet.ttlOkBatch'))
       } else {
-        await meCommands.ttl(share.conn.id, share.redisKey, seconds)
+        await meCommands.ttl(share.conn!.id, share.redisKey, seconds)
         meOk(t('ttlSet.ttlOk'))
       }
 
@@ -67,7 +72,7 @@ function submit() {
 }
 
 // 快速设置
-function quickSet(ttl, ttlUnit) {
+function quickSet(ttl: number, ttlUnit: string) {
   form.value.ttl = ttl
   form.value.ttlUnit = ttlUnit
 }

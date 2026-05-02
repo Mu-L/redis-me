@@ -238,10 +238,10 @@ import { meCommands, meConfirm, meOk } from '@/utils/util'
 
 // 获取用户列表
 async function fetchUsers() {
-  const usernames = await meCommands.aclUsers(share.conn.id)
+  const usernames = await meCommands.aclUsers(share.conn!.id)
   // 并行获取每个用户的详情
   const users = await Promise.all(
-    usernames.map(username => meCommands.aclGetuser(share.conn.id, username)),
+    usernames.map(username => meCommands.aclGetuser(share.conn!.id, username)),
   )
   dataList.value = users
 }
@@ -255,7 +255,7 @@ function formatCommands(commands) {
 // 删除用户
 async function deleteUser(username) {
   await meConfirm(`确定删除用户 ${username} 吗？`, async () => {
-    await meCommands.aclDeluser(share.conn.id, [username])
+    await meCommands.aclDeluser(share.conn!.id, [username])
     meOk('用户已删除')
     await fetchUsers()
   })
@@ -293,7 +293,7 @@ function buildRules() {
 // 保存用户
 async function saveUser() {
   const rules = buildRules()
-  await meCommands.aclSetuser(share.conn.id, form.username, rules)
+  await meCommands.aclSetuser(share.conn!.id, form.username, rules)
   meOk('用户保存成功')
   emit('success')
 }

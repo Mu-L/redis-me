@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import type { TreeNode } from 'element-plus/es/components/tree-v2/src/types'
 import { nanoid } from 'nanoid'
-import { computed, inject, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, ref, useTemplateRef, watch, withDefaults } from 'vue'
 // 共享数据
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import type { RedisKey_Deserialize } from '@/types/tauri-specta'
 import { TREE_KEY_ID_PREFIX } from '@/utils/util'
 
 import KeyTypeTag from './KeyTypeTag.vue'
 
 const { t } = useI18n()
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 
 defineExpose({ setCurrentKey })
@@ -21,17 +23,37 @@ const emit = defineEmits([
   'contextFolder',
   'checkChange',
 ])
-const { filterKeyList, showCheckbox, keyShowTree, sortByCount } = defineProps({
-  color: { type: String, default: 'var(--el-color-primary)' },
-  redisKey: { type: Object, default: null },
-  filterKeyList: { type: Array, default: [] },
-  showCheckbox: { type: Boolean, default: false }, // 是否显示树形节点的复选框
-  keyShowTree: { type: Boolean, default: true }, // 列表或者树形
-  sortByCount: { type: Boolean, default: true }, // 文件夹按照键数量排序 或 字母顺序
-})
+const { color, filterKeyList, showCheckbox, keyShowTree, sortByCount } = withDefaults(
+  defineProps<{
+    color?: string
+    redisKey?: RedisKey_Deserialize | null
+    filterKeyList?: RedisKey_Deserialize[]
+    showCheckbox?: boolean
+    keyShowTree?: boolean
+    sortByCount?: boolean
+  }>(),
+  {
+    color: 'var(--el-color-primary)',
+    redisKey: null,
+    filterKeyList: () => [],
+    showCheckbox: false,
+    keyShowTree: true,
+    sortByCount: true,
+  },
+)
+
+/** 本地构建的树节点（文件夹 / 键叶子） */
+interface KeyBuildNode {
+  id: string
+  label: string
+  children: KeyBuildNode[]
+  redisKey?: RedisKey_Deserialize
+  keyCount?: number
+  isRootNode?: boolean
+}
 
 // 左键点击
-function nodeClick(_data, node) {
+function nodeClick(_data: unknown, node: TreeNode) {
   if (node.isLeaf) {
     emit('chooseKey', node.data.redisKey)
   } else {
@@ -40,32 +62,34 @@ function nodeClick(_data, node) {
 }
 
 // 右键点击
-const contextMenuNode = ref({})
+const contextMenuNode = ref<TreeNode | null>(null)
 const meContextRef = useTemplateRef('meContextRef')
 
-function nodeContextMenu(e, _data, node) {
+function nodeContextMenu(e: MouseEvent, _data: unknown, node: TreeNode) {
   // db0根节点不显示上下文
   if (node.data.isRootNode) return
   contextMenuNode.value = node
-  meContextRef.value.showMenu(e)
+  meContextRef.value?.showMenu(e)
 }
 
-function handleCommand(command) {
-  if (contextMenuNode.value.isLeaf) {
-    const redisKey = contextMenuNode.value.data.redisKey
+function handleCommand(command: string) {
+  const ctx = contextMenuNode.value
+  if (!ctx) return
+  if (ctx.isLeaf) {
+    const redisKey = ctx.data.redisKey as RedisKey_Deserialize
     emit('contextKey', command, redisKey)
   } else {
-    const folder = contextMenuNode.value.key
+    const folder = ctx.key
     emit('contextFolder', command, folder)
   }
 }
 
 function handleClose() {
-  contextMenuNode.value = {}
+  contextMenuNode.value = null
 }
 
 // 右键选中的键, 加入样式
-function getNodeClass(node) {
+function getNodeClass(node: TreeNode) {
   const clazz = []
   if (
     (node.isLeaf && node.data.redisKey?.key === contextMenuNode.value?.data?.redisKey?.key) ||
@@ -100,7 +124,7 @@ const treeData = computed(() => {
 })
 
 // 循环方式排序节点的子节点（避免递归栈溢出）
-function sortNodeChildrenLoop(rootNode) {
+function sortNodeChildrenLoop(rootNode: KeyBuildNode) {
   // 初始化一个栈，将根节点压入栈中
   const stack = [rootNode]
   while (stack.length > 0) {
@@ -115,7 +139,7 @@ function sortNodeChildrenLoop(rootNode) {
   }
 }
 
-function nodesSort(n1, n2) {
+function nodesSort(n1: KeyBuildNode, n2: KeyBuildNode) {
   if (sortByCount) {
     // 文件夹在上面，叶子在下面（将叶子节点的数量归零，避免和只有1个键的文件夹混在一起）
     const n1Count = n1.children.length > 0 ? n1.keyCount : 0
@@ -141,25 +165,24 @@ watch(
     treeRef.value?.setCheckedKeys([])
   },
 )
-const rootTreeData = computed(() => {
+const rootTreeData = computed((): KeyBuildNode[] => {
   if (showCheckbox) {
     return [
       {
         id: rootId,
-        label: 'db' + share.conn?.db,
-        children: treeData.value,
+        label: 'db' + String(share.conn?.db ?? ''),
+        children: treeData.value as KeyBuildNode[],
         keyCount: filterKeyList.length || 0,
         isRootNode: true,
       },
     ]
-  } else {
-    return treeData.value
   }
+  return treeData.value as KeyBuildNode[]
 })
 
 // 构建树：这个方法是由AI（豆包）生成的，非常不赖！ 但由BUG，还得亲自修复边界问题
-function buildTree(keyList) {
-  const root = []
+function buildTree(keyList: RedisKey_Deserialize[]) {
+  const root: KeyBuildNode[] = []
   keyList.forEach(rk => {
     const parts = rk.key.split(/:+/)
     let nowLevel = root
@@ -189,7 +212,7 @@ function buildTree(keyList) {
 }
 
 // 统计叶子节点个数: 循环方式（豆包）  ==> 递归方式在数据量比较大时会栈溢出
-function countLeaves(node) {
+function countLeaves(node: KeyBuildNode) {
   // 初始化一个栈，将根节点压入栈中
   const stack = [node]
   // 用于存储每个节点的叶子节点数量
@@ -230,7 +253,7 @@ function countLeaves(node) {
 }
 
 // 构建树: 仅仅叶子节点（即List显示）
-function buildList(keyList) {
+function buildList(keyList: RedisKey_Deserialize[]) {
   return keyList.map(rk => ({
     id: TREE_KEY_ID_PREFIX + rk.key,
     label: rk.key,
@@ -248,7 +271,7 @@ function checkChange() {
 }
 
 // 设置选中节点
-function setCurrentKey(redisKey) {
+function setCurrentKey(redisKey: RedisKey_Deserialize) {
   const nodeId = TREE_KEY_ID_PREFIX + redisKey.key
 
   // 展开所有父节点
@@ -297,7 +320,7 @@ const keyLabelShort = computed(() => meTauri.settings.keyLabel !== 'full')
             class="me-flex">
             <Suspense>
               <template #default>
-                <KeyTypeTag :conn-id="share.conn.id" :redis-key="node.data.redisKey" />
+                <KeyTypeTag :conn-id="share.conn!.id" :redis-key="node.data.redisKey" />
               </template>
               <template #fallback>
                 <el-tag size="small" disable-transitions type="info" effect="dark">?</el-tag>
@@ -327,7 +350,7 @@ const keyLabelShort = computed(() => meTauri.settings.keyLabel !== 'full')
 
       <!-- 右键菜单 -->
       <me-context ref="meContextRef" @handle-command="handleCommand" @handle-close="handleClose">
-        <template v-if="contextMenuNode.isLeaf">
+        <template v-if="contextMenuNode?.isLeaf">
           <el-dropdown-item command="addKey" v-if="canEdit"
             ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
           /></el-dropdown-item>

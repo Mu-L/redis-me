@@ -4,18 +4,24 @@ import { computed, inject, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { meCopy, meCommands, meOk } from '@/utils/util'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 
 const channel = ref('')
 const keyword = ref('')
 const subscribing = ref(false)
-const dataList = ref([])
+
+interface PubsubRow {
+  id?: string
+  channel?: string
+  message?: string
+}
+const dataList = ref<PubsubRow[]>([])
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   return dataList.value.filter(
@@ -33,12 +39,12 @@ const subscribe = async () => {
   try {
     if (subscribing.value) {
       await unlisten()
-      await meCommands.subscribeStop(share.conn.id)
+      await meCommands.subscribeStop(share.conn!.id)
       subscribing.value = false
       meOk(t('redisPubSub.subscribeStopped'))
     } else {
       await tauriListen()
-      await meCommands.subscribe(share.conn.id, channel.value)
+      await meCommands.subscribe(share.conn!.id, channel.value)
       subscribing.value = true
       meOk(t('redisPubSub.subscribeStarted'))
     }
@@ -54,7 +60,7 @@ const sendLoading = ref(false)
 async function publish() {
   sendLoading.value = true
   try {
-    await meCommands.publish(share.conn.id, sendChannel.value, sendMessage.value)
+    await meCommands.publish(share.conn!.id, sendChannel.value, sendMessage.value)
     meOk(t('redisPubSub.publishOk'))
   } finally {
     sendLoading.value = false
@@ -67,19 +73,17 @@ function clearData() {
 }
 
 // 监听消息
-let unlisten = null
+let unlisten: (() => void) | null = null
 async function tauriListen() {
-  unlisten = await listen('subscribe', event => {
+  unlisten = await listen<PubsubRow>('subscribe', event => {
     const payload = event.payload
-    if (payload.id !== share.conn.id) return
-    dataList.value.push(event.payload)
+    if (payload.id !== share.conn!.id) return
+    dataList.value.push(payload)
   })
 }
 
 async function tauriUnlisten() {
-  if (unlisten) {
-    unlisten()
-  }
+  unlisten?.()
 }
 onUnmounted(() => tauriUnlisten())
 </script>

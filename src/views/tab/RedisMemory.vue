@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { capitalize } from 'lodash'
+import type { ComputedRef } from 'vue'
 import { computed, h, inject, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import type { RedisKey_Deserialize, RedisKeySize_Serialize } from '@/types/tauri-specta'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import {
   bus,
@@ -20,7 +22,7 @@ import {
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 const hint = computed(() => {
   const params = {
@@ -56,7 +58,7 @@ watchEffect(() => {
 
 const keyword = ref('')
 const loading = ref(false)
-const dataList = ref([])
+const dataList = ref<RedisKeySize_Serialize[]>([])
 
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
@@ -70,7 +72,7 @@ const filterTypes = computed(() => {
 })
 
 // 避免表格自动调整列宽时闪烁一下
-function humanTotalSize(list) {
+function humanTotalSize(list: ComputedRef<RedisKeySize_Serialize[]>) {
   return meHumanSize(list.value.map(d => d.size).reduce((sum, cur) => sum + cur, 0) ?? 0)
 }
 
@@ -94,7 +96,7 @@ async function refresh() {
       sleepMillis: sleepMillis.value,
       needKeyType: true,
     }
-    dataList.value = await meCommands.memoryUsage(share.conn.id, param)
+    dataList.value = await meCommands.memoryUsage(share.conn!.id, param)
   } finally {
     loading.value = false
   }
@@ -110,23 +112,23 @@ function memoryUsage() {
 }
 
 // 选中键
-function chooseKey(redisKey) {
+function chooseKey(redisKey: RedisKey_Deserialize) {
   share.redisKey = redisKey
   share.tabName = 'value'
   bus.emit(KEY_REFRESH)
 }
 
 // 删除键
-async function delKey(redisKey) {
-  meDeleteKey(share.conn.id, redisKey, () => {
+async function delKey(redisKey: RedisKey_Deserialize) {
+  meDeleteKey(share.conn!.id, redisKey, () => {
     dataList.value = dataList.value.filter(rk => rk.bytes !== redisKey.bytes)
   })
 }
 
 // 批量删除键
-const selection = ref([])
+const selection = ref<RedisKeySize_Serialize[]>([])
 
-function selectionChange(newSelection) {
+function selectionChange(newSelection: RedisKeySize_Serialize[]) {
   selection.value = newSelection
 }
 
@@ -138,7 +140,7 @@ function batchDelKey() {
         match: '',
         keyList: selection.value.map(row => ({ key: row.key, bytes: row.bytes })),
       }
-      await meCommands.batchDel(share.conn.id, param)
+      await meCommands.batchDel(share.conn!.id, param)
       meOk(t('deleteOk'))
       const keyBytesArr = param.keyList.map(rk => rk.bytes)
       dataList.value = dataList.value.filter(rk => keyBytesArr.indexOf(rk.bytes) < 0)

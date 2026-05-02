@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import type { FormItemRule } from 'element-plus'
 import { cloneDeep } from 'lodash'
 import { nanoid } from 'nanoid'
 import { inject, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare, type UiConn } from '@/types/me-interface'
 import { meCommands, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util'
 const { t } = useI18n()
 
@@ -71,7 +72,11 @@ const rules = {
       required: true,
       message: t('conn.sshOption.hostRequired'),
       trigger: 'blur',
-      validator: (_rule, value, callback) => {
+      validator: (
+        _rule: FormItemRule,
+        value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
         if (form.ssh && !value) {
           callback(new Error(t('conn.sshOption.hostRequired')))
         } else {
@@ -85,7 +90,11 @@ const rules = {
       required: true,
       message: t('conn.sshOption.portRequired'),
       trigger: 'blur',
-      validator: (_rule, value, callback) => {
+      validator: (
+        _rule: FormItemRule,
+        value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
         if (form.ssh && !value) {
           callback(new Error(t('conn.sshOption.portRequired')))
         } else {
@@ -99,7 +108,11 @@ const rules = {
       required: true,
       message: t('conn.sshOption.usernameRequired'),
       trigger: 'blur',
-      validator: (_rule, value, callback) => {
+      validator: (
+        _rule: FormItemRule,
+        value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
         if (form.ssh && !value) {
           callback(new Error(t('conn.sshOption.usernameRequired')))
         } else {
@@ -113,7 +126,11 @@ const rules = {
       required: true,
       message: t('conn.sshOption.passwordRequired'),
       trigger: 'blur',
-      validator: (_rule, value, callback) => {
+      validator: (
+        _rule: FormItemRule,
+        value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
         if (form.ssh && form.sshOption.loginType === 'pwd' && !value) {
           callback(new Error(t('conn.sshOption.passwordRequired')))
         } else {
@@ -127,7 +144,11 @@ const rules = {
       required: true,
       message: t('conn.sshOption.pkfileRequired'),
       trigger: 'blur',
-      validator: (_rule, value, callback) => {
+      validator: (
+        _rule: FormItemRule,
+        value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
         if (form.ssh && form.sshOption.loginType === 'pkfile' && !value) {
           callback(new Error(t('conn.sshOption.pkfileRequired')))
         } else {
@@ -142,7 +163,7 @@ const rules = {
 defineExpose({ open })
 const visible = ref(false)
 const mode = ref('add')
-function open(modeValue, data) {
+function open(modeValue: 'add' | 'edit', data?: UiConn) {
   visible.value = true
   mode.value = modeValue
   if (data) {
@@ -158,10 +179,10 @@ function open(modeValue, data) {
 }
 
 // 提交表单
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(valid => {
+  formRef.value.validate((valid: boolean) => {
     if (!valid) return
     //emit('success', form.value, mode.value)
     if (mode.value === 'add') {
@@ -195,7 +216,7 @@ function autoGenName() {
 // 测试连接
 const loading = ref(false)
 function testConn() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
     loading.value = true
     try {
@@ -207,9 +228,9 @@ function testConn() {
   })
 }
 
-// 哨兵模式获取master名称
-const masters = ref([])
-async function autoDiscover(alert = false) {
+// 哨兵模式获取 master 名称（与 `meCommands.masters` 返回项一致：string 键值）
+const masters = ref<Record<string, string>[]>([])
+async function autoDiscover(alert: boolean = false) {
   try {
     masters.value = await meCommands.masters(form, false)
     if (!form.sentinelOption.masterName && masters.value.length > 0) {
@@ -219,10 +240,10 @@ async function autoDiscover(alert = false) {
     if (alert) {
       meOk(t('conn.autoDiscoverOk', { count: masters.value.length }))
     }
-  } catch (e) {
+  } catch (e: unknown) {
     masters.value = []
     if (alert) {
-      meErr(e, t('error'))
+      meErr(e instanceof Error ? e : String(e), t('error'))
     }
   }
 }
@@ -230,7 +251,7 @@ async function autoDiscover(alert = false) {
 // 哨兵模式自动发现 + 与SSH互斥
 watch(
   () => form.sentinel,
-  (newValue, _oldValue) => {
+  (newValue: boolean, _oldValue: boolean) => {
     if (newValue) {
       // 与SSH互斥
       if (form.ssh) {
@@ -246,7 +267,7 @@ watch(
 
 watch(
   () => form.sentinelOption.masterName,
-  (newValue, _oldValue) => {
+  (newValue: string | undefined, _oldValue: string | undefined) => {
     if (newValue === undefined) {
       form.sentinelOption.masterName = ''
     }
@@ -256,7 +277,7 @@ watch(
 // SSH与集群/哨兵互斥
 watch(
   () => form.ssh,
-  newValue => {
+  (newValue: boolean) => {
     if (newValue) {
       if (form.cluster || form.sentinel) {
         meWarn(t('conn.sshModeTip'))
@@ -268,7 +289,7 @@ watch(
 
 watch(
   () => form.cluster,
-  newValue => {
+  (newValue: boolean) => {
     if (newValue && form.ssh) {
       meWarn(t('conn.sshModeTip'))
       form.cluster = false

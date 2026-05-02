@@ -3,15 +3,15 @@ import { cloneDeep } from 'lodash'
 import { computed, inject, readonly, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { meCommands, meOk } from '@/utils/util'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({ open, close })
 
-// 共享数据
-const share = inject('share') as AppMainShare
+// 共享数据（本组件仅在已选连接后的键区使用，conn 视为必有）
+const share = inject(shareProvideKey)!
 
 // 表单数据
 const visible = ref(false)
@@ -28,11 +28,11 @@ const initForm = readonly({
   fieldValue: '',
   fieldScore: 0,
   fieldTtl: -1,
-  inputFormat: 'utf8',
+  inputFormat: 'utf8' as const,
 })
 const form = ref(cloneDeep(initForm))
 
-function open(data) {
+function open(data: Record<string, unknown>) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
   Object.assign(form.value, data)
@@ -56,12 +56,12 @@ function cancel() {
 // 提交
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     isSaving.value = true
     try {
-      await meCommands.fieldSet(share.conn.id, form.value)
+      await meCommands.fieldSet(share.conn!.id, form.value)
       visible.value = false
       emit('success')
       meOk(t('editOk'))

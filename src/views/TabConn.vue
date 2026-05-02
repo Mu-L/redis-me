@@ -9,7 +9,13 @@ import { computed, inject, nextTick, onMounted, reactive, ref, toRaw, useTemplat
 import { useI18n } from 'vue-i18n'
 
 import { checkConnList } from '@/plugins/tauri'
-import type { AppMainInject, AppMainShare, UiConn } from '@/types/me-interface'
+import {
+  appProvideKey,
+  shareProvideKey,
+  type AppMainInject,
+  type AppMainShare,
+  type UiConn,
+} from '@/types/me-interface'
 import {
   meConfirm,
   meDownloadUpdate,
@@ -22,7 +28,7 @@ import {
 import ConnSave from '@/views/ext/ConnSave.vue'
 
 const { t } = useI18n()
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 
 const keyword = ref('')
 const filterDataList = computed(() => {
@@ -109,7 +115,7 @@ async function exportConn(): Promise<void> {
     try {
       await writeTextFile(path, JSON.stringify(share.connList, null, 2))
       meOk(t('conn.exportOk'))
-    } catch (e) {
+    } catch (e: unknown) {
       meErr(e instanceof Error ? e : String(e), t('conn.exportErr'))
     }
   }
@@ -131,7 +137,7 @@ async function importConn(): Promise<void> {
       meLog('newConnList', newConnList)
       share.connList = newConnList
       meOk(t('conn.importOk'))
-    } catch (e) {
+    } catch (e: unknown) {
       meErr(e instanceof Error ? e : String(e), t('conn.importErr'))
     }
   }
@@ -158,7 +164,7 @@ async function checkImportContent(content: string): Promise<UiConn[]> {
   return connList as UiConn[]
 }
 
-const app = inject('app') as AppMainInject
+const app = inject(appProvideKey)!
 function clickNew(): void {
   const u = app.update
   if (!u) return

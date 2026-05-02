@@ -4,11 +4,13 @@ import { check } from '@tauri-apps/plugin-updater'
 import { computed, nextTick, onMounted, onUnmounted, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type {
-  AppMainInject,
-  AppMainShare,
-  ConnListWindowsSyncPayload,
-  UiConn,
+import {
+  appProvideKey,
+  shareProvideKey,
+  type AppMainInject,
+  type AppMainShare,
+  type ConnListWindowsSyncPayload,
+  type UiConn,
 } from '@/types/me-interface'
 import type { ConnConfig } from '@/types/tauri-specta'
 import {
@@ -50,7 +52,7 @@ const share = reactive<AppMainShare>({
     hashFieldTtl: false,
   },
 })
-provide('share', share)
+provide(shareProvideKey, share)
 
 // 当环境发生变化时，销毁整个key和tag组件（避免状态保留）
 onMounted(() => bus.on(CONN_REFRESH, toggleKeyTag))
@@ -133,7 +135,7 @@ const app = reactive<AppMainInject>({
   downloading: false,
   downloadPercentage: 0,
 })
-provide('app', app)
+provide(appProvideKey, app)
 async function checkAutoUpdate(): Promise<void> {
   if (!meTauri.settings.autoUpdate) return
   app.update = await check().catch((): null => null)

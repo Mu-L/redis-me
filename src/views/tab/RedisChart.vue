@@ -17,7 +17,7 @@ import { Line } from 'vue-chartjs'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { isDark, meHumanNums, meCommands, meLog, PREDEFINE_COLORS } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
@@ -37,7 +37,7 @@ ChartJS.register(
 
 const { t } = useI18n()
 
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const node = ref('') // 指定节点
 const autoRefresh = ref(true) // 自动刷新
 const refreshInterval = ref(5) // 刷新间隔（秒）
@@ -46,13 +46,27 @@ const maxPointCount = ref(100) // 最多保存N个数据
 const nowPointCount = ref(0) // 当前数据条数
 const showMoreChart = ref(false) // 显示更多图表
 
+/** 与 `chartData` 各块 key 一致 */
+type ChartBlockKey =
+  | 'command'
+  | 'memory'
+  | 'network'
+  | 'keyTotal'
+  | 'connectedClients'
+  | 'cacheHitRatio'
+  | 'totalConnectionsReceived'
+  | 'totalCommandsProcessed'
+
 // 自动刷新及刷新间隔配置
-let timer = null
-onUnmounted(() => clearInterval(timer))
+let timer: ReturnType<typeof setInterval> | null = null
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 watch(
   [autoRefresh, refreshInterval],
-  ([val, _]) => {
-    clearInterval(timer)
+  ([val, _]: [boolean, number]) => {
+    if (timer) clearInterval(timer)
+    timer = null
     if (val) {
       timer = setInterval(getData, refreshInterval.value * 1000)
     }
@@ -89,7 +103,7 @@ if (!share.conn?.cluster) {
 // 从后台获取原始数据
 async function getData() {
   try {
-    const res = await meCommands.chart(share.conn.id, node.value)
+    const res = await meCommands.chart(share.conn!.id, node.value)
     const label = Date.now()
     addChartData(label, res, 'command', 'instantaneousOpsPerSec')
     addChartData(label, res, 'memory', 'usedMemory')
@@ -117,14 +131,20 @@ async function getData() {
       nowPointCount.value = chartData.value.command.labels.length
     }
     refreshInstance()
-  } catch (e) {
+  } catch (e: unknown) {
     meLog('get chart data error', e)
   }
 }
 
 // 添加图表数据
-function addChartData(label, res, prop0, prop1, prop2) {
-  let propData = chartData.value[prop0]
+function addChartData(
+  label: number,
+  res: Record<string, number>,
+  prop0: ChartBlockKey,
+  prop1: string,
+  prop2?: string,
+) {
+  const propData = chartData.value[prop0]
   propData.labels.push(label)
   propData.datasets[0].data.push(res[prop1])
   if (prop2) {
@@ -133,8 +153,8 @@ function addChartData(label, res, prop0, prop1, prop2) {
 }
 
 // 裁剪图表数据
-function cutChartData(indexes, prop0) {
-  let propData = chartData.value[prop0]
+function cutChartData(indexes: number[], prop0: ChartBlockKey) {
+  const propData = chartData.value[prop0]
   propData.labels = cutArray(propData.labels, indexes)
   propData.datasets[0].data = cutArray(propData.datasets[0].data, indexes)
   if (propData.datasets[1]) {
@@ -143,8 +163,8 @@ function cutChartData(indexes, prop0) {
 }
 
 // 裁剪数组
-function cutArray(arr, indexes) {
-  const newArr = []
+function cutArray<T>(arr: T[], indexes: number[]): T[] {
+  const newArr: T[] = []
   for (let i = 0; i < arr.length; i++) {
     if (indexes.includes(i)) {
       newArr.push(arr[i])
@@ -154,8 +174,7 @@ function cutArray(arr, indexes) {
 }
 
 // 计算需要保留的索引位置，用于裁剪判断
-function calcLabelIndexes() {
-  const labels = chartData.value.command.labels
+function calcLabelIndexes(labels: number[]) {
   const minLabel = Date.now() - keepMinutes.value * 60 * 1000
 
   // 最大值减去最小值，除以 maxPointCount 获得刻度间隔
@@ -163,8 +182,8 @@ function calcLabelIndexes() {
     Math.floor((labels[labels.length - 1] - Math.max(labels[0], minLabel)) / maxPointCount.value) *
     1.5
 
-  const indexes = []
-  let intervalLabel = undefined
+  const indexes: number[] = []
+  let intervalLabel: number | undefined = undefined
   for (let i = 0; i < labels.length; i++) {
     const label = labels[i]
 

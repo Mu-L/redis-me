@@ -234,7 +234,7 @@
 #### 高优先级
 
 1. 状态来源不够直观
-   - 位置：`src/views/AppMain.vue` 及多处 `inject('share')` 使用点
+   - 位置：`src/views/AppMain.vue` 及多处 `inject(shareProvideKey)` 使用点
    - 问题：状态入口分散（`share`、`window.*`、局部状态），阅读时难快速建立数据流。
    - 建议：统一状态入口，页面内按“state/computed/actions”分块组织。
 

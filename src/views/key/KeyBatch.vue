@@ -4,14 +4,14 @@ import { cloneDeep } from 'lodash'
 import { computed, inject, readonly, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { meCommands, meOk } from '@/utils/util'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 
 defineExpose({ open })
-function open(data, mode = 'export') {
+function open(data: Record<string, unknown>, mode: string = 'export') {
   visible.value = true
   checkedKeys.value = data.keyList?.length > 0
   showScan.value = !checkedKeys.value
@@ -21,7 +21,7 @@ function open(data, mode = 'export') {
 }
 
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 
 // 表单数据
 const checkedKeys = ref(false)
@@ -60,15 +60,15 @@ const rules = computed(() => {
 // 提交数据
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     loading.value = true
     try {
       if (isExport.value) {
-        await meCommands.exportCsv(share.conn.id, form.value)
+        await meCommands.exportCsv(share.conn!.id, form.value)
       } else {
-        await meCommands.batchDel(share.conn.id, form.value)
+        await meCommands.batchDel(share.conn!.id, form.value)
       }
       if (!isExport.value) {
         meOk(t('deleteOk'))
@@ -93,7 +93,7 @@ async function scanKey() {
       loadAll: true,
       cursor: null,
     }
-    const data = await meCommands.scan(share.conn.id, params)
+    const data = await meCommands.scan(share.conn!.id, params)
     form.value.keyList = data.keyList
     showScan.value = false
   } finally {

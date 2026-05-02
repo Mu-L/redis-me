@@ -4,18 +4,18 @@ import { useI18n } from 'vue-i18n'
 
 import MeIcon from '@/components/MeIcon.vue'
 import { commandHelp } from '@/locales/cmd'
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { meCopy, meCommands } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 
 // 待颜色的文本
-function colorText(color, text, bold = false) {
+function colorText(color: string, text: string, bold = false): string {
   return bold
     ? `<span style="color: ${color}; font-weight: bold">${text}</span>`
     : `<span style="color: ${color}">${text}</span>`
@@ -29,28 +29,28 @@ const welcome = computed(() =>
 )
 
 // 定制化执行命令
-async function execCommand(command) {
+async function execCommand(command: string): Promise<string> {
   if (!canEdit.value) {
     return colorText('var(--el-color-warning)', t('redisTerminal.readonlyHint'))
   }
 
   try {
     const param = { command, node: node.value, autoBroadcast: autoBroadcast.value }
-    const data = await meCommands.executeCommand(share.conn.id, param, false)
+    const data = await meCommands.executeCommand(share.conn!.id, param, false)
     autoCopyIfNeed(data)
     const html = data.split(/\r?\n/).join('<br/>')
     return colorText('var(--el-color-success)', html)
-  } catch (e) {
+  } catch (e: unknown) {
     autoCopyIfNeed(e)
-    return colorText('var(--el-color-error)', `(error) ${e}`)
+    return colorText('var(--el-color-error)', `(error) ${String(e)}`)
   }
 }
 
 // 自动复制命令结果
 const autoCopy = ref(false)
-function autoCopyIfNeed(text) {
+function autoCopyIfNeed(text: unknown) {
   if (autoCopy.value) {
-    meCopy(text, null, false)
+    meCopy(String(text), undefined, false)
   }
 }
 

@@ -4,21 +4,32 @@ import { computed, inject, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { meConfirm, meCopy, meCommands, meOk } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 
 const node = ref('')
 const keyword = ref('')
 const monitoring = ref(false)
-const dataList = ref([])
+
+/** 与 Tauri `monitor` 事件 payload 一致（表格列 datetime / command） */
+interface MonitorRow {
+  id?: string
+  datetime?: string
+  command?: string
+}
+const dataList = ref<MonitorRow[]>([])
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
-  return dataList.value.filter(item => !key || item.toLowerCase().indexOf(key) > -1)
+  return dataList.value.filter(row => {
+    if (!key) return true
+    const text = `${row.command ?? ''} ${row.datetime ?? ''}`.toLowerCase()
+    return text.includes(key)
+  })
 })
 
 // 监控函数防抖
@@ -28,13 +39,13 @@ const monitor = async () => {
   try {
     if (monitoring.value) {
       await unlisten()
-      await meCommands.monitorStop(share.conn.id)
+      await meCommands.monitorStop(share.conn!.id)
       monitoring.value = false
       meOk(t('redisMonitor.monitorStopped'))
     } else {
       meConfirm(t('redisMonitor.monitorHint'), async () => {
         await tauriListen()
-        await meCommands.monitor(share.conn.id, node.value)
+        await meCommands.monitor(share.conn!.id, node.value)
         monitoring.value = true
         meOk(t('redisMonitor.monitorStarted'))
       })
@@ -50,19 +61,17 @@ function clearData() {
 }
 
 // 监听消息
-let unlisten = null
+let unlisten: (() => void) | null = null
 async function tauriListen() {
-  unlisten = await listen('monitor', event => {
+  unlisten = await listen<MonitorRow>('monitor', event => {
     const payload = event.payload
-    if (payload.id !== share.conn.id) return
-    dataList.value.push(event.payload)
+    if (payload.id !== share.conn!.id) return
+    dataList.value.push(payload)
   })
 }
 
 async function tauriUnlisten() {
-  if (unlisten) {
-    unlisten()
-  }
+  unlisten?.()
 }
 onUnmounted(() => tauriUnlisten())
 </script>

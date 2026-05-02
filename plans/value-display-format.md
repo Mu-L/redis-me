@@ -380,7 +380,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       meta: meta.value,
       displayFormat: displayFormat.value,  // 新增
     }
-    const data = await meCommands.fieldScan(share.conn.id, param)
+    const data = await meCommands.fieldScan(share.conn!.id, param)
     // ... 后续不变
   }
 }

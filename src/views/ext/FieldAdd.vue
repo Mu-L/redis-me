@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import type { FormItemRule } from 'element-plus'
 import { cloneDeep } from 'lodash'
 import { computed, inject, ref, toRaw, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import {
   KEY_TYPE_LIST,
   DISPLAY_FORMAT,
@@ -18,14 +19,14 @@ import {
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({ open })
-function open(data) {
+function open(data: Record<string, unknown>) {
   visible.value = true
   Object.assign(form.value, cloneDeep(toRaw(initForm.value)))
   Object.assign(form.value, data)
 }
 
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 
 // 表单数据
 const visible = ref(false)
@@ -65,7 +66,11 @@ const rules = computed(() => ({
   ttl: [
     { required: true, message: t('fieldAdd.ttlRequired') },
     {
-      validator: (rule, value, callback) => {
+      validator: (
+        _rule: FormItemRule,
+        value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
         if (!(form.value.ttl === -1 || form.value.ttl > 0)) {
           callback(new Error(t('fieldAdd.ttlValidator')))
         }
@@ -76,11 +81,15 @@ const rules = computed(() => ({
   value: [
     { required: true, message: t('fieldAdd.valueRequired') },
     {
-      validator: (rule, value, callback) => {
+      validator: (
+        _rule: FormItemRule,
+        value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
         if (form.value.type === 'json') {
           try {
-            meJsonParse(value) // json 输入支持 json5 格式，此处转换为正常 json 字符串
-          } catch (e) {
+            meJsonParse(String(value)) // json 输入支持 json5 格式，此处转换为正常 json 字符串
+          } catch {
             callback(new Error(t('fieldAdd.jsonValidator')))
           }
         }
@@ -90,7 +99,11 @@ const rules = computed(() => ({
   ],
   fieldValueList: [
     {
-      validator: (rule, value, callback) => {
+      validator: (
+        _rule: FormItemRule,
+        _value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
         if (form.value.type === 'hash' || form.value.type === 'stream') {
           const count = form.value.fieldValueList.filter(
             d => d.fieldKey === '' || d.fieldValue === '',
@@ -116,7 +129,11 @@ const rules = computed(() => ({
   ],
   streamId: [
     {
-      validator: (rule, value, callback) => {
+      validator: (
+        _rule: FormItemRule,
+        value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
         if (form.value.type === 'stream') {
           if (value) return callback()
           callback(new Error(t('fieldAdd.streamIdRequired')))
@@ -127,11 +144,11 @@ const rules = computed(() => ({
   ],
 }))
 
-function deleteElement(index) {
+function deleteElement(index: number) {
   form.value.fieldValueList.splice(index, 1)
 }
 
-function newElement(index) {
+function newElement(index: number) {
   const newValue = {
     fieldKey: '',
     fieldValue: '',
@@ -145,7 +162,7 @@ function newElement(index) {
 const ttlUnit = ref('second')
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     isSaving.value = true
@@ -156,7 +173,7 @@ function submit() {
         if (item.fieldTtl === null) item.fieldTtl = -1
       })
 
-      const redisKey = await meCommands.fieldAdd(share.conn.id, {
+      const redisKey = await meCommands.fieldAdd(share.conn!.id, {
         ...form.value,
         value,
         ttl: meTtlSeconds(form.value.ttl, ttlUnit.value),

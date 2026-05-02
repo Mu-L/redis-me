@@ -2,7 +2,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { inject, ref, watch } from 'vue'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import type {
   ConnConfig,
   FieldScanParam_Deserialize,
@@ -25,7 +25,7 @@ import { meJsonParse } from '@/utils/util'
 
 type CommandKey = keyof typeof commands
 
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 
 /** 默认 JSON 里的连接 id：当前标签页连接，未连接时用占位 */
 function connIdForDefaults(): string {
@@ -281,7 +281,7 @@ function invokeCommand(): void {
   if (paramText.value.trim()) {
     try {
       payload = meJsonParse(paramText.value) as Record<string, unknown>
-    } catch (e) {
+    } catch (e: unknown) {
       hint.value = '参数解析失败（需为合法 JSON）'
       resultText.value = String(e)
       return

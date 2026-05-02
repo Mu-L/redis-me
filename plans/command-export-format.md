@@ -607,7 +607,7 @@ async function copyCheckedAsCommand() {
 
   try {
     loading.value = true
-    const commands = await meCommands.getKeysCommands(share.conn.id, checkedKeyList.value)
+    const commands = await meCommands.getKeysCommands(share.conn!.id, checkedKeyList.value)
 
     const commandText = commands.join('\n')
     meCopy(commandText, t('keyMain.copyCommandOk'))

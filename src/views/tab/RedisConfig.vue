@@ -15,14 +15,14 @@ import { useI18n } from 'vue-i18n'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { configTip as tips } from '@/locales/config'
 import { redisConfDict, valkeyConfDict } from '@/locales/config/defaults'
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { meCopy, meCommands, meOk } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 const { initNode, initVersion } = defineProps({
   initNode: { type: String, default: '' },
@@ -32,21 +32,25 @@ const { initNode, initVersion } = defineProps({
 const node = ref(initNode)
 const keyword = ref('')
 const loading = ref(false)
-const dataList = ref([])
+interface ConfigTableRow {
+  param: string
+  value: string
+}
+const dataList = ref<ConfigTableRow[]>([])
 
 // 文件格式的配置文件（使用 Vite ?raw 导入，打包时会内联到 JS 中）
 const serverType = computed(() => (share.isValkey ? 'Valkey' : 'Redis'))
 
 // 动态加载配置文件
-const configCache = {}
-async function loadConfigFile(version) {
+const configCache: Record<string, string | null> = {}
+async function loadConfigFile(version: string) {
   if (configCache[version]) return configCache[version]
 
   try {
     const { default: content } = await import(`../../assets/conf/${version}.conf?raw`)
     configCache[version] = content
     return content
-  } catch (e) {
+  } catch (e: unknown) {
     console.error(`加载配置文件失败: ${version}`, e)
     return null
   }
@@ -70,7 +74,7 @@ const allConfigVersions = [
   'Valkey9.0',
 ]
 
-const dirConfigList = ref([])
+const dirConfigList = ref<string[]>([])
 onMounted(() => {
   dirConfigList.value = [...allConfigVersions].sort().reverse()
 })
@@ -90,12 +94,12 @@ watchEffect(async () => {
     }
     const content = await loadConfigFile(configVersion.value)
     configRaw.value = content || t('redisConfig.noConfig')
-  } catch (e) {
+  } catch (_e: unknown) {
     configRaw.value = t('redisConfig.noConfig')
   }
 })
 
-function handleCommand(command) {
+function handleCommand(command: string) {
   configVersion.value = command
   nextTick(() => (dialog.raw = true))
 }
@@ -110,7 +114,7 @@ function getDefaultVersion() {
       return version
     }
   }
-  return configVersionList[0]
+  return configVersionList.value[0] ?? ''
 }
 const dictVersion = ref(getDefaultVersion())
 const dictRaw = computed(() => confDict.value[dictVersion.value])
@@ -139,7 +143,7 @@ function getSummaries() {
 }
 
 async function apiConfigGet() {
-  const data = await meCommands.configGet(share.conn.id, '*', node.value)
+  const data = await meCommands.configGet(share.conn!.id, '*', node.value)
   const tableData = []
   Object.entries(data).forEach(([key, value]) => tableData.push({ param: key, value }))
   dataList.value = sortBy(tableData, ['param'])
@@ -161,7 +165,7 @@ const dialog = reactive({
 })
 
 // 行样式展示
-function calcRowStyle({ row }) {
+function calcRowStyle({ row }: { row: ConfigTableRow }) {
   return { color: row.value === dictRaw.value[row.param] ? '' : share.color }
 }
 
@@ -178,7 +182,7 @@ const command = computed(
   () =>
     `CONFIG SET ${form.param} ${form.value?.includes(' ') ? '"' + form.value + '"' : form.value}`,
 )
-async function editConfig(row) {
+async function editConfig(row: ConfigTableRow) {
   form.param = row.param
   form.value = row.value
   await nextTick(() => {
@@ -186,13 +190,13 @@ async function editConfig(row) {
   })
 }
 async function configSet() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     editLoading.value = true
     try {
       await meCommands.configSet(
-        share.conn.id,
+        share.conn!.id,
         form.param,
         form.value,
         form.autoBroadcast ? '*' : node.value,

@@ -13,7 +13,8 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import type { XInfoGroup } from '@/types/tauri-specta'
 import {
   bus,
   DISPLAY_FORMAT,
@@ -43,7 +44,7 @@ onMounted(() => bus.on(KEY_REFRESH, refreshKey))
 onUnmounted(() => bus.off(KEY_REFRESH, refreshKey))
 
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value))
 
@@ -59,8 +60,17 @@ const cursor = ref(null) // 新增游标，支持list/hash/set/zset的扫描，�
 const loading = ref(false)
 const suppressCodeUpdate = ref(false)
 
+/** 值表格行（fieldScan 各类型字段混合） */
+type ValueTableRow = Record<string, unknown> & {
+  key?: string
+  value?: unknown
+  id?: string
+  score?: number
+  ttl?: number
+}
+
 // 处理CodeMirror的更新事件
-function onCodeUpdate(newValue) {
+function onCodeUpdate(newValue: string) {
   if (suppressCodeUpdate.value || !redisValue.value) return
   redisValue.value.newValue = newValue
 }
@@ -144,9 +154,11 @@ watchEffect(() => {
 })
 
 // TTL设置
-let timer = null
-onUnmounted(() => clearInterval(timer))
-async function setTimer(seconds) {
+let timer: ReturnType<typeof setInterval> | null = null
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
+async function setTimer(seconds: number) {
   redisValue.value.ttl = seconds
   clearInterval(timer)
   if (redisValue.value.ttl > 0) {
@@ -163,7 +175,11 @@ function resetParam() {
   hashKey.value = ''
   withHashKey.value = false
 }
-async function refreshKey(reset = true, useCursor = false, loadAll = false) {
+async function refreshKey(
+  reset: boolean = true,
+  useCursor: boolean = false,
+  loadAll: boolean = false,
+) {
   fieldSetInit() // 关闭字段编辑
   suppressCodeUpdate.value = true
 
@@ -187,7 +203,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       displayFormat: displayFormat.value,
     }
 
-    const data = await meCommands.fieldScan(share.conn.id, param)
+    const data = await meCommands.fieldScan(share.conn!.id, param)
     cursor.value = data.cursor
     withHashKey.value = !!hashKey.value
 
@@ -234,11 +250,11 @@ function deleteKey() {
 }
 
 function delKey() {
-  meDeleteKey(share.conn.id, share.redisKey)
+  meDeleteKey(share.conn!.id, share.redisKey)
 }
 
 function renameKey() {
-  meRenameKey(share.conn.id, share.redisKey, displayFormat.value)
+  meRenameKey(share.conn!.id, share.redisKey, displayFormat.value)
 }
 
 // 保存值
@@ -259,7 +275,7 @@ async function setValue() {
     keyType: redisValue.value.type,
     inputFormat: displayFormat.value,
   }
-  await meCommands.set(share.conn.id, param)
+  await meCommands.set(share.conn!.id, param)
   meOk(t('saveOk'))
   await refreshKey()
 }
@@ -293,7 +309,7 @@ function fieldSetInit() {
   fieldSetIndex.value = -1
   fieldSetRef.value?.close()
 }
-function fieldSet(row, index) {
+function fieldSet(row: ValueTableRow, index: number) {
   fieldSetIndex.value = index
   const params = {
     fieldKey: row.key || '',
@@ -314,11 +330,11 @@ function fieldSet(row, index) {
   fieldSetRef.value.open(params)
 }
 
-function rowClassName({ row, rowIndex }) {
+function rowClassName({ row, rowIndex }: { row: ValueTableRow; rowIndex: number }) {
   return `table-row-index-${rowIndex}` // 给每行加一个带有索引的class
 }
 
-function rowClick(row, column, event) {
+function rowClick(row: ValueTableRow, _column: unknown, event: MouseEvent) {
   // 编辑字段值没有开启时，忽略行点击事件
   if (fieldSetIndex.value === -1) return
 
@@ -335,7 +351,7 @@ function rowClick(row, column, event) {
 }
 
 // 字段删除
-async function fieldDel(row) {
+async function fieldDel(row: ValueTableRow) {
   const param = {
     fieldKey: row.key || '',
     fieldValue: row.value,
@@ -352,26 +368,26 @@ async function fieldDel(row) {
     param.fieldValue = '' // 后端接收需要是String
   }
 
-  await meCommands.fieldDel(share.conn.id, param)
+  await meCommands.fieldDel(share.conn!.id, param)
   meOk(t('deleteOk'))
   await refreshKey()
 }
 
 // Stream的ID转换为字符串时间
-function streamIdToDate(id) {
+function streamIdToDate(id: string) {
   try {
     const timestamp = parseInt(id.split('-')[0])
     return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')
-  } catch (e) {
+  } catch {
     return 'format err'
   }
 }
 
 // Stream显示Groups
-const groupDataList = ref([])
+const groupDataList = ref<XInfoGroup[]>([])
 const tableGroupVisible = ref(false)
 async function showGroups() {
-  groupDataList.value = await meCommands.xinfoGroups(share.conn.id, share.redisKey)
+  groupDataList.value = await meCommands.xinfoGroups(share.conn!.id, share.redisKey)
   tableGroupVisible.value = true
 }
 
@@ -393,13 +409,13 @@ const textLength = computed(() => {
 
 // 查看此键所在节点
 async function showSlot() {
-  const data = await meCommands.keySlot(share.conn.id, share.redisKey)
+  const data = await meCommands.keySlot(share.conn!.id, share.redisKey)
   meOk(data, true, t('redisValue.slotTitle'))
 }
 
 // 查看此键所在节点
 async function showLocation() {
-  const data = await meCommands.keyNode(share.conn.id, share.redisKey)
+  const data = await meCommands.keyNode(share.conn!.id, share.redisKey)
   const msg = data.map(item => item.node + ' | ' + item.flags.toUpperCase()).join('<br>')
   meOk(msg, true, t('redisValue.locationTitle'), { dangerouslyUseHTMLString: true })
 }

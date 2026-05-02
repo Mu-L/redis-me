@@ -2,11 +2,11 @@
 import { computed, inject, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 
 const { t } = useI18n()
 
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const node = defineModel()
 const emit = defineEmits(['update:modelValue'])
 

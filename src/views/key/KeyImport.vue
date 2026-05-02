@@ -3,21 +3,21 @@ import { cloneDeep } from 'lodash'
 import { computed, inject, readonly, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { meCommands } from '@/utils/util'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 
 defineExpose({ open })
-function open(_isCmdFile) {
+function open(_isCmdFile: boolean) {
   visible.value = true
   isCmdFile.value = _isCmdFile
   Object.assign(form.value, cloneDeep(initForm))
 }
 
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 
 // 表单数据
 const visible = ref(false)
@@ -49,15 +49,15 @@ const handleTtlOptions = computed(() => [
 // 提交数据
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     loading.value = true
     try {
       if (isCmdFile.value) {
-        await meCommands.importCmd(share.conn.id, form.value.file)
+        await meCommands.importCmd(share.conn!.id, form.value.file)
       } else {
-        await meCommands.importCsv(share.conn.id, form.value)
+        await meCommands.importCsv(share.conn!.id, form.value)
       }
       emit('success')
       visible.value = false

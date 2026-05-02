@@ -5,13 +5,13 @@ import { nanoid } from 'nanoid'
 import { inject, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { bus, CONN_REFRESH, meCommands, meErr, meOk } from '@/utils/util'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
 import Setting from '@/views/ext/Setting.vue'
 
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const { t } = useI18n()
 
 const dialog = reactive({
@@ -23,7 +23,7 @@ const dialog = reactive({
 async function handleCommand(command: string): Promise<void> {
   if (command === 'refreshConn') {
     if (!share.conn) return
-    share.capabilities = await meCommands.connect(share.conn.id)
+    share.capabilities = await meCommands.connect(share.conn!.id)
     bus.emit(CONN_REFRESH)
   } else if ('closeConn' === command) {
     share.conn = null

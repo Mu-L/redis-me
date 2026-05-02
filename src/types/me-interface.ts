@@ -1,4 +1,5 @@
 import type { Update } from '@tauri-apps/plugin-updater'
+import type { InjectionKey } from 'vue'
 
 import { commands as spectaCommands } from '@/types/tauri-specta'
 import type {
@@ -36,7 +37,7 @@ export type UiConn = ConnConfig & {
   meta?: Record<string, unknown>
 }
 
-/** AppMain `provide('share')` 的响应式状态 */
+/** AppMain 注入的共享状态（与 `shareProvideKey` 配对） */
 export interface AppMainShare {
   conn: UiConn | null
   connList: UiConn[]
@@ -55,10 +56,16 @@ export interface AppMainShare {
   capabilities: ServerCapabilities
 }
 
-/** AppMain `provide('app')`：更新检查与下载进度 */
+/** AppMain 注入的更新/下载状态（与 `appProvideKey` 配对） */
 export interface AppMainInject extends MeAppUpdateState {
   update: Update | null
 }
+
+/** 与 `AppMain` 中 `provide(shareProvideKey, share)` 配对，子组件使用 `inject(shareProvideKey)!` */
+export const shareProvideKey: InjectionKey<AppMainShare> = Symbol('redis-me.share')
+
+/** 与 `AppMain` 中 `provide(appProvideKey, app)` 配对，子组件使用 `inject(appProvideKey)!` */
+export const appProvideKey: InjectionKey<AppMainInject> = Symbol('redis-me.app')
 
 /** 多窗口连接列表同步（与 `CONN_LIST_WINDOWS_SYNC` 事件对应） */
 export interface ConnListWindowsSyncPayload {

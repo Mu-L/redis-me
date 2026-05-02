@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import type { FormItemRule } from 'element-plus'
 import { computed, inject, nextTick, reactive, ref, useTemplateRef, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import type { RedisSlowLog } from '@/types/tauri-specta'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import { meCopy, meCommands, meOk } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 
 const slowerThan = ref(10000)
@@ -18,7 +20,7 @@ const slowerMaxLen = ref(128)
 const slowerGetCount = ref(Math.min(slowerMaxLen.value, 200))
 const keyword = ref('')
 const loading = ref(false)
-const dataList = ref([])
+const dataList = ref<RedisSlowLog[]>([])
 const sortProperty = ref('cost')
 const sortOrder = ref('descending')
 const node = ref('')
@@ -46,7 +48,7 @@ const filterDataList = computed(() => {
   return [...arr01, ...arr02]
 })
 
-function sortChange({ prop, order }) {
+function sortChange({ prop, order }: { prop: string; order: string | null }) {
   if (order) {
     sortProperty.value = prop
     sortOrder.value = order
@@ -57,13 +59,13 @@ function sortChange({ prop, order }) {
 }
 
 async function apiConfigGet() {
-  const data = await meCommands.configGet(share.conn.id, 'slowlog*', node.value)
+  const data = await meCommands.configGet(share.conn!.id, 'slowlog*', node.value)
   slowerThan.value = data['slowlog-log-slower-than']
   slowerMaxLen.value = data['slowlog-max-len']
 }
 
 async function apiSlowLog() {
-  const data = await meCommands.slowLog(share.conn.id, slowerGetCount.value, node.value)
+  const data = await meCommands.slowLog(share.conn!.id, slowerGetCount.value, node.value)
   dataList.value = data || []
 }
 
@@ -105,20 +107,20 @@ function openEditDialog() {
 }
 
 async function saveSlowParam() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     editLoading.value = true
     try {
       // 保存慢日志阈值（毫秒转微秒）
       await meCommands.configSet(
-        share.conn.id,
+        share.conn!.id,
         'slowlog-log-slower-than',
         String(form.slowerThan === -1 ? -1 : form.slowerThan * 1000),
         '*',
       )
       // 保存慢日志最大长度
-      await meCommands.configSet(share.conn.id, 'slowlog-max-len', String(form.slowerMaxLen), '*')
+      await meCommands.configSet(share.conn!.id, 'slowlog-max-len', String(form.slowerMaxLen), '*')
       meOk(t('redisSlow.saveOk'))
       await refresh()
       editShow.value = false
@@ -132,8 +134,12 @@ const rules = computed(() => ({
   slowerThan: [
     { required: true, message: t('redisSlow.slowerThanRequired') },
     {
-      validator: (_rule, value, callback) => {
-        if (value < -1) {
+      validator: (
+        _rule: FormItemRule,
+        value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
+        if (Number(value) < -1) {
           callback(new Error(t('redisSlow.slowerThanRequired')))
           return
         }

@@ -3,12 +3,13 @@ import { useVirtualList } from '@vueuse/core'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import type { RedisKeySize_Serialize } from '@/types/tauri-specta'
 import { meHumanSize, meCommands } from '@/utils/util'
 
 const { t } = useI18n()
 defineExpose({ open })
-function open(data) {
+function open(data: { match: string }) {
   keyList.value = []
   visible.value = true
   form.value.match = data.match
@@ -16,7 +17,7 @@ function open(data) {
 }
 
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 
 // 表单数据
 const visible = ref(false)
@@ -32,11 +33,11 @@ const form = ref({
 })
 
 // 内存分析
-const keyList = ref([])
+const keyList = ref<RedisKeySize_Serialize[]>([])
 async function keyMemory() {
   loading.value = true
   try {
-    const data = await meCommands.memoryUsage(share.conn.id, form.value)
+    const data = await meCommands.memoryUsage(share.conn!.id, form.value)
     keyList.value = data
   } finally {
     loading.value = false

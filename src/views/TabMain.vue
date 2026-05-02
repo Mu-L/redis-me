@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import RedisChart from '@/views/tab/RedisChart.vue'
 import RedisInfo from '@/views/tab/RedisInfo.vue'
 import RedisMemory from '@/views/tab/RedisMemory.vue'
@@ -12,7 +12,7 @@ import RedisSlow from '@/views/tab/RedisSlow.vue'
 import RedisTerminal from '@/views/tab/RedisTerminal.vue'
 import RedisValue from '@/views/tab/RedisValue.vue'
 
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 </script>
 
 <template>

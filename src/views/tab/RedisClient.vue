@@ -3,13 +3,14 @@ import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { clientTip as tips } from '@/locales/client'
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import type { RedisClientInfo } from '@/types/tauri-specta'
 import { meConfirm, meHumanSeconds, meCommands, meOk } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 const { initNode } = defineProps({
   initNode: { type: String, default: '' },
@@ -19,7 +20,7 @@ const node = ref(initNode)
 const clientType = ref('')
 const keyword = ref('')
 const loading = ref(false)
-const dataList = ref([])
+const dataList = ref<RedisClientInfo[]>([])
 const sortProperty = ref('id')
 const sortOrder = ref('ascending')
 
@@ -40,7 +41,7 @@ const filterDataList = computed(() => {
   return [...arr01, ...arr02]
 })
 
-function sortChange({ prop, order }) {
+function sortChange({ prop, order }: { prop: string; order: string | null }) {
   if (order) {
     sortProperty.value = prop
     sortOrder.value = order
@@ -53,17 +54,17 @@ function sortChange({ prop, order }) {
 async function refresh() {
   loading.value = true
   try {
-    dataList.value = await meCommands.clientList(share.conn.id, node.value, clientType.value)
+    dataList.value = await meCommands.clientList(share.conn!.id, node.value, clientType.value)
   } finally {
     loading.value = false
   }
 }
 refresh()
 
-async function killClient(row) {
+async function killClient(row: RedisClientInfo) {
   meConfirm(t('redisClient.killClientConfirm', { client: row.addr }), async () => {
     const param = { command: `client kill ${row.addr}`, node: node.value }
-    await meCommands.executeCommand(share.conn.id, param)
+    await meCommands.executeCommand(share.conn!.id, param)
     meOk(t('redisClient.killClientOk'))
     await refresh()
   })
@@ -109,7 +110,7 @@ const totalProps = [
 ]
 const mainProps = ['id', 'addr', 'name', 'age', 'idle', 'cmd']
 const otherProps = totalProps.filter(p => !mainProps.includes(p))
-function propWidth(item) {
+function propWidth(item: string) {
   if (item === 'laddr') return 180
   if (item.length == 2) return 70
   if (item.length == 3) return 80

@@ -13,7 +13,7 @@ import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/locales/info'
-import type { AppMainShare } from '@/types/me-interface'
+import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
 import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
@@ -22,14 +22,15 @@ import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share') as AppMainShare
+const share = inject(shareProvideKey)!
 
 // 数据
 const node = ref('') // 指定节点
 const raw = ref('') // 原始信息
-const dic = ref({}) // 字典形式
-const tagList = ref([]) // 标签名列表
-const tagTable = ref([]) // 标签形式， tag分类名称, key标签名称，value表格数据
+const dic = ref<Record<string, string>>({}) // 字典形式
+const tagList = ref<string[]>([]) // 标签名列表
+/** 标签形式：tag 分类名、键名、值 */
+const tagTable = ref<{ key: string; value: string; tag: string }[]>([])
 const keyCount = ref(0) // 键数量
 const keyword = ref('') // 关键字过滤
 const tagSelected = ref('') // 选中的标签
@@ -51,7 +52,7 @@ const cacheRatio = computed(() => {
       parseInt(dic.value['keyspace_hits']) /
       (parseInt(dic.value['keyspace_hits']) + parseInt(dic.value['keyspace_misses']))
     return isNaN(ratio) ? 'error' : (ratio * 100).toFixed(2) + '%'
-  } catch (e) {
+  } catch (_e: unknown) {
     return 'error'
   }
 })
@@ -94,7 +95,7 @@ watchEffect(() => {
           const size = parseInt(value.split(',')[0].split('=')[1])
           share.dbSizeMap[key] = size
           keyCount.value += size
-        } catch (e) {}
+        } catch (_e: unknown) {}
       }
     }
   })
@@ -132,15 +133,15 @@ const infoNode = ref('')
 // 新增键/删除键等操作可以调用进行自动刷新，以便保证db下拉框中的数量显示正确
 onMounted(() => bus.on(INFO_REFRESH, refresh))
 onUnmounted(() => bus.off(INFO_REFRESH, refresh))
-async function refresh(withConfigGet = false) {
+async function refresh(withConfigGet: boolean = false) {
   loading.value = true
   try {
-    const data = await meCommands.info(share.conn.id, node.value)
+    const data = await meCommands.info(share.conn!.id, node.value)
     raw.value = data.info || ''
     infoNode.value = data.node || share.conn.host + ':' + share.conn.port
 
     if (withConfigGet) {
-      const data2 = await meCommands.configGet(share.conn.id, 'save', node.value)
+      const data2 = await meCommands.configGet(share.conn!.id, 'save', node.value)
       config.value = data2 || ''
     }
   } finally {
@@ -163,7 +164,7 @@ function goMemory() {
 
 // 节点列表在此组件中设置（刷新连接时自动重新获取）
 onMounted(async () => {
-  const nodeList = await meCommands.nodeList(share.conn.id)
+  const nodeList = await meCommands.nodeList(share.conn!.id)
   share.nodeList = enrichNodeList(nodeList || [])
 })
 
