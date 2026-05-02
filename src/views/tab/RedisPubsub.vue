@@ -4,7 +4,7 @@ import { computed, inject, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import { meCopy, meCommands, meOk } from '@/utils/util'
 
 const { t } = useI18n()
@@ -27,8 +27,8 @@ const filterDataList = computed(() => {
   return dataList.value.filter(
     row =>
       !key ||
-      row.channel?.toLowerCase().indexOf(key) > -1 ||
-      row.message?.toLowerCase().indexOf(key) > -1,
+      (row.channel?.toLowerCase() ?? '').indexOf(key) > -1 ||
+      (row.message?.toLowerCase() ?? '').indexOf(key) > -1,
   )
 })
 
@@ -38,7 +38,7 @@ const subscribe = async () => {
   loading.value = true
   try {
     if (subscribing.value) {
-      await unlisten()
+      unlisten?.()
       await meCommands.subscribeStop(share.conn!.id)
       subscribing.value = false
       meOk(t('redisPubSub.subscribeStopped'))

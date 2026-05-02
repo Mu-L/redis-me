@@ -4,7 +4,7 @@ import { sortBy } from 'lodash'
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
 import {
   bus,
@@ -60,6 +60,11 @@ function initReset(): void {
 }
 
 const keyType = ref('ALL')
+const keyTypeTag = computed(() => {
+  const v = keyType.value
+  if (v === 'ALL') return { value: 'ALL' as const, type: 'info' as const }
+  return KEY_TYPE_LIST.find(k => k.value === v) ?? { value: v, type: 'info' as const }
+})
 function chooseKeyType(keyTypeSelected: string): void {
   keyType.value = keyTypeSelected
   keyword.value = ''
@@ -220,7 +225,7 @@ function addKeyOk(redisKey: RedisKey_Deserialize): void {
   keyList.value.unshift(redisKey)
   chooseKey(redisKey)
   nextTick(() => {
-    keyTreeRef.value.setCurrentKey(redisKey)
+    keyTreeRef.value?.setCurrentKey(redisKey)
   })
   bus.emit(INFO_REFRESH)
 }
@@ -272,7 +277,11 @@ async function tauriListen(eventName: 'export' | 'import'): Promise<void> {
       tauriUnlisten()
       share.exportImportingPercentage = 100
       share.exportImporting = false
-      meOk(t(`keyMain.${eventName}Result`, payload), true, t(`keyMain.${eventName}Done`))
+      meOk(
+        t(`keyMain.${eventName}Result`, payload as unknown as Record<string, unknown>),
+        true,
+        t(`keyMain.${eventName}Done`),
+      )
 
       // 导入完成后刷新连接
       if (eventName === 'import') {
@@ -349,13 +358,14 @@ async function mockData(): Promise<void> {
   mePrompt(
     t('keyHeader.mockHint'),
     {
-      inputValue: 100,
+      inputValue: '100',
       inputType: 'number',
       inputValidator: value => {
         const n = Number(value)
         if (n < 1 || n > 1000) {
           return t('keyHeader.mockValidator')
         }
+        return true
       },
     },
     async ({ value }) => {
@@ -421,7 +431,7 @@ function editDbName(db: number): void {
   mePrompt(
     t('keyMain.editDbName', { index: db }),
     {
-      inputValue: share.conn.meta?.['db' + db] || '',
+      inputValue: String(share.conn.meta?.['db' + db] ?? ''),
       inputPlaceholder: t('keyMain.editDbNamePlaceholder'),
     },
     ({ value }) => {
@@ -443,7 +453,7 @@ function editDbName(db: number): void {
         <template #prepend>
           <el-dropdown placement="bottom-start" @command="chooseKeyType">
             <el-tag
-              :type="keyType.type"
+              :type="keyTypeTag.type"
               effect="plain"
               style="
                 width: 32px;
@@ -520,7 +530,7 @@ function editDbName(db: number): void {
 
     <div class="key-footer">
       <!-- 左侧: 数据库|游标 -->
-      <div class="me-flex" v-if="!showCheckbox">
+      <div class="me-flex" v-if="!showCheckbox && share.conn">
         <el-select
           v-model="share.conn.db"
           @change="selectDB"

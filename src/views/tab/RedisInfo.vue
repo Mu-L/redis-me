@@ -13,7 +13,7 @@ import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/locales/info'
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
@@ -21,6 +21,7 @@ import RedisConfig from '@/views/tab/RedisConfig.vue'
 import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
+const tipMap = computed(() => tips.value as Record<string, string | undefined>)
 // 共享数据
 const share = inject(shareProvideKey)!
 
@@ -42,10 +43,10 @@ const dialog = reactive({
   topology: false,
 })
 const loading = ref(false)
-const config = ref('')
-const rdbChecked = computed(() => !!config.value.save)
+const config = ref<Record<string, string>>({})
+const rdbChecked = computed(() => !!config.value['save'])
 const aofChecked = computed(() => dic.value['aof_enabled'] === '1')
-const rdbTooltip = computed(() => config.value.save || t('redisInfo.rdbDisabled'))
+const rdbTooltip = computed(() => config.value['save'] || t('redisInfo.rdbDisabled'))
 const cacheRatio = computed(() => {
   try {
     const ratio =
@@ -114,7 +115,7 @@ const filterDataList = computed(() => {
       !key ||
       d.key?.toLowerCase().indexOf(key) > -1 ||
       d.value?.toLowerCase().indexOf(key) > -1 ||
-      tips.value[d.key]?.toLowerCase().indexOf(key) > -1,
+      (tipMap.value[d.key]?.toLowerCase() ?? '').indexOf(key) > -1,
   )
 })
 
@@ -125,24 +126,28 @@ function getSummaries() {
 
 const tableRef = useTemplateRef('table')
 function tagChange() {
-  tableRef.value.scrollTo(0, 0) // 滚动条归零
+  tableRef.value?.scrollTo(0, 0) // 滚动条归零
 }
 
 const infoNode = ref('')
 
 // 新增键/删除键等操作可以调用进行自动刷新，以便保证db下拉框中的数量显示正确
-onMounted(() => bus.on(INFO_REFRESH, refresh))
-onUnmounted(() => bus.off(INFO_REFRESH, refresh))
+function onInfoRefreshBus(payload?: boolean | undefined) {
+  void refresh(payload === true)
+}
+onMounted(() => bus.on(INFO_REFRESH, onInfoRefreshBus))
+onUnmounted(() => bus.off(INFO_REFRESH, onInfoRefreshBus))
 async function refresh(withConfigGet: boolean = false) {
   loading.value = true
   try {
     const data = await meCommands.info(share.conn!.id, node.value)
     raw.value = data.info || ''
-    infoNode.value = data.node || share.conn.host + ':' + share.conn.port
+    const conn = share.conn
+    infoNode.value = data.node || (conn ? `${conn.host}:${conn.port}` : '')
 
     if (withConfigGet) {
       const data2 = await meCommands.configGet(share.conn!.id, 'save', node.value)
-      config.value = data2 || ''
+      config.value = data2 ?? {}
     }
   } finally {
     loading.value = false
@@ -356,7 +361,7 @@ const nodeGroups = computed(() => {
         <el-table-column prop="value" :label="t('redisInfo.value')" show-overflow-tooltip />
         <el-table-column :label="t('redisInfo.tip')" show-overflow-tooltip>
           <template #default="scope">
-            <span style="color: var(--el-color-info)">{{ tips[scope.row.key] }}</span>
+            <span style="color: var(--el-color-info)">{{ tipMap[scope.row.key] }}</span>
           </template>
         </el-table-column>
       </el-table>

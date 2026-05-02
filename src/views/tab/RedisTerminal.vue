@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import MeIcon from '@/components/MeIcon.vue'
 import { commandHelp } from '@/locales/cmd'
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import { meCopy, meCommands } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'

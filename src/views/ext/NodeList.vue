@@ -2,7 +2,7 @@
 import { computed, inject, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 
 const { t } = useI18n()
 
@@ -10,13 +10,13 @@ const share = inject(shareProvideKey)!
 const node = defineModel()
 const emit = defineEmits(['update:modelValue'])
 
-const { initNode } = defineProps({
+const props = defineProps({
   initNode: { type: Boolean, default: false },
 })
 
 const firstMaster = computed(() => share.nodeList.find(item => item.isMaster))
 onMounted(() => {
-  if (initNode) {
+  if (props.initNode) {
     emit('update:modelValue', firstMaster.value?.node || '')
   }
 })

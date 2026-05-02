@@ -4,7 +4,7 @@ import { computed, inject, nextTick, reactive, ref, useTemplateRef, watchEffect 
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import type { RedisSlowLog } from '@/types/tauri-specta'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import { meCopy, meCommands, meOk } from '@/utils/util'
@@ -40,11 +40,15 @@ const filterDataList = computed(() => {
       row.clientName?.toLowerCase().indexOf(key) > -1,
   )
 
-  const prop = sortProperty.value
+  const prop = sortProperty.value as keyof RedisSlowLog
   const isAsc = sortOrder.value === 'ascending'
   const arr01 = arr.filter(d => d[prop])
   const arr02 = arr.filter(d => !d[prop])
-  arr01.sort((a, b) => (a[prop] < b[prop] ? -1 : 1) * (isAsc ? 1 : -1))
+  arr01.sort((a, b) => {
+    const av = a[prop] as string | number
+    const bv = b[prop] as string | number
+    return (av < bv ? -1 : av > bv ? 1 : 0) * (isAsc ? 1 : -1)
+  })
   return [...arr01, ...arr02]
 })
 
@@ -60,8 +64,8 @@ function sortChange({ prop, order }: { prop: string; order: string | null }) {
 
 async function apiConfigGet() {
   const data = await meCommands.configGet(share.conn!.id, 'slowlog*', node.value)
-  slowerThan.value = data['slowlog-log-slower-than']
-  slowerMaxLen.value = data['slowlog-max-len']
+  slowerThan.value = Number.parseInt(String(data['slowlog-log-slower-than'] ?? '0'), 10)
+  slowerMaxLen.value = Number.parseInt(String(data['slowlog-max-len'] ?? '0'), 10)
 }
 
 async function apiSlowLog() {

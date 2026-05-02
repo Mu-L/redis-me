@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { cloneDeep } from 'lodash'
-import { computed, inject, readonly, ref, useTemplateRef } from 'vue'
+import { computed, inject, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisFieldSet_Deserialize } from '@/types/tauri-specta'
 import { meCommands, meOk } from '@/utils/util'
+
+/** 含 UI 用 type，提交时剔除 */
+type FieldSetForm = RedisFieldSet_Deserialize & { type: string }
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
@@ -16,7 +20,7 @@ const share = inject(shareProvideKey)!
 // 表单数据
 const visible = ref(false)
 const isSaving = ref(false)
-const initForm = readonly({
+const initForm: FieldSetForm = {
   key: {
     key: '',
     bytes: '',
@@ -28,11 +32,11 @@ const initForm = readonly({
   fieldValue: '',
   fieldScore: 0,
   fieldTtl: -1,
-  inputFormat: 'utf8' as const,
-})
-const form = ref(cloneDeep(initForm))
+  inputFormat: 'utf8',
+}
+const form = ref<FieldSetForm>(cloneDeep(initForm))
 
-function open(data: Record<string, unknown>) {
+function open(data: Partial<FieldSetForm>) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
   Object.assign(form.value, data)
@@ -61,7 +65,8 @@ function submit() {
 
     isSaving.value = true
     try {
-      await meCommands.fieldSet(share.conn!.id, form.value)
+      const { type: _type, ...param } = form.value
+      await meCommands.fieldSet(share.conn!.id, param)
       visible.value = false
       emit('success')
       meOk(t('editOk'))

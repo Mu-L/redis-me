@@ -1,19 +1,32 @@
 <script setup lang="ts">
 import { useVirtualList } from '@vueuse/core'
+import type { FormItemRule } from 'element-plus'
 import { cloneDeep } from 'lodash'
-import { computed, inject, readonly, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisKey_Deserialize } from '@/types/tauri-specta'
 import { meCommands, meOk } from '@/utils/util'
+
+/** 打开对话框时合并进表单的字段（与 initForm 一致） */
+type KeyBatchForm = {
+  match: string
+  keyList: RedisKey_Deserialize[]
+  deleteDirect: boolean
+  file: string
+  withTtl: boolean
+}
+
+type KeyBatchOpenData = Partial<KeyBatchForm>
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 
 defineExpose({ open })
-function open(data: Record<string, unknown>, mode: string = 'export') {
+function open(data: KeyBatchOpenData, mode: string = 'export') {
   visible.value = true
-  checkedKeys.value = data.keyList?.length > 0
+  checkedKeys.value = (data.keyList?.length ?? 0) > 0
   showScan.value = !checkedKeys.value
   batchMode.value = mode
   Object.assign(form.value, cloneDeep(initForm))
@@ -28,16 +41,15 @@ const checkedKeys = ref(false)
 const batchMode = ref('export')
 const visible = ref(false)
 const loading = ref(false)
-const initForm = readonly({
+const initForm: KeyBatchForm = {
   match: '',
   keyList: [],
   deleteDirect: false,
-
   file: '',
   withTtl: true,
-})
+}
 
-const form = ref(cloneDeep(initForm))
+const form = ref<KeyBatchForm>(cloneDeep(initForm))
 
 watch(
   () => form.value.match,
@@ -49,8 +61,10 @@ watch(
   },
 )
 
-const rules = computed(() => {
-  const rules = { match: [{ required: true, message: t('keyBatch.matchRequired') }] }
+const rules = computed((): Record<string, FormItemRule[]> => {
+  const rules: Record<string, FormItemRule[]> = {
+    match: [{ required: true, message: t('keyBatch.matchRequired') }],
+  }
   if (isExport.value) {
     rules.file = [{ required: true, message: t('keyBatch.exportFileRequired') }]
   }
@@ -117,8 +131,8 @@ const confirmBtn = computed(() =>
 const confirmSizeBtn = computed(() => {
   const count = form.value.keyList.length
   return isExport.value
-    ? t('keyBatch.confirmExportSize', count, { count })
-    : t('keyBatch.confirmDeleteSize', count, { count })
+    ? t('keyBatch.confirmExportSize', { count }, count)
+    : t('keyBatch.confirmDeleteSize', { count }, count)
 })
 const exportBtnEnabled = computed(() => (isExport.value ? !!form.value.file : true))
 
@@ -152,7 +166,7 @@ const exportFilePrefix = computed(
       </el-form-item>
 
       <el-form-item
-        :label="t('keyBatch.impactKeys', form.keyList.length, { count: form.keyList.length })"
+        :label="t('keyBatch.impactKeys', { count: form.keyList.length }, form.keyList.length)"
         v-if="!showScan">
         <div v-bind="containerProps" :style="{ height: '250px', width: '100%' }">
           <div v-bind="wrapperProps">

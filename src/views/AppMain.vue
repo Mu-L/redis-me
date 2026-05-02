@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { check } from '@tauri-apps/plugin-updater'
-import { computed, nextTick, onMounted, onUnmounted, provide, reactive, ref, watch } from 'vue'
+import { check, type Update } from '@tauri-apps/plugin-updater'
+import {
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  provide,
+  reactive,
+  ref,
+  shallowReactive,
+  watch,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
@@ -74,7 +84,7 @@ watch(
     const newConn = meJsonParse(newConnStr) as UiConn | null
     const oldConn = meJsonParse(oldConnStr) as UiConn | null
 
-    const index = share.connList.findIndex(c => c.id === newConn?.id)
+    const index = share.connList.findIndex((c: UiConn) => c.id === newConn?.id)
     if (index !== -1 && newConn) {
       share.connList[index] = newConn
     }
@@ -130,7 +140,8 @@ onMounted(
     }),
 )
 
-const app = reactive<AppMainInject>({
+/** shallowReactive：`Update` 含私有字段，deep reactive 会解成普通对象导致与 `AppMainInject` 不兼容 */
+const app = shallowReactive<AppMainInject>({
   update: null,
   downloading: false,
   downloadPercentage: 0,
@@ -138,7 +149,7 @@ const app = reactive<AppMainInject>({
 provide(appProvideKey, app)
 async function checkAutoUpdate(): Promise<void> {
   if (!meTauri.settings.autoUpdate) return
-  app.update = await check().catch((): null => null)
+  app.update = (await check().catch((): null => null)) as Update | null
 }
 onMounted(checkAutoUpdate)
 

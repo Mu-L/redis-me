@@ -8,6 +8,7 @@ import {
   reactive,
   ref,
   useTemplateRef,
+  watch,
   watchEffect,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -15,7 +16,7 @@ import { useI18n } from 'vue-i18n'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { configTip as tips } from '@/locales/config'
 import { redisConfDict, valkeyConfDict } from '@/locales/config/defaults'
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import { meCopy, meCommands, meOk } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
@@ -24,12 +25,18 @@ const { t } = useI18n()
 // 共享数据
 const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
-const { initNode, initVersion } = defineProps({
+const props = defineProps({
   initNode: { type: String, default: '' },
   initVersion: { type: String, default: '' },
 })
 
-const node = ref(initNode)
+const node = ref(props.initNode)
+watch(
+  () => props.initNode,
+  v => {
+    node.value = v
+  },
+)
 const keyword = ref('')
 const loading = ref(false)
 interface ConfigTableRow {
@@ -110,14 +117,17 @@ const confDict = computed(() => (share.isValkey ? valkeyConfDict : redisConfDict
 const dictVersionList = Object.keys(confDict.value).reverse()
 function getDefaultVersion() {
   for (const version of dictVersionList) {
-    if (serverType.value + initVersion > version) {
+    if (serverType.value + props.initVersion > version) {
       return version
     }
   }
   return configVersionList.value[0] ?? ''
 }
 const dictVersion = ref(getDefaultVersion())
-const dictRaw = computed(() => confDict.value[dictVersion.value])
+const dictRaw = computed(
+  () => confDict.value[dictVersion.value] as Record<string, string | undefined>,
+)
+const tipMap = computed(() => tips.value as Record<string, string | undefined>)
 const showTypeOptions = [
   { label: t('redisConfig.all'), value: 'All' },
   { label: t('redisConfig.diff'), value: 'Diff' },
@@ -131,7 +141,7 @@ const filterDataList = computed(() => {
       (!key ||
         row.param?.toLowerCase().indexOf(key) > -1 ||
         row.value?.toLowerCase().indexOf(key) > -1 ||
-        tips.value[row.param]?.toLowerCase().indexOf(key) > -1) &&
+        (tipMap.value[row.param]?.toLowerCase() ?? '').indexOf(key) > -1) &&
       (showType.value === 'All' ||
         (showType.value === 'Diff' && row.value !== dictRaw.value[row.param])),
   )
@@ -144,7 +154,7 @@ function getSummaries() {
 
 async function apiConfigGet() {
   const data = await meCommands.configGet(share.conn!.id, '*', node.value)
-  const tableData = []
+  const tableData: ConfigTableRow[] = []
   Object.entries(data).forEach(([key, value]) => tableData.push({ param: key, value }))
   dataList.value = sortBy(tableData, ['param'])
 }
@@ -275,7 +285,7 @@ const rules = computed(() => ({
       </el-table-column>
       <el-table-column :label="t('redisConfig.tip')" show-overflow-tooltip>
         <template #default="scope">
-          <span style="color: var(--el-color-info)">{{ tips[scope.row.param] }}</span>
+          <span style="color: var(--el-color-info)">{{ tipMap[scope.row.param] }}</span>
         </template>
       </el-table-column>
 

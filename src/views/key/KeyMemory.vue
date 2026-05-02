@@ -3,7 +3,7 @@ import { useVirtualList } from '@vueuse/core'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import type { RedisKeySize_Serialize } from '@/types/tauri-specta'
 import { meHumanSize, meCommands } from '@/utils/util'
 

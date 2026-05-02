@@ -3,7 +3,7 @@ import type { TableInstance } from 'element-plus'
 import { inject, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import type { XInfoConsumer, XInfoGroup } from '@/types/tauri-specta'
 import { meCommands } from '@/utils/util'
 

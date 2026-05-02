@@ -22,8 +22,9 @@ const locale = shallowRef<Record<string, unknown> | undefined>(undefined)
 watch(
   () => meTauri.settings.language,
   newValue => {
-    const language = newValue === 'system' ? meTauri.systemLanguage : newValue
-    locale.value = window.ElementPlusLanguageMap?.[language] as Record<string, unknown> | undefined
+    const language = String(newValue === 'system' ? meTauri.systemLanguage : (newValue ?? 'en'))
+    const map = window.ElementPlusLanguageMap as Record<string, Record<string, unknown>> | undefined
+    locale.value = map?.[language] as Record<string, unknown> | undefined
     i18nLocale.value = language
   },
   { immediate: true },
@@ -33,8 +34,14 @@ watch(
 const defaultUiFont =
   "system-ui, Inter, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif"
 const defaultCodeFont = 'Menlo, Monaco, Consolas, 黑体, system-ui'
-const appUiFont = computed(() => meTauri.settings.uiFont || defaultUiFont)
-const appCodeFont = computed(() => meTauri.settings.codeFont || defaultCodeFont)
+
+function fontStackToCss(v: string | string[] | undefined, fallback: string): string {
+  if (v == null || v === '') return fallback
+  return Array.isArray(v) ? v.join(', ') : v
+}
+
+const appUiFont = computed(() => fontStackToCss(meTauri.settings.uiFont, defaultUiFont))
+const appCodeFont = computed(() => fontStackToCss(meTauri.settings.codeFont, defaultCodeFont))
 watch(appUiFont, () => document.documentElement.style.setProperty('--ui-font', appUiFont.value), {
   immediate: true,
 })

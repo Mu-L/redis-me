@@ -2,7 +2,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { inject, ref, watch } from 'vue'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import type {
   ConnConfig,
   FieldScanParam_Deserialize,

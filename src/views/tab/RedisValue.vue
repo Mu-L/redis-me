@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { parseInt } from 'lodash/string.js'
 import {
   computed,
   inject,
@@ -13,8 +12,15 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
-import type { XInfoGroup } from '@/types/tauri-specta'
+import { shareProvideKey } from '@/types/me-interface'
+import type {
+  DisplayFormat,
+  FieldScanResult,
+  RedisFieldDel_Deserialize,
+  RedisKey_Deserialize,
+  ScanCursor,
+  XInfoGroup,
+} from '@/types/tauri-specta'
 import {
   bus,
   DISPLAY_FORMAT,
@@ -39,9 +45,22 @@ import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 
 const { t } = useI18n()
-// 刷新键
-onMounted(() => bus.on(KEY_REFRESH, refreshKey))
-onUnmounted(() => bus.off(KEY_REFRESH, refreshKey))
+
+type FieldScanViewState = FieldScanResult & { newValue: string }
+
+function toViewState(data: FieldScanResult): FieldScanViewState {
+  return { ...data, newValue: '' }
+}
+
+/** fieldScan 的 `value` 在 Specta 中为 serde 联合类型，表格/拼接按行数组处理 */
+function fieldValueRows(v: unknown): unknown[] {
+  return v as unknown[]
+}
+
+const onKeyRefreshBus = () => void refreshKey()
+// 刷新键（mitt 载荷为 undefined，与 refreshKey 多参签名分离）
+onMounted(() => bus.on(KEY_REFRESH, onKeyRefreshBus))
+onUnmounted(() => bus.off(KEY_REFRESH, onKeyRefreshBus))
 
 // 共享数据
 const share = inject(shareProvideKey)!
@@ -55,8 +74,8 @@ const hashKey = ref('')
 const isPretty = ref(true)
 const withHashKey = ref(false)
 const tableKeyword = ref('')
-const redisValue = ref(null)
-const cursor = ref(null) // 新增游标，支持list/hash/set/zset的扫描，避免一次性获取所有数据
+const redisValue = ref<FieldScanViewState | null>(null)
+const cursor = ref<ScanCursor | null>(null) // 新增游标，支持list/hash/set/zset的扫描，避免一次性获取所有数据
 const loading = ref(false)
 const suppressCodeUpdate = ref(false)
 
@@ -124,26 +143,27 @@ const dataList = computed(() => {
   const rv = redisValue.value
   if (rv === null || rv === undefined || rv.value === null || rv.value === undefined) return []
 
-  let data = []
+  const data: ValueTableRow[] = []
 
   if (rv.type === 'list' || rv.type === 'set') {
-    rv.value.forEach(value => data.push({ value }))
+    fieldValueRows(rv.value).forEach(value => data.push({ value }))
   } else if (rv.type === 'zset' || rv.type === 'stream' || rv.type === 'hash') {
-    rv.value.forEach(value => data.push(value)) // 返回的直接是[{score: '', value: ''}]
+    fieldValueRows(rv.value).forEach(value => data.push(value as ValueTableRow)) // 返回的直接是[{score: '', value: ''}]
   }
   return data
 })
 
 const filterDataList = computed(() => {
   const key = tableKeyword.value.toLowerCase()
-  return dataList.value.filter(
-    row =>
-      !key ||
-      row.key?.toLowerCase().indexOf(key) > -1 ||
-      row.id?.toLowerCase().indexOf(key) > -1 ||
-      (streamType.value ? JSON.stringify(row.value) : row.value)?.toLowerCase().indexOf(key) > -1 ||
-      row.score?.toString().toLowerCase().indexOf(key) > -1,
-  )
+  return dataList.value.filter(row => {
+    if (!key) return true
+    if ((row.key?.toLowerCase() ?? '').indexOf(key) > -1) return true
+    if ((row.id?.toLowerCase() ?? '').indexOf(key) > -1) return true
+    const cell = streamType.value ? JSON.stringify(row.value) : String(row.value ?? '')
+    if (cell.toLowerCase().indexOf(key) > -1) return true
+    if ((row.score?.toString() ?? '').toLowerCase().indexOf(key) > -1) return true
+    return false
+  })
 })
 
 // 监听属性
@@ -159,12 +179,16 @@ onUnmounted(() => {
   if (timer) clearInterval(timer)
 })
 async function setTimer(seconds: number) {
-  redisValue.value.ttl = seconds
-  clearInterval(timer)
-  if (redisValue.value.ttl > 0) {
+  const rv = redisValue.value
+  if (!rv) return
+  rv.ttl = seconds
+  if (timer !== null) clearInterval(timer)
+  timer = null
+  if (rv.ttl > 0) {
     timer = setInterval(() => {
-      if (redisValue.value.ttl > 0) {
-        redisValue.value.ttl--
+      const cur = redisValue.value
+      if (cur && cur.ttl > 0) {
+        cur.ttl--
       }
     }, 1000)
   }
@@ -194,13 +218,13 @@ async function refreshKey(
   loading.value = true
   try {
     const param = {
-      key: share.redisKey,
+      key: share.redisKey!,
       hashKey: hashKey.value,
       count: meTauri.settings.fieldScanCount ?? 10,
       cursor: cursor.value,
       loadAll,
       meta: meta.value,
-      displayFormat: displayFormat.value,
+      displayFormat: displayFormat.value as DisplayFormat,
     }
 
     const data = await meCommands.fieldScan(share.conn!.id, param)
@@ -208,24 +232,29 @@ async function refreshKey(
     withHashKey.value = !!hashKey.value
 
     if (useCursor) {
+      const prev = redisValue.value
       if (
-        data.type === 'list' ||
-        data.type === 'set' ||
-        data.type === 'zset' ||
-        data.type === 'hash' ||
-        data.type === 'stream'
+        prev &&
+        (data.type === 'list' ||
+          data.type === 'set' ||
+          data.type === 'zset' ||
+          data.type === 'hash' ||
+          data.type === 'stream')
       ) {
-        // redisValue.value.value = redisValue.value.value.concat(data.value)
-        redisValue.value.value = [...redisValue.value.value, ...data.value]
+        const a = fieldValueRows(prev.value)
+        const b = fieldValueRows(data.value)
+        const merged: unknown[] = [...a, ...b]
+        ;(prev as { value: unknown }).value = merged
       } else {
-        redisValue.value = data
+        redisValue.value = toViewState(data)
       }
     } else {
-      redisValue.value = data
+      redisValue.value = toViewState(data)
     }
 
     showMore.value = !cursor.value?.finished
-    await setTimer(redisValue.value.ttl)
+    const rvDone = redisValue.value
+    if (rvDone) await setTimer(rvDone.ttl)
   } finally {
     loading.value = false
     if (redisValue.value) {
@@ -245,21 +274,23 @@ async function refreshKey(
 onMounted(() => bus.on(KEY_DELETE, deleteKey))
 onUnmounted(() => bus.off(KEY_DELETE, deleteKey))
 
-function deleteKey() {
+function deleteKey(_payload?: RedisKey_Deserialize) {
   redisValue.value = null
 }
 
 function delKey() {
-  meDeleteKey(share.conn!.id, share.redisKey)
+  meDeleteKey(share.conn!.id, share.redisKey!)
 }
 
 function renameKey() {
-  meRenameKey(share.conn!.id, share.redisKey, displayFormat.value)
+  meRenameKey(share.conn!.id, share.redisKey!, displayFormat.value)
 }
 
 // 保存值
 async function setValue() {
-  let value = redisValue.value.newValue
+  const rv = redisValue.value
+  if (!rv) return
+  let value = rv.newValue
 
   // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
   try {
@@ -269,10 +300,10 @@ async function setValue() {
   } catch {}
 
   const param = {
-    key: share.redisKey,
+    key: share.redisKey!,
     value,
-    ttl: redisValue.value.ttl,
-    keyType: redisValue.value.type,
+    ttl: rv.ttl,
+    keyType: rv.type,
     inputFormat: displayFormat.value,
   }
   await meCommands.set(share.conn!.id, param)
@@ -285,20 +316,24 @@ async function setValue() {
 const ttlSetRef = useTemplateRef('ttlSetRef')
 function updateTTL() {
   if (!canEdit.value) return
+  const rv = redisValue.value
+  if (!rv) return
 
   ttlSetRef.value?.open({
-    ttl: redisValue.value.ttl,
+    ttl: rv.ttl,
   })
 }
 
 // 字段新增
 const fieldAddRef = useTemplateRef('fieldAddRef')
 function fieldAdd() {
+  const rv = redisValue.value
+  if (!rv) return
   fieldAddRef.value?.open({
     mode: 'field',
-    type: redisValue.value.type,
+    type: rv.type,
     inputFormat: displayFormat.value,
-    ...share.redisKey,
+    ...share.redisKey!,
   })
 }
 
@@ -310,24 +345,26 @@ function fieldSetInit() {
   fieldSetRef.value?.close()
 }
 function fieldSet(row: ValueTableRow, index: number) {
+  const rv = redisValue.value
+  if (!rv) return
   fieldSetIndex.value = index
+  const rowValStr = String(row.value ?? '')
   const params = {
     fieldKey: row.key || '',
-    fieldValue: row.value,
+    fieldValue: rowValStr,
     fieldScore: row.score || 0,
     fieldTtl: row.ttl ?? -1,
-    srcFieldValue: row.value,
-    type: redisValue.value.type,
-    key: share.redisKey,
+    srcFieldValue: rowValStr,
+    type: rv.type,
+    key: share.redisKey!,
     inputFormat: displayFormat.value,
+    fieldIndex: -1,
   }
-  if (redisValue.value.type === 'list') {
+  if (rv.type === 'list') {
     // 此处不要直接取索引，而是重新去计算下（因为表格可能被关键字过滤过）
-    params.fieldIndex = redisValue.value.value.indexOf(row.value)
-  } else {
-    params.fieldIndex = -1
+    params.fieldIndex = fieldValueRows(rv.value).indexOf(row.value)
   }
-  fieldSetRef.value.open(params)
+  fieldSetRef.value?.open(params)
 }
 
 function rowClassName({ row, rowIndex }: { row: ValueTableRow; rowIndex: number }) {
@@ -339,11 +376,12 @@ function rowClick(row: ValueTableRow, _column: unknown, event: MouseEvent) {
   if (fieldSetIndex.value === -1) return
 
   // 从点击事件的当前元素（即 <tr>）获取 class
-  const trElement = event.currentTarget
+  const trElement = event.currentTarget as HTMLElement | null
+  if (!trElement) return
   const classList = trElement.classList
   for (let className of classList) {
     if (className.startsWith('table-row-index-')) {
-      const rowIndex = parseInt(className.split('-')[3]) // 提取索引数字
+      const rowIndex = Number.parseInt(className.split('-')[3]!, 10) // 提取索引数字
       fieldSet(row, rowIndex)
       break
     }
@@ -352,19 +390,20 @@ function rowClick(row: ValueTableRow, _column: unknown, event: MouseEvent) {
 
 // 字段删除
 async function fieldDel(row: ValueTableRow) {
-  const param = {
+  const rv = redisValue.value
+  if (!rv) return
+  const param: RedisFieldDel_Deserialize = {
     fieldKey: row.key || '',
-    fieldValue: row.value,
-    key: share.redisKey,
+    fieldValue: String(row.value ?? ''),
+    key: share.redisKey!,
     streamId: row.id || '',
+    fieldIndex: -1,
   }
-  if (redisValue.value.type === 'list') {
-    param.fieldIndex = redisValue.value.value.indexOf(row.value)
-  } else {
-    param.fieldIndex = -1 // 其他类型使用不到，但接口需传递
+  if (rv.type === 'list') {
+    param.fieldIndex = fieldValueRows(rv.value).indexOf(row.value)
   }
 
-  if (redisValue.value.type === 'stream') {
+  if (rv.type === 'stream') {
     param.fieldValue = '' // 后端接收需要是String
   }
 
@@ -376,7 +415,7 @@ async function fieldDel(row: ValueTableRow) {
 // Stream的ID转换为字符串时间
 function streamIdToDate(id: string) {
   try {
-    const timestamp = parseInt(id.split('-')[0])
+    const timestamp = Number.parseInt(id.split('-')[0]!, 10)
     return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')
   } catch {
     return 'format err'
@@ -387,44 +426,46 @@ function streamIdToDate(id: string) {
 const groupDataList = ref<XInfoGroup[]>([])
 const tableGroupVisible = ref(false)
 async function showGroups() {
-  groupDataList.value = await meCommands.xinfoGroups(share.conn!.id, share.redisKey)
+  groupDataList.value = await meCommands.xinfoGroups(share.conn!.id, share.redisKey!)
   tableGroupVisible.value = true
 }
 
 // 内存占用和条目
-const textMemory = computed(() =>
-  redisValue.value?.size > 0
-    ? t('redisValue.textMemory') + meHumanSize(redisValue.value?.size)
-    : '',
-)
+const textMemory = computed(() => {
+  const sz = redisValue.value?.size
+  return sz != null && sz > 0 ? t('redisValue.textMemory') + meHumanSize(sz) : ''
+})
 const textLength = computed(() => {
+  const rv = redisValue.value
+  if (!rv) return ''
   if (jsonType.value || (streamType.value && withHashKey.value)) return ''
   return stringTypeOrWithHashKey.value
-    ? t('redisValue.textLength') + redisValue.value.length
+    ? t('redisValue.textLength') + rv.length
     : t('redisValue.textEntries') +
         filterDataList.value.length +
         ' / ' +
-        redisValue.value.value.length
+        fieldValueRows(rv.value).length
 })
 
 // 查看此键所在节点
 async function showSlot() {
-  const data = await meCommands.keySlot(share.conn!.id, share.redisKey)
-  meOk(data, true, t('redisValue.slotTitle'))
+  const data = await meCommands.keySlot(share.conn!.id, share.redisKey!)
+  meOk(String(data), true, t('redisValue.slotTitle'))
 }
 
 // 查看此键所在节点
 async function showLocation() {
-  const data = await meCommands.keyNode(share.conn!.id, share.redisKey)
+  const data = await meCommands.keyNode(share.conn!.id, share.redisKey!)
   const msg = data.map(item => item.node + ' | ' + item.flags.toUpperCase()).join('<br>')
   meOk(msg, true, t('redisValue.locationTitle'), { dangerouslyUseHTMLString: true })
 }
 
 // 值显示方式: string(utf-8), binary, hex等
-const displayFormat = ref('utf8')
+const displayFormat = ref<DisplayFormat>('utf8')
 // 键显示方式
 const showKey = computed(() => {
   const rk = share.redisKey
+  if (!rk) return ''
   if (displayFormat.value === 'utf8') return rk.key
   return meFormatBytes(rk.bytes, displayFormat.value)
 })
@@ -676,7 +717,7 @@ const showKey = computed(() => {
 
           <!-- 键所在槽位和节点信息 -->
           <me-icon
-            v-if="share.conn.cluster"
+            v-if="share.conn?.cluster"
             style="margin-left: 5px"
             :info="t('redisValue.slotHint')"
             class="icon-btn"
@@ -685,7 +726,7 @@ const showKey = computed(() => {
             placement="top-start" />
 
           <me-icon
-            v-if="share.conn.cluster"
+            v-if="share.conn?.cluster"
             style="margin-left: 5px"
             :info="t('redisValue.locationHint')"
             class="icon-btn"

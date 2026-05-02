@@ -10,6 +10,7 @@ import {
   TimeScale,
   Tooltip,
 } from 'chart.js'
+import type { ChartOptions, TooltipItem } from 'chart.js'
 import dayjs from 'dayjs'
 import { cloneDeep, merge } from 'lodash'
 import { computed, inject, onUnmounted, ref, shallowRef, useTemplateRef, watch } from 'vue'
@@ -17,7 +18,8 @@ import { Line } from 'vue-chartjs'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisChart } from '@/types/tauri-specta'
 import { isDark, meHumanNums, meCommands, meLog, PREDEFINE_COLORS } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
@@ -75,14 +77,16 @@ watch(
 )
 
 // 图表实例，手动刷新
-const commandRef = useTemplateRef('command')
-const memoryRef = useTemplateRef('memory')
-const networkRef = useTemplateRef('network')
-const keyTotalRef = useTemplateRef('keyTotal')
-const connectedClientsRef = useTemplateRef('connectedClients')
-const cacheHitRatioRef = useTemplateRef('cacheHitRatio')
-const totalConnectionsReceivedRef = useTemplateRef('totalConnectionsReceived')
-const totalCommandsProcessedRef = useTemplateRef('totalCommandsProcessed')
+/** vue-chartjs Line 暴露的 chart 实例（避免 useTemplateRef 推断为 never） */
+type LineChartExposed = { chart: { update: () => void } }
+const commandRef = useTemplateRef<LineChartExposed>('command')
+const memoryRef = useTemplateRef<LineChartExposed>('memory')
+const networkRef = useTemplateRef<LineChartExposed>('network')
+const keyTotalRef = useTemplateRef<LineChartExposed>('keyTotal')
+const connectedClientsRef = useTemplateRef<LineChartExposed>('connectedClients')
+const cacheHitRatioRef = useTemplateRef<LineChartExposed>('cacheHitRatio')
+const totalConnectionsReceivedRef = useTemplateRef<LineChartExposed>('totalConnectionsReceived')
+const totalCommandsProcessedRef = useTemplateRef<LineChartExposed>('totalCommandsProcessed')
 function refreshInstance() {
   commandRef.value?.chart.update()
   memoryRef.value?.chart.update()
@@ -137,18 +141,25 @@ async function getData() {
 }
 
 // 添加图表数据
+function chartNumber(res: RedisChart, key: keyof RedisChart): number {
+  const v = res[key]
+  return typeof v === 'number' ? v : 0
+}
+
 function addChartData(
   label: number,
-  res: Record<string, number>,
+  res: RedisChart,
   prop0: ChartBlockKey,
-  prop1: string,
-  prop2?: string,
+  prop1: keyof RedisChart,
+  prop2?: keyof RedisChart,
 ) {
   const propData = chartData.value[prop0]
-  propData.labels.push(label)
-  propData.datasets[0].data.push(res[prop1])
+  ;(propData.labels as number[]).push(label)
+  const s0 = propData.datasets[0].data as number[]
+  s0.push(chartNumber(res, prop1))
   if (prop2) {
-    propData.datasets[1].data.push(res[prop2])
+    const s1 = propData.datasets[1].data as number[]
+    s1.push(chartNumber(res, prop2))
   }
 }
 
@@ -212,20 +223,20 @@ const baseOptions = {
   // x轴为日期格式，显示为秒
   scales: {
     x: {
-      type: 'time',
+      type: 'time' as const,
       time: {
-        unit: 'second',
+        unit: 'second' as const,
         displayFormats: {
           second: 'HH:mm:ss',
         },
       },
       // 控制刻度显示数量
       ticks: {
-        align: 'center', // 刻度居中
+        align: 'center' as const, // 刻度居中
         maxTicksLimit: 10, // 最多显示N个主刻度
         autoSkip: true, // 自动跳过部分刻度
       },
-      bounds: 'ticks', // 确保坐标轴从第一个刻度开始，到最后一个刻度结束
+      bounds: 'ticks' as const, // 确保坐标轴从第一个刻度开始，到最后一个刻度结束
       offset: false, // 在两端留出空白
     },
   },
@@ -233,15 +244,16 @@ const baseOptions = {
     tooltip: {
       callbacks: {
         // 格式化工具提示的标题（时间）
-        title: function (context) {
-          // context[0]包含第一个数据点
-          const dt = dayjs(context[0].parsed.x)
+        title: function (context: TooltipItem<'line'>[]) {
+          const first = context[0]
+          if (!first) return ''
+          const dt = dayjs(first.parsed.x)
           return dt.format('YYYY-MM-DD HH:mm:ss')
         },
       },
     },
   },
-}
+} satisfies ChartOptions<'line'>
 
 // 浅色深色主题
 const lightOptions = {
@@ -299,29 +311,31 @@ const darkOptions = {
   // },
 }
 
-const options = computed(() => {
-  const option = cloneDeep(baseOptions)
-  return isDark.value ? merge(option, darkOptions) : merge(option, lightOptions)
+const options = computed((): ChartOptions<'line'> => {
+  const option = cloneDeep(baseOptions) as ChartOptions<'line'>
+  return (
+    isDark.value ? merge(option, darkOptions) : merge(option, lightOptions)
+  ) as ChartOptions<'line'>
 })
 
-const memoryOptions = computed(() => {
+const memoryOptions = computed((): ChartOptions<'line'> => {
   return merge(cloneDeep(options.value), {
     scales: {
       y: {
         beginAtZero: true, // 从零开始
         ticks: {
           // 关键：修改 Y 轴刻度的显示单位
-          callback: function (value) {
-            const valueInMB = value / (1024 * 1024) // 字节转 MB
+          callback: function (this: unknown, value: string | number) {
+            const valueInMB = Number(value) / (1024 * 1024) // 字节转 MB
             return valueInMB.toFixed(1) + ' M' // 保留 1 位小数
           },
         },
       },
     },
-  })
+  }) as ChartOptions<'line'>
 })
 
-const ratioOptions = computed(() => {
+const ratioOptions = computed((): ChartOptions<'line'> => {
   return merge(cloneDeep(options.value), {
     scales: {
       y: {
@@ -329,27 +343,27 @@ const ratioOptions = computed(() => {
         max: 1,
       },
     },
-  })
+  }) as ChartOptions<'line'>
 })
 
-const totalOptions = computed(() => {
+const totalOptions = computed((): ChartOptions<'line'> => {
   return merge(cloneDeep(options.value), {
     scales: {
       y: {
         ticks: {
           // 关键：修改 Y 轴刻度的显示单位
-          callback: function (value) {
-            return meHumanNums(value, '0', 2)
+          callback: function (this: unknown, value: string | number) {
+            return meHumanNums(Number(value), '0', 2)
           },
         },
       },
     },
-  })
+  }) as ChartOptions<'line'>
 })
 
 // chart.js数据配置项
 const dataset = {
-  data: [],
+  data: [] as number[],
   tension: 0.4, // 线条张力、平滑度
 }
 

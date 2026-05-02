@@ -1,21 +1,15 @@
 <script setup lang="ts">
-import { open, save } from '@tauri-apps/plugin-dialog'
+import { open, save, type DialogFilter } from '@tauri-apps/plugin-dialog'
 import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
 import dayjs from 'dayjs'
 import type { TableInstance } from 'element-plus'
 import { debounce } from 'lodash'
-import { Sortable } from 'sortablejs'
+import { Sortable, type SortableEvent } from 'sortablejs'
 import { computed, inject, nextTick, onMounted, reactive, ref, toRaw, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { checkConnList } from '@/plugins/tauri'
-import {
-  appProvideKey,
-  shareProvideKey,
-  type AppMainInject,
-  type AppMainShare,
-  type UiConn,
-} from '@/types/me-interface'
+import { appProvideKey, shareProvideKey, type UiConn } from '@/types/me-interface'
 import {
   meConfirm,
   meDownloadUpdate,
@@ -88,7 +82,7 @@ function rowDrag(): void {
   if (!tbody) return
   Sortable.create(tbody as HTMLElement, {
     handle: '.drag-handle',
-    onEnd: ({ oldIndex, newIndex }) => {
+    onEnd: ({ oldIndex, newIndex }: SortableEvent) => {
       if (oldIndex === undefined || newIndex === undefined) return
       const dragRow = share.connList.splice(oldIndex, 1)[0]
       share.connList.splice(newIndex, 0, dragRow)
@@ -98,7 +92,7 @@ function rowDrag(): void {
 
 onMounted(() => rowDrag())
 
-const filters = [{ name: '', extensions: ['json'] as const }]
+const filters: DialogFilter[] = [{ name: '', extensions: ['json'] }]
 
 function handleCommand(command: string): void {
   if (command === 'export') {
@@ -110,7 +104,7 @@ function handleCommand(command: string): void {
 
 async function exportConn(): Promise<void> {
   const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss')
-  const path = await save({ multiple: false, directory: true, filters, defaultPath: fileName })
+  const path = await save({ filters, defaultPath: fileName })
   if (path) {
     try {
       await writeTextFile(path, JSON.stringify(share.connList, null, 2))

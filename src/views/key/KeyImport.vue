@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { cloneDeep } from 'lodash'
-import { computed, inject, readonly, ref, useTemplateRef } from 'vue'
+import { computed, inject, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisImportCsv } from '@/types/tauri-specta'
 import { meCommands } from '@/utils/util'
 
 const { t } = useI18n()
@@ -22,18 +23,18 @@ const share = inject(shareProvideKey)!
 // 表单数据
 const visible = ref(false)
 const loading = ref(false)
-const initForm = readonly({
+const initForm: RedisImportCsv = {
   file: '',
   handleConflict: 'replace',
   handleTtl: 'parse',
   ttl: -1,
-})
+}
 
 // 支持导入不同的文件类型
 const isCmdFile = ref(false)
 const fileSuffix = computed(() => (isCmdFile.value ? 'txt' : 'csv'))
 
-const form = ref(cloneDeep(initForm))
+const form = ref<RedisImportCsv>(cloneDeep(initForm))
 const rules = computed(() => ({
   file: [{ required: true, message: t('keyImport.fileRequired') }],
 }))

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { capitalize } from 'lodash'
-import type { ComputedRef } from 'vue'
 import { computed, h, inject, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import type { RedisKey_Deserialize, RedisKeySize_Serialize } from '@/types/tauri-specta'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import {
@@ -49,11 +48,11 @@ const matchParam = computed(() => {
 
 // 要求为正整数, 避免调用Rust时转换为u64报错
 watchEffect(() => {
-  if (sizeLimitKb.value < 0 || sizeLimitKb.value === '') sizeLimitKb.value = 0
-  if (countLimit.value < 0 || countLimit.value === '') countLimit.value = 0
-  if (scanCount.value < 0 || scanCount.value === '') scanCount.value = 0
-  if (scanTotal.value < 0 || scanTotal.value === '') scanTotal.value = 0
-  if (sleepMillis.value < 0 || sleepMillis.value === '') sleepMillis.value = 0
+  if (sizeLimitKb.value < 0) sizeLimitKb.value = 0
+  if (countLimit.value < 0) countLimit.value = 0
+  if (scanCount.value < 0) scanCount.value = 0
+  if (scanTotal.value < 0) scanTotal.value = 0
+  if (sleepMillis.value < 0) sleepMillis.value = 0
 })
 
 const keyword = ref('')
@@ -72,7 +71,7 @@ const filterTypes = computed(() => {
 })
 
 // 避免表格自动调整列宽时闪烁一下
-function humanTotalSize(list: ComputedRef<RedisKeySize_Serialize[]>) {
+function humanTotalSize(list: { value: RedisKeySize_Serialize[] }) {
   return meHumanSize(list.value.map(d => d.size).reduce((sum, cur) => sum + cur, 0) ?? 0)
 }
 
@@ -133,19 +132,16 @@ function selectionChange(newSelection: RedisKeySize_Serialize[]) {
 }
 
 function batchDelKey() {
-  meConfirm(
-    t('redisMemory.batchDeleteHint', selection.value.length, { count: selection.value.length }),
-    async () => {
-      const param = {
-        match: '',
-        keyList: selection.value.map(row => ({ key: row.key, bytes: row.bytes })),
-      }
-      await meCommands.batchDel(share.conn!.id, param)
-      meOk(t('deleteOk'))
-      const keyBytesArr = param.keyList.map(rk => rk.bytes)
-      dataList.value = dataList.value.filter(rk => keyBytesArr.indexOf(rk.bytes) < 0)
-    },
-  )
+  meConfirm(t('redisMemory.batchDeleteHint', { count: selection.value.length }), async () => {
+    const param = {
+      match: '',
+      keyList: selection.value.map(row => ({ key: row.key, bytes: row.bytes })),
+    }
+    await meCommands.batchDel(share.conn!.id, param)
+    meOk(t('deleteOk'))
+    const keyBytesArr = param.keyList.map(rk => rk.bytes)
+    dataList.value = dataList.value.filter(rk => keyBytesArr.indexOf(rk.bytes) < 0)
+  })
 }
 </script>
 

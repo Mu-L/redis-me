@@ -4,7 +4,7 @@ import { computed, inject, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import { meConfirm, meCopy, meCommands, meOk } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
@@ -38,7 +38,7 @@ const monitor = async () => {
   loading.value = true
   try {
     if (monitoring.value) {
-      await unlisten()
+      unlisten?.()
       await meCommands.monitorStop(share.conn!.id)
       monitoring.value = false
       meOk(t('redisMonitor.monitorStopped'))

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { TreeNode } from 'element-plus/es/components/tree-v2/src/types'
 import { nanoid } from 'nanoid'
-import { computed, inject, ref, useTemplateRef, watch, withDefaults } from 'vue'
+import { computed, inject, ref, useTemplateRef, watch } from 'vue'
 // 共享数据
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import type { RedisKey_Deserialize } from '@/types/tauri-specta'
 import { TREE_KEY_ID_PREFIX } from '@/utils/util'
 
@@ -23,7 +23,7 @@ const emit = defineEmits([
   'contextFolder',
   'checkChange',
 ])
-const { color, filterKeyList, showCheckbox, keyShowTree, sortByCount } = withDefaults(
+const props = withDefaults(
   defineProps<{
     color?: string
     redisKey?: RedisKey_Deserialize | null
@@ -99,7 +99,7 @@ function getNodeClass(node: TreeNode) {
   }
 
   // 列表展示时左侧的空白较多处理
-  if (!keyShowTree && !showCheckbox && node.isLeaf) {
+  if (!props.keyShowTree && !props.showCheckbox && node.isLeaf) {
     clazz.push('list-key')
   }
   return clazz
@@ -109,12 +109,12 @@ function getNodeClass(node: TreeNode) {
 const emptyText = computed(() => t('keyTree.noData'))
 const treeData = computed(() => {
   // 列表展示
-  if (!keyShowTree) {
-    return buildList(filterKeyList)
+  if (!props.keyShowTree) {
+    return buildList(props.filterKeyList)
   }
 
   // 树形展示
-  const root = buildTree(filterKeyList)
+  const root = buildTree(props.filterKeyList)
   root.forEach(node => countLeaves(node))
 
   // 根节点排序及其子节点排序
@@ -130,6 +130,7 @@ function sortNodeChildrenLoop(rootNode: KeyBuildNode) {
   while (stack.length > 0) {
     // 取出栈顶节点
     const node = stack.pop()
+    if (node === undefined) continue
     if (node.children && node.children.length > 0) {
       // 对当前节点的子节点进行排序
       node.children.sort((n1, n2) => nodesSort(n1, n2))
@@ -140,19 +141,20 @@ function sortNodeChildrenLoop(rootNode: KeyBuildNode) {
 }
 
 function nodesSort(n1: KeyBuildNode, n2: KeyBuildNode) {
-  if (sortByCount) {
+  let cmp: number
+  if (props.sortByCount) {
     // 文件夹在上面，叶子在下面（将叶子节点的数量归零，避免和只有1个键的文件夹混在一起）
-    const n1Count = n1.children.length > 0 ? n1.keyCount : 0
-    const n2Count = n2.children.length > 0 ? n2.keyCount : 0
-    // 文件夹按照键数量排序, 键数量相同时按照名称排序
-    return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
+    const n1Count: number = n1.children.length > 0 ? (n1.keyCount ?? 0) : 0
+    const n2Count: number = n2.children.length > 0 ? (n2.keyCount ?? 0) : 0
+    cmp = n2Count - n1Count
   } else {
     // 保存文件夹在上面，叶子在下面（文件夹的数量为都设置为1）
-    const n1Count = n1.children.length > 0 ? 1 : 0
-    const n2Count = n2.children.length > 0 ? 1 : 0
-    // 文件夹按照名称排序
-    return n2Count - n1Count === 0 ? (n2.id > n1.id ? -1 : 1) : n2Count - n1Count
+    const n1Count: number = n1.children.length > 0 ? 1 : 0
+    const n2Count: number = n2.children.length > 0 ? 1 : 0
+    cmp = n2Count - n1Count
   }
+  // 键数量或文件夹/叶子分组相同时按 id 排序
+  return cmp === 0 ? (n2.id > n1.id ? -1 : 1) : cmp
 }
 
 // 显示复选框时补充根节点
@@ -160,19 +162,19 @@ const rootId = nanoid() + Date.now()
 const treeRef = useTemplateRef('tree')
 const defaultExpandedKeys = computed(() => [rootId])
 watch(
-  () => [showCheckbox, filterKeyList],
+  () => [props.showCheckbox, props.filterKeyList],
   () => {
     treeRef.value?.setCheckedKeys([])
   },
 )
 const rootTreeData = computed((): KeyBuildNode[] => {
-  if (showCheckbox) {
+  if (props.showCheckbox) {
     return [
       {
         id: rootId,
         label: 'db' + String(share.conn?.db ?? ''),
         children: treeData.value as KeyBuildNode[],
-        keyCount: filterKeyList.length || 0,
+        keyCount: props.filterKeyList.length || 0,
         isRootNode: true,
       },
     ]
@@ -264,10 +266,9 @@ function buildList(keyList: RedisKey_Deserialize[]) {
 
 // 获取选中的节点键
 function checkChange() {
-  emit(
-    'checkChange',
-    treeRef.value?.getCheckedNodes(true).map(node => node.redisKey),
-  )
+  const nodes = (treeRef.value?.getCheckedNodes(true) ?? []) as KeyBuildNode[]
+  const redisKeys = nodes.map(n => n.redisKey).filter((k): k is RedisKey_Deserialize => k != null)
+  emit('checkChange', redisKeys)
 }
 
 // 设置选中节点

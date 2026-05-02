@@ -27,6 +27,15 @@ import type {
 import { commands as spectaCommands } from '@/types/tauri-specta'
 import type { RedisKey_Deserialize, RedisNode } from '@/types/tauri-specta'
 
+/** 全局 `bus` 事件载荷（与 `bus.emit` / `bus.on` 一致） */
+export type MeBusEvents = {
+  KEY_DELETE: RedisKey_Deserialize
+  /** 载荷未使用；监听器应 `() => refreshKey()` 包装，避免与多参函数签名冲突 */
+  KEY_REFRESH: undefined
+  INFO_REFRESH: boolean | undefined
+  CONN_REFRESH: void
+}
+
 export type {
   EnrichedRedisNode,
   KeyTypeListItem,
@@ -45,7 +54,7 @@ interface AppErrorPayload {
 
 // #region 全局总线、常量、Redis 键类型与节点列表 enrich
 // 全局事件总线：setup 直接导入，app 全局属性也添加
-export const bus = mitt<Record<string, unknown>>()
+export const bus = mitt<MeBusEvents>()
 
 // 常量
 export const KEY_DELETE = 'KEY_DELETE'

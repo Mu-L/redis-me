@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid'
 import { inject, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
 import { bus, CONN_REFRESH, meCommands, meErr, meOk } from '@/utils/util'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
