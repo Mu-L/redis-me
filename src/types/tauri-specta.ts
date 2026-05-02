@@ -98,9 +98,6 @@ export type FieldScanParam_Serialize = {
 	displayFormat: DisplayFormat | null,
 };
 
-/** serde_json::Value（Specta 生成类型内联引用；若后端重新导出类型可删） */
-type Value = string | number | boolean | null | Value[] | { [key: string]: Value }
-
 export type FieldScanResult = {
 	type: string,
 	ttl: number,

@@ -161,7 +161,7 @@ pub fn field_scan0(
             // 优化字段扫描个数
             let count = if param.load_all {
                 1000
-            } else if param.count <= 0 {
+            } else if param.count == 0 {
                 20
             } else {
                 param.count
@@ -206,7 +206,7 @@ pub fn field_scan_0_get(
     let key = &param.key;
     let hash_key = param.hash_key.clone();
 
-    let key_type: ValueType = conn.key_type(&key)?;
+    let key_type: ValueType = conn.key_type(key)?;
     let mut cc = param.cursor.clone().unwrap_or_default();
 
     // String类型的bytes长度
@@ -214,14 +214,14 @@ pub fn field_scan_0_get(
 
     let value: Option<serde_json::Value> = match key_type {
         ValueType::String => {
-            let value: Vec<u8> = conn.get(&key)?;
+            let value: Vec<u8> = conn.get(key)?;
             length = value.len();
             let value: String = format_bytes(&value, display_format);
             cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
         ValueType::JSON => {
-            let value: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
+            let value: Value = redis::cmd("JSON.GET").arg(key).query(&mut conn)?;
             cc.finished = true;
             //Some(serde_json::to_value(redis_value_to_string(value, "\n"))?)
             Some(serde_json::from_str(&redis_value_to_string(value, "\n"))?)
@@ -230,7 +230,7 @@ pub fn field_scan_0_get(
             if let Some(hash_key) = hash_key
                 && !hash_key.is_empty()
             {
-                let value: Option<Vec<u8>> = conn.hget(&key, &hash_key)?;
+                let value: Option<Vec<u8>> = conn.hget(key, &hash_key)?;
                 match value {
                     Some(str) => {
                         length = str.len();
@@ -251,7 +251,7 @@ pub fn field_scan_0_get(
             } else {
                 (cc.now_cursor + param.count) as isize
             };
-            let value: Vec<Vec<u8>> = conn.lrange(&key, cc.now_cursor as isize, end_index)?;
+            let value: Vec<Vec<u8>> = conn.lrange(key, cc.now_cursor as isize, end_index)?;
 
             // 0 ~ 10 获取到11元素, 表示还没有获取到全部数据。序号为10的元素本次不取
             let value: Vec<String> = if !param.load_all && value.len() > param.count as usize {
@@ -269,7 +269,7 @@ pub fn field_scan_0_get(
             if let Some(hash_key) = hash_key
                 && !hash_key.is_empty()
             {
-                let mut reply: StreamRangeReply = conn.xrange(&key, &hash_key, &hash_key)?;
+                let mut reply: StreamRangeReply = conn.xrange(key, &hash_key, &hash_key)?;
                 match reply.ids.pop() {
                     Some(entry) => {
                         cc.finished = true;
@@ -332,7 +332,7 @@ pub fn field_scan_0_get(
         }
         // 注意此处SET/ZSET等是支持的，只是需要进行扫描，不能直接使用通用的: handle_other_value_type
         ValueType::Unknown(_) => {
-            handle_other_value_type(&key_type, &key)?;
+            handle_other_value_type(&key_type, key)?;
             None
         }
         _ => None,
