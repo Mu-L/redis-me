@@ -1,8 +1,8 @@
 // https://redis.io/docs/latest/operate/oss_and_stack/management/config/
-
-// 以Docker版本为基准
-// docker run -d --name redis --network host redis:8.6 redis-server
-/** 版本 -> 配置项 -> 默认值（字符串，与 CONFIG GET 展示一致） */
+//
+// 各 Redis/Valkey 版本下 CONFIG 项的默认取值（字符串，与 CONFIG GET 一致；以 Docker 官方镜像常见默认为基线）。
+// 与同目录 zh-cn.ts / en.ts（参数说明文案）区分：本文件为数据表，体积大，请从 `@/locales/config/defaults` 按需 import。
+/** 版本 -> 配置项 -> 默认值 */
 export type RedisVersionConf = Record<string, string>
 export type RedisConfDictRoot = Record<string, RedisVersionConf>
 
