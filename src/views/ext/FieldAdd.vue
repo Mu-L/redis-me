@@ -257,10 +257,10 @@ function handleKeyTypeChange() {
             <el-input v-model.number="form.ttl" style="flex: 1">
               <template #append>
                 <el-select v-model="ttlUnit" :style="{ width: t('timeUnit.width') + 'px' }">
-                  <el-option :label="t('timeUnit.second')" value="second" />
-                  <el-option :label="t('timeUnit.minute')" value="minute" />
-                  <el-option :label="t('timeUnit.hour')" value="hour" />
-                  <el-option :label="t('timeUnit.day')" value="day" />
+                  <el-option :label="t('timeUnit.second', form.ttl)" value="second" />
+                  <el-option :label="t('timeUnit.minute', form.ttl)" value="minute" />
+                  <el-option :label="t('timeUnit.hour', form.ttl)" value="hour" />
+                  <el-option :label="t('timeUnit.day', form.ttl)" value="day" />
                 </el-select>
               </template>
             </el-input>
