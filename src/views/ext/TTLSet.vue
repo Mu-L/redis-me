@@ -1,20 +1,27 @@
 <script setup lang="ts">
 import type { FormItemRule } from 'element-plus'
 import { cloneDeep } from 'lodash'
-import { computed, inject, readonly, ref, useTemplateRef } from 'vue'
+import { computed, inject, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisKey_Deserialize } from '@/types/tauri-specta'
 import { meCommands, meOk, meTtlSeconds } from '@/utils/util'
+
+type TtlForm = {
+  ttl: number
+  ttlUnit: string
+  keyList: RedisKey_Deserialize[]
+}
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({ open })
-function open(data: { ttl?: number; keyList?: string[] }) {
+function open(data: { ttl?: number; keyList?: RedisKey_Deserialize[] }) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
-  form.value.ttl = data.ttl || -1
-  form.value.keyList = data.keyList || []
+  form.value.ttl = data.ttl ?? -1
+  form.value.keyList = data.keyList ?? []
 }
 
 // 共享数据
@@ -23,12 +30,12 @@ const share = inject(shareProvideKey)!
 // 表单数据
 const visible = ref(false)
 const loading = ref(false)
-const initForm = readonly({
-  ttl: '',
+const initForm: TtlForm = {
+  ttl: -1,
   ttlUnit: 'second',
   keyList: [],
-})
-const form = ref(cloneDeep(initForm))
+}
+const form = ref<TtlForm>(cloneDeep(initForm))
 const rules = computed(() => ({
   ttl: [
     { required: true, message: t('ttlSet.ttlRequired') },
@@ -38,7 +45,8 @@ const rules = computed(() => ({
         _value: unknown,
         callback: (error?: string | Error) => void,
       ) => {
-        if (!(form.value.ttl === -1 || form.value.ttl > 0)) {
+        const n = form.value.ttl
+        if (!(n === -1 || n > 0)) {
           callback(new Error(t('ttlSet.ttlValidator')))
         }
         callback()
@@ -59,7 +67,7 @@ function submit() {
         await meCommands.batchTtl(share.conn!.id, param)
         meOk(t('ttlSet.ttlOkBatch'))
       } else {
-        await meCommands.ttl(share.conn!.id, share.redisKey, seconds)
+        await meCommands.ttl(share.conn!.id, share.redisKey!, seconds)
         meOk(t('ttlSet.ttlOk'))
       }
 
@@ -95,10 +103,10 @@ const title = computed(() =>
         <el-input v-model.number="form.ttl" style="flex: 1">
           <template #append>
             <el-select v-model="form.ttlUnit" :style="{ width: t('timeUnit.width') + 'px' }">
-              <el-option :label="t('timeUnit.second', form.ttl)" value="second" />
-              <el-option :label="t('timeUnit.minute', form.ttl)" value="minute" />
-              <el-option :label="t('timeUnit.hour', form.ttl)" value="hour" />
-              <el-option :label="t('timeUnit.day', form.ttl)" value="day" />
+              <el-option :label="t('timeUnit.second')" value="second" />
+              <el-option :label="t('timeUnit.minute')" value="minute" />
+              <el-option :label="t('timeUnit.hour')" value="hour" />
+              <el-option :label="t('timeUnit.day')" value="day" />
             </el-select>
           </template>
         </el-input>

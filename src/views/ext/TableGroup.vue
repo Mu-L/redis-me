@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableInstance } from 'element-plus'
-import { inject, ref, useTemplateRef, withDefaults } from 'vue'
+import { inject, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
@@ -9,7 +9,7 @@ import { meCommands } from '@/utils/util'
 
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
-const { dataList } = withDefaults(defineProps<{ dataList?: XInfoGroup[] }>(), {
+withDefaults(defineProps<{ dataList?: XInfoGroup[] }>(), {
   dataList: () => [],
 })
 
@@ -28,7 +28,7 @@ async function handleExpand(row: XInfoGroup, expandedRows: XInfoGroup[]) {
 
   loading.value = true
   try {
-    consumerData.value = await meCommands.xinfoConsumers(share.conn!.id, share.redisKey, row.name)
+    consumerData.value = await meCommands.xinfoConsumers(share.conn!.id, share.redisKey!, row.name)
   } finally {
     loading.value = false
   }

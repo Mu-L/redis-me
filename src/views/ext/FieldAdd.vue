@@ -5,6 +5,7 @@ import { computed, inject, ref, toRaw, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey, type AppMainShare } from '@/types/me-interface'
+import type { DisplayFormat } from '@/types/tauri-specta'
 import {
   KEY_TYPE_LIST,
   DISPLAY_FORMAT,
@@ -53,7 +54,7 @@ const initForm = computed(() => ({
       fieldTtl: -1,
     },
   ],
-  inputFormat: 'utf8',
+  inputFormat: 'utf8' as const,
 }))
 const form = ref(cloneDeep(toRaw(initForm.value)))
 
@@ -178,6 +179,7 @@ function submit() {
         value,
         ttl: meTtlSeconds(form.value.ttl, ttlUnit.value),
         fieldValueList: form.value.fieldValueList,
+        inputFormat: form.value.inputFormat as DisplayFormat,
       })
       visible.value = false
       emit('success', redisKey)
