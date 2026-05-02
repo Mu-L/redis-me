@@ -554,6 +554,21 @@ export default {
     textLength: '字节长度：',
     textEntries: '条目：',
     viewAs: '数据编码',
+    keyShortHint: '查看快捷键',
+    keyShortMore: `
+        <br> F11       : 全屏编辑器
+        <br> Ctrl + L  : 切换自动换行
+        <br> Ctrl + N  : 切换行号显示
+        <br>
+        <br> Ctrl + =  : 增大字号
+        <br> Ctrl + -  : 减小字号
+        <br> Ctrl + 0  : 恢复默认字号
+        <br>
+        <br> Ctrl + F  : 查找
+        <br> Ctrl + G  : 查找下一处
+        <br> Ctrl + Z  : 撤销
+        <br> Ctrl + Y  : 重做
+    `,
   },
 
   redisChart: {

@@ -558,6 +558,21 @@ export default {
     textLength: 'Bytes Length: ',
     textEntries: 'Entries: ',
     viewAs: 'Encoding',
+    keyShortHint: 'View KeyShort',
+    keyShortMore: `
+        <br> F11       : Fullscreen Editor
+        <br> Ctrl + L  : Toggle Line Wrap
+        <br> Ctrl + N  : Toggle Line Numbers
+        <br>
+        <br> Ctrl + =  : Increase Font Size
+        <br> Ctrl + -  : Decrease Font Size
+        <br> Ctrl + 0  : Reset Font Size
+        <br>
+        <br> Ctrl + F  : Find
+        <br> Ctrl + G  : Find Next
+        <br> Ctrl + Z  : Undo
+        <br> Ctrl + Y  : Redo
+    `,
   },
 
   redisChart: {

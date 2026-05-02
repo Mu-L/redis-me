@@ -472,6 +472,12 @@ const showKey = computed(() => {
   if (displayFormat.value === 'utf8') return rk.key
   return meFormatBytes(rk.bytes, displayFormat.value)
 })
+
+// 快捷键
+const keyShortVisible = ref(false)
+function openKeyShortDialog() {
+  keyShortVisible.value = true
+}
 </script>
 
 <template>
@@ -719,6 +725,14 @@ const showKey = computed(() => {
             @click="meCopy(showValue)"
             placement="top-start" />
 
+          <me-icon
+            class="icon-btn"
+            icon="me-icon-keyshort"
+            :info="t('redisValue.keyShortHint')"
+            placement="top-start"
+            @click="openKeyShortDialog"
+            style="margin-left: 5px; font-size: 20px" />
+
           <!-- 键所在槽位和节点信息 -->
           <me-icon
             v-if="share.conn?.cluster"
@@ -825,6 +839,17 @@ const showKey = computed(() => {
     <me-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900">
       <TableGroup :data-list="groupDataList" />
     </me-dialog>
+
+    <!-- 值编辑器快捷键 -->
+    <el-dialog
+      v-model="keyShortVisible"
+      width="400"
+      align-center
+      draggable
+      :show-close="false"
+      style="--el-dialog-bg-color: unset; box-shadow: unset">
+      <el-text type="warning" size="large" v-html="t('redisValue.keyShortMore')"> </el-text>
+    </el-dialog>
   </div>
 </template>
 
@@ -849,7 +874,7 @@ const showKey = computed(() => {
   }
 
   .value-main {
-    margin: 10px 0 0 0;
+    margin: 10px 0 5px 0;
     position: relative;
     flex-grow: 1;
     overflow: hidden;
