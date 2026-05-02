@@ -132,16 +132,19 @@ function selectionChange(newSelection: RedisKeySize_Serialize[]) {
 }
 
 function batchDelKey() {
-  meConfirm(t('redisMemory.batchDeleteHint', { count: selection.value.length }), async () => {
-    const param = {
-      match: '',
-      keyList: selection.value.map(row => ({ key: row.key, bytes: row.bytes })),
-    }
-    await meCommands.batchDel(share.conn!.id, param)
-    meOk(t('deleteOk'))
-    const keyBytesArr = param.keyList.map(rk => rk.bytes)
-    dataList.value = dataList.value.filter(rk => keyBytesArr.indexOf(rk.bytes) < 0)
-  })
+  meConfirm(
+    t('redisMemory.batchDeleteHint', { count: selection.value.length }, selection.value.length),
+    async () => {
+      const param = {
+        match: '',
+        keyList: selection.value.map(row => ({ key: row.key, bytes: row.bytes })),
+      }
+      await meCommands.batchDel(share.conn!.id, param)
+      meOk(t('deleteOk'))
+      const keyBytesArr = param.keyList.map(rk => rk.bytes)
+      dataList.value = dataList.value.filter(rk => keyBytesArr.indexOf(rk.bytes) < 0)
+    },
+  )
 }
 </script>
 

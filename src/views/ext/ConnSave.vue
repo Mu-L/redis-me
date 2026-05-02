@@ -238,7 +238,7 @@ async function autoDiscover(alert: boolean = false) {
     }
 
     if (alert) {
-      meOk(t('conn.autoDiscoverOk', { count: masters.value.length }))
+      meOk(t('conn.autoDiscoverOk', { count: masters.value.length }, masters.value.length))
     }
   } catch (e: unknown) {
     masters.value = []
