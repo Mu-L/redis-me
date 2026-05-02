@@ -8,9 +8,9 @@ import RedisMemory from '@/views/tab/RedisMemory.vue'
 import RedisMonitor from '@/views/tab/RedisMonitor.vue'
 import RedisPubsub from '@/views/tab/RedisPubsub.vue'
 import RedisSlow from '@/views/tab/RedisSlow.vue'
+// import RedisTauri from '@/views/tab/RedisTauri.vue'
 import RedisTerminal from '@/views/tab/RedisTerminal.vue'
 import RedisValue from '@/views/tab/RedisValue.vue'
-// import RedisTauri from '@/views/tab/RedisTauri.vue'
 
 const share = inject('share') as AppMainShare
 </script>
@@ -28,7 +28,7 @@ const share = inject('share') as AppMainShare
     <me-tab-pane name="monitor" icon="el-icon-monitor" lazy> <RedisMonitor /> </me-tab-pane>
     <me-tab-pane name="pubsub" icon="me-icon-pubsub" lazy> <RedisPubsub /> </me-tab-pane>
     <me-tab-pane name="chart" icon="el-icon-data-line" lazy> <RedisChart /> </me-tab-pane>
-    <!--    <me-tab-pane name="tauri"   icon="el-icon-data-line" lazy>    <RedisTauri/>      </me-tab-pane>-->
+    <!-- <me-tab-pane name="tauri" icon="el-icon-data-line" lazy> <RedisTauri /> </me-tab-pane> -->
   </el-tabs>
 </template>
 
