@@ -3,7 +3,7 @@ import { capitalize } from 'lodash'
 import { computed, h, inject, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/bindings/me-interface'
+import type { AppMainShare } from '@/types/me-interface'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import {
   bus,

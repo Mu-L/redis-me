@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 
-import type { AppMainShare } from '@/bindings/me-interface'
-import type { RedisKey_Deserialize } from '@/bindings/tauri-specta'
+import type { AppMainShare } from '@/types/me-interface'
+import type { RedisKey_Deserialize } from '@/types/tauri-specta'
 import { meCommands, meKeyShort, meType } from '@/utils/util'
 
 const share = inject('share') as AppMainShare

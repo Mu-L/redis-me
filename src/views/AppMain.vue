@@ -9,8 +9,8 @@ import type {
   AppMainShare,
   ConnListWindowsSyncPayload,
   UiConn,
-} from '@/bindings/me-interface'
-import type { ConnConfig } from '@/bindings/tauri-specta'
+} from '@/types/me-interface'
+import type { ConnConfig } from '@/types/tauri-specta'
 import {
   bus,
   CONN_LIST_WINDOWS_SYNC,

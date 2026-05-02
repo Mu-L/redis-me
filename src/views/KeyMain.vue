@@ -4,8 +4,8 @@ import { sortBy } from 'lodash'
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/bindings/me-interface'
-import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/bindings/tauri-specta'
+import type { AppMainShare } from '@/types/me-interface'
+import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
 import {
   bus,
   CONN_REFRESH,

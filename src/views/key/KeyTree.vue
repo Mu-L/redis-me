@@ -4,7 +4,7 @@ import { computed, inject, ref, useTemplateRef, watch } from 'vue'
 // 共享数据
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/bindings/me-interface'
+import type { AppMainShare } from '@/types/me-interface'
 import { TREE_KEY_ID_PREFIX } from '@/utils/util'
 
 import KeyTypeTag from './KeyTypeTag.vue'

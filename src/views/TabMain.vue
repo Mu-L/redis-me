@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 
-import type { AppMainShare } from '@/bindings/me-interface'
+import type { AppMainShare } from '@/types/me-interface'
 import RedisChart from '@/views/tab/RedisChart.vue'
 import RedisInfo from '@/views/tab/RedisInfo.vue'
 import RedisMemory from '@/views/tab/RedisMemory.vue'

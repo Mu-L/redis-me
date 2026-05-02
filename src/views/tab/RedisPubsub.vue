@@ -3,8 +3,8 @@ import { listen } from '@tauri-apps/api/event'
 import { computed, inject, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/bindings/me-interface'
 import MeWebsite from '@/components/MeWebsite.vue'
+import type { AppMainShare } from '@/types/me-interface'
 import { meCopy, meCommands, meOk } from '@/utils/util'
 
 const { t } = useI18n()

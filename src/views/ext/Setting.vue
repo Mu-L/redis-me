@@ -6,7 +6,7 @@ import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainInject } from '@/bindings/me-interface'
+import type { AppMainInject } from '@/types/me-interface'
 import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util'
 
 const { t } = useI18n()

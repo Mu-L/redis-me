@@ -17,7 +17,7 @@ import { Line } from 'vue-chartjs'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/bindings/me-interface'
+import type { AppMainShare } from '@/types/me-interface'
 import { isDark, meHumanNums, meCommands, meLog, PREDEFINE_COLORS } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 

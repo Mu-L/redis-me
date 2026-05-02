@@ -1,12 +1,12 @@
 import type { Update } from '@tauri-apps/plugin-updater'
 
-import { commands as spectaCommands } from '@/bindings/tauri-specta'
+import { commands as spectaCommands } from '@/types/tauri-specta'
 import type {
   ConnConfig,
   RedisKey_Deserialize,
   RedisNode,
   ServerCapabilities,
-} from '@/bindings/tauri-specta'
+} from '@/types/tauri-specta'
 
 /** node_list 原始项经 enrich 后供 UI 使用 */
 export interface EnrichedRedisNode extends RedisNode {
@@ -89,7 +89,7 @@ type WrapSpectaCommand<F> = F extends (...args: infer A) => infer R
 type SpectaCommandsMap = typeof spectaCommands
 
 /**
- * `MeCommands`（及运行时 `meCommands`）：与 `@/bindings/tauri-specta` 里 **`export const commands`**
+ * `MeCommands`（及运行时 `meCommands`）：与 `@/types/tauri-specta` 里 **`export const commands`**
  * 逐项同键、同入参（本文件以 `spectaCommands` 取类型）；成功时返回解包后的 `data`；末尾可传 `false` 关闭错误弹窗。
  */
 export type MeCommands = {

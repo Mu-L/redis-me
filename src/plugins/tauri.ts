@@ -5,7 +5,7 @@ import { LazyStore } from '@tauri-apps/plugin-store'
 import { reactive, watch } from 'vue'
 import type { App } from 'vue'
 
-import { commands, type ConnConfig } from '@/bindings/tauri-specta'
+import { commands, type ConnConfig } from '@/types/tauri-specta'
 import { meLog } from '@/utils/util'
 
 /** 本地 store / 旧版数据：字段可能缺失，或含已迁移的扁平哨兵字段 */

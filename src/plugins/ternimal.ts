@@ -2,7 +2,7 @@ import type { App } from 'vue'
 import type { Command, InputTipsSearchHandlerFunc } from 'vue-web-terminal'
 import { createTerminal } from 'vue-web-terminal'
 
-import type { MeXtermCommandItem } from '@/bindings/me-interface'
+import type { MeXtermCommandItem } from '@/types/me-interface'
 
 const terminal = createTerminal()
 

@@ -2,8 +2,8 @@
 import { computed, onMounted, useTemplateRef } from 'vue'
 import type { FailedFunc, Message, SuccessFunc } from 'vue-web-terminal'
 
-import type { MeXtermCommandItem } from '@/bindings/me-interface'
 import { handleInputTipsSearch } from '@/plugins/ternimal'
+import type { MeXtermCommandItem } from '@/types/me-interface'
 import { isDark } from '@/utils/util'
 
 type ExecCommandFn = (command: string) => string | Promise<string>

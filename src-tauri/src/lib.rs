@@ -66,7 +66,7 @@ fn tauri_specta_commands() -> Commands<tauri::Wry> {
 
 /// 生成前端 TS 绑定路径（相对 `src-tauri` 的 `CARGO_MANIFEST_DIR`）。
 pub fn tauri_specta_typescript_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../src/bindings/tauri-specta.ts")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../src/types/tauri-specta.ts")
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -117,7 +117,7 @@ pub fn run() {
 mod specta_export_tests {
     use super::*;
 
-    /// 不启动 GUI，仅写出 `src/bindings/tauri-specta.ts`（与 debug 启动时导出一致）。
+    /// 不启动 GUI，仅写出 `src/types/tauri-specta.ts`（与 debug 启动时导出一致）。
     #[test]
     fn export_tauri_specta_typescript_bindings() {
         Builder::<tauri::Wry>::new()

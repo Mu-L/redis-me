@@ -17,22 +17,22 @@ import { sampleSize, sortBy } from 'lodash'
 import mitt from 'mitt'
 import { computed, h } from 'vue'
 
+import i18n from '@/locales'
 import type {
   MeAppUpdateState,
   MeCommands,
   EnrichedRedisNode,
   KeyTypeListItem,
-} from '@/bindings/me-interface'
-import { commands as spectaCommands } from '@/bindings/tauri-specta'
-import type { RedisKey_Deserialize, RedisNode } from '@/bindings/tauri-specta'
-import i18n from '@/locales'
+} from '@/types/me-interface'
+import { commands as spectaCommands } from '@/types/tauri-specta'
+import type { RedisKey_Deserialize, RedisNode } from '@/types/tauri-specta'
 
 export type {
   EnrichedRedisNode,
   KeyTypeListItem,
   MeAppUpdateState,
   MeCommands,
-} from '@/bindings/me-interface'
+} from '@/types/me-interface'
 
 // #region 本文件内部类型（Specta / 应用错误载荷）
 type SpectaResult<T> = { status: 'ok'; data: T } | { status: 'error'; error: unknown }

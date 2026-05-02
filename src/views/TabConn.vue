@@ -8,8 +8,8 @@ import { Sortable } from 'sortablejs'
 import { computed, inject, nextTick, onMounted, reactive, ref, toRaw, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainInject, AppMainShare, UiConn } from '@/bindings/me-interface'
 import { checkConnList } from '@/plugins/tauri'
+import type { AppMainInject, AppMainShare, UiConn } from '@/types/me-interface'
 import {
   meConfirm,
   meDownloadUpdate,

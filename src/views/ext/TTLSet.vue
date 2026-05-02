@@ -3,7 +3,7 @@ import { cloneDeep } from 'lodash'
 import { computed, inject, readonly, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/bindings/me-interface'
+import type { AppMainShare } from '@/types/me-interface'
 import { meCommands, meOk, meTtlSeconds } from '@/utils/util'
 
 const { t } = useI18n()

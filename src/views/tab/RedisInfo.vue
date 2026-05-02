@@ -11,9 +11,9 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/bindings/me-interface'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/locales/info'
+import type { AppMainShare } from '@/types/me-interface'
 import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'

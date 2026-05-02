@@ -2,8 +2,8 @@
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AppMainShare } from '@/bindings/me-interface'
 import { clientTip as tips } from '@/locales/client'
+import type { AppMainShare } from '@/types/me-interface'
 import { meConfirm, meHumanSeconds, meCommands, meOk } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
