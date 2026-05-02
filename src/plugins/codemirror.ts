@@ -1,6 +1,5 @@
 import {
   EditorView,
-  lineNumbers,
   highlightSpecialChars,
   drawSelection,
   dropCursor,
@@ -32,7 +31,7 @@ import { tags } from '@lezer/highlight'
 
 // import { basicSetup } from "codemirror"
 export const meBasicSetup = [
-  lineNumbers(),
+  // lineNumbers：由 MeCode.vue 控制，支持 Ctrl+N 切换
   // highlightActiveLineGutter(), // 关闭高亮激活行的行号区域
   highlightSpecialChars(),
   history(),

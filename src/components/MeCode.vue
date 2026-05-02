@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { LanguageSupport, StreamLanguage, syntaxHighlighting } from '@codemirror/language'
 import { properties as propertiesMode } from '@codemirror/legacy-modes/mode/properties'
-import { Compartment, Prec } from '@codemirror/state'
-import { EditorView, keymap } from '@codemirror/view'
+import { Prec } from '@codemirror/state'
+import { EditorView, keymap, lineNumbers } from '@codemirror/view'
 import { useDark } from '@vueuse/core'
 import { json5 as cmJson5 } from 'codemirror-json5'
 import { computed, ref } from 'vue'
@@ -31,7 +31,19 @@ function toggleCmEditorFullscreen(el: HTMLElement) {
 
 /** 自动换行默认开启 */
 const lineWrap = ref(true)
-const lineWrapCompartment = new Compartment()
+/** 行号默认显示，Ctrl+N 切换 */
+const showLineNumbers = ref(true)
+
+/** 编辑器字号（px），Ctrl+= / Ctrl+- 调节，Ctrl+0 恢复默认 */
+const FONT_SIZE_DEFAULT = 15
+const FONT_SIZE_MIN = 10
+const FONT_SIZE_MAX = 28
+const FONT_SIZE_STEP = 2
+const fontSizePx = ref(FONT_SIZE_DEFAULT)
+
+function bumpFontSize(delta: number) {
+  fontSizePx.value = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, fontSizePx.value + delta))
+}
 
 const meCodePrecKeymap = Prec.highest(
   keymap.of([
@@ -45,8 +57,35 @@ const meCodePrecKeymap = Prec.highest(
     {
       key: 'Ctrl-l',
       run: () => {
-        console.log('Ctrl-L');
         lineWrap.value = !lineWrap.value
+        return true
+      },
+    },
+    {
+      key: 'Ctrl-n',
+      run: () => {
+        showLineNumbers.value = !showLineNumbers.value
+        return true
+      },
+    },
+    {
+      key: 'Ctrl-=',
+      run: () => {
+        bumpFontSize(FONT_SIZE_STEP)
+        return true
+      },
+    },
+    {
+      key: 'Ctrl--',
+      run: () => {
+        bumpFontSize(-FONT_SIZE_STEP)
+        return true
+      },
+    },
+    {
+      key: 'Ctrl-0',
+      run: () => {
+        fontSizePx.value = FONT_SIZE_DEFAULT
         return true
       },
     },
@@ -76,10 +115,17 @@ const extensions = computed(() => {
   const list = [
     meBasicSetup,
     meCodePrecKeymap,
+    EditorView.theme({
+      '&': { fontSize: `${fontSizePx.value}px` },
+    }),
   ]
 
   if (lineWrap.value) {
     list.push(EditorView.lineWrapping)
+  }
+
+  if (showLineNumbers.value) {
+    list.push(lineNumbers())
   }
 
   if (props.mode === 'properties') {
@@ -108,7 +154,6 @@ const extensions = computed(() => {
 
 .vue-codemirror {
   height: 100%;
-  font-size: 15px;
 
   /* 默认高度 */
   :deep(.cm-editor) {
