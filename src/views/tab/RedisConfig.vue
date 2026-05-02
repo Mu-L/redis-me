@@ -14,8 +14,8 @@ import { useI18n } from 'vue-i18n'
 
 import type { AppMainShare } from '@/bindings/me-interface'
 import MeWebsite from '@/components/MeWebsite.vue'
+import { configTip as tips } from '@/locales/config'
 import { redisConfDict, valkeyConfDict } from '@/utils/redis'
-import { configTip as tips } from '@/utils/tip'
 import { meCopy, meCommands, meOk } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
