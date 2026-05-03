@@ -18,9 +18,7 @@ features:
   - icon: 📚
     title: Cross Platform
     details: Support Windows, Mac, Linux
-    linkText: Download
   - icon: 📖
     title: Open Source
     details: Completely open source, safe
-    linkText: Source Code
 ---
