@@ -19,10 +19,8 @@ features:
     title: 跨平台
     details: 支持Windows、Mac、Linux系统
     linkText: 下载地址
-    link: https://github.com/hepengju/redis-me/releases
   - icon: 📖
     title: 代码开源
     details: 本软件完全开源，用户可放心使用
     linkText: 源码地址
-    link: https://github.com/hepengju/redis-me
 ---

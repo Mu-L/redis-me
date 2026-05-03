@@ -19,10 +19,8 @@ features:
     title: Cross Platform
     details: Support Windows, Mac, Linux
     linkText: Download
-    link: https://github.com/hepengju/redis-me/releases
   - icon: 📖
     title: Open Source
     details: Completely open source, safe
     linkText: Source Code
-    link: https://github.com/hepengju/redis-me
 ---
