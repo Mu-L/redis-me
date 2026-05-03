@@ -98,7 +98,7 @@ export default {
     export: 'Export Conn',
     import: 'Import Conn',
     clearConnections: 'Clear Conn',
-    clearConnectionsConfirm: 'Clear all connections? This cannot be undone.',
+    clearConnectionsConfirm: 'Clear all connections? This cannot be undone!',
     clearConnectionsOk: 'All connections cleared',
     keyword: 'Filter (Name, Host)',
     color: 'Color',
