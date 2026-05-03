@@ -11,7 +11,7 @@
   - **Syntax highlighting supports JSON5**
   - Shortcuts: **F11 fullscreen**, Ctrl+L toggles line wrap, Ctrl+N toggles line numbers
   - Shortcuts: Ctrl+=, Ctrl+-, and Ctrl+0 increase, decrease, and reset editor font size
-- Value view: Added an extended CodeMirror shortcut reference (dialog)
+- Value view: Added an CodeMirror shortcut reference (dialog)
 - Code: **End-to-end strong typing** (frontend migrated from JavaScript to TypeScript; Tauri commands and events are strongly typed)
 - Updates: No in-app auto-update when installed from the Microsoft Store or Mac App Store (updates follow store policy)
 - Details: Pub/Sub hints, wider "new key" layout, English plural and related copy tweaks, etc.
