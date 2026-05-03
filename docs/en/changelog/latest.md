@@ -9,7 +9,6 @@
   - **Export connections to the built-in `.mec` format (simple Base64 encoding)**
 - Highlight: Multiple CodeMirror viewer improvements
   - **Syntax highlighting supports JSON5**
-  - Line wrapping enabled by default
   - Shortcuts: **F11 fullscreen**, Ctrl+L toggles line wrap, Ctrl+N toggles line numbers
   - Shortcuts: Ctrl+=, Ctrl+-, and Ctrl+0 increase, decrease, and reset editor font size
 - Value view: Added an extended CodeMirror shortcut reference (dialog)

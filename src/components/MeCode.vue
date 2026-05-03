@@ -29,8 +29,8 @@ function toggleCmEditorFullscreen(el: HTMLElement) {
   void el.requestFullscreen().catch(() => {})
 }
 
-/** 自动换行默认开启 */
-const lineWrap = ref(true)
+/** 自动换行默认关闭，Ctrl+L 切换 */
+const lineWrap = ref(false)
 /** 行号默认显示，Ctrl+N 切换 */
 const showLineNumbers = ref(true)
 
