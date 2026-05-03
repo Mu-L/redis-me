@@ -19,7 +19,7 @@ if (props.redisKey && !props.redisKey.keyType && share.conn) {
 </script>
 
 <template>
-  <el-tag size="small" disable-transitions :type="meType(redisKey.keyType)" effect="dark">
-    {{ meKeyShort(redisKey.keyType) }}
+  <el-tag size="small" disable-transitions :type="meType(redisKey?.keyType)" effect="dark">
+    {{ meKeyShort(redisKey?.keyType) }}
   </el-tag>
 </template>
