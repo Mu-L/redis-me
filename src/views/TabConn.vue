@@ -89,13 +89,25 @@ onMounted(() => rowDrag())
 
 const filters: DialogFilter[] = [{ name: '', extensions: ['mec'] }]
 
+const isDev = import.meta.env.DEV
+
 function handleCommand(command: string): void {
   if (command === 'export') {
     void exportConn()
   } else if (command === 'import') {
     dialog.import = true
     void nextTick(() => importRef.value?.open())
+  } else if (command === 'clear' && isDev) {
+    clearAllConnections()
   }
+}
+
+function clearAllConnections(): void {
+  meConfirm(t('conn.clearConnectionsConfirm'), () => {
+    share.connList.splice(0, share.connList.length)
+    share.conn = null
+    meOk(t('conn.clearConnectionsOk'))
+  })
 }
 
 async function exportConn(): Promise<void> {
@@ -145,6 +157,13 @@ function clickNew(): void {
               </el-dropdown-item>
               <el-dropdown-item command="import">
                 <me-icon :name="t('conn.import')" icon="me-icon-import" />
+              </el-dropdown-item>
+              <el-dropdown-item
+                v-if="isDev"
+                command="clear"
+                divided
+                :disabled="share.connList.length === 0">
+                <me-icon :name="t('conn.clearConnections')" icon="el-icon-delete" />
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>

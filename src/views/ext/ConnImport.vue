@@ -103,7 +103,7 @@ async function submit(): Promise<void> {
   <el-dialog
     :model-value="visible"
     :title="t('conn.importTitle')"
-    width="720px"
+    width="500px"
     destroy-on-close
     @update:model-value="v => !v && close()">
     <el-form label-position="top">
