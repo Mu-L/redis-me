@@ -108,10 +108,7 @@ async function submit(): Promise<void> {
     @update:model-value="v => !v && close()">
     <el-form label-position="top">
       <el-form-item :label="t('conn.importSource')">
-        <el-segmented
-          v-model="source"
-          :options="sourceOptions"
-         />
+        <el-segmented v-model="source" :options="sourceOptions" />
       </el-form-item>
       <el-form-item :label="t('conn.importPickFile')">
         <me-file-input

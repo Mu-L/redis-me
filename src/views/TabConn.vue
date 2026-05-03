@@ -9,7 +9,7 @@ import { computed, inject, nextTick, onMounted, reactive, ref, toRaw, useTemplat
 import { useI18n } from 'vue-i18n'
 
 import { appProvideKey, shareProvideKey, type UiConn } from '@/types/me-interface'
-import { mergeImportedConnList } from '@/utils/rdm'
+import { encodeRedisMeConnectionsToMec, mergeImportedConnList } from '@/utils/rdm'
 import { meConfirm, meDownloadUpdate, meErr, meLog, meOk, PREDEFINE_COLORS } from '@/utils/util'
 import ConnImport from '@/views/ext/ConnImport.vue'
 import ConnSave from '@/views/ext/ConnSave.vue'
@@ -87,7 +87,7 @@ function rowDrag(): void {
 
 onMounted(() => rowDrag())
 
-const filters: DialogFilter[] = [{ name: '', extensions: ['json'] }]
+const filters: DialogFilter[] = [{ name: '', extensions: ['mec'] }]
 
 function handleCommand(command: string): void {
   if (command === 'export') {
@@ -99,11 +99,11 @@ function handleCommand(command: string): void {
 }
 
 async function exportConn(): Promise<void> {
-  const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss')
+  const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss') + '.mec'
   const path = await save({ filters, defaultPath: fileName })
   if (path) {
     try {
-      await writeTextFile(path, JSON.stringify(share.connList, null, 2))
+      await writeTextFile(path, encodeRedisMeConnectionsToMec(share.connList))
       meOk(t('conn.exportOk'))
     } catch (e: unknown) {
       meErr(e instanceof Error ? e : String(e), t('conn.exportErr'))

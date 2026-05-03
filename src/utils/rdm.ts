@@ -21,9 +21,30 @@ export class ConnImportParseError extends Error {
 export type ConnImportSource = 'redisme' | 'another' | 'tiny'
 
 export function connImportFileSuffix(source: ConnImportSource): string {
-  if (source === 'redisme') return 'json'
+  if (source === 'redisme') return 'mec'
   if (source === 'another') return 'ano'
   return 'zip'
+}
+
+/** Base64(UTF-8)，与 AnotherRDM `.ano` 一致 */
+function decodeBase64Utf8(b64: string): string {
+  const t = b64.trim().replace(/\s+/g, '')
+  const bin = atob(t)
+  const bytes = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i) & 0xff
+  return new TextDecoder().decode(bytes)
+}
+
+function encodeBase64Utf8(text: string): string {
+  const bytes = new TextEncoder().encode(text)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]!)
+  return btoa(binary)
+}
+
+/** 导出 `.mec` 文件内容（单行 Base64） */
+export function encodeRedisMeConnectionsToMec(connList: UiConn[]): string {
+  return encodeBase64Utf8(JSON.stringify(connList))
 }
 
 function emptyConn(overrides: Partial<UiConn>): UiConn {
@@ -83,25 +104,46 @@ function parseDb(raw: unknown): number {
   return 0
 }
 
-/** RedisME 导出的 JSON 文本 → 连接列表（与原先 TabConn 校验一致） */
-export function parseRedisMeConnections(content: string): UiConn[] {
-  let connList: unknown
-  try {
-    connList = meJsonParse(content)
-  } catch {
-    throw new ConnImportParseError('conn.importJsonErr')
-  }
-
+function validateRedisMeConnList(connList: unknown): UiConn[] {
   if (!Array.isArray(connList) || connList.length === 0) {
     throw new ConnImportParseError('conn.importConnErr')
   }
-
   for (const conn of connList as UiConn[]) {
     if (!conn.id || !conn.name || !conn.host || !conn.port) {
       throw new ConnImportParseError('conn.importFormatErr')
     }
   }
   return connList as UiConn[]
+}
+
+/**
+ * RedisME 连接列表：支持 `.mec`（Base64(UTF-8 JSON 数组)）及旧版明文 JSON 数组。
+ */
+export function parseRedisMeConnections(content: string): UiConn[] {
+  const trimmed = content.trim()
+  if (/^\s*\[/.test(content)) {
+    let connList: unknown
+    try {
+      connList = meJsonParse(trimmed)
+    } catch {
+      throw new ConnImportParseError('conn.importJsonErr')
+    }
+    return validateRedisMeConnList(connList)
+  }
+
+  let jsonText: string
+  try {
+    jsonText = decodeBase64Utf8(trimmed)
+  } catch {
+    throw new ConnImportParseError('conn.importMecDecodeErr')
+  }
+  let arr: unknown
+  try {
+    arr = JSON.parse(jsonText)
+  } catch {
+    throw new ConnImportParseError('conn.importJsonErr')
+  }
+  return validateRedisMeConnList(arr)
 }
 
 type AnotherRaw = Record<string, unknown>
@@ -185,11 +227,7 @@ function anotherItemToUiConn(raw: unknown): UiConn {
 export function parseAnotherRdmFromAno(content: string): UiConn[] {
   let jsonText: string
   try {
-    const b64 = content.trim().replace(/\s+/g, '')
-    const bin = atob(b64)
-    const bytes = new Uint8Array(bin.length)
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i) & 0xff
-    jsonText = new TextDecoder().decode(bytes)
+    jsonText = decodeBase64Utf8(content)
   } catch {
     throw new ConnImportParseError('conn.importAnoDecodeErr')
   }

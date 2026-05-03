@@ -21,15 +21,15 @@
 ## 现状
 
 - 导入逻辑在 [`src/views/TabConn.vue`](../src/views/TabConn.vue)：`importConn()` 调 Tauri `open`（仅 `json`）→ `readTextFile` → `checkImportContent`（`meJsonParse` + 字段校验）→ 按导入项 `id` 与现有列表合并。
-- [`src/components/MeFileInput.vue`](../src/components/MeFileInput.vue)：已支持单个 `fileSuffix`。用户先选来源再选文件：**RedisME → `json`，AnotherRDM → `ano`，TinyRDM → `zip`**，弹窗内 `:file-suffix` 随来源切换；**切换来源时清空已选路径**。
+- [`src/components/MeFileInput.vue`](../src/components/MeFileInput.vue)：已支持单个 `fileSuffix`。用户先选来源再选文件：**RedisME → `mec`，AnotherRDM → `ano`，TinyRDM → `zip`**，弹窗内 `:file-suffix` 随来源切换；**切换来源时清空已选路径**。
 
 ## 外部格式结论
 
-| 来源           | 文件    | 内容                                                                                                                                                                                                                                  |
-| -------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **AnotherRDM** | `.ano`  | 整文件为 **Base64(UTF-8 JSON 数组)**；数组元素含 `host`、`port`（可能为字符串）、`auth`、`username`、`name`/`connectionName`、`cluster`、`connectionReadOnly`、`color`、`key`，可选 `sshOptions` / `sslOptions` / `sentinelOptions`。 |
-| **TinyRDM**    | `.zip`  | 内含 **`connections.yaml`**；YAML 根为数组，`type: "group"` 时含嵌套 `connections`，否则为单机配置；YAML 键为 snake_case。                                                                                                            |
-| **RedisME**    | `.json` | 与当前导出一致（现有 `checkImportContent` 行为）。                                                                                                                                                                                    |
+| 来源           | 文件   | 内容                                                                                                                                                                                                                                  |
+| -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **AnotherRDM** | `.ano` | 整文件为 **Base64(UTF-8 JSON 数组)**；数组元素含 `host`、`port`（可能为字符串）、`auth`、`username`、`name`/`connectionName`、`cluster`、`connectionReadOnly`、`color`、`key`，可选 `sshOptions` / `sslOptions` / `sentinelOptions`。 |
+| **TinyRDM**    | `.zip` | 内含 **`connections.yaml`**；YAML 根为数组，`type: "group"` 时含嵌套 `connections`，否则为单机配置；YAML 键为 snake_case。                                                                                                            |
+| **RedisME**    | `.mec` | 单行 **Base64(UTF-8 JSON 数组)**，与 AnotherRDM `.ano` 编码方式相同；导入仍兼容以 `[` 开头的旧版明文 JSON。                                                                                                                           |
 
 ## 架构（数据流）
 
