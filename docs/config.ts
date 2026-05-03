@@ -69,7 +69,7 @@ function sidebarGuide() {
     {
       text: 'Other',
       items: [
-        { text: 'Compare', link: '/other/compare' },
+        { text: 'RDM Compare', link: '/other/compare' },
         { text: 'Privacy Policy', link: '/other/privacy' },
       ],
     },
