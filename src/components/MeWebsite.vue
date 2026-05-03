@@ -22,8 +22,8 @@ const props = withDefaults(
 /** 下拉项 command，与模板中 el-dropdown-item 一致 */
 const WEB_ORIGIN = {
   redis: 'https://redis.io',
-  redisZh: 'https://redis.ac.cn',
   valkey: 'https://valkey.io',
+  redisZh: 'https://redis.ac.cn',
   valkeyZh: 'https://valkey.cn',
 } as const
 
@@ -68,11 +68,7 @@ function handleCommand(cmd: string): void {
   const vendor = (site.endsWith('Zh') ? site.slice(0, -2) : site) as Vendor
   const base = WEB_ORIGIN[site]
   const paths = DOC_PATHS[props.to]
-
-  void openUrl(base + DOC_PATHS.info[vendor])
-  if (props.to !== 'info') {
-    void openUrl(base + paths[vendor])
-  }
+  void openUrl(base + paths[vendor])
 }
 </script>
 
