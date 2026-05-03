@@ -10,7 +10,7 @@ const props = defineProps<{
   redisKey: RedisKey_Deserialize & { keyType?: string }
 }>()
 
-if (!props.redisKey.keyType && share.conn) {
+if (props.redisKey && !props.redisKey.keyType && share.conn) {
   try {
     const data = await meCommands.keyType(share.conn!.id, props.redisKey)
     props.redisKey.keyType = data?.toUpperCase()
