@@ -9,6 +9,7 @@ import {
   ConnImportParseError,
   connImportFileSuffix,
   parseAnotherRdmFromAno,
+  parseRedisInsightConnections,
   parseRedisMeConnections,
   parseTinyRdmFromZipFile,
   type ConnImportSource,
@@ -34,12 +35,14 @@ const sourceOptions: { label: string; value: ConnImportSource }[] = [
   { label: 'RedisME', value: 'redisme' },
   { label: 'AnotherRDM', value: 'another' },
   { label: 'TinyRDM', value: 'tiny' },
+  { label: 'Redis Insight', value: 'insight' },
 ]
 
 const filePlaceholder = computed(() => {
   if (source.value === 'redisme') return t('conn.importPlaceholderRedisme')
   if (source.value === 'another') return t('conn.importPlaceholderAnother')
-  return t('conn.importPlaceholderTiny')
+  if (source.value === 'tiny') return t('conn.importPlaceholderTiny')
+  return t('conn.importPlaceholderInsight')
 })
 
 watch(source, () => {
@@ -74,6 +77,9 @@ async function submit(): Promise<void> {
     } else if (source.value === 'another') {
       const text = await readTextFile(filePath.value)
       list = parseAnotherRdmFromAno(text)
+    } else if (source.value === 'insight') {
+      const text = await readTextFile(filePath.value)
+      list = parseRedisInsightConnections(text)
     } else {
       const { connections, skippedUnix } = await parseTinyRdmFromZipFile(filePath.value)
       list = connections

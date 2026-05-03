@@ -120,6 +120,9 @@ export default {
     importPlaceholderRedisme: 'Click "..." to choose a RedisME export (.mec)',
     importPlaceholderAnother: 'Click "..." to choose an AnotherRDM export (.ano)',
     importPlaceholderTiny: 'Click "..." to choose a TinyRDM export (.zip)',
+    importPlaceholderInsight: 'Click "..." to choose a Redis Insight connections export (.json)',
+    importWrongSourceInsight:
+      'This file looks like a Redis Insight export. Choose "Redis Insight" as the source and try again.',
     importFileRequired: 'Please choose a file to import',
     importPortErr: 'Invalid port (must be an integer between 1 and 65535)',
     importAnoDecodeErr: 'Failed to decode AnotherRDM file (invalid Base64)',

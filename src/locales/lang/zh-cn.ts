@@ -114,6 +114,9 @@ export default {
     importPlaceholderRedisme: '点击「…」选择 RedisME 导出的 .mec 文件',
     importPlaceholderAnother: '点击「…」选择 AnotherRDM 导出的 .ano 文件',
     importPlaceholderTiny: '点击「…」选择 TinyRDM 导出的 .zip 文件',
+    importPlaceholderInsight: '点击「…」选择 Redis Insight 导出的 .json 连接文件',
+    importWrongSourceInsight:
+      '该文件为 Redis Insight 导出格式，请将来源切换为「Redis Insight」后再导入',
     importFileRequired: '请选择要导入的文件',
     importPortErr: '端口号无效（需为 1–65535 的整数）',
     importAnoDecodeErr: 'AnotherRDM 文件解码失败（需为有效的 Base64）',

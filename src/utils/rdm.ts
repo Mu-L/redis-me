@@ -1,6 +1,6 @@
 /**
- * 各类 RDM（Redis Desktop Manager）导出格式的连接导入解析。
- * 新增其它 RDM 时在本文件追加解析函数即可。
+ * 各类 RDM / 工具导出格式的连接导入解析（AnotherRDM、TinyRDM、Redis Insight 等）。
+ * 新增其它来源时在本文件追加解析函数即可。
  */
 import { readFile } from '@tauri-apps/plugin-fs'
 import { unzipSync } from 'fflate'
@@ -18,12 +18,13 @@ export class ConnImportParseError extends Error {
   }
 }
 
-export type ConnImportSource = 'redisme' | 'another' | 'tiny'
+export type ConnImportSource = 'redisme' | 'another' | 'tiny' | 'insight'
 
 export function connImportFileSuffix(source: ConnImportSource): string {
   if (source === 'redisme') return 'mec'
   if (source === 'another') return 'ano'
-  return 'zip'
+  if (source === 'tiny') return 'zip'
+  return 'json'
 }
 
 /** Base64(UTF-8)，与 AnotherRDM `.ano` 一致 */
@@ -104,11 +105,23 @@ function parseDb(raw: unknown): number {
   return 0
 }
 
+/** 避免将 Redis Insight 导出误当作 RedisME 明文 JSON 导入 */
+function looksLikeRedisInsightExportItem(conn: unknown): boolean {
+  if (!conn || typeof conn !== 'object' || Array.isArray(conn)) return false
+  const o = conn as Record<string, unknown>
+  if (!('connectionType' in o)) return false
+  const ct = asStr(o.connectionType).toUpperCase()
+  return ct === 'STANDALONE' || ct === 'CLUSTER' || ct === 'SENTINEL'
+}
+
 function validateRedisMeConnList(connList: unknown): UiConn[] {
   if (!Array.isArray(connList) || connList.length === 0) {
     throw new ConnImportParseError('conn.importConnErr')
   }
   for (const conn of connList as UiConn[]) {
+    if (looksLikeRedisInsightExportItem(conn)) {
+      throw new ConnImportParseError('conn.importWrongSourceInsight')
+    }
     if (!conn.id || !conn.name || !conn.host || !conn.port) {
       throw new ConnImportParseError('conn.importFormatErr')
     }
@@ -425,6 +438,108 @@ export async function parseTinyRdmFromZipFile(
   }
 
   return { connections, skippedUnix }
+}
+
+type InsightRaw = Record<string, unknown>
+
+/** Redis Insight 导出中密码字段可能为布尔占位（已脱敏） */
+function insightSecretStr(v: unknown): string {
+  if (v == null) return ''
+  if (typeof v === 'string') return v
+  return ''
+}
+
+function insightItemToUiConn(raw: unknown): UiConn {
+  if (!raw || typeof raw !== 'object') {
+    throw new ConnImportParseError('conn.importFormatErr')
+  }
+  const o = raw as InsightRaw
+  const host = asStr(o.host).trim()
+  if (!host) throw new ConnImportParseError('conn.importFormatErr')
+  const port = parsePortU16(o.port)
+
+  const name = asStr(o.name).trim() || `${host}:${port}`
+  const idStr = asStr(o.id).trim()
+  const id = idStr || nanoid()
+
+  const ct = asStr(o.connectionType).toUpperCase() || 'STANDALONE'
+  const forceStandalone = !!o.forceStandalone
+
+  const clusterOn = ct === 'CLUSTER' && !forceStandalone
+  const sentinelOn = ct === 'SENTINEL'
+  const sentMaster = sentinelOn ? asObj(o.sentinelMaster) : undefined
+  if (sentinelOn) {
+    const masterName = sentMaster ? asStr(sentMaster.name).trim() : ''
+    if (!masterName) throw new ConnImportParseError('conn.importFormatErr')
+  }
+
+  const tlsOn = !!o.tls
+
+  const sshOpt = asObj(o.sshOptions)
+  const sshOn = !!o.ssh && !!sshOpt && asStr(sshOpt.host).trim()
+  const pkRaw = sshOpt ? insightSecretStr(sshOpt.privateKey) : ''
+  const pkIsPem = /-----BEGIN\b/.test(pkRaw)
+  const pkfile = pkRaw.trim() && !pkIsPem ? pkRaw.trim() : ''
+  const loginType = pkfile ? 'pkfile' : 'pwd'
+
+  return emptyConn({
+    id,
+    name,
+    host,
+    port,
+    username: insightSecretStr(o.username),
+    password: insightSecretStr(o.password),
+    db: parseDb(o.db),
+    cluster: clusterOn,
+    ssl: tlsOn,
+    sslOption: { key: '', cert: '', ca: '' },
+    sentinel: sentinelOn,
+    sentinelOption: sentinelOn
+      ? {
+          masterName: sentMaster ? asStr(sentMaster.name).trim() : '',
+          masterUsername: sentMaster ? insightSecretStr(sentMaster.username) : '',
+          masterPassword: sentMaster ? insightSecretStr(sentMaster.password) : '',
+        }
+      : { masterName: '', masterUsername: '', masterPassword: '' },
+    ssh: !!sshOn,
+    sshOption: sshOn
+      ? {
+          host: asStr(sshOpt!.host),
+          port: parsePortU16(sshOpt!.port ?? 22),
+          loginType,
+          username: asStr(sshOpt!.username),
+          password: insightSecretStr(sshOpt!.password),
+          pkfile: pkRaw.trim(),
+          passphrase: insightSecretStr(sshOpt!.passphrase),
+        }
+      : {
+          host: '',
+          port: 22,
+          loginType: 'pwd',
+          username: '',
+          password: '',
+          pkfile: '',
+          passphrase: '',
+        },
+  })
+}
+
+/**
+ * Redis Insight 导出的 `RedisInsight_connections_*.json`：JSON 数组，元素含 `connectionType` 等字段。
+ * `sslOption` 需本地文件路径：此处仅设置 `ssl: true`，证书请在连接编辑中重新指定。
+ * SSH：`privateKey` 为 PEM 正文时无法映射为文件路径，需用户保存为文件后在编辑中填写 `pkfile`。
+ */
+export function parseRedisInsightConnections(content: string): UiConn[] {
+  let arr: unknown
+  try {
+    arr = JSON.parse(content.trim())
+  } catch {
+    throw new ConnImportParseError('conn.importJsonErr')
+  }
+  if (!Array.isArray(arr) || arr.length === 0) {
+    throw new ConnImportParseError('conn.importConnErr')
+  }
+  return arr.map(a => insightItemToUiConn(a))
 }
 
 export function mergeImportedConnList(existing: UiConn[], imported: UiConn[]): UiConn[] {
