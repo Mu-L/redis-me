@@ -89,7 +89,6 @@ function sidebarGuide() {
       text: '其他',
       items: [
         { text: '客户端对比', link: '/other/compare' },
-        { text: '常见问题', link: '/other/faq' },
         { text: '隐私政策', link: '/other/privacy' },
       ],
     },
