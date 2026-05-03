@@ -91,6 +91,7 @@ const keyShortMap = new Map(KEY_TYPE_LIST.map(item => [item.value, item.short]))
  * 键类型：el-text, el-tag 的 type
  */
 export function meType(keyType: string | undefined | null): string {
+  if (!keyType) return 'info'
   return keyTypeMap.get(keyType?.toUpperCase() ?? '') || 'info'
 }
 
@@ -98,6 +99,7 @@ export function meType(keyType: string | undefined | null): string {
  * 键类型短：避免 String、Set 的简称都是 S
  */
 export function meKeyShort(keyType: string | undefined | null, defaultValue = '?'): string {
+  if (!keyType) return defaultValue
   return keyShortMap.get(keyType?.toUpperCase() ?? '') || defaultValue
 }
 

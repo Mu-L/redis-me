@@ -7,7 +7,8 @@ import { meCommands, meKeyShort, meType } from '@/utils/util'
 
 const share = inject(shareProvideKey)!
 const props = defineProps<{
-  redisKey: RedisKey_Deserialize & { keyType?: string }
+  /** 树虚拟列表更新时可能短暂缺失，避免 prop 校验告警 */
+  redisKey?: (RedisKey_Deserialize & { keyType?: string }) | null
 }>()
 
 if (props.redisKey && !props.redisKey.keyType && share.conn) {
@@ -19,7 +20,13 @@ if (props.redisKey && !props.redisKey.keyType && share.conn) {
 </script>
 
 <template>
-  <el-tag size="small" disable-transitions :type="meType(redisKey?.keyType)" effect="dark">
-    {{ meKeyShort(redisKey?.keyType) }}
+  <el-tag
+    v-if="redisKey"
+    size="small"
+    disable-transitions
+    :type="meType(redisKey.keyType)"
+    effect="dark">
+    {{ meKeyShort(redisKey.keyType) }}
   </el-tag>
+  <el-tag v-else size="small" disable-transitions type="info" effect="dark">?</el-tag>
 </template>

@@ -321,7 +321,7 @@ const keyLabelShort = computed(() => meTauri.settings.keyLabel !== 'full')
             class="me-flex">
             <Suspense>
               <template #default>
-                <KeyTypeTag :conn-id="share.conn!.id" :redis-key="node.data.redisKey" />
+                <KeyTypeTag :redis-key="node.data.redisKey" />
               </template>
               <template #fallback>
                 <el-tag size="small" disable-transitions type="info" effect="dark">?</el-tag>
