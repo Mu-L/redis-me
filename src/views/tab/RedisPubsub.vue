@@ -185,6 +185,5 @@ onUnmounted(() => tauriUnlisten())
   .footer {
     display: flex;
   }
-
 }
 </style>

@@ -6,13 +6,13 @@
 
 与现有方案文档对齐：
 
-| 规则 | 示例 |
-|------|------|
-| 文件名：**小写英文 + 连字符（kebab-case）** | `command-export-format.md`、`redis-acl-management.md` |
-| 文件名体现**主题域 + 功能/对象**，简短可读 | `value-display-format.md`、`command-logging.md` |
-| **阶段性审计/对标**类可加日期后缀 | `project-deep-audit-2026-04-25.md` |
+| 规则                                                                                                                    | 示例                                                  |
+| ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| 文件名：**小写英文 + 连字符（kebab-case）**                                                                             | `command-export-format.md`、`redis-acl-management.md` |
+| 文件名体现**主题域 + 功能/对象**，简短可读                                                                              | `value-display-format.md`、`command-logging.md`       |
+| **阶段性审计/对标**类可加日期后缀                                                                                       | `project-deep-audit-2026-04-25.md`                    |
 | 正文：**普通 Markdown**；仓库内方案**不使用** Cursor 计划专用的 YAML frontmatter（与 `redis-acl-management.md` 等一致） |
-| 实现跟踪：文末用 **Markdown 任务列表** 即可 | 见下方「实现清单」 |
+| 实现跟踪：文末用 **Markdown 任务列表** 即可                                                                             | 见下方「实现清单」                                    |
 
 本文件命名 **`rdm-import.md`**：与 `rdm.ts` 工具模块对应，且比 `connection-import-from-multiple-rdm-sources.md` 更短。
 
@@ -25,11 +25,11 @@
 
 ## 外部格式结论
 
-| 来源 | 文件 | 内容 |
-|------|------|------|
-| **AnotherRDM** | `.ano` | 整文件为 **Base64(UTF-8 JSON 数组)**；数组元素含 `host`、`port`（可能为字符串）、`auth`、`username`、`name`/`connectionName`、`cluster`、`connectionReadOnly`、`color`、`key`，可选 `sshOptions` / `sslOptions` / `sentinelOptions`。 |
-| **TinyRDM** | `.zip` | 内含 **`connections.yaml`**；YAML 根为数组，`type: "group"` 时含嵌套 `connections`，否则为单机配置；YAML 键为 snake_case。 |
-| **RedisME** | `.json` | 与当前导出一致（现有 `checkImportContent` 行为）。 |
+| 来源           | 文件    | 内容                                                                                                                                                                                                                                  |
+| -------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **AnotherRDM** | `.ano`  | 整文件为 **Base64(UTF-8 JSON 数组)**；数组元素含 `host`、`port`（可能为字符串）、`auth`、`username`、`name`/`connectionName`、`cluster`、`connectionReadOnly`、`color`、`key`，可选 `sshOptions` / `sslOptions` / `sentinelOptions`。 |
+| **TinyRDM**    | `.zip`  | 内含 **`connections.yaml`**；YAML 根为数组，`type: "group"` 时含嵌套 `connections`，否则为单机配置；YAML 键为 snake_case。                                                                                                            |
+| **RedisME**    | `.json` | 与当前导出一致（现有 `checkImportContent` 行为）。                                                                                                                                                                                    |
 
 ## 架构（数据流）
 
@@ -101,7 +101,7 @@ flowchart LR
 
 ## 实现清单
 
-- [ ] `vp add yaml fflate`
-- [ ] 新增 `src/utils/rdm.ts`（RedisME / AnotherRDM / TinyRDM，预留扩展）
-- [ ] 新增 `ConnImport.vue`（MeFileInput 按来源 `fileSuffix`，切换来源清空路径）；`TabConn` 接入
-- [ ] 中英 `conn.*` 文案；`vp check` + `check-locale-keys`
+- [x] `vp add yaml fflate`（依赖：`fflate`、`yaml`）
+- [x] 新增 `src/utils/rdm.ts`（RedisME / AnotherRDM / TinyRDM，预留扩展）
+- [x] 新增 `ConnImport.vue`（MeFileInput 按来源 `fileSuffix`，切换来源清空路径）；`TabConn` 接入
+- [x] 中英 `conn.*` 文案；`vp check` + `check-locale-keys`；Tauri `fs:allow-read-file`

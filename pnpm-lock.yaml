@@ -87,6 +87,9 @@ importers:
       element-plus:
         specifier: 2.13.5
         version: 2.13.5(typescript@5.8.3)(vue@3.5.33(typescript@5.8.3))
+      fflate:
+        specifier: ^0.8.2
+        version: 0.8.2
       json5:
         specifier: ^2.2.3
         version: 2.2.3
@@ -126,6 +129,9 @@ importers:
       vue-web-terminal:
         specifier: ^3.4.2
         version: 3.4.2(typescript@5.8.3)
+      yaml:
+        specifier: ^2.8.4
+        version: 2.8.4
     devDependencies:
       '@tauri-apps/cli':
         specifier: ^2.10.1
@@ -135,7 +141,7 @@ importers:
         version: 4.17.24
       '@vitejs/plugin-vue':
         specifier: ^6.0.6
-        version: 6.0.6(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3))(vue@3.5.33(typescript@5.8.3))
+        version: 6.0.6(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4))(vue@3.5.33(typescript@5.8.3))
       front-matter:
         specifier: ^4.0.2
         version: 4.0.2
@@ -150,13 +156,13 @@ importers:
         version: 0.12.6
       vite:
         specifier: npm:@voidzero-dev/vite-plus-core@0.1.16
-        version: '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)'
+        version: '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4)'
       vite-plus:
         specifier: 0.1.16
-        version: 0.1.16(@types/node@24.0.4)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3))(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)
+        version: 0.1.16(@types/node@24.0.4)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4))(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4)
       vitepress:
         specifier: 2.0.0-alpha.15
-        version: 2.0.0-alpha.15(@types/node@24.0.4)(async-validator@4.2.5)(oxc-minify@0.119.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1))(postcss@8.5.12)(sass-embedded@1.99.0)(sass@1.99.0)(sortablejs@1.15.7)(typescript@5.8.3)
+        version: 2.0.0-alpha.15(@types/node@24.0.4)(async-validator@4.2.5)(oxc-minify@0.119.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1))(postcss@8.5.12)(sass-embedded@1.99.0)(sass@1.99.0)(sortablejs@1.15.7)(typescript@5.8.3)(yaml@2.8.4)
       vue-tsc:
         specifier: ^3.2.7
         version: 3.2.7(typescript@5.8.3)
@@ -1664,6 +1670,9 @@ packages:
   fecha@4.2.3:
     resolution: {integrity: sha512-OP2IUU6HeYKJi3i0z4A19kHMQoLVs4Hc+DPqqxI2h/DPZHTm/vjsfC6P0b4jCMy14XizLBqvndQ+UilD7707Jw==}
 
+  fflate@0.8.2:
+    resolution: {integrity: sha512-cPJU47OaAoCbg0pBvzsgpTPhmhqI5eJjh/JIu8tPj5q+T7iLvW/JAYUqmE7KOB4R1ZyEhzBaIQpQpardBF5z8A==}
+
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
@@ -2576,6 +2585,11 @@ packages:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
 
+  yaml@2.8.4:
+    resolution: {integrity: sha512-ml/JPOj9fOQK8RNnWojA67GbZ0ApXAUlN2UQclwv2eVgTgn7O9gg9o7paZWKMp4g0H3nTLtS9LVzhkpOFIKzog==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+
   yargs-parser@21.1.1:
     resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
     engines: {node: '>=12'}
@@ -3276,13 +3290,13 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vitejs/plugin-vue@6.0.6(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3))(vue@3.5.33(typescript@5.8.3))':
+  '@vitejs/plugin-vue@6.0.6(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4))(vue@3.5.33(typescript@5.8.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.0-rc.13
-      vite: '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)'
+      vite: '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4)'
       vue: 3.5.33(typescript@5.8.3)
 
-  '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)':
+  '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4)':
     dependencies:
       '@oxc-project/runtime': 0.123.0
       '@oxc-project/types': 0.123.0
@@ -3294,6 +3308,7 @@ snapshots:
       sass: 1.99.0
       sass-embedded: 1.99.0
       typescript: 5.8.3
+      yaml: 2.8.4
 
   '@voidzero-dev/vite-plus-darwin-arm64@0.1.16':
     optional: true
@@ -3313,11 +3328,11 @@ snapshots:
   '@voidzero-dev/vite-plus-linux-x64-musl@0.1.16':
     optional: true
 
-  '@voidzero-dev/vite-plus-test@0.1.16(@types/node@24.0.4)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3))(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)':
+  '@voidzero-dev/vite-plus-test@0.1.16(@types/node@24.0.4)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4))(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@types/chai': 5.2.3
-      '@voidzero-dev/vite-plus-core': 0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)
+      '@voidzero-dev/vite-plus-core': 0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4)
       es-module-lexer: 1.7.0
       obug: 2.1.1
       pixelmatch: 7.2.0
@@ -3327,7 +3342,7 @@ snapshots:
       tinybench: 2.9.0
       tinyexec: 1.1.2
       tinyglobby: 0.2.16
-      vite: '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)'
+      vite: '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4)'
       ws: 8.20.0
     optionalDependencies:
       '@types/node': 24.0.4
@@ -3809,6 +3824,8 @@ snapshots:
       picomatch: 4.0.4
 
   fecha@4.2.3: {}
+
+  fflate@0.8.2: {}
 
   fill-range@7.1.1:
     dependencies:
@@ -4639,11 +4656,11 @@ snapshots:
       remove-trailing-separator: 1.1.0
       replace-ext: 1.0.1
 
-  vite-plus@0.1.16(@types/node@24.0.4)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3))(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3):
+  vite-plus@0.1.16(@types/node@24.0.4)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4))(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4):
     dependencies:
       '@oxc-project/types': 0.123.0
-      '@voidzero-dev/vite-plus-core': 0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)
-      '@voidzero-dev/vite-plus-test': 0.1.16(@types/node@24.0.4)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3))(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)
+      '@voidzero-dev/vite-plus-core': 0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4)
+      '@voidzero-dev/vite-plus-test': 0.1.16(@types/node@24.0.4)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4))(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4)
       oxfmt: 0.43.0
       oxlint: 1.58.0(oxlint-tsgolint@0.20.0)
       oxlint-tsgolint: 0.20.0
@@ -4684,7 +4701,7 @@ snapshots:
       - vite
       - yaml
 
-  vitepress@2.0.0-alpha.15(@types/node@24.0.4)(async-validator@4.2.5)(oxc-minify@0.119.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1))(postcss@8.5.12)(sass-embedded@1.99.0)(sass@1.99.0)(sortablejs@1.15.7)(typescript@5.8.3):
+  vitepress@2.0.0-alpha.15(@types/node@24.0.4)(async-validator@4.2.5)(oxc-minify@0.119.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1))(postcss@8.5.12)(sass-embedded@1.99.0)(sass@1.99.0)(sortablejs@1.15.7)(typescript@5.8.3)(yaml@2.8.4):
     dependencies:
       '@docsearch/css': 4.6.3
       '@docsearch/js': 4.6.3
@@ -4693,7 +4710,7 @@ snapshots:
       '@shikijs/transformers': 3.23.0
       '@shikijs/types': 3.23.0
       '@types/markdown-it': 14.1.2
-      '@vitejs/plugin-vue': 6.0.6(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3))(vue@3.5.33(typescript@5.8.3))
+      '@vitejs/plugin-vue': 6.0.6(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4))(vue@3.5.33(typescript@5.8.3))
       '@vue/devtools-api': 8.1.1
       '@vue/shared': 3.5.33
       '@vueuse/core': 14.2.1(vue@3.5.33(typescript@5.8.3))
@@ -4702,7 +4719,7 @@ snapshots:
       mark.js: 8.11.1
       minisearch: 7.2.0
       shiki: 3.23.0
-      vite: '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)'
+      vite: '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.0.4)(sass-embedded@1.99.0)(sass@1.99.0)(typescript@5.8.3)(yaml@2.8.4)'
       vue: 3.5.33(typescript@5.8.3)
     optionalDependencies:
       oxc-minify: 0.119.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)
@@ -4838,6 +4855,8 @@ snapshots:
   xpath@0.0.34: {}
 
   y18n@5.0.8: {}
+
+  yaml@2.8.4: {}
 
   yargs-parser@21.1.1: {}
 

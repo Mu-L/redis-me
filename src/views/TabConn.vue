@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { open, save, type DialogFilter } from '@tauri-apps/plugin-dialog'
-import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
+import { writeTextFile } from '@tauri-apps/plugin-fs'
 import dayjs from 'dayjs'
 import type { TableInstance } from 'element-plus'
 import { debounce } from 'lodash'
@@ -8,17 +8,10 @@ import { Sortable, type SortableEvent } from 'sortablejs'
 import { computed, inject, nextTick, onMounted, reactive, ref, toRaw, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { checkConnList } from '@/plugins/tauri'
 import { appProvideKey, shareProvideKey, type UiConn } from '@/types/me-interface'
-import {
-  meConfirm,
-  meDownloadUpdate,
-  meErr,
-  meJsonParse,
-  meLog,
-  meOk,
-  PREDEFINE_COLORS,
-} from '@/utils/util'
+import { mergeImportedConnList } from '@/utils/rdm'
+import { meConfirm, meDownloadUpdate, meErr, meLog, meOk, PREDEFINE_COLORS } from '@/utils/util'
+import ConnImport from '@/views/ext/ConnImport.vue'
 import ConnSave from '@/views/ext/ConnSave.vue'
 
 const { t } = useI18n()
@@ -36,8 +29,10 @@ const filterDataList = computed(() => {
 })
 
 const connRef = useTemplateRef<InstanceType<typeof ConnSave>>('conn')
+const importRef = useTemplateRef<InstanceType<typeof ConnImport>>('import')
 const dialog = reactive({
   conn: false,
+  import: false,
 })
 
 function addConn(): void {
@@ -98,7 +93,8 @@ function handleCommand(command: string): void {
   if (command === 'export') {
     void exportConn()
   } else if (command === 'import') {
-    void importConn()
+    dialog.import = true
+    void nextTick(() => importRef.value?.open())
   }
 }
 
@@ -115,47 +111,11 @@ async function exportConn(): Promise<void> {
   }
 }
 
-async function importConn(): Promise<void> {
-  const file = await open({ multiple: false, directory: false, filters })
-  if (file) {
-    try {
-      const content = await readTextFile(file)
-      const impConnList = await checkImportContent(content)
-      meLog('impConnList', impConnList)
-      const impIds = impConnList.map(conn => conn.id)
-
-      const newConnList: UiConn[] = []
-      newConnList.push(...share.connList.filter(conn => !impIds.includes(conn.id)))
-      newConnList.push(...impConnList)
-
-      meLog('newConnList', newConnList)
-      share.connList = newConnList
-      meOk(t('conn.importOk'))
-    } catch (e: unknown) {
-      meErr(e instanceof Error ? e : String(e), t('conn.importErr'))
-    }
-  }
-}
-
-async function checkImportContent(content: string): Promise<UiConn[]> {
-  let connList: unknown
-  try {
-    connList = meJsonParse(content)
-    checkConnList(connList as Parameters<typeof checkConnList>[0])
-  } catch {
-    throw new Error(t('conn.importJsonErr'))
-  }
-
-  if (!Array.isArray(connList) || connList.length === 0) {
-    throw new Error(t('conn.importConnErr'))
-  }
-
-  for (const conn of connList as UiConn[]) {
-    if (!conn.id || !conn.name || !conn.host || !conn.port) {
-      throw new Error(t('conn.importFormatErr'))
-    }
-  }
-  return connList as UiConn[]
+function onConnImported(impConnList: UiConn[]): void {
+  meLog('impConnList', impConnList)
+  share.connList = mergeImportedConnList(share.connList, impConnList)
+  meLog('newConnList', share.connList)
+  meOk(t('conn.importOk'))
 }
 
 const app = inject(appProvideKey)!
@@ -266,6 +226,11 @@ function clickNew(): void {
     </el-table>
 
     <ConnSave ref="conn" v-if="dialog.conn" @closed="dialog.conn = false" />
+    <ConnImport
+      ref="import"
+      v-if="dialog.import"
+      @import="onConnImported"
+      @closed="dialog.import = false" />
 
     <!-- 应用升级时的下载进度显示 -->
     <el-progress

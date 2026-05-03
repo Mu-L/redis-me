@@ -19,6 +19,7 @@
     "fs:default",
     "fs:allow-write-text-file",
     "fs:allow-read-text-file",
+    "fs:allow-read-file",
     "fs:allow-resource-read-recursive",
     { "identifier": "fs:allow-exists", "allow": [{ "path": "$APPDATA/*" }] },
     "os:default",
