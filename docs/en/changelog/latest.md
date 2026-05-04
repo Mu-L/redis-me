@@ -1,6 +1,6 @@
 # 3.x Changelog
 
-## v3.2.0 (2026-05-05)
+## [v3.2.0](https://mp.weixin.qq.com/s/8c39tELlwtjrkbvD8kWB6A) (2026-05-05)
 
 ### ✨ New Features
 
@@ -15,6 +15,7 @@
 - Code: **End-to-end strong typing** (frontend migrated from JavaScript to TypeScript; Tauri commands and events are strongly typed)
 - Updates: No in-app auto-update when installed from the Microsoft Store or Mac App Store (updates follow store policy)
 - Details: Pub/Sub hints, wider "new key" layout, English plural and related copy tweaks, etc.
+- Docs: complete coverage for memory analysis, slow logs, command monitoring, and pub/sub
 
 ### 🐞 Bug Fixes
 
