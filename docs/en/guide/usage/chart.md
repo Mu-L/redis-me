@@ -10,9 +10,9 @@
 - **Config Params**: Whether to auto - refresh, refresh interval, retention duration, and maximum number of points (using the time - equal - division algorithm).
 - **Specify Node**: In cluster mode, it supports monitoring the data of a specific master node or slave node.
 
-![main.png](/images/chart/main.png)
-![more.png](/images/chart/more.png)
-![chartjs.png](/images/chart/chartjs.png)
+![main.png](../../../public/images/chart/main.png)
+![more.png](../../../public/images/chart/more.png)
+![chartjs.png](../../../public/images/chart/chartjs.png)
 
 ## Indicator details
 

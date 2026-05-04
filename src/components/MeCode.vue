@@ -1,8 +1,11 @@
-<script setup>
-import { json } from '@codemirror/lang-json'
-import { StreamLanguage, syntaxHighlighting } from '@codemirror/language'
+<script setup lang="ts">
+import { LanguageSupport, StreamLanguage, syntaxHighlighting } from '@codemirror/language'
 import { properties as propertiesMode } from '@codemirror/legacy-modes/mode/properties'
+import { Prec } from '@codemirror/state'
+import { EditorView, keymap, lineNumbers } from '@codemirror/view'
 import { useDark } from '@vueuse/core'
+import { json5 as cmJson5 } from 'codemirror-json5'
+import { computed, ref } from 'vue'
 import CodeMirror from 'vue-codemirror6'
 
 import {
@@ -10,27 +13,122 @@ import {
   propertiesDarkSyntax,
   propertiesEagerParse,
   zhPhrases,
-} from '@/plugins/codemirror.js'
-import { isZh } from '@/utils/util.js'
+} from '@/plugins/codemirror'
+import { isZh } from '@/utils/util'
 
 /** Java .properties 流式解析：适配 Redis INFO/CONFIG（key:value、# 段注释、续行） */
-const propertiesLang = StreamLanguage.define(propertiesMode)
+const propertiesLang = new LanguageSupport(StreamLanguage.define(propertiesMode))
 
-const { mode, readOnly } = defineProps({
-  mode: { type: String, default: 'json' },
-  readOnly: { type: Boolean, default: false, required: false },
-})
+/** 在编辑器聚焦时 F11：对 `.cm-editor` 调用 Fullscreen API（再按 F11 或 Esc 退出） */
+function toggleCmEditorFullscreen(el: HTMLElement) {
+  const doc = el.ownerDocument
+  if (doc.fullscreenElement === el) {
+    void doc.exitFullscreen().catch(() => {})
+    return
+  }
+  void el.requestFullscreen().catch(() => {})
+}
+
+/** 自动换行默认关闭，Ctrl+L 切换 */
+const lineWrap = ref(false)
+/** 行号默认显示，Ctrl+N 切换 */
+const showLineNumbers = ref(true)
+
+/** 编辑器字号（px），Ctrl+= / Ctrl+- 调节，Ctrl+0 恢复默认 */
+const FONT_SIZE_DEFAULT = 15
+const FONT_SIZE_MIN = 10
+const FONT_SIZE_MAX = 28
+const FONT_SIZE_STEP = 2
+const fontSizePx = ref(FONT_SIZE_DEFAULT)
+
+function bumpFontSize(delta: number) {
+  fontSizePx.value = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, fontSizePx.value + delta))
+}
+
+const meCodePrecKeymap = Prec.highest(
+  keymap.of([
+    {
+      key: 'F11',
+      run: view => {
+        toggleCmEditorFullscreen(view.dom)
+        return true
+      },
+    },
+    {
+      key: 'Ctrl-l',
+      run: () => {
+        lineWrap.value = !lineWrap.value
+        return true
+      },
+    },
+    {
+      key: 'Ctrl-n',
+      run: () => {
+        showLineNumbers.value = !showLineNumbers.value
+        return true
+      },
+    },
+    {
+      key: 'Ctrl-=',
+      run: () => {
+        bumpFontSize(FONT_SIZE_STEP)
+        return true
+      },
+    },
+    {
+      key: 'Ctrl--',
+      run: () => {
+        bumpFontSize(-FONT_SIZE_STEP)
+        return true
+      },
+    },
+    {
+      key: 'Ctrl-0',
+      run: () => {
+        fontSizePx.value = FONT_SIZE_DEFAULT
+        return true
+      },
+    },
+  ]),
+)
+
+const props = withDefaults(
+  defineProps<{
+    /** `json` / `json5` 均使用 JSON5 语法高亮（合法 JSON 也可）；`properties` 为 Redis INFO/CONFIG */
+    mode?: string
+    readOnly?: boolean
+  }>(),
+  {
+    mode: 'json',
+    readOnly: false,
+  },
+)
 
 const dark = useDark()
 const lang = computed(() => {
-  if (mode === 'json') return json()
-  if (mode === 'properties') return propertiesLang
-  return null
+  if (props.mode === 'json' || props.mode === 'json5') return cmJson5()
+  if (props.mode === 'properties') return propertiesLang
+  return undefined
 })
 const phrases = computed(() => (isZh.value ? zhPhrases : {}))
 const extensions = computed(() => {
-  const list = [meBasicSetup]
-  if (mode === 'properties') {
+  const list = [
+    meBasicSetup,
+    meCodePrecKeymap,
+    EditorView.theme({
+      '&': { fontSize: `${fontSizePx.value}px` },
+    }),
+  ]
+
+  if (lineWrap.value) {
+    list.push(EditorView.lineWrapping)
+  }
+
+  if (showLineNumbers.value) {
+    list.push(lineNumbers())
+  }
+
+  if (props.mode === 'properties') {
     list.push(syntaxHighlighting(propertiesDarkSyntax), propertiesEagerParse)
   }
   return list
@@ -44,9 +142,9 @@ const extensions = computed(() => {
     :dark
     :lang
     :phrases
-    :readonly="readOnly"
-    :extensions="extensions"
-    :class="readOnly ? ['codemirror-opacity', 'is-disabled'] : []" />
+    :extensions
+    :readonly="props.readOnly"
+    :class="props.readOnly ? ['codemirror-opacity', 'is-disabled'] : []" />
 </template>
 
 <style scoped lang="scss">
@@ -56,11 +154,24 @@ const extensions = computed(() => {
 
 .vue-codemirror {
   height: 100%;
-  font-size: 15px;
 
   /* 默认高度 */
   :deep(.cm-editor) {
     height: 100%;
+  }
+
+  /* F11 全屏时填满视口（普通 DOM 全屏，非整窗 Tauri F11） */
+  :deep(.cm-editor:fullscreen) {
+    box-sizing: border-box;
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    background-color: var(--el-bg-color-page, var(--el-bg-color, #fff));
+  }
+
+  :deep(.cm-editor:fullscreen .cm-scroller) {
+    flex: 1;
+    min-height: 0;
   }
 
   /* 字体设置 */
@@ -71,6 +182,10 @@ const extensions = computed(() => {
 
 html.dark .vue-codemirror {
   background-color: #272822;
+
+  :deep(.cm-editor:fullscreen) {
+    background-color: #272822;
+  }
 
   :deep(.ͼ3 .cm-gutters) {
     background-color: #272822;
@@ -90,6 +205,11 @@ html.dark .vue-codemirror {
   /* Json的数字值 */
   :deep(.ͼd) {
     color: var(--el-color-success);
+  }
+
+  /* Json5的注释 */
+  :deep(.ͼm) {
+    color: #75715e;
   }
 }
 </style>

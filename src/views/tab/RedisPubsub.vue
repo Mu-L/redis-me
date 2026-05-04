@@ -1,26 +1,34 @@
-<script setup>
+<script setup lang="ts">
 import { listen } from '@tauri-apps/api/event'
+import { computed, inject, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { meCopy, meInvoke, meOk } from '@/utils/util.js'
+import { shareProvideKey } from '@/types/me-interface'
+import { meCopy, meCommands, meOk } from '@/utils/util'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share')
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 
 const channel = ref('')
 const keyword = ref('')
 const subscribing = ref(false)
-const dataList = ref([])
+
+interface PubsubRow {
+  id?: string
+  channel?: string
+  message?: string
+}
+const dataList = ref<PubsubRow[]>([])
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   return dataList.value.filter(
     row =>
       !key ||
-      row.channel?.toLowerCase().indexOf(key) > -1 ||
-      row.message?.toLowerCase().indexOf(key) > -1,
+      (row.channel?.toLowerCase() ?? '').indexOf(key) > -1 ||
+      (row.message?.toLowerCase() ?? '').indexOf(key) > -1,
   )
 })
 
@@ -30,13 +38,13 @@ const subscribe = async () => {
   loading.value = true
   try {
     if (subscribing.value) {
-      await unlisten()
-      await meInvoke('subscribe_stop', { id: share.conn.id })
+      unlisten?.()
+      await meCommands.subscribeStop(share.conn!.id)
       subscribing.value = false
       meOk(t('redisPubSub.subscribeStopped'))
     } else {
       await tauriListen()
-      await meInvoke('subscribe', { id: share.conn.id, channel: channel.value })
+      await meCommands.subscribe(share.conn!.id, channel.value)
       subscribing.value = true
       meOk(t('redisPubSub.subscribeStarted'))
     }
@@ -52,11 +60,7 @@ const sendLoading = ref(false)
 async function publish() {
   sendLoading.value = true
   try {
-    await meInvoke('publish', {
-      id: share.conn.id,
-      channel: sendChannel.value,
-      message: sendMessage.value,
-    })
+    await meCommands.publish(share.conn!.id, sendChannel.value, sendMessage.value)
     meOk(t('redisPubSub.publishOk'))
   } finally {
     sendLoading.value = false
@@ -69,19 +73,17 @@ function clearData() {
 }
 
 // 监听消息
-let unlisten = null
+let unlisten: (() => void) | null = null
 async function tauriListen() {
-  unlisten = await listen('subscribe', event => {
+  unlisten = await listen<PubsubRow>('subscribe', event => {
     const payload = event.payload
-    if (payload.id !== share.conn.id) return
-    dataList.value.push(event.payload)
+    if (payload.id !== share.conn!.id) return
+    dataList.value.push(payload)
   })
 }
 
 async function tauriUnlisten() {
-  if (unlisten) {
-    unlisten()
-  }
+  unlisten?.()
 }
 onUnmounted(() => tauriUnlisten())
 </script>
@@ -98,10 +100,19 @@ onUnmounted(() => tauriUnlisten())
           placement="top" />
         <el-input
           v-model="channel"
-          style="width: 160px; margin-left: 10px"
+          style="width: 200px; margin-left: 10px"
           :placeholder="t('redisPubSub.subscribeChannel')"
           :disabled="subscribing"
-          clearable />
+          clearable>
+          <template #prefix>
+            <me-icon
+              icon="el-icon-question-filled"
+              :info="t('redisPubSub.psubscribePatternHint')"
+              raw-content
+              placement="bottom-start"
+              :show-after="200" />
+          </template>
+        </el-input>
         <me-website to="pubsub" />
       </div>
       <div>

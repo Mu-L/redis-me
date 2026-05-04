@@ -1,5 +1,26 @@
 # 3.x Changelog
 
+## [v3.2.0](https://mp.weixin.qq.com/s/8c39tELlwtjrkbvD8kWB6A) (2026-05-05)
+
+### ✨ New Features
+
+- Connection import and export
+  - **Import connection data from AnotherRDM, TinyRDM, and Redis Insight**
+  - **Export connections to the built-in `.mec` format (simple Base64 encoding)**
+- Highlight: Multiple CodeMirror viewer improvements
+  - **Syntax highlighting supports JSON5**
+  - Shortcuts: **F11 fullscreen**, Ctrl+L toggles line wrap, Ctrl+N toggles line numbers
+  - Shortcuts: Ctrl+=, Ctrl+-, and Ctrl+0 increase, decrease, and reset editor font size
+- Value view: Added an CodeMirror shortcut reference (dialog)
+- Code: **End-to-end strong typing** (frontend migrated from JavaScript to TypeScript; Tauri commands and events are strongly typed)
+- Updates: No in-app auto-update when installed from the Microsoft Store or Mac App Store (updates follow store policy)
+- Details: Pub/Sub hints, wider "new key" layout, English plural and related copy tweaks, etc.
+- Docs: complete coverage for memory analysis, slow logs, command monitoring, and pub/sub
+
+### 🐞 Bug Fixes
+
+- Value view: After editing String/JSON without saving, refreshing the key could still show the draft instead of the server value
+
 ## [v3.1.0](https://mp.weixin.qq.com/s/c1H-_54UwnRUPUEaEa89hQ) (2026-04-30)
 
 ### ✨ New Features

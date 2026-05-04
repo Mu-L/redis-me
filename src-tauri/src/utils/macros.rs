@@ -12,7 +12,7 @@ macro_rules! api_model {
         }
     ) => {
         $(#[$struct_attr])*
-        #[derive(Serialize, Deserialize, Debug, Clone)]
+        #[derive(Serialize, Deserialize, Debug, Clone, Type)]
         #[serde(rename_all = "camelCase")]
         pub struct $struct {
             $(
@@ -37,6 +37,7 @@ macro_rules! api_commands {
     ) => {
         $(
             #[command]
+            #[specta]
             pub fn $name(
                 app_handle: AppHandle,
                 id: &str,
@@ -65,6 +66,7 @@ macro_rules! api_commands2 {
     ) => {
         $(
             #[command]
+            #[specta]
             pub fn $name(
                 app_handle: AppHandle,
                 id: &str,

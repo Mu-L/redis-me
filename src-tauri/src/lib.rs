@@ -6,13 +6,83 @@ use crate::utils::setup::{app_setup, init_logger};
 use api::*;
 use client::state::AppState;
 use rustls::crypto::ring::default_provider;
+use specta_typescript::Typescript;
+use std::path::PathBuf;
 use tauri::Manager;
+use tauri_specta::{Builder, Commands, collect_commands};
+
+fn tauri_specta_commands() -> Commands<tauri::Wry> {
+    collect_commands![
+        greet,
+        app_dir,
+        is_app_store,
+        test_conn,
+        masters,
+        conn_list,
+        connect,
+        disconnect,
+        db_list,
+        select_db,
+        info,
+        info_list,
+        chart,
+        chart_list,
+        node_list,
+        scan,
+        field_scan,
+        ttl,
+        set,
+        del,
+        rename,
+        field_add,
+        field_set,
+        field_del,
+        execute_command,
+        slow_log,
+        memory_usage,
+        config_get,
+        config_set,
+        client_list,
+        publish,
+        subscribe,
+        subscribe_stop,
+        monitor,
+        monitor_stop,
+        batch_del,
+        batch_ttl,
+        export_csv,
+        import_csv,
+        import_cmd,
+        mock_data,
+        key_type,
+        xinfo_groups,
+        xinfo_consumers,
+        key_slot,
+        key_node,
+        flush_db,
+        flush_all,
+    ]
+}
+
+/// 生成前端 TS 绑定路径（相对 `src-tauri` 的 `CARGO_MANIFEST_DIR`）。
+pub fn tauri_specta_typescript_path() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../src/types/tauri-specta.ts")
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     default_provider()
         .install_default()
         .expect("Failed to install rustls crypto provider");
+
+    let specta_builder = Builder::<tauri::Wry>::new().commands(tauri_specta_commands());
+
+    #[cfg(debug_assertions)]
+    specta_builder
+        .export(Typescript::default(), tauri_specta_typescript_path())
+        .expect("Failed to export TypeScript bindings");
+
+    let invoke_handler = specta_builder.invoke_handler();
 
     tauri::Builder::default()
         // 单实例 https://tauri.app/zh-cn/plugin/single-instance/
@@ -33,57 +103,26 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init()) // 弹框选择文件
         .plugin(tauri_plugin_opener::init()) // 打开外部链接
         .plugin(init_logger().build()) // 日志插件
-        .setup(app_setup)
+        .setup(move |app| {
+            specta_builder.mount_events(app);
+            app_setup(app)
+        })
         .manage(AppState::default()) // 状态管理，保持Redis连接
-        .invoke_handler(tauri::generate_handler![
-            greet,
-            app_dir,
-            test_conn,
-            masters,
-            conn_list,
-            connect,
-            disconnect,
-            db_list,
-            select_db,
-            info,
-            info_list,
-            chart,
-            chart_list,
-            node_list,
-            scan,
-            field_scan,
-            ttl,
-            set,
-            del,
-            rename,
-            field_add,
-            field_set,
-            field_del,
-            execute_command,
-            slow_log,
-            memory_usage,
-            config_get,
-            config_set,
-            client_list,
-            publish,
-            subscribe,
-            subscribe_stop,
-            monitor,
-            monitor_stop,
-            batch_del,
-            batch_ttl,
-            export_csv,
-            import_csv,
-            import_cmd,
-            mock_data,
-            key_type,
-            xinfo_groups,
-            xinfo_consumers,
-            key_slot,
-            key_node,
-            flush_db,
-            flush_all,
-        ])
+        .invoke_handler(invoke_handler)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod specta_export_tests {
+    use super::*;
+
+    /// 不启动 GUI，仅写出 `src/types/tauri-specta.ts`（与 debug 启动时导出一致）。
+    #[test]
+    fn export_tauri_specta_typescript_bindings() {
+        Builder::<tauri::Wry>::new()
+            .commands(tauri_specta_commands())
+            .export(Typescript::default(), tauri_specta_typescript_path())
+            .expect("Failed to export TypeScript bindings");
+    }
 }

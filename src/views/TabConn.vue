@@ -1,26 +1,21 @@
-<script setup>
-import { open, save } from '@tauri-apps/plugin-dialog'
-import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
+<script setup lang="ts">
+import { open, save, type DialogFilter } from '@tauri-apps/plugin-dialog'
+import { writeTextFile } from '@tauri-apps/plugin-fs'
 import dayjs from 'dayjs'
+import type { TableInstance } from 'element-plus'
 import { debounce } from 'lodash'
-import { Sortable } from 'sortablejs'
-import { nextTick, useTemplateRef } from 'vue'
+import { Sortable, type SortableEvent } from 'sortablejs'
+import { computed, inject, nextTick, onMounted, reactive, ref, toRaw, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { checkConnList } from '@/plugins/tauri.js'
-import {
-  meConfirm,
-  meDownloadUpdate,
-  meErr,
-  meJsonParse,
-  meLog,
-  meOk,
-  PREDEFINE_COLORS,
-} from '@/utils/util.js'
+import { appProvideKey, shareProvideKey, type UiConn } from '@/types/me-interface'
+import { encodeRedisMeConnectionsToMec, mergeImportedConnList } from '@/utils/rdm'
+import { meConfirm, meDownloadUpdate, meErr, meLog, meOk, PREDEFINE_COLORS } from '@/utils/util'
+import ConnImport from '@/views/ext/ConnImport.vue'
 import ConnSave from '@/views/ext/ConnSave.vue'
 
 const { t } = useI18n()
-const share = inject('share')
+const share = inject(shareProvideKey)!
 
 const keyword = ref('')
 const filterDataList = computed(() => {
@@ -33,31 +28,29 @@ const filterDataList = computed(() => {
   )
 })
 
-const connRef = useTemplateRef('conn')
+const connRef = useTemplateRef<InstanceType<typeof ConnSave>>('conn')
+const importRef = useTemplateRef<InstanceType<typeof ConnImport>>('import')
 const dialog = reactive({
   conn: false,
+  import: false,
 })
 
-// 新增连接
-function addConn() {
+function addConn(): void {
   dialog.conn = true
-  nextTick(() => connRef.value.open('add'))
+  void nextTick(() => connRef.value?.open('add'))
 }
 
-// 复制连接
-function copyConn(conn) {
+function copyConn(conn: UiConn): void {
   dialog.conn = true
-  nextTick(() => connRef.value.open('add', conn))
+  void nextTick(() => connRef.value?.open('add', conn))
 }
 
-// 编辑连接
-function editConn(conn) {
+function editConn(conn: UiConn): void {
   dialog.conn = true
-  nextTick(() => connRef.value.open('edit', conn))
+  void nextTick(() => connRef.value?.open('edit', conn))
 }
 
-// 删除连接
-function deleteConn(conn) {
+function deleteConn(conn: UiConn): void {
   meConfirm(t('conn.deleteConn', { name: conn.name }), () => {
     const index = share.connList.indexOf(conn)
     if (index > -1) {
@@ -66,29 +59,26 @@ function deleteConn(conn) {
   })
 }
 
-// 选中连接: 添加防抖函数，避免连接不可用时多次点击导致的多次报错
-const selectConn = debounce(async conn => {
-  // 测试连接成功后再发送所有连接信息到后端，AppMain中监控连接变化自动处理
-  // await meInvoke('test_conn', {redisConn: conn})
+const selectConn = debounce(async (conn: UiConn) => {
   share.conn = conn
 }, 200)
 
-// 单元格样式: 颜色显示
-function cellStyle({ row }) {
-  if (row.color) return { color: row.color } // 优先考虑列中定义的颜色
+function cellStyle({ row }: { row: UiConn }): Record<string, string> | undefined {
+  if (row.color) return { color: row.color }
+  return undefined
 }
 
-// 行可拖拽 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// https://sortablejs.com/options
-const table = useTemplateRef('table')
-// 正常浏览器中式可以的，但tauri中不支持
-// 原因: tauri v2里的配置文件默认监听了tauri的webview的拖拽功能，导致了HTML5的拖拽功能失效。
-// 参考: https://owl.xylib.top/posts/tauri-drag-drop
-function rowDrag() {
-  Sortable.create(table.value.$el.querySelector('.el-table__body-wrapper tbody'), {
-    // handle：selector 格式为简单css选择器的字符串，使列表单元中符合选择器的元素成为拖动的手柄，只有按住拖动手柄才能使列表单元进行拖动；
+const table = useTemplateRef<TableInstance>('table')
+
+function rowDrag(): void {
+  const inst = table.value
+  if (!inst) return
+  const tbody = inst.$el.querySelector('.el-table__body-wrapper tbody')
+  if (!tbody) return
+  Sortable.create(tbody as HTMLElement, {
     handle: '.drag-handle',
-    onEnd: ({ oldIndex, newIndex }) => {
+    onEnd: ({ oldIndex, newIndex }: SortableEvent) => {
+      if (oldIndex === undefined || newIndex === undefined) return
       const dragRow = share.connList.splice(oldIndex, 1)[0]
       share.connList.splice(newIndex, 0, dragRow)
     },
@@ -97,86 +87,54 @@ function rowDrag() {
 
 onMounted(() => rowDrag())
 
-// 导入导出的公共属性
-const filters = [{ name: '', extensions: ['json'] }]
+const filters: DialogFilter[] = [{ name: '', extensions: ['mec'] }]
 
-// 导入导出下拉框命令处理
-function handleCommand(command) {
+const isDev = import.meta.env.DEV
+
+function handleCommand(command: string): void {
   if (command === 'export') {
-    exportConn()
+    void exportConn()
   } else if (command === 'import') {
-    importConn()
+    dialog.import = true
+    void nextTick(() => importRef.value?.open())
+  } else if (command === 'clear' && isDev) {
+    clearAllConnections()
   }
 }
 
-// 导出连接
-async function exportConn() {
-  const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss')
-  const path = await save({ multiple: false, directory: true, filters, defaultPath: fileName })
+function clearAllConnections(): void {
+  meConfirm(t('conn.clearConnectionsConfirm'), () => {
+    share.connList.splice(0, share.connList.length)
+    share.conn = null
+    meOk(t('conn.clearConnectionsOk'))
+  })
+}
+
+async function exportConn(): Promise<void> {
+  const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss') + '.mec'
+  const path = await save({ filters, defaultPath: fileName })
   if (path) {
     try {
-      await writeTextFile(path, JSON.stringify(share.connList, null, 2))
+      await writeTextFile(path, encodeRedisMeConnectionsToMec(share.connList))
       meOk(t('conn.exportOk'))
-    } catch (e) {
-      meErr(e, t('conn.exportErr'))
+    } catch (e: unknown) {
+      meErr(e instanceof Error ? e : String(e), t('conn.exportErr'))
     }
   }
 }
 
-// 导入连接
-async function importConn() {
-  const file = await open({ multiple: false, directory: false, filters })
-  if (file) {
-    // 读取文件并检查文件内容是否符合要求
-    try {
-      const content = await readTextFile(file)
-      const impConnList = await checkImportContent(content)
-      meLog('impConnList', impConnList)
-      const impIds = impConnList.map(conn => conn.id)
-
-      const newConnList = []
-      newConnList.push(...share.connList.filter(conn => !impIds.includes(conn.id)))
-      newConnList.push(...impConnList)
-
-      meLog('newConnList', newConnList)
-      share.connList = newConnList
-      meOk(t('conn.importOk'))
-    } catch (e) {
-      meErr(e, t('conn.importErr'))
-    }
-  }
+function onConnImported(impConnList: UiConn[]): void {
+  meLog('impConnList', impConnList)
+  share.connList = mergeImportedConnList(share.connList, impConnList)
+  meLog('newConnList', share.connList)
+  meOk(t('conn.importOk'))
 }
 
-// 导入连接检查
-async function checkImportContent(content) {
-  let connList
-  try {
-    connList = meJsonParse(content)
-
-    // 导入的时候检查1次
-    checkConnList(connList)
-  } catch (e) {
-    throw new Error(t('conn.importJsonErr'))
-  }
-
-  // 数组检查
-  if (!Array.isArray(connList) || connList.length === 0) {
-    throw new Error(t('conn.importConnErr'))
-  }
-
-  // 属性检查（简单检查）
-  connList.forEach(conn => {
-    if (!conn.id || !conn.name || !conn.host || !conn.port) {
-      throw new Error(t('conn.importFormatErr'))
-    }
-  })
-  return connList
-}
-
-// 应用更新
-const app = inject('app')
-function clickNew() {
-  meDownloadUpdate(false, toRaw(app.update), app)
+const app = inject(appProvideKey)!
+function clickNew(): void {
+  const u = app.update
+  if (!u) return
+  void meDownloadUpdate(false, toRaw(u), app)
 }
 </script>
 
@@ -199,6 +157,13 @@ function clickNew() {
               </el-dropdown-item>
               <el-dropdown-item command="import">
                 <me-icon :name="t('conn.import')" icon="me-icon-import" />
+              </el-dropdown-item>
+              <el-dropdown-item
+                v-if="isDev"
+                command="clear"
+                divided
+                :disabled="share.connList.length === 0">
+                <me-icon :name="t('conn.clearConnections')" icon="el-icon-delete" />
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -280,6 +245,11 @@ function clickNew() {
     </el-table>
 
     <ConnSave ref="conn" v-if="dialog.conn" @closed="dialog.conn = false" />
+    <ConnImport
+      ref="import"
+      v-if="dialog.import"
+      @import="onConnImported"
+      @closed="dialog.import = false" />
 
     <!-- 应用升级时的下载进度显示 -->
     <el-progress

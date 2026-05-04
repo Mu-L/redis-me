@@ -1,25 +1,33 @@
-<script setup>
+<script setup lang="ts">
 // 说明: 前端分页表，用于数据量比较大的场景（比如内存分析等），进行前端分页，避免卡顿
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
-const { data } = defineProps({
-  data: { type: Array, default: () => [] },
-  layout: { type: String, default: 'total, sizes, prev, pager, next, jumper' },
-})
+const props = withDefaults(
+  defineProps<{
+    data?: unknown[]
+    layout?: string
+  }>(),
+  {
+    data: () => [],
+    layout: 'total, sizes, prev, pager, next, jumper',
+  },
+)
 
-// 前端分页表
 const currentPage = ref(1)
 const pageSize = ref(20)
 const pageData = computed(() => {
-  return data.slice((currentPage.value - 1) * pageSize.value, currentPage.value * pageSize.value)
+  return props.data.slice(
+    (currentPage.value - 1) * pageSize.value,
+    currentPage.value * pageSize.value,
+  )
 })
 
-function handleChange(page, size) {
+function handleChange(page: number, size: number): void {
   currentPage.value = page
   pageSize.value = size
 }
 
-function updatePageSize(size) {
+function updatePageSize(size: number): void {
   currentPage.value = 1
   pageSize.value = size
 }

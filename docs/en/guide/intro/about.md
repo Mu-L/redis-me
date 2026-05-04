@@ -9,7 +9,7 @@ RedisME is a modern lightweight cross-platform Redis desktop manager
 - Multi-language support: English, Chinese, more languages coming soon
 - Rich functionality: info, value, terminal, memory analysis, slow logs, command monitoring, pub/sub etc
 
-## Special features
+## Special Features
 
 - Dynamic switching between read-only/writable modes
 - Terminal command prompts and detailed explanations
@@ -23,4 +23,4 @@ RedisME is a modern lightweight cross-platform Redis desktop manager
 
 Regularly share the special features and update logs of RedisME, as well as other technical issues and solutions.
 
-<img src="/images/wechat.png" alt="wechat" width="400" />
+<img src="../../../public/images/wechat.png" alt="wechat" width="400" />

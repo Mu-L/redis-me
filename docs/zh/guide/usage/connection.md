@@ -13,9 +13,9 @@
   - **哨兵**：多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置
   - **只读**：所有编辑、删除、写入按钮被隐藏。可通过锁图标**动态切换只读/可写模式**
 
-![table.png](/images/connnection/table.png)
-![readonly.png](/images/connnection/readonly.png)
-![simple.png](/images/connnection/simple.png)
-![ssh.png](/images/connnection/ssh.png)
-![ssl.png](/images/connnection/ssl.png)
-![sentinel.png](/images/connnection/sentinel.png)
+![table.png](../../../public/images/connnection/table.png)
+![readonly.png](../../../public/images/connnection/readonly.png)
+![simple.png](../../../public/images/connnection/simple.png)
+![ssh.png](../../../public/images/connnection/ssh.png)
+![ssl.png](../../../public/images/connnection/ssl.png)
+![sentinel.png](../../../public/images/connnection/sentinel.png)

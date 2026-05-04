@@ -12,7 +12,9 @@ use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo::SingleNode;
 use redis::cluster_routing::SingleNodeRoutingInfo::ByAddress;
-use redis::cluster_routing::{MultipleNodeRoutingInfo, ResponsePolicy, RoutingInfo, SingleNodeRoutingInfo};
+use redis::cluster_routing::{
+    MultipleNodeRoutingInfo, ResponsePolicy, RoutingInfo, SingleNodeRoutingInfo,
+};
 use redis::{Commands, ConnectionLike, FromRedisValue, Value};
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -254,11 +256,16 @@ impl MeClient for MeCluster {
     fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()> {
         let mut conn = self.get_conn()?;
         if "*" == node.clone().unwrap_or_default() {
-            let route = RoutingInfo::MultiNode((MultipleNodeRoutingInfo::AllNodes, Some(ResponsePolicy::AllSucceeded)));
-            let _ = conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
+            let route = RoutingInfo::MultiNode((
+                MultipleNodeRoutingInfo::AllNodes,
+                Some(ResponsePolicy::AllSucceeded),
+            ));
+            let _ =
+                conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
         } else {
             let (route, _) = self.get_node_route(node)?;
-            let _ = conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
+            let _ =
+                conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
         }
         Ok(())
     }
@@ -543,45 +550,43 @@ impl MeClient for MeCluster {
         for slot_entry in slots_info {
             if let Value::Array(ref slot_data) = slot_entry
                 && slot_data.len() >= 3
+                && let (Value::Int(start), Value::Int(end)) = (&slot_data[0], &slot_data[1])
+                && (*start as u64) <= slot && slot <= (*end as u64)
             {
-                if let (Value::Int(start), Value::Int(end)) = (&slot_data[0], &slot_data[1]) {
-                    if (*start as u64) <= slot && slot <= (*end as u64) {
-                        // 找到了！解析所有节点（主 + 从）
-                        let mut nodes = Vec::new();
+                // 找到了！解析所有节点（主 + 从）
+                let mut nodes = Vec::new();
 
-                        // 从索引2开始是节点信息，索引2是主节点，之后是从节点
-                        for i in 2..slot_data.len() {
-                            if let Value::Array(node_info) = &slot_data[i]
-                                && node_info.len() >= 3
-                            {
-                                let host = redis_value_to_string(node_info[0].clone(), "");
-                                let port = match &node_info[1] {
-                                    Value::Int(p) => *p as u16,
-                                    _ => continue,
-                                };
-                                let id = redis_value_to_string(node_info[2].clone(), "");
-                                let node_addr = format!("{}:{}", host, port);
-                                let is_master = i == 2;
-                                let flags = if is_master {
-                                    "master".into()
-                                } else {
-                                    "slave".into()
-                                };
+                // 从索引2开始是节点信息，索引2是主节点，之后是从节点
+                for (i, node_entry) in slot_data.iter().enumerate().skip(2) {
+                    if let Value::Array(node_info) = node_entry
+                        && node_info.len() >= 3
+                    {
+                        let host = redis_value_to_string(node_info[0].clone(), "");
+                        let port = match &node_info[1] {
+                            Value::Int(p) => *p as u16,
+                            _ => continue,
+                        };
+                        let id = redis_value_to_string(node_info[2].clone(), "");
+                        let node_addr = format!("{}:{}", host, port);
+                        let is_master = i == 2;
+                        let flags = if is_master {
+                            "master".into()
+                        } else {
+                            "slave".into()
+                        };
 
-                                nodes.push(RedisNode {
-                                    id,
-                                    node: node_addr,
-                                    flags,
-                                    slots: None,
-                                    slave_of_node: None,
-                                });
-                            }
-                        }
-
-                        if !nodes.is_empty() {
-                            return Ok(nodes);
-                        }
+                        nodes.push(RedisNode {
+                            id,
+                            node: node_addr,
+                            flags,
+                            slots: None,
+                            slave_of_node: None,
+                        });
                     }
+                }
+
+                if !nodes.is_empty() {
+                    return Ok(nodes);
                 }
             }
         }

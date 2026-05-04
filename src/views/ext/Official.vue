@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import bilibili from '@/assets/images/bilibili.png'
 import wechat from '@/assets/images/wechat.png'
 </script>

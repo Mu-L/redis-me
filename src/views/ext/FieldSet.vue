@@ -1,20 +1,26 @@
-<script setup>
+<script setup lang="ts">
 import { cloneDeep } from 'lodash'
+import { computed, inject, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke, meOk } from '@/utils/util.js'
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisFieldSet_Deserialize } from '@/types/tauri-specta'
+import { meCommands, meOk } from '@/utils/util'
+
+/** 含 UI 用 type，提交时剔除 */
+type FieldSetForm = RedisFieldSet_Deserialize & { type: string }
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({ open, close })
 
-// 共享数据
-const share = inject('share')
+// 共享数据（本组件仅在已选连接后的键区使用，conn 视为必有）
+const share = inject(shareProvideKey)!
 
 // 表单数据
 const visible = ref(false)
 const isSaving = ref(false)
-const initForm = readonly({
+const initForm: FieldSetForm = {
   key: {
     key: '',
     bytes: '',
@@ -27,10 +33,10 @@ const initForm = readonly({
   fieldScore: 0,
   fieldTtl: -1,
   inputFormat: 'utf8',
-})
-const form = ref(cloneDeep(initForm))
+}
+const form = ref<FieldSetForm>(cloneDeep(initForm))
 
-function open(data) {
+function open(data: Partial<FieldSetForm>) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
   Object.assign(form.value, data)
@@ -54,12 +60,13 @@ function cancel() {
 // 提交
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     isSaving.value = true
     try {
-      await meInvoke('field_set', { id: share.conn.id, param: form.value })
+      const { type: _type, ...param } = form.value
+      await meCommands.fieldSet(share.conn!.id, param)
       visible.value = false
       emit('success')
       meOk(t('editOk'))

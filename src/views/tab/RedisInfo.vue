@@ -1,25 +1,37 @@
-<script setup>
-import { useTemplateRef } from 'vue'
+<script setup lang="ts">
+import {
+  computed,
+  inject,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  useTemplateRef,
+  watchEffect,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { infoTip as tips } from '@/utils/tip.js'
-import { bus, INFO_REFRESH, meInvoke, enrichNodeList } from '@/utils/util.js'
+import { infoTip as tips } from '@/locales/info'
+import { shareProvideKey } from '@/types/me-interface'
+import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 
 import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
+const tipMap = computed(() => tips.value as Record<string, string | undefined>)
 // 共享数据
-const share = inject('share')
+const share = inject(shareProvideKey)!
 
 // 数据
 const node = ref('') // 指定节点
 const raw = ref('') // 原始信息
-const dic = ref({}) // 字典形式
-const tagList = ref([]) // 标签名列表
-const tagTable = ref([]) // 标签形式， tag分类名称, key标签名称，value表格数据
+const dic = ref<Record<string, string>>({}) // 字典形式
+const tagList = ref<string[]>([]) // 标签名列表
+/** 标签形式：tag 分类名、键名、值 */
+const tagTable = ref<{ key: string; value: string; tag: string }[]>([])
 const keyCount = ref(0) // 键数量
 const keyword = ref('') // 关键字过滤
 const tagSelected = ref('') // 选中的标签
@@ -31,17 +43,17 @@ const dialog = reactive({
   topology: false,
 })
 const loading = ref(false)
-const config = ref('')
-const rdbChecked = computed(() => !!config.value.save)
+const config = ref<Record<string, string>>({})
+const rdbChecked = computed(() => !!config.value['save'])
 const aofChecked = computed(() => dic.value['aof_enabled'] === '1')
-const rdbTooltip = computed(() => config.value.save || t('redisInfo.rdbDisabled'))
+const rdbTooltip = computed(() => config.value['save'] || t('redisInfo.rdbDisabled'))
 const cacheRatio = computed(() => {
   try {
     const ratio =
       parseInt(dic.value['keyspace_hits']) /
       (parseInt(dic.value['keyspace_hits']) + parseInt(dic.value['keyspace_misses']))
     return isNaN(ratio) ? 'error' : (ratio * 100).toFixed(2) + '%'
-  } catch (e) {
+  } catch (_e: unknown) {
     return 'error'
   }
 })
@@ -84,7 +96,7 @@ watchEffect(() => {
           const size = parseInt(value.split(',')[0].split('=')[1])
           share.dbSizeMap[key] = size
           keyCount.value += size
-        } catch (e) {}
+        } catch (_e: unknown) {}
       }
     }
   })
@@ -103,7 +115,7 @@ const filterDataList = computed(() => {
       !key ||
       d.key?.toLowerCase().indexOf(key) > -1 ||
       d.value?.toLowerCase().indexOf(key) > -1 ||
-      tips.value[d.key]?.toLowerCase().indexOf(key) > -1,
+      (tipMap.value[d.key]?.toLowerCase() ?? '').indexOf(key) > -1,
   )
 })
 
@@ -114,28 +126,28 @@ function getSummaries() {
 
 const tableRef = useTemplateRef('table')
 function tagChange() {
-  tableRef.value.scrollTo(0, 0) // 滚动条归零
+  tableRef.value?.scrollTo(0, 0) // 滚动条归零
 }
 
 const infoNode = ref('')
 
 // 新增键/删除键等操作可以调用进行自动刷新，以便保证db下拉框中的数量显示正确
-onMounted(() => bus.on(INFO_REFRESH, refresh))
-onUnmounted(() => bus.off(INFO_REFRESH, refresh))
-async function refresh(withConfigGet = false) {
+function onInfoRefreshBus(payload?: boolean | undefined) {
+  void refresh(payload === true)
+}
+onMounted(() => bus.on(INFO_REFRESH, onInfoRefreshBus))
+onUnmounted(() => bus.off(INFO_REFRESH, onInfoRefreshBus))
+async function refresh(withConfigGet: boolean = false) {
   loading.value = true
   try {
-    const data = await meInvoke('info', { id: share.conn.id, node: node.value })
+    const data = await meCommands.info(share.conn!.id, node.value)
     raw.value = data.info || ''
-    infoNode.value = data.node || share.conn.host + ':' + share.conn.port
+    const conn = share.conn
+    infoNode.value = data.node || (conn ? `${conn.host}:${conn.port}` : '')
 
     if (withConfigGet) {
-      const data2 = await meInvoke('config_get', {
-        id: share.conn.id,
-        pattern: 'save',
-        node: node.value,
-      })
-      config.value = data2 || ''
+      const data2 = await meCommands.configGet(share.conn!.id, 'save', node.value)
+      config.value = data2 ?? {}
     }
   } finally {
     loading.value = false
@@ -157,7 +169,7 @@ function goMemory() {
 
 // 节点列表在此组件中设置（刷新连接时自动重新获取）
 onMounted(async () => {
-  const nodeList = await meInvoke('node_list', { id: share.conn.id })
+  const nodeList = await meCommands.nodeList(share.conn!.id)
   share.nodeList = enrichNodeList(nodeList || [])
 })
 
@@ -349,7 +361,7 @@ const nodeGroups = computed(() => {
         <el-table-column prop="value" :label="t('redisInfo.value')" show-overflow-tooltip />
         <el-table-column :label="t('redisInfo.tip')" show-overflow-tooltip>
           <template #default="scope">
-            <span style="color: var(--el-color-info)">{{ tips[scope.row.key] }}</span>
+            <span style="color: var(--el-color-info)">{{ tipMap[scope.row.key] }}</span>
           </template>
         </el-table-column>
       </el-table>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // 说明: 基于Xterm的自定义终端组件
 import {computed, onMounted, onUnmounted, watch} from 'vue'
-import {isDark} from '@/utils/util.js'
+import {isDark} from '@/utils/util'
 import 'xterminal/dist/xterminal.css'
 import XTerminal from 'xterminal'
 

@@ -1,9 +1,11 @@
-<script setup>
-import { listen } from '@tauri-apps/api/event'
+<script setup lang="ts">
+import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { sortBy } from 'lodash'
-import { computed, ref } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
 import {
   bus,
   CONN_REFRESH,
@@ -12,15 +14,15 @@ import {
   KEY_REFRESH,
   KEY_TYPE_LIST,
   meConfirm,
+  meCommands,
   meCopy,
   meDeleteKey,
-  meInvoke,
   meKeyShort,
   meOk,
   mePrompt,
   meRenameKey,
   sleep,
-} from '@/utils/util.js'
+} from '@/utils/util'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
 import KeyImport from '@/views/key/KeyImport.vue'
@@ -29,20 +31,27 @@ import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
 import KeyTree from './key/KeyTree.vue'
 
+interface ImportExportProgressPayload {
+  id: string
+  okCount: number
+  errCount: number
+  ignoreCount: number
+  totalCount: number
+  finished: boolean
+}
+
 const { t } = useI18n()
-// 共享数据
-const share = inject('share')
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 
-// 监听刷新事件
-async function refresh() {
+async function refresh(): Promise<void> {
+  if (!share.conn) return
   initReset()
   await scanKey()
 }
 onMounted(() => refresh())
 
-// 刷新时条件初始化
-function initReset() {
+function initReset(): void {
   keyType.value = 'ALL'
   exact.value = false
   keyword.value = ''
@@ -50,19 +59,22 @@ function initReset() {
   share.redisKey = null
 }
 
-// 键类型
-const keyType = ref('ALL') // 键类型
-function chooseKeyType(keyTypeSelected) {
+const keyType = ref('ALL')
+const keyTypeTag = computed(() => {
+  const v = keyType.value
+  if (v === 'ALL') return { value: 'ALL' as const, type: 'info' as const }
+  return KEY_TYPE_LIST.find(k => k.value === v) ?? { value: v, type: 'info' as const }
+})
+function chooseKeyType(keyTypeSelected: string): void {
   keyType.value = keyTypeSelected
   keyword.value = ''
-  scanKey(false, false)
+  void scanKey(false, false)
 }
 
-// 查询框: SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
-const exact = ref(false) // 是否精确查询
-const keyword = ref('') // 关键字
-const loading = ref(false) // 扫描键过程中loading
-const loadFolder = ref(false) // 文件夹的右键：仅加载该目录的特殊处理
+const exact = ref(false)
+const keyword = ref('')
+const loading = ref(false)
+const loadFolder = ref(false)
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -75,18 +87,16 @@ const match = computed(() => {
   if (keyword.value.endsWith('*')) return '*' + keyword.value
   return '*' + keyword.value + '*'
 })
-const cursor = ref(null) // 扫描的游标
+const cursor = ref<ScanCursor | null>(null)
 
-// 扫描键
-const keyList = ref([]) // 键列表
+const keyList = ref<RedisKey_Deserialize[]>([])
 const filterKeyList = computed(() => {
   const key = keyword.value.toLowerCase()
   return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
 })
 
-async function scanKey(useCursor = false, loadAll = false) {
-  // 避免重复调用
-  if (loading.value) return
+async function scanKey(useCursor = false, loadAll = false): Promise<void> {
+  if (loading.value || !share.conn) return
 
   loading.value = true
   try {
@@ -97,12 +107,12 @@ async function scanKey(useCursor = false, loadAll = false) {
 
     const params = {
       match: match.value,
-      count: meTauri.settings.keyScanCount,
+      count: meTauri.settings.keyScanCount as number,
       type: keyType.value === 'ALL' ? '' : keyType.value.toLowerCase(),
-      loadAll: loadAll,
+      loadAll,
       cursor: cursor.value,
     }
-    const data = await meInvoke('scan', { id: share.conn.id, param: params })
+    const data = await meCommands.scan(share.conn!.id, params)
     cursor.value = data.cursor
 
     // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
@@ -122,46 +132,45 @@ onUnmounted(() => {
   bus.off(CONN_REFRESH, refresh)
 })
 
-function deleteKey(redisKey) {
+function deleteKey(redisKey: RedisKey_Deserialize): void {
   keyList.value = keyList.value.filter(rk => rk.bytes !== redisKey.bytes)
   share.redisKey = null
   bus.emit(INFO_REFRESH)
 }
 
-// 数据库列表
-const dbList = ref([])
-async function refreshDbList() {
-  dbList.value = await meInvoke('db_list', { id: share.conn.id })
+const dbList = ref<RedisDB[]>([])
+async function refreshDbList(): Promise<void> {
+  if (!share.conn) return
+  dbList.value = await meCommands.dbList(share.conn!.id)
 
-  // 超出范围后台连接忽略（即连接db0），前端也改为0
   if (share.conn.db >= dbList.value.length) {
     share.conn.db = 0
   }
 }
-refreshDbList()
+void refreshDbList()
 
-async function selectDB() {
-  await meInvoke('select_db', { id: share.conn.id, db: share.conn.db })
-  await refresh() // RedisInfo的键数量需要更新下
+async function selectDB(): Promise<void> {
+  if (!share.conn) return
+  await meCommands.selectDb(share.conn!.id, share.conn.db)
+  await refresh()
 }
 
 const keyPrefix = ref('')
 
 // 选中键
-function chooseKey(redisKey) {
+function chooseKey(redisKey: RedisKey_Deserialize): void {
   keyPrefix.value = redisKey.key + '-copy'
   share.redisKey = redisKey
   share.tabName = 'value'
   bus.emit(KEY_REFRESH)
 }
 
-// 选中文件夹
-function chooseFolder(folder) {
+function chooseFolder(folder: string): void {
   keyPrefix.value = folder + ':'
 }
 
-// 键右键
-function contextKey(command, redisKey) {
+function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
+  if (!share.conn) return
   if (command === 'addKey') {
     keyPrefix.value = redisKey.key + '-copy'
     addKey()
@@ -170,16 +179,16 @@ function contextKey(command, redisKey) {
   } else if (command === 'copyKey') {
     meCopy(redisKey.key)
   } else if (command === 'deleteKey') {
-    meDeleteKey(share.conn.id, redisKey)
+    meDeleteKey(share.conn!.id, redisKey)
   } else if (command === 'renameKey') {
-    meRenameKey(share.conn.id, redisKey)
+    meRenameKey(share.conn!.id, redisKey)
   } else {
     meOk(`TODO: ${command}`)
   }
 }
 
-// 文件夹右键
-function contextFolder(command, folder) {
+function contextFolder(command: string, folder: string): void {
+  if (!share.conn) return
   if (command === 'addKey') {
     keyPrefix.value = folder + ':'
     addKey()
@@ -205,35 +214,33 @@ function contextFolder(command, folder) {
   }
 }
 
-// 字段新增
-const fieldAddRef = useTemplateRef('fieldAddRef')
+const fieldAddRef = useTemplateRef<InstanceType<typeof FieldAdd>>('fieldAddRef')
 
-function addKey() {
+function addKey(): void {
   fieldAddRef.value?.open({ mode: 'key', key: keyPrefix.value })
 }
 
-const keyTreeRef = useTemplateRef('keyTreeRef')
-function addKeyOk(redisKey) {
+const keyTreeRef = useTemplateRef<InstanceType<typeof KeyTree>>('keyTreeRef')
+function addKeyOk(redisKey: RedisKey_Deserialize): void {
   keyList.value.unshift(redisKey)
   chooseKey(redisKey)
   nextTick(() => {
-    keyTreeRef.value.setCurrentKey(redisKey)
+    keyTreeRef.value?.setCurrentKey(redisKey)
   })
   bus.emit(INFO_REFRESH)
 }
 
-// 批量导出键 和 批量删除键
-const keyBatchRef = useTemplateRef('keyBatchRef')
-function deleteFolder(folder) {
-  const match = folder === '*' ? '*' : folder + ':*'
-  keyBatchRef.value?.open({ match, keyList: [] }, 'delete')
+const keyBatchRef = useTemplateRef<InstanceType<typeof KeyBatch>>('keyBatchRef')
+function deleteFolder(folder: string): void {
+  const matchExpr = folder === '*' ? '*' : folder + ':*'
+  keyBatchRef.value?.open({ match: matchExpr, keyList: [] }, 'delete')
 }
-function exportFolder(folder) {
-  const match = folder === '*' ? '*' : folder + ':*'
-  keyBatchRef.value?.open({ match, keyList: [] }, 'export')
+function exportFolder(folder: string): void {
+  const matchExpr = folder === '*' ? '*' : folder + ':*'
+  keyBatchRef.value?.open({ match: matchExpr, keyList: [] }, 'export')
 }
 
-function batchKeyOk(mode) {
+function batchKeyOk(mode: string): void {
   if (mode === 'delete') {
     scanKey(false, false)
     bus.emit(INFO_REFRESH)
@@ -245,12 +252,11 @@ function batchKeyOk(mode) {
   }
 }
 
-// 导入数据
-const keyImportRef = useTemplateRef('keyImportRef')
-function importData(isCmdFile = false) {
-  keyImportRef.value.open(isCmdFile)
+const keyImportRef = useTemplateRef<InstanceType<typeof KeyImport>>('keyImportRef')
+function importData(isCmdFile: boolean = false): void {
+  keyImportRef.value?.open(isCmdFile)
 }
-function importStart() {
+function importStart(): void {
   share.exportImportingPercentage = 0
   share.exportImporting = true
   share.exportImportingTip = t('keyMain.importing')
@@ -258,12 +264,11 @@ function importStart() {
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// 监听消息
-let unlisten = null
-async function tauriListen(eventName) {
-  unlisten = await listen(eventName, event => {
+let unlisten: UnlistenFn | null = null
+async function tauriListen(eventName: 'export' | 'import'): Promise<void> {
+  unlisten = await listen<ImportExportProgressPayload>(eventName, event => {
     const payload = event.payload
-    if (payload.id !== share.conn.id) return
+    if (!share.conn || payload.id !== share.conn!.id) return
     share.exportImportingPercentage = Math.round(
       ((payload.okCount + payload.errCount + payload.ignoreCount) / payload.totalCount) * 100,
     )
@@ -272,7 +277,11 @@ async function tauriListen(eventName) {
       tauriUnlisten()
       share.exportImportingPercentage = 100
       share.exportImporting = false
-      meOk(t(`keyMain.${eventName}Result`, payload), true, t(`keyMain.${eventName}Done`))
+      meOk(
+        t(`keyMain.${eventName}Result`, payload as unknown as Record<string, unknown>),
+        true,
+        t(`keyMain.${eventName}Done`),
+      )
 
       // 导入完成后刷新连接
       if (eventName === 'import') {
@@ -282,17 +291,17 @@ async function tauriListen(eventName) {
   })
 }
 
-async function tauriUnlisten() {
+function tauriUnlisten(): void {
   if (unlisten) {
     unlisten()
+    unlisten = null
   }
 }
 onUnmounted(() => tauriUnlisten())
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// 内存分析
-const keyMemoryRef = useTemplateRef('keyMemoryRef')
-function keyMemory(folder) {
+const keyMemoryRef = useTemplateRef<InstanceType<typeof KeyMemory>>('keyMemoryRef')
+function keyMemory(folder: string): void {
   keyMemoryRef.value?.open({ match: folder + ':*' })
 }
 
@@ -301,7 +310,7 @@ const keyShowTree = computed({
   get() {
     return meTauri.settings.keyShow === 'tree'
   },
-  set(newValue) {
+  set(newValue: boolean) {
     meTauri.settings.keyShow = newValue ? 'tree' : 'list'
   },
 })
@@ -310,12 +319,11 @@ const sortByCount = computed({
   get() {
     return meTauri.settings.keySort === 'count'
   },
-  set(newValue) {
+  set(newValue: boolean) {
     meTauri.settings.keySort = newValue ? 'count' : 'alphabet'
   },
 })
-// 更多选项按钮
-async function handleCommand(command) {
+async function handleCommand(command: string): Promise<void> {
   if (command === 'toggleKeyShow') {
     keyShowTree.value = !keyShowTree.value
   } else if (command === 'toggleKeySort') {
@@ -335,41 +343,44 @@ async function handleCommand(command) {
   }
 }
 
-// 清空数据库
-function flushDb() {
+function flushDb(): void {
+  if (!share.conn) return
   meConfirm(t('keyMain.flushDbConfirm'), async () => {
-    await meInvoke('flush_db', { id: share.conn.id })
+    await meCommands.flushDb(share.conn!.id)
     meOk(t('keyMain.flushDbOk'))
     bus.emit(CONN_REFRESH)
     bus.emit(INFO_REFRESH)
   })
 }
 
-// 新增模拟数据
-async function mockData() {
+async function mockData(): Promise<void> {
+  if (!share.conn) return
   mePrompt(
     t('keyHeader.mockHint'),
     {
-      inputValue: 100,
+      inputValue: '100',
       inputType: 'number',
       inputValidator: value => {
-        if (value < 1 || value > 1000) {
+        const n = Number(value)
+        if (n < 1 || n > 1000) {
           return t('keyHeader.mockValidator')
         }
+        return true
       },
     },
     async ({ value }) => {
-      let total = value
+      let total = Number(value)
       share.exportImportingPercentage = 0
       share.exportImporting = true
       share.exportImportingTip = t('keyHeader.mocking')
 
       try {
-        while (value > 0) {
-          const count = Math.min(value, 10)
-          await meInvoke('mock_data', { id: share.conn.id, count })
-          value = value - count
-          share.exportImportingPercentage = Math.round(((total - value) / total) * 100)
+        let remaining = total
+        while (remaining > 0) {
+          const count = Math.min(remaining, 10)
+          await meCommands.mockData(share.conn!.id, count)
+          remaining -= count
+          share.exportImportingPercentage = Math.round(((total - remaining) / total) * 100)
           await sleep(10) // 睡眠10ms以便其他动作可以获取到锁, 同时避免UI界面卡顿
         }
         meOk(t('keyHeader.mockOk'))
@@ -384,14 +395,14 @@ async function mockData() {
 
 // 多选选择
 const showCheckbox = ref(false)
-const checkedKeyList = ref([])
+const checkedKeyList = ref<RedisKey_Deserialize[]>([])
 
-function toggleChecked() {
+function toggleChecked(): void {
   showCheckbox.value = !showCheckbox.value
   checkedKeyList.value = []
 }
 
-function checkChange(redisKeys) {
+function checkChange(redisKeys: RedisKey_Deserialize[]): void {
   checkedKeyList.value = redisKeys
 }
 
@@ -404,28 +415,28 @@ function exportChecked() {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'export')
 }
 
-const ttlSetRef = useTemplateRef('ttlSetRef')
-function ttlChecked() {
+const ttlSetRef = useTemplateRef<InstanceType<typeof TTLSet>>('ttlSetRef')
+function ttlChecked(): void {
   ttlSetRef.value?.open({
     keyList: checkedKeyList.value,
   })
 }
 
-function deleteChecked() {
+function deleteChecked(): void {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'delete')
 }
 
-// 自定义数据库名称
-function editDbName(db) {
+function editDbName(db: number): void {
+  if (!share.conn) return
   mePrompt(
     t('keyMain.editDbName', { index: db }),
     {
-      inputValue: share.conn?.meta?.['db' + db] || '',
+      inputValue: String(share.conn.meta?.['db' + db] ?? ''),
       inputPlaceholder: t('keyMain.editDbNamePlaceholder'),
     },
     ({ value }) => {
-      share.conn.meta ??= {} // meta为空则赋值为空对象
-      share.conn.meta['db' + db] = value
+      share.conn!.meta ??= {}
+      share.conn!.meta['db' + db] = value
     },
   )
 }
@@ -442,7 +453,7 @@ function editDbName(db) {
         <template #prepend>
           <el-dropdown placement="bottom-start" @command="chooseKeyType">
             <el-tag
-              :type="keyType.type"
+              :type="keyTypeTag.type"
               effect="plain"
               style="
                 width: 32px;
@@ -519,7 +530,7 @@ function editDbName(db) {
 
     <div class="key-footer">
       <!-- 左侧: 数据库|游标 -->
-      <div class="me-flex" v-if="!showCheckbox">
+      <div class="me-flex" v-if="!showCheckbox && share.conn">
         <el-select
           v-model="share.conn.db"
           @change="selectDB"

@@ -1,7 +1,9 @@
 use crate::client::state::ClientAccess;
+use crate::utils::app_store;
 use crate::utils::model::*;
 use crate::utils::util::*;
 use crate::{api_commands, api_commands2};
+use specta::specta;
 use std::collections::HashMap;
 use tauri::utils::platform::current_exe;
 use tauri::{AppHandle, command};
@@ -9,12 +11,14 @@ use tauri::{AppHandle, command};
 // 默认示例
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[command]
+#[specta]
 pub fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
 // 应用程序目录
 #[command]
+#[specta]
 pub fn app_dir() -> ApiResult<String> {
     match current_exe() {
         Ok(path) => Ok(path.parent().unwrap().to_string_lossy().to_string()),
@@ -22,32 +26,44 @@ pub fn app_dir() -> ApiResult<String> {
     }
 }
 
+/// 是否通过应用商店类渠道安装（内置更新应关闭）。具体判断在 `utils/app_store.rs`。
+#[command]
+#[specta]
+pub fn is_app_store() -> bool {
+    app_store::detect()
+}
+
 // 测试连接
 #[command]
+#[specta]
 pub fn test_conn(conf: ConnConfig) -> ApiResult<()> {
     to_api_result(conf.test())
 }
 
 // 哨兵模式获取主节点列表
 #[command]
+#[specta]
 pub fn masters(conf: ConnConfig) -> ApiResult<Vec<HashMap<String, String>>> {
     to_api_result(conf.masters())
 }
 
 // 连接信息发送到后端
 #[command]
+#[specta]
 pub fn conn_list(app_handle: AppHandle, conn_list: Vec<ConnConfig>) -> ApiResult<()> {
     to_api_result(app_handle.conn_list(conn_list))
 }
 
 // 连接
 #[command]
+#[specta]
 pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<ServerCapabilities> {
     to_api_result(app_handle.connect(id)).map(|client| (*client.base().capabilities).clone())
 }
 
 // 断开
 #[command]
+#[specta]
 pub fn disconnect(app_handle: AppHandle, id: &str) -> ApiResult<()> {
     to_api_result(app_handle.disconnect(id))
 }

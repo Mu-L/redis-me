@@ -1,41 +1,63 @@
-<script setup>
+<script setup lang="ts">
 import { sortBy } from 'lodash'
+import {
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  reactive,
+  ref,
+  useTemplateRef,
+  watch,
+  watchEffect,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeWebsite from '@/components/MeWebsite.vue'
-import { redisConfDict, valkeyConfDict } from '@/utils/redis.js'
-import { configTip as tips } from '@/utils/tip.js'
-import { meCopy, meInvoke, meOk } from '@/utils/util.js'
+import { configTip as tips } from '@/locales/config'
+import { redisConfDict, valkeyConfDict } from '@/locales/config/defaults'
+import { shareProvideKey } from '@/types/me-interface'
+import { meCopy, meCommands, meOk } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share')
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
-const { initNode, initVersion } = defineProps({
+const props = defineProps({
   initNode: { type: String, default: '' },
   initVersion: { type: String, default: '' },
 })
 
-const node = ref(initNode)
+const node = ref(props.initNode)
+watch(
+  () => props.initNode,
+  v => {
+    node.value = v
+  },
+)
 const keyword = ref('')
 const loading = ref(false)
-const dataList = ref([])
+interface ConfigTableRow {
+  param: string
+  value: string
+}
+const dataList = ref<ConfigTableRow[]>([])
 
 // 文件格式的配置文件（使用 Vite ?raw 导入，打包时会内联到 JS 中）
 const serverType = computed(() => (share.isValkey ? 'Valkey' : 'Redis'))
 
 // 动态加载配置文件
-const configCache = {}
-async function loadConfigFile(version) {
+const configCache: Record<string, string | null> = {}
+async function loadConfigFile(version: string) {
   if (configCache[version]) return configCache[version]
 
   try {
     const { default: content } = await import(`../../assets/conf/${version}.conf?raw`)
     configCache[version] = content
     return content
-  } catch (e) {
+  } catch (e: unknown) {
     console.error(`加载配置文件失败: ${version}`, e)
     return null
   }
@@ -59,7 +81,7 @@ const allConfigVersions = [
   'Valkey9.0',
 ]
 
-const dirConfigList = ref([])
+const dirConfigList = ref<string[]>([])
 onMounted(() => {
   dirConfigList.value = [...allConfigVersions].sort().reverse()
 })
@@ -79,12 +101,12 @@ watchEffect(async () => {
     }
     const content = await loadConfigFile(configVersion.value)
     configRaw.value = content || t('redisConfig.noConfig')
-  } catch (e) {
+  } catch (_e: unknown) {
     configRaw.value = t('redisConfig.noConfig')
   }
 })
 
-function handleCommand(command) {
+function handleCommand(command: string) {
   configVersion.value = command
   nextTick(() => (dialog.raw = true))
 }
@@ -95,14 +117,17 @@ const confDict = computed(() => (share.isValkey ? valkeyConfDict : redisConfDict
 const dictVersionList = Object.keys(confDict.value).reverse()
 function getDefaultVersion() {
   for (const version of dictVersionList) {
-    if (serverType.value + initVersion > version) {
+    if (serverType.value + props.initVersion > version) {
       return version
     }
   }
-  return configVersionList[0]
+  return configVersionList.value[0] ?? ''
 }
 const dictVersion = ref(getDefaultVersion())
-const dictRaw = computed(() => confDict.value[dictVersion.value])
+const dictRaw = computed(
+  () => confDict.value[dictVersion.value] as Record<string, string | undefined>,
+)
+const tipMap = computed(() => tips.value as Record<string, string | undefined>)
 const showTypeOptions = [
   { label: t('redisConfig.all'), value: 'All' },
   { label: t('redisConfig.diff'), value: 'Diff' },
@@ -116,7 +141,7 @@ const filterDataList = computed(() => {
       (!key ||
         row.param?.toLowerCase().indexOf(key) > -1 ||
         row.value?.toLowerCase().indexOf(key) > -1 ||
-        tips.value[row.param]?.toLowerCase().indexOf(key) > -1) &&
+        (tipMap.value[row.param]?.toLowerCase() ?? '').indexOf(key) > -1) &&
       (showType.value === 'All' ||
         (showType.value === 'Diff' && row.value !== dictRaw.value[row.param])),
   )
@@ -128,8 +153,8 @@ function getSummaries() {
 }
 
 async function apiConfigGet() {
-  const data = await meInvoke('config_get', { id: share.conn.id, pattern: '*', node: node.value })
-  const tableData = []
+  const data = await meCommands.configGet(share.conn!.id, '*', node.value)
+  const tableData: ConfigTableRow[] = []
   Object.entries(data).forEach(([key, value]) => tableData.push({ param: key, value }))
   dataList.value = sortBy(tableData, ['param'])
 }
@@ -150,7 +175,7 @@ const dialog = reactive({
 })
 
 // 行样式展示
-function calcRowStyle({ row }) {
+function calcRowStyle({ row }: { row: ConfigTableRow }) {
   return { color: row.value === dictRaw.value[row.param] ? '' : share.color }
 }
 
@@ -167,7 +192,7 @@ const command = computed(
   () =>
     `CONFIG SET ${form.param} ${form.value?.includes(' ') ? '"' + form.value + '"' : form.value}`,
 )
-async function editConfig(row) {
+async function editConfig(row: ConfigTableRow) {
   form.param = row.param
   form.value = row.value
   await nextTick(() => {
@@ -175,17 +200,17 @@ async function editConfig(row) {
   })
 }
 async function configSet() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     editLoading.value = true
     try {
-      await meInvoke('config_set', {
-        id: share.conn.id,
-        key: form.param,
-        value: form.value,
-        node: form.autoBroadcast ? '*' : node.value,
-      })
+      await meCommands.configSet(
+        share.conn!.id,
+        form.param,
+        form.value,
+        form.autoBroadcast ? '*' : node.value,
+      )
       meOk(t('saveOk'))
       await refresh()
       editShow.value = false
@@ -260,7 +285,7 @@ const rules = computed(() => ({
       </el-table-column>
       <el-table-column :label="t('redisConfig.tip')" show-overflow-tooltip>
         <template #default="scope">
-          <span style="color: var(--el-color-info)">{{ tips[scope.row.param] }}</span>
+          <span style="color: var(--el-color-info)">{{ tipMap[scope.row.param] }}</span>
         </template>
       </el-table-column>
 

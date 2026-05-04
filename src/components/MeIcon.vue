@@ -1,15 +1,27 @@
-<script setup>
+<script setup lang="ts">
 // 说明: 统一图标使用方式，支持el-icon-xxx图标和自定义的svg图标me-icon-xxx
-defineProps({
-  icon: { type: String, default: '' }, // 图标
-  iconLeft: { type: Boolean, default: true },
-  name: { type: String, default: '' }, // 文字
-  hint: { type: Boolean, default: false }, // 文字是否显示为提示(tooltip)
-  info: { type: String, default: '' }, // 图标 + 文字 + 额外的提示
-  placement: { type: String, default: 'auto' },
-  rawContent: { type: Boolean, default: false },
-  showAfter: { type: Number, default: 1000 },
-})
+withDefaults(
+  defineProps<{
+    icon?: string
+    iconLeft?: boolean
+    name?: string
+    hint?: boolean
+    info?: string
+    placement?: string
+    rawContent?: boolean
+    showAfter?: number
+  }>(),
+  {
+    icon: '',
+    iconLeft: true,
+    name: '',
+    hint: false,
+    info: '',
+    placement: 'auto',
+    rawContent: false,
+    showAfter: 1000,
+  },
+)
 </script>
 
 <template>

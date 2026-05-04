@@ -5,7 +5,7 @@ hero:
   name: 'RedisME'
   tagline: Modern, Lightweight, Cross-Platform RDM
   image:
-    src: /images/logo-color.svg
+    src: ./images/logo-color.svg
     alt: RedisME
 
 features:
@@ -18,11 +18,7 @@ features:
   - icon: 📚
     title: Cross Platform
     details: Support Windows, Mac, Linux
-    linkText: Download
-    link: https://github.com/hepengju/redis-me/releases
   - icon: 📖
     title: Open Source
     details: Completely open source, safe
-    linkText: Source Code
-    link: https://github.com/hepengju/redis-me
 ---

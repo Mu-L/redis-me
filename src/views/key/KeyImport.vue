@@ -1,37 +1,40 @@
-<script setup>
+<script setup lang="ts">
 import { cloneDeep } from 'lodash'
+import { computed, inject, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke } from '@/utils/util.js'
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisImportCsv } from '@/types/tauri-specta'
+import { meCommands } from '@/utils/util'
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 
 defineExpose({ open })
-function open(_isCmdFile) {
+function open(_isCmdFile: boolean) {
   visible.value = true
   isCmdFile.value = _isCmdFile
   Object.assign(form.value, cloneDeep(initForm))
 }
 
 // 共享数据
-const share = inject('share')
+const share = inject(shareProvideKey)!
 
 // 表单数据
 const visible = ref(false)
 const loading = ref(false)
-const initForm = readonly({
+const initForm: RedisImportCsv = {
   file: '',
   handleConflict: 'replace',
   handleTtl: 'parse',
   ttl: -1,
-})
+}
 
 // 支持导入不同的文件类型
 const isCmdFile = ref(false)
 const fileSuffix = computed(() => (isCmdFile.value ? 'txt' : 'csv'))
 
-const form = ref(cloneDeep(initForm))
+const form = ref<RedisImportCsv>(cloneDeep(initForm))
 const rules = computed(() => ({
   file: [{ required: true, message: t('keyImport.fileRequired') }],
 }))
@@ -47,15 +50,15 @@ const handleTtlOptions = computed(() => [
 // 提交数据
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     loading.value = true
     try {
       if (isCmdFile.value) {
-        await meInvoke('import_cmd', { id: share.conn.id, file: form.value.file })
+        await meCommands.importCmd(share.conn!.id, form.value.file)
       } else {
-        await meInvoke('import_csv', { id: share.conn.id, param: form.value })
+        await meCommands.importCsv(share.conn!.id, form.value)
       }
       emit('success')
       visible.value = false

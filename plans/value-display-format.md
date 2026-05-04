@@ -37,7 +37,7 @@ Redis → Node.js redis 客户端返回 Buffer → 前端 → bufToHex/bufToStri
 **核心代码**（简化版）：
 
 ```javascript
-// src/util.js
+// src/utils/util.ts
 bufToHex(buffer) {
   return buffer.reduce((str, byte) => {
     const hex = byte.toString(16).padStart(2, '0').toUpperCase();
@@ -364,6 +364,8 @@ pub fn field_scan_2_value(
 #### 2. 传递格式参数
 
 ```javascript
+import { meCommands } from '@/utils/util'
+
 const displayFormat = ref('string')
 
 async function refreshKey(reset = true, useCursor = false, loadAll = false) {
@@ -378,7 +380,7 @@ async function refreshKey(reset = true, useCursor = false, loadAll = false) {
       meta: meta.value,
       displayFormat: displayFormat.value,  // 新增
     }
-    const data = await meInvoke('field_scan', { id: share.conn.id, param })
+    const data = await meCommands.fieldScan(share.conn!.id, param)
     // ... 后续不变
   }
 }

@@ -1,16 +1,23 @@
-<script setup>
+<script setup lang="ts">
 import { getVersion } from '@tauri-apps/api/app'
 import { appConfigDir, appDataDir, appLogDir, resourceDir } from '@tauri-apps/api/path'
 import { openPath } from '@tauri-apps/plugin-opener'
 import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
-import { ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meCheckUpdate, meConfirm, meInvoke } from '@/utils/util.js'
+import { appProvideKey, type AppMainInject } from '@/types/me-interface'
+import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util'
 
 const { t } = useI18n()
 const settings = window.meTauri.settings
 const isAppStore = window.meTauri.isAppStore
+
+/** `window.queryLocalFonts()` 返回项中用到的字段（Local Font Access，与 FontData 子集一致） */
+interface LocalFontFace {
+  readonly style: string
+  readonly fullName: string
+}
 
 // 主题
 const themeList = computed(() => [
@@ -27,15 +34,15 @@ const langList = computed(() => [
 ])
 
 // 字体
-let fonts = ref([])
+const fonts = ref<string[]>([])
 const loadFonts = async () => {
   // 浏览器直接获取系统字体, safari不支持
   // 取fullName作为显示, style过滤Regular去除粗体/斜体
   // 示例1: FontData {postscriptName: 'SimHei', fullName: '黑体', family: 'SimHei', style: 'Regular'}
   // 示例2: FontData {postscriptName: 'Arial-Black', fullName: 'Arial Black Normal', family: 'Arial', style: 'Black'}
-  let localFonts = []
+  let localFonts: LocalFontFace[] = []
   if (window.queryLocalFonts) {
-    localFonts = await window.queryLocalFonts()
+    localFonts = [...(await window.queryLocalFonts())]
     //console.log('localFonts:', localFonts)
   }
 
@@ -62,7 +69,7 @@ getVersion()
   .then(res => (appVersion.value = res))
   .catch(_ => {})
 const loading = ref(false)
-const app = inject('app')
+const app = inject(appProvideKey)!
 async function checkUpdate() {
   loading.value = true
   try {
@@ -90,8 +97,8 @@ const keyLabelList = computed(() => [
 const baseDefaultSettings = {
   theme: 'system',
   language: 'system',
-  uiFont: [],
-  codeFont: [],
+  uiFont: [] as string[],
+  codeFont: [] as string[],
   autoUpdate: true,
 }
 
@@ -104,10 +111,13 @@ const moreDefaultSettings = {
   keyLabel: 'short',
 }
 
+type BaseSettingKey = keyof typeof baseDefaultSettings
+type MoreSettingKey = keyof typeof moreDefaultSettings
+
 // 任何一个字段不同则视为不同
 // 判断设置是否与默认值不同
 const isBaseDiff = computed(() =>
-  Object.keys(baseDefaultSettings).some(key => {
+  (Object.keys(baseDefaultSettings) as BaseSettingKey[]).some(key => {
     const current = settings[key]
     const defaultValue = baseDefaultSettings[key]
 
@@ -124,23 +134,25 @@ const isBaseDiff = computed(() =>
 )
 
 const isMoreDiff = computed(() =>
-  Object.keys(moreDefaultSettings).some(key => settings[key] !== moreDefaultSettings[key]),
+  (Object.keys(moreDefaultSettings) as MoreSettingKey[]).some(
+    key => settings[key] !== moreDefaultSettings[key],
+  ),
 )
 
 // 恢复默认
-function toDefault(name) {
+function toDefault(name: 'baseSetting' | 'moreSetting') {
   meConfirm(t('setting.confirmToDefault', { name: t('setting.' + name) }), () => {
     Object.assign(settings, name === 'baseSetting' ? baseDefaultSettings : moreDefaultSettings)
   })
 }
 
 // 打开目录
-async function openDir(dirType) {
+async function openDir(dirType: 'config' | 'app' | 'log') {
   let dir = ''
   if (dirType === 'config') {
     dir = await appConfigDir()
   } else if (dirType === 'app') {
-    dir = await meInvoke('app_dir')
+    dir = await meCommands.appDir()
   } else {
     dir = await appLogDir()
   }

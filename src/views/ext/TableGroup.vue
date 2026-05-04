@@ -1,35 +1,34 @@
-<script setup>
-import { inject, ref } from 'vue'
+<script setup lang="ts">
+import type { TableInstance } from 'element-plus'
+import { inject, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke } from '@/utils/util.js'
+import { shareProvideKey } from '@/types/me-interface'
+import type { XInfoConsumer, XInfoGroup } from '@/types/tauri-specta'
+import { meCommands } from '@/utils/util'
 
 const { t } = useI18n()
-const share = inject('share')
-const { dataList } = defineProps({
-  dataList: { type: Array, default: () => [] },
+const share = inject(shareProvideKey)!
+withDefaults(defineProps<{ dataList?: XInfoGroup[] }>(), {
+  dataList: () => [],
 })
 
-const table = ref(null)
-const consumerData = ref([])
+const table = useTemplateRef<TableInstance>('table')
+const consumerData = ref<XInfoConsumer[]>([])
 const loading = ref(false)
 
-async function handleExpand(row, expandedRows) {
+async function handleExpand(row: XInfoGroup, expandedRows: XInfoGroup[]) {
   if (expandedRows.length === 0) return
 
   // 手风琴效果：如果展开行数大于1，自动收起其他行
   if (expandedRows.length > 1) {
     const otherRow = expandedRows.find(r => r.name !== row.name)
-    if (otherRow) table.value.toggleRowExpansion(otherRow, false)
+    if (otherRow) table.value?.toggleRowExpansion(otherRow, false)
   }
 
   loading.value = true
   try {
-    consumerData.value = await meInvoke('xinfo_consumers', {
-      id: share.conn.id,
-      key: share.redisKey,
-      group: row.name,
-    })
+    consumerData.value = await meCommands.xinfoConsumers(share.conn!.id, share.redisKey!, row.name)
   } finally {
     loading.value = false
   }

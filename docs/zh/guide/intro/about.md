@@ -23,4 +23,4 @@
 
 定期分享RedisME的特色功能与图文更新日志，及其他技术疑难问题和解决方案
 
-<img src="/images/wechat.png" alt="wechat" width="400" />
+<img src="../../../public/images/wechat.png" alt="wechat" width="400" />

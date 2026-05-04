@@ -66,6 +66,11 @@ tauri-plugin-process = "2"
 tauri-plugin-os = "2"
 tauri-plugin-system-fonts = "2"
 
+# 支持TS类型
+specta = { version = "2.0.0-rc.24", features = ["derive", "chrono", "serde_json"] }
+specta-typescript = "0.0.11"
+tauri-specta = { version = "2.0.0-rc.24", features = ["typescript"] }
+
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-updater = "2"
 

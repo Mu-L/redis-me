@@ -1,7 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { capitalize } from 'lodash'
+import { computed, h, inject, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisKey_Deserialize, RedisKeySize_Serialize } from '@/types/tauri-specta'
 // 官网参考: https://redis.ac.cn/docs/latest/commands/slowlog-get/
 import {
   bus,
@@ -11,14 +14,14 @@ import {
   meDeleteKey,
   meFilterHandler,
   meHumanSize,
-  meInvoke,
+  meCommands,
   meOk,
   meType,
-} from '@/utils/util.js'
+} from '@/utils/util'
 
 const { t } = useI18n()
 // 共享数据
-const share = inject('share')
+const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 const hint = computed(() => {
   const params = {
@@ -45,16 +48,16 @@ const matchParam = computed(() => {
 
 // 要求为正整数, 避免调用Rust时转换为u64报错
 watchEffect(() => {
-  if (sizeLimitKb.value < 0 || sizeLimitKb.value === '') sizeLimitKb.value = 0
-  if (countLimit.value < 0 || countLimit.value === '') countLimit.value = 0
-  if (scanCount.value < 0 || scanCount.value === '') scanCount.value = 0
-  if (scanTotal.value < 0 || scanTotal.value === '') scanTotal.value = 0
-  if (sleepMillis.value < 0 || sleepMillis.value === '') sleepMillis.value = 0
+  if (sizeLimitKb.value < 0) sizeLimitKb.value = 0
+  if (countLimit.value < 0) countLimit.value = 0
+  if (scanCount.value < 0) scanCount.value = 0
+  if (scanTotal.value < 0) scanTotal.value = 0
+  if (sleepMillis.value < 0) sleepMillis.value = 0
 })
 
 const keyword = ref('')
 const loading = ref(false)
-const dataList = ref([])
+const dataList = ref<RedisKeySize_Serialize[]>([])
 
 const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
@@ -68,7 +71,7 @@ const filterTypes = computed(() => {
 })
 
 // 避免表格自动调整列宽时闪烁一下
-function humanTotalSize(list) {
+function humanTotalSize(list: { value: RedisKeySize_Serialize[] }) {
   return meHumanSize(list.value.map(d => d.size).reduce((sum, cur) => sum + cur, 0) ?? 0)
 }
 
@@ -92,7 +95,7 @@ async function refresh() {
       sleepMillis: sleepMillis.value,
       needKeyType: true,
     }
-    dataList.value = await meInvoke('memory_usage', { id: share.conn.id, param })
+    dataList.value = await meCommands.memoryUsage(share.conn!.id, param)
   } finally {
     loading.value = false
   }
@@ -108,35 +111,35 @@ function memoryUsage() {
 }
 
 // 选中键
-function chooseKey(redisKey) {
+function chooseKey(redisKey: RedisKey_Deserialize) {
   share.redisKey = redisKey
   share.tabName = 'value'
   bus.emit(KEY_REFRESH)
 }
 
 // 删除键
-async function delKey(redisKey) {
-  meDeleteKey(share.conn.id, redisKey, () => {
+async function delKey(redisKey: RedisKey_Deserialize) {
+  meDeleteKey(share.conn!.id, redisKey, () => {
     dataList.value = dataList.value.filter(rk => rk.bytes !== redisKey.bytes)
   })
 }
 
 // 批量删除键
-const selection = ref([])
+const selection = ref<RedisKeySize_Serialize[]>([])
 
-function selectionChange(newSelection) {
+function selectionChange(newSelection: RedisKeySize_Serialize[]) {
   selection.value = newSelection
 }
 
 function batchDelKey() {
   meConfirm(
-    t('redisMemory.batchDeleteHint', selection.value.length, { count: selection.value.length }),
+    t('redisMemory.batchDeleteHint', { count: selection.value.length }, selection.value.length),
     async () => {
       const param = {
         match: '',
         keyList: selection.value.map(row => ({ key: row.key, bytes: row.bytes })),
       }
-      await meInvoke('batch_del', { id: share.conn.id, param })
+      await meCommands.batchDel(share.conn!.id, param)
       meOk(t('deleteOk'))
       const keyBytesArr = param.keyList.map(rk => rk.bytes)
       dataList.value = dataList.value.filter(rk => keyBytesArr.indexOf(rk.bytes) < 0)

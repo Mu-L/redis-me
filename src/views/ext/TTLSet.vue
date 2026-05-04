@@ -1,37 +1,52 @@
-<script setup>
+<script setup lang="ts">
+import type { FormItemRule } from 'element-plus'
 import { cloneDeep } from 'lodash'
+import { computed, inject, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { meInvoke, meOk, meTtlSeconds } from '@/utils/util.js'
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisKey_Deserialize } from '@/types/tauri-specta'
+import { meCommands, meOk, meTtlSeconds } from '@/utils/util'
+
+type TtlForm = {
+  ttl: number
+  ttlUnit: string
+  keyList: RedisKey_Deserialize[]
+}
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({ open })
-function open(data) {
+function open(data: { ttl?: number; keyList?: RedisKey_Deserialize[] }) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
-  form.value.ttl = data.ttl || -1
-  form.value.keyList = data.keyList || []
+  form.value.ttl = data.ttl ?? -1
+  form.value.keyList = data.keyList ?? []
 }
 
 // 共享数据
-const share = inject('share')
+const share = inject(shareProvideKey)!
 
 // 表单数据
 const visible = ref(false)
 const loading = ref(false)
-const initForm = readonly({
-  ttl: '',
+const initForm: TtlForm = {
+  ttl: -1,
   ttlUnit: 'second',
   keyList: [],
-})
-const form = ref(cloneDeep(initForm))
+}
+const form = ref<TtlForm>(cloneDeep(initForm))
 const rules = computed(() => ({
   ttl: [
     { required: true, message: t('ttlSet.ttlRequired') },
     {
-      validator: (rule, value, callback) => {
-        if (!(form.value.ttl === -1 || form.value.ttl > 0)) {
+      validator: (
+        _rule: FormItemRule,
+        _value: unknown,
+        callback: (error?: string | Error) => void,
+      ) => {
+        const n = form.value.ttl
+        if (!(n === -1 || n > 0)) {
           callback(new Error(t('ttlSet.ttlValidator')))
         }
         callback()
@@ -41,7 +56,7 @@ const rules = computed(() => ({
 }))
 const formRef = useTemplateRef('formRef')
 function submit() {
-  formRef.value.validate(async valid => {
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
 
     loading.value = true
@@ -49,10 +64,10 @@ function submit() {
       const seconds = meTtlSeconds(form.value.ttl, form.value.ttlUnit)
       if (isBatch.value) {
         const param = { ttl: seconds, keyList: form.value.keyList }
-        await meInvoke('batch_ttl', { id: share.conn.id, param })
+        await meCommands.batchTtl(share.conn!.id, param)
         meOk(t('ttlSet.ttlOkBatch'))
       } else {
-        await meInvoke('ttl', { id: share.conn.id, ttl: seconds, key: share.redisKey })
+        await meCommands.ttl(share.conn!.id, share.redisKey!, seconds)
         meOk(t('ttlSet.ttlOk'))
       }
 
@@ -65,7 +80,7 @@ function submit() {
 }
 
 // 快速设置
-function quickSet(ttl, ttlUnit) {
+function quickSet(ttl: number, ttlUnit: string) {
   form.value.ttl = ttl
   form.value.ttlUnit = ttlUnit
 }

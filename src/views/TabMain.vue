@@ -1,16 +1,18 @@
-<script setup>
+<script setup lang="ts">
+import { inject } from 'vue'
+
+import { shareProvideKey } from '@/types/me-interface'
 import RedisChart from '@/views/tab/RedisChart.vue'
 import RedisInfo from '@/views/tab/RedisInfo.vue'
 import RedisMemory from '@/views/tab/RedisMemory.vue'
 import RedisMonitor from '@/views/tab/RedisMonitor.vue'
 import RedisPubsub from '@/views/tab/RedisPubsub.vue'
 import RedisSlow from '@/views/tab/RedisSlow.vue'
+// import RedisTauri from '@/views/tab/RedisTauri.vue'
 import RedisTerminal from '@/views/tab/RedisTerminal.vue'
 import RedisValue from '@/views/tab/RedisValue.vue'
-// import RedisTauri from '@/views/tab/RedisTauri.vue'
 
-// 共享数据
-const share = inject('share')
+const share = inject(shareProvideKey)!
 </script>
 
 <template>
@@ -26,7 +28,7 @@ const share = inject('share')
     <me-tab-pane name="monitor" icon="el-icon-monitor" lazy> <RedisMonitor /> </me-tab-pane>
     <me-tab-pane name="pubsub" icon="me-icon-pubsub" lazy> <RedisPubsub /> </me-tab-pane>
     <me-tab-pane name="chart" icon="el-icon-data-line" lazy> <RedisChart /> </me-tab-pane>
-    <!--    <me-tab-pane name="tauri"   icon="el-icon-data-line" lazy>    <RedisTauri/>      </me-tab-pane>-->
+    <!-- <me-tab-pane name="tauri" icon="el-icon-data-line" lazy> <RedisTauri /> </me-tab-pane> -->
   </el-tabs>
 </template>
 

@@ -7,7 +7,9 @@ const { isDark, lang } = useData()
 const imgSrc = computed(() => {
   const suffix = lang.value.startsWith('zh') ? '-zh' : ''
   const prefix = isDark.value ? 'dark' : 'light'
-  return `/images/${prefix}${suffix}.png`
+  const file = `${prefix}${suffix}.png`
+  // 英文首页在站点根、中文在 /zh/，用相对 URL 兼容根路径与子路径部署
+  return lang.value.startsWith('zh') ? `../images/${file}` : `./images/${file}`
 })
 </script>
 

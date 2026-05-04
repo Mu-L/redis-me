@@ -1,22 +1,32 @@
-<script setup>
-import { meInvoke, meKeyShort, meType } from '@/utils/util.js'
+<script setup lang="ts">
+import { inject } from 'vue'
 
-const share = inject('share')
-const props = defineProps({
-  redisKey: { type: Object, required: true },
-})
+import { shareProvideKey } from '@/types/me-interface'
+import type { RedisKey_Deserialize } from '@/types/tauri-specta'
+import { meCommands, meKeyShort, meType } from '@/utils/util'
 
-// 如果还没有类型，触发异步加载
-if (!props.redisKey.keyType) {
+const share = inject(shareProvideKey)!
+const props = defineProps<{
+  /** 树虚拟列表更新时可能短暂缺失，避免 prop 校验告警 */
+  redisKey?: (RedisKey_Deserialize & { keyType?: string }) | null
+}>()
+
+if (props.redisKey && !props.redisKey.keyType && share.conn) {
   try {
-    const data = await meInvoke('key_type', { id: share.conn.id, key: props.redisKey })
+    const data = await meCommands.keyType(share.conn!.id, props.redisKey)
     props.redisKey.keyType = data?.toUpperCase()
   } catch {}
 }
 </script>
 
 <template>
-  <el-tag size="small" disable-transitions :type="meType(redisKey.keyType)" effect="dark">
+  <el-tag
+    v-if="redisKey"
+    size="small"
+    disable-transitions
+    :type="meType(redisKey.keyType)"
+    effect="dark">
     {{ meKeyShort(redisKey.keyType) }}
   </el-tag>
+  <el-tag v-else size="small" disable-transitions type="info" effect="dark">?</el-tag>
 </template>

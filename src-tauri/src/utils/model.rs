@@ -9,12 +9,13 @@ use chrono::Utc;
 use log::info;
 use redis::{Commands, RedisWrite, ToRedisArgs, ToSingleRedisArg, Value};
 use serde::{Deserialize, Serialize};
+use specta::Type;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16};
 
 /// 数据显示格式
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, Type)]
 #[serde(rename_all = "lowercase")]
 pub enum DisplayFormat {
     #[default]
@@ -109,22 +110,19 @@ impl ConnConfig {
     }
 }
 
-// 客户端的公共属性
-api_model!(
-    MeBase {
-        id: String,
-        conf: ConnConfig,
-        db: Arc<AtomicU16>,
-        subscribe_running: Arc<AtomicBool>,
-        monitor_running: Arc<AtomicBool>,
-        export_import_running: Arc<AtomicBool>,
-        last_check_time: Arc<AtomicI64>,
-
-        // 服务器信息缓存
-        server_version: String,               // Redis/Valkey 版本
-        capabilities: Arc<ServerCapabilities>, // 能力标识
-    }
-);
+// 客户端的公共属性（仅后端内部使用，不参与前端类型导出）
+#[derive(Debug, Clone)]
+pub struct MeBase {
+    pub id: String,
+    pub conf: ConnConfig,
+    pub db: Arc<AtomicU16>,
+    pub subscribe_running: Arc<AtomicBool>,
+    pub monitor_running: Arc<AtomicBool>,
+    pub export_import_running: Arc<AtomicBool>,
+    pub last_check_time: Arc<AtomicI64>,
+    pub server_version: String,
+    pub capabilities: Arc<ServerCapabilities>,
+}
 
 impl From<&ConnConfig> for MeBase {
     fn from(conf: &ConnConfig) -> Self {
@@ -326,7 +324,8 @@ api_model!(RedisKey {
     key: String,    // 显示
 
     #[serde(with = "v8_base64")]
-    bytes: Vec<u8>, // 修改、删除等依据 ==> 查询出来的二进制键
+    #[specta(type = String)]
+    bytes: Vec<u8>, // 修改、删除等依据 ==> 查询出来的二进制键（JSON 为 Base64 字符串）
 });
 
 impl RedisKey {
@@ -546,7 +545,8 @@ api_model!(RedisKeySize {
     key: String,    // 显示
 
     #[serde(with = "v8_base64")]
-    bytes: Vec<u8>, // 修改、删除等依据
+    #[specta(type = String)]
+    bytes: Vec<u8>, // 修改、删除等依据（JSON 为 Base64 字符串）
 
     #[serde(rename = "type")]
     key_type: String ,  // 类型

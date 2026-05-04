@@ -248,7 +248,7 @@ mod tests {
                 list_push_method: "".into(),
                 field_value_list: vec![],
                 stream_id: "".to_string(),
-                input_format: None
+                input_format: None,
             })
             .unwrap();
 
@@ -275,7 +275,7 @@ mod tests {
                     },
                 ],
                 stream_id: "".to_string(),
-                input_format: None
+                input_format: None,
             })
             .unwrap();
     }

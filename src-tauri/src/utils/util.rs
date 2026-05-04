@@ -124,7 +124,7 @@ pub fn parse_bytes(input: &str, format: &DisplayFormat) -> AnyResult<Vec<u8>> {
     match format {
         DisplayFormat::Hex => {
             // 直接解析十六进制
-            if input.len() % 2 != 0 {
+            if !input.len().is_multiple_of(2) {
                 bail!("Invalid hex string: odd number of characters");
             }
             (0..input.len())
@@ -137,7 +137,7 @@ pub fn parse_bytes(input: &str, format: &DisplayFormat) -> AnyResult<Vec<u8>> {
         }
         DisplayFormat::Binary => {
             // 直接解析二进制
-            if input.len() % 8 != 0 {
+            if !input.len().is_multiple_of(8) {
                 bail!("Invalid binary string: length not multiple of 8");
             }
             (0..input.len())
@@ -445,7 +445,7 @@ pub fn parse_server_version(info_output: &str) -> String {
 
 /// 解析路径：shellexpand 自动处理 ~ 和环境变量
 pub fn parse_path(path: &str) -> PathBuf {
-    let expanded = shellexpand::full(path).unwrap_or_else(|_| std::borrow::Cow::Borrowed(path));
+    let expanded = shellexpand::full(path).unwrap_or(std::borrow::Cow::Borrowed(path));
     PathBuf::from(expanded.as_ref())
 }
 

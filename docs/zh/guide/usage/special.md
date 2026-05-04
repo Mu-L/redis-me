@@ -25,4 +25,4 @@
 
 允许精细化配置每次扫描个数，睡眠时间以及扫描总数等，便于快速内存占用大的键进行处理。
 
-![toggle.png](/images/special/toggle.png)
+![toggle.png](../../../public/images/special/toggle.png)

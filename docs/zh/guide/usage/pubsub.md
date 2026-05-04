@@ -8,3 +8,5 @@
 
 - 订阅功能: 支持设置订阅频道（glob 风格的模式，默认为\*即订阅所有频道）
 - 发布功能: 向指定频道发布消息
+
+![main.png](../../../public/images/pubsub/main.png)

@@ -25,4 +25,4 @@ Supports command list hints and detailed explanations.
 
 Allows fine-grained configuration of the number of scans per session, sleep time, total number of scans, etc., making it easier to quickly process keys that occupy large amounts of memory.
 
-![toggle.png](/images/special/toggle.png)
+![toggle.png](../../../public/images/special/toggle.png)
