@@ -1,6 +1,6 @@
 /**
- * 各类 RDM / 工具导出格式的连接导入解析（AnotherRDM、TinyRDM、Redis Insight 等）。
- * 新增其它来源时在本文件追加解析函数即可。
+ * 各类 RDM / 工具导出格式的连接导入解析（Another Redis Desktop Manager、TinyRDM、Redis Insight 等）。
+ * 各来源字段含义见下方 `#region` 内文档化类型；实现与 `UiConn` 的映射见各 `*ToUiConn` 函数。
  */
 import { readFile } from '@tauri-apps/plugin-fs'
 import { unzipSync } from 'fflate'
@@ -9,6 +9,8 @@ import { parse as parseYaml } from 'yaml'
 
 import type { UiConn } from '@/types/me-interface'
 import { meJsonParse } from '@/utils/util'
+
+// #region 错误与来源标识
 
 /** 携带 i18n key，由 UI 层 `t(key)` 展示 */
 export class ConnImportParseError extends Error {
@@ -27,7 +29,11 @@ export function connImportFileSuffix(source: ConnImportSource): string {
   return 'json'
 }
 
-/** Base64(UTF-8)，与 AnotherRDM `.ano` 一致 */
+// #endregion
+
+// #region 共享工具（编码 / 空连接模板 / 标量解析）
+
+/** Base64(UTF-8)，与 Another RDM `.ano` 一致 */
 function decodeBase64Utf8(b64: string): string {
   const t = b64.trim().replace(/\s+/g, '')
   const bin = atob(t)
@@ -105,6 +111,15 @@ function parseDb(raw: unknown): number {
   return 0
 }
 
+function asRecord(v: unknown): Record<string, unknown> | undefined {
+  if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>
+  return undefined
+}
+
+// #endregion
+
+// #region RedisME（.mec / 明文 JSON）
+
 /** 避免将 Redis Insight 导出误当作 RedisME 明文 JSON 导入 */
 function looksLikeRedisInsightExportItem(conn: unknown): boolean {
   if (!conn || typeof conn !== 'object' || Array.isArray(conn)) return false
@@ -131,6 +146,7 @@ function validateRedisMeConnList(connList: unknown): UiConn[] {
 
 /**
  * RedisME 连接列表：支持 `.mec`（Base64(UTF-8 JSON 数组)）及旧版明文 JSON 数组。
+ * 结构与 `UiConn[]` 一致，无第三方字段映射。
  */
 export function parseRedisMeConnections(content: string): UiConn[] {
   const trimmed = content.trim()
@@ -159,9 +175,79 @@ export function parseRedisMeConnections(content: string): UiConn[] {
   return validateRedisMeConnList(arr)
 }
 
-type AnotherRaw = Record<string, unknown>
+// #endregion
 
-function anotherSslEnabled(ssl: AnotherRaw | undefined): boolean {
+// #region Another Redis Desktop Manager（.ano）
+
+/**
+ * Another Redis Desktop Manager 导出连接（`.ano` 为 Base64 包裹的 JSON 数组元素）。
+ * 参考源码：`AnotherRedisDesktopManager` 的 `storage.js`、`NewConnectionDialog.vue`、`redisClient.js`。
+ */
+interface AnotherRdmSslOptionsJson {
+  /** 原始：TLS 客户端私钥路径（FileInput）。→ RedisME：`UiConn.sslOption.key` */
+  key?: unknown
+  /** 原始：客户端证书路径。→ RedisME：`UiConn.sslOption.cert` */
+  cert?: unknown
+  /** 原始：CA 证书路径。→ RedisME：`UiConn.sslOption.ca` */
+  ca?: unknown
+  /** 原始：TLS SNI servername（另存字段，导入未映射）。→ RedisME：无直接字段 */
+  servername?: unknown
+  keybookmark?: unknown
+  cabookmark?: unknown
+  certbookmark?: unknown
+}
+
+/**
+ * 原始：经 SSH 跳板连接时的隧道配置。
+ * → RedisME：`UiConn.ssh` / `UiConn.sshOption`（`privatekey` 非空则 `loginType` 为 `pkfile`）
+ */
+interface AnotherRdmSshOptionsJson {
+  host?: unknown
+  port?: unknown
+  username?: unknown
+  password?: unknown
+  /** 原始：SSH 私钥文件路径。→ RedisME：`UiConn.sshOption.pkfile` */
+  privatekey?: unknown
+  privatekeybookmark?: unknown
+  passphrase?: unknown
+  timeout?: unknown
+}
+
+/**
+ * 原始：Sentinel 模式下的 master 组与 Redis 节点认证。
+ * → RedisME：`UiConn.sentinel` / `sentinelOption`（`nodePassword` → `masterPassword`）
+ */
+interface AnotherRdmSentinelOptionsJson {
+  masterName?: unknown
+  nodePassword?: unknown
+}
+
+interface AnotherRdmAnoConnectionJson {
+  /** 原始：存储用唯一键（`storage.getConnectionKey`）。→ RedisME：`UiConn.id` 前缀 `another-${key}` */
+  key?: unknown
+  /** 原始：Redis 地址。→ RedisME：`UiConn.host` */
+  host?: unknown
+  /** 原始：Redis 端口。→ RedisME：`UiConn.port` */
+  port?: unknown
+  /** 原始：连接显示名；与 `name` 二选一。→ RedisME：`UiConn.name` */
+  connectionName?: unknown
+  name?: unknown
+  /** 原始：Redis ACL 用户名。→ RedisME：`UiConn.username` */
+  username?: unknown
+  /** 原始：Redis 密码。→ RedisME：`UiConn.password` */
+  auth?: unknown
+  /** 原始：是否集群。→ RedisME：`UiConn.cluster` */
+  cluster?: unknown
+  /** 原始：连接只读。→ RedisME：`UiConn.readonly` */
+  connectionReadOnly?: unknown
+  /** 原始：侧边栏标记色（`ConnectionWrapper.setColor`）。→ RedisME：`UiConn.color` */
+  color?: unknown
+  sshOptions?: unknown
+  sslOptions?: unknown
+  sentinelOptions?: unknown
+}
+
+function anotherSslEnabled(ssl: AnotherRdmSslOptionsJson | undefined): boolean {
   if (!ssl) return false
   return !!(asStr(ssl.key) || asStr(ssl.cert) || asStr(ssl.ca))
 }
@@ -170,7 +256,7 @@ function anotherItemToUiConn(raw: unknown): UiConn {
   if (!raw || typeof raw !== 'object') {
     throw new ConnImportParseError('conn.importFormatErr')
   }
-  const o = raw as AnotherRaw
+  const o = raw as AnotherRdmAnoConnectionJson
   const host = asStr(o.host).trim()
   if (!host) throw new ConnImportParseError('conn.importFormatErr')
   const port = parsePortU16(o.port)
@@ -180,15 +266,15 @@ function anotherItemToUiConn(raw: unknown): UiConn {
   const keyStr = o.key != null ? asStr(o.key) : ''
   const id = keyStr ? `another-${keyStr}` : nanoid()
 
-  const sshOpt = o.sshOptions as AnotherRaw | undefined
+  const sshOpt = asRecord(o.sshOptions) as AnotherRdmSshOptionsJson | undefined
   const sshOn = !!(sshOpt && asStr(sshOpt.host).trim())
   const pk = sshOpt ? asStr(sshOpt.privatekey) : ''
   const loginType = pk.trim() ? 'pkfile' : 'pwd'
 
-  const sslOpt = o.sslOptions as AnotherRaw | undefined
+  const sslOpt = asRecord(o.sslOptions) as AnotherRdmSslOptionsJson | undefined
   const sslOn = anotherSslEnabled(sslOpt)
 
-  const sentOpt = o.sentinelOptions as AnotherRaw | undefined
+  const sentOpt = asRecord(o.sentinelOptions) as AnotherRdmSentinelOptionsJson | undefined
   const masterName = sentOpt ? asStr(sentOpt.masterName).trim() : ''
   const sentinelOn = !!masterName
 
@@ -236,7 +322,7 @@ function anotherItemToUiConn(raw: unknown): UiConn {
   })
 }
 
-/** AnotherRDM `.ano`：整文件 Base64(UTF-8 JSON 数组) */
+/** Another RDM `.ano`：整文件 Base64(UTF-8 JSON 数组) */
 export function parseAnotherRdmFromAno(content: string): UiConn[] {
   let jsonText: string
   try {
@@ -257,12 +343,87 @@ export function parseAnotherRdmFromAno(content: string): UiConn[] {
   return arr.map(a => anotherItemToUiConn(a))
 }
 
-type TinyRaw = Record<string, unknown>
+// #endregion
 
-function asObj(v: unknown): TinyRaw | undefined {
-  if (v && typeof v === 'object' && !Array.isArray(v)) return v as TinyRaw
-  return undefined
+// #region TinyRDM（zip 内 connections.yaml）
+
+/**
+ * TinyRDM 连接 YAML/JSON 形状。
+ * 参考源码：`tiny-rdm/backend/types/connection.go`（`Connection`、`ConnectionConfig` 等）。
+ */
+interface TinyRdmSslYaml {
+  /** 原始：是否启用 TLS。→ RedisME：`UiConn.ssl` */
+  enable?: unknown
+  /** 原始：客户端私钥文件路径。→ RedisME：`UiConn.sslOption.key` */
+  keyFile?: unknown
+  keyfile?: unknown
+  /** 原始：客户端证书路径。→ RedisME：`UiConn.sslOption.cert` */
+  certFile?: unknown
+  certfile?: unknown
+  /** 原始：CA 路径。→ RedisME：`UiConn.sslOption.ca` */
+  caFile?: unknown
+  cafile?: unknown
+  allowInsecure?: unknown
+  sni?: unknown
 }
+
+interface TinyRdmSshYaml {
+  enable?: unknown
+  /** 原始：SSH 主机。→ RedisME：`UiConn.sshOption.host` */
+  addr?: unknown
+  port?: unknown
+  /** 原始：`pwd` / `pkfile`。→ RedisME：`UiConn.sshOption.loginType` */
+  loginType?: unknown
+  login_type?: unknown
+  username?: unknown
+  password?: unknown
+  pkFile?: unknown
+  pk_file?: unknown
+  passphrase?: unknown
+}
+
+interface TinyRdmSentinelYaml {
+  enable?: unknown
+  /** 原始：Sentinel master 名。→ RedisME：`UiConn.sentinelOption.masterName` */
+  master?: unknown
+  username?: unknown
+  password?: unknown
+}
+
+interface TinyRdmClusterYaml {
+  /** 原始：是否集群模式。→ RedisME：`UiConn.cluster` */
+  enable?: unknown
+}
+
+/**
+ * 单条连接或分组节点。`type === 'group'` 时含 `connections` 子列表。
+ * → RedisME：递归展平后每条映射为一个 `UiConn`。
+ */
+interface TinyRdmYamlNode {
+  type?: unknown
+  connections?: unknown
+  /** 原始：`tcp` / `unix` 等。→ RedisME：unix 跳过 */
+  network?: unknown
+  sock?: unknown
+  name?: unknown
+  /** 原始：Redis 地址。→ RedisME：`UiConn.host` */
+  addr?: unknown
+  host?: unknown
+  port?: unknown
+  username?: unknown
+  password?: unknown
+  /** 原始：上次使用的 DB 索引。→ RedisME：`UiConn.db` */
+  last_db?: unknown
+  lastDB?: unknown
+  mark_color?: unknown
+  markColor?: unknown
+  ssl?: unknown
+  ssh?: unknown
+  sentinel?: unknown
+  cluster?: unknown | TinyRdmClusterYaml
+}
+
+type TinyRaw = Record<string, unknown>
 
 function getStr(o: TinyRaw, ...keys: string[]): string {
   for (const k of keys) {
@@ -276,15 +437,15 @@ function getStr(o: TinyRaw, ...keys: string[]): string {
 function tinyClusterOn(o: TinyRaw): boolean {
   const c = o.cluster
   if (typeof c === 'boolean') return c
-  const co = asObj(c)
+  const co = asRecord(c) as TinyRdmClusterYaml | undefined
   return !!(co && co.enable)
 }
 
-function tinySslOn(ssl: TinyRaw | undefined): boolean {
+function tinySslOn(ssl: TinyRdmSslYaml | undefined): boolean {
   return !!(ssl && ssl.enable)
 }
 
-function tinySshOn(ssh: TinyRaw | undefined): boolean {
+function tinySshOn(ssh: TinyRdmSshYaml | undefined): boolean {
   return !!(ssh && ssh.enable)
 }
 
@@ -296,12 +457,12 @@ function flattenTinyConnections(items: unknown[]): TinyRaw[] {
   const out: TinyRaw[] = []
   if (!Array.isArray(items)) return out
   for (const item of items) {
-    const o = asObj(item)
+    const o = asRecord(item) as TinyRdmYamlNode | undefined
     if (!o) continue
     if (o.type === 'group' && Array.isArray(o.connections) && o.connections.length > 0) {
       out.push(...flattenTinyConnections(o.connections))
     } else if (o.type !== 'group') {
-      out.push(o)
+      out.push(o as TinyRaw)
     }
   }
   return out
@@ -318,14 +479,14 @@ function mapTinyItemToUiConn(o: TinyRaw): UiConn | 'skip-unix' {
   const host = getStr(o, 'addr', 'host').trim() || '127.0.0.1'
   const port = parsePortU16(o.port ?? 6379)
 
-  const ssl = asObj(o.ssl)
-  const sslOn = tinySslOn(ssl)
-  const ssh = asObj(o.ssh)
-  const sshOn = tinySshOn(ssh)
-  const sent = asObj(o.sentinel)
-  const sentinelOn = tinySentinelOn(sent)
+  const sslRec = asRecord(o.ssl)
+  const sslOn = tinySslOn(sslRec as TinyRdmSslYaml | undefined)
+  const sshRec = asRecord(o.ssh)
+  const sshOn = tinySshOn(sshRec as TinyRdmSshYaml | undefined)
+  const sentRec = asRecord(o.sentinel)
+  const sentinelOn = tinySentinelOn(sentRec)
 
-  const loginRaw = asStr(ssh?.login_type ?? ssh?.loginType) || 'pwd'
+  const loginRaw = asStr(sshRec?.login_type ?? sshRec?.loginType) || 'pwd'
   const loginType = loginRaw === 'pkfile' ? 'pkfile' : 'pwd'
 
   const id = `tinyrdm-${name}`
@@ -341,31 +502,31 @@ function mapTinyItemToUiConn(o: TinyRaw): UiConn | 'skip-unix' {
     cluster: tinyClusterOn(o),
     color: getStr(o, 'mark_color', 'markColor') || undefined,
     ssl: sslOn,
-    sslOption: ssl
+    sslOption: sslRec
       ? {
-          key: getStr(ssl, 'keyFile', 'keyfile'),
-          cert: getStr(ssl, 'certFile', 'certfile'),
-          ca: getStr(ssl, 'caFile', 'cafile'),
+          key: getStr(sslRec, 'keyFile', 'keyfile'),
+          cert: getStr(sslRec, 'certFile', 'certfile'),
+          ca: getStr(sslRec, 'caFile', 'cafile'),
         }
       : { key: '', cert: '', ca: '' },
     sentinel: sentinelOn,
     sentinelOption: sentinelOn
       ? {
-          masterName: getStr(sent!, 'master'),
-          masterUsername: getStr(sent!, 'username'),
-          masterPassword: getStr(sent!, 'password'),
+          masterName: getStr(sentRec!, 'master'),
+          masterUsername: getStr(sentRec!, 'username'),
+          masterPassword: getStr(sentRec!, 'password'),
         }
       : { masterName: '', masterUsername: '', masterPassword: '' },
     ssh: sshOn,
-    sshOption: ssh
+    sshOption: sshRec
       ? {
-          host: getStr(ssh, 'addr'),
-          port: parsePortU16(ssh.port ?? 22),
+          host: getStr(sshRec, 'addr'),
+          port: parsePortU16(sshRec.port ?? 22),
           loginType,
-          username: getStr(ssh, 'username'),
-          password: getStr(ssh, 'password'),
-          pkfile: getStr(ssh, 'pkFile', 'pk_file'),
-          passphrase: getStr(ssh, 'passphrase'),
+          username: getStr(sshRec, 'username'),
+          password: getStr(sshRec, 'password'),
+          pkfile: getStr(sshRec, 'pkFile', 'pk_file'),
+          passphrase: getStr(sshRec, 'passphrase'),
         }
       : {
           host: '',
@@ -440,7 +601,52 @@ export async function parseTinyRdmFromZipFile(
   return { connections, skippedUnix }
 }
 
-type InsightRaw = Record<string, unknown>
+// #endregion
+
+// #region Redis Insight（RedisInsight_connections_*.json）
+
+/**
+ * Redis Insight 导出的连接项（JSON 数组元素）。
+ * 参考：`redisinsight/api/.../database/models/database.ts`、`ui/src/slices/interfaces/instances.ts`。
+ */
+interface RedisInsightSshOptionsJson {
+  host?: unknown
+  port?: unknown
+  username?: unknown
+  password?: unknown
+  /** 原始：私钥 PEM 或密钥文件路径字符串。→ RedisME：`sshOption.pkfile` / `loginType`（见实现内 PEM 判断） */
+  privateKey?: unknown
+  passphrase?: unknown
+}
+
+interface RedisInsightSentinelMasterJson {
+  /** 原始：Sentinel master 组名。→ RedisME：`sentinelOption.masterName` */
+  name?: unknown
+  username?: unknown
+  password?: unknown
+}
+
+interface RedisInsightConnectionJson {
+  id?: unknown
+  name?: unknown
+  host?: unknown
+  port?: unknown
+  username?: unknown
+  password?: unknown
+  db?: unknown
+  /**
+   * 原始：`STANDALONE` | `CLUSTER` | `SENTINEL`。
+   * → RedisME：`cluster` / `sentinel`（与 `forceStandalone` 组合见映射函数）
+   */
+  connectionType?: unknown
+  /** 原始：集群库上强制按单机连接。→ RedisME：为 true 时关闭 `cluster` */
+  forceStandalone?: unknown
+  /** 原始：使用 TLS。→ RedisME：`ssl`（证书路径对象未映射，见 `parseRedisInsightConnections` 注释） */
+  tls?: unknown
+  ssh?: unknown
+  sshOptions?: unknown
+  sentinelMaster?: unknown
+}
 
 /** Redis Insight 导出中密码字段可能为布尔占位（已脱敏） */
 function insightSecretStr(v: unknown): string {
@@ -453,7 +659,7 @@ function insightItemToUiConn(raw: unknown): UiConn {
   if (!raw || typeof raw !== 'object') {
     throw new ConnImportParseError('conn.importFormatErr')
   }
-  const o = raw as InsightRaw
+  const o = raw as RedisInsightConnectionJson
   const host = asStr(o.host).trim()
   if (!host) throw new ConnImportParseError('conn.importFormatErr')
   const port = parsePortU16(o.port)
@@ -467,7 +673,9 @@ function insightItemToUiConn(raw: unknown): UiConn {
 
   const clusterOn = ct === 'CLUSTER' && !forceStandalone
   const sentinelOn = ct === 'SENTINEL'
-  const sentMaster = sentinelOn ? asObj(o.sentinelMaster) : undefined
+  const sentMaster = sentinelOn
+    ? (asRecord(o.sentinelMaster) as RedisInsightSentinelMasterJson | undefined)
+    : undefined
   if (sentinelOn) {
     const masterName = sentMaster ? asStr(sentMaster.name).trim() : ''
     if (!masterName) throw new ConnImportParseError('conn.importFormatErr')
@@ -475,7 +683,7 @@ function insightItemToUiConn(raw: unknown): UiConn {
 
   const tlsOn = !!o.tls
 
-  const sshOpt = asObj(o.sshOptions)
+  const sshOpt = asRecord(o.sshOptions) as RedisInsightSshOptionsJson | undefined
   const sshOn = !!o.ssh && !!sshOpt && asStr(sshOpt.host).trim()
   const pkRaw = sshOpt ? insightSecretStr(sshOpt.privateKey) : ''
   const pkIsPem = /-----BEGIN\b/.test(pkRaw)
@@ -542,6 +750,10 @@ export function parseRedisInsightConnections(content: string): UiConn[] {
   return arr.map(a => insightItemToUiConn(a))
 }
 
+// #endregion
+
+// #region 合并导入列表
+
 export function mergeImportedConnList(existing: UiConn[], imported: UiConn[]): UiConn[] {
   const impIds = imported.map(c => c.id)
   const next: UiConn[] = []
@@ -549,3 +761,5 @@ export function mergeImportedConnList(existing: UiConn[], imported: UiConn[]): U
   next.push(...imported)
   return next
 }
+
+// #endregion
