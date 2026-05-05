@@ -1,5 +1,9 @@
 # 3.x 更新日志
 
+## v3.2.3
+
+- 
+
 ## [v3.2.0](https://mp.weixin.qq.com/s/8c39tELlwtjrkbvD8kWB6A) (2026-05-05)
 
 ### ✨ 新增优化
