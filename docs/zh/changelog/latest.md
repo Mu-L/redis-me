@@ -2,7 +2,12 @@
 
 ## v3.2.3
 
-- 
+- 快速缺陷反馈
+- 首页空连接时的显示
+- 图表支持F11最大化
+- MsgPack、Protobuf的编码支持
+- 复制为命令，导出命令便于迁移
+
 
 ## [v3.2.0](https://mp.weixin.qq.com/s/8c39tELlwtjrkbvD8kWB6A) (2026-05-05)
 

@@ -32,6 +32,8 @@ export default {
     writableTip: '切换为可写模式',
   },
 
+  keyEmpty: { tagline: '现代、轻量、跨平台的 Redis 桌面客户端' },
+
   setting: {
     toDefault: '恢复默认',
     confirmToDefault: '确认恢复【{name}】到默认值吗？',

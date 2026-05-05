@@ -38,6 +38,8 @@ export default {
     writableTip: 'Changed To Writable',
   },
 
+  keyEmpty: { tagline: 'Modern, Lightweight, Cross-Platform RDM' },
+
   setting: {
     toDefault: 'Restore Default',
     confirmToDefault: 'Confirm Restore【{name}】To Default ?',
