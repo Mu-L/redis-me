@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { openUrl } from '@tauri-apps/plugin-opener';
+import { openUrl } from '@tauri-apps/plugin-opener'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -63,7 +63,6 @@ function handleLogoClick(): void {
     }
   }
 
-
   .tagline {
     margin-top: 40px;
     font-size: 16px;
@@ -71,7 +70,7 @@ function handleLogoClick(): void {
     opacity: 0.5;
     background: -webkit-linear-gradient(120deg, #c7ba4e 30%, #bd34fe);
     -webkit-text-fill-color: transparent;
-    background-clip: text
+    background-clip: text;
   }
 }
 </style>

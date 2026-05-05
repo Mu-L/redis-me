@@ -8,7 +8,6 @@
 - MsgPack、Protobuf的编码支持
 - 复制为命令，导出命令便于迁移
 
-
 ## [v3.2.0](https://mp.weixin.qq.com/s/8c39tELlwtjrkbvD8kWB6A) (2026-05-05)
 
 ### ✨ 新增优化
