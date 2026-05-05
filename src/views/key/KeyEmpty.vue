@@ -1,15 +1,21 @@
 <script setup lang="ts">
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+
+function handleLogoClick(): void {
+  openUrl('https://www.hepengju.com')
+}
 </script>
 
 <template>
   <div class="key-empty">
-    <div class="image-bg">
-      <SvgIcon name="me-icon-logo-color" style="font-size: 60px;" />
+    <div class="logo-wrap" @click="handleLogoClick">
+      <div class="logo-glow" aria-hidden="true" />
+      <SvgIcon class="logo-icon" name="me-icon-logo-color" />
     </div>
-    <el-text type="info" style="margin-top: 30px;">{{ t('keyEmpty.tagline') }}</el-text>
+    <div type="info" class="tagline">{{ t('keyEmpty.tagline') }}</div>
   </div>
 </template>
 
@@ -18,17 +24,54 @@ const { t } = useI18n()
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  text-align: center;
+  // justify-content: center;
 
-  .image-bg {
+  /* 与文档站 hero 一致的紫/青对角渐变光晕，blur 仅作用于底层，图标保持清晰 */
+  .logo-wrap {
+    cursor: pointer;
+    margin-top: 25vh;
     position: relative;
-    background-image: linear-gradient(-45deg, #bd34fe 50%, #47caff 50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100px;
     height: 100px;
-    filter: blur(68px);
+  }
+
+  .logo-glow {
+    position: absolute;
+    z-index: 0;
+    /* 略大于图标区域，光晕向外晕开 */
+    inset: -30px;
     border-radius: 50%;
+    background: linear-gradient(-45deg, #bd34fe 48%, #47caff 52%);
+    opacity: 0.5;
+    filter: blur(44px);
+    pointer-events: none;
+  }
+
+  .logo-icon {
+    position: relative;
+    z-index: 1;
+    font-size: 100px;
+    opacity: 0.6;
+    filter: drop-shadow(-2px 4px 8px rgba(0, 0, 0, 0.2));
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+
+  .tagline {
+    margin-top: 40px;
+    font-size: 16px;
+    font-weight: 600;
+    opacity: 0.5;
+    background: -webkit-linear-gradient(120deg, #c7ba4e 30%, #bd34fe);
+    -webkit-text-fill-color: transparent;
+    background-clip: text
   }
 }
 </style>
