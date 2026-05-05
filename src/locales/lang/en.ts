@@ -38,7 +38,7 @@ export default {
     writableTip: 'Changed To Writable',
   },
 
-  keyEmpty: { tagline: 'Modern, Lightweight, Cross-Platform RDM' },
+  keyEmpty: { tagline: 'Modern, Lightweight, Cross-Platform' },
 
   setting: {
     toDefault: 'Restore Default',
