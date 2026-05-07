@@ -32,7 +32,11 @@ export default {
     writableTip: '切换为可写模式',
   },
 
-  keyEmpty: { tagline: '现代、轻量、跨平台的 Redis 桌面客户端' },
+  keyEmpty: {
+    tagline: '现代、轻量、跨平台的 Redis 桌面客户端',
+    sourceCode: '源码地址',
+    bugReport: '缺陷反馈',
+  },
 
   setting: {
     toDefault: '恢复默认',

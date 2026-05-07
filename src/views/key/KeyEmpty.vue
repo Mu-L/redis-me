@@ -7,6 +7,14 @@ const { t } = useI18n()
 function handleLogoClick(): void {
   openUrl('https://www.hepengju.com')
 }
+
+function handleGithubClick(): void {
+  openUrl('https://github.com/hepengju/redis-me')
+}
+
+function handleBugClick(): void {
+  openUrl('https://github.com/hepengju/redis-me/issues')
+}
 </script>
 
 <template>
@@ -15,7 +23,12 @@ function handleLogoClick(): void {
       <div class="logo-glow" aria-hidden="true" />
       <SvgIcon class="logo-icon" name="me-icon-logo-color" />
     </div>
-    <div type="info" class="tagline">{{ t('keyEmpty.tagline') }}</div>
+    <div class="tagline">{{ t('keyEmpty.tagline') }}</div>
+
+    <div class="github">
+      <me-icon icon="me-icon-github" :name="t('keyEmpty.sourceCode')" @click="handleGithubClick" />
+      <me-icon icon="me-icon-bug" :name="t('keyEmpty.bugReport')" @click="handleBugClick" />
+    </div>
   </div>
 </template>
 
@@ -30,7 +43,7 @@ function handleLogoClick(): void {
   /* 与文档站 hero 一致的紫/青对角渐变光晕，blur 仅作用于底层，图标保持清晰 */
   .logo-wrap {
     cursor: pointer;
-    margin-top: 25vh;
+    margin-top: 20vh;
     position: relative;
     display: flex;
     align-items: center;
@@ -66,11 +79,31 @@ function handleLogoClick(): void {
   .tagline {
     margin-top: 40px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: bold;
     opacity: 0.5;
     background: -webkit-linear-gradient(120deg, #c7ba4e 30%, #bd34fe);
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .github {
+    margin-top: 20vh;
+    width: 60%;
+    display: flex;
+    justify-content: space-between;
+
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--el-color-info);
+    opacity: 0.6;
+
+    div {
+      cursor: pointer;
+
+      &:hover {
+        color: var(--el-color-success);
+      }
+    }
   }
 }
 </style>

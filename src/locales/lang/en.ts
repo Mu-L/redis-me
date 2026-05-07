@@ -38,7 +38,11 @@ export default {
     writableTip: 'Changed To Writable',
   },
 
-  keyEmpty: { tagline: 'Modern, Lightweight, Cross-Platform' },
+  keyEmpty: {
+    tagline: 'Modern, Lightweight, Cross-Platform',
+    sourceCode: 'Github',
+    bugReport: 'Bug Report',
+  },
 
   setting: {
     toDefault: 'Restore Default',
