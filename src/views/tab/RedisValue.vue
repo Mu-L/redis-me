@@ -35,11 +35,11 @@ import {
   meJsonFormat,
   meJsonNormal,
   meOk,
-  meRenameKey,
   meType,
 } from '@/utils/util'
 import TableGroup from '@/views/ext/TableGroup.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
+import KeyRename from '@/views/key/KeyRename.vue'
 
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
@@ -285,8 +285,10 @@ function delKey() {
   meDeleteKey(share.conn!.id, share.redisKey!)
 }
 
+const keyRenameRef = useTemplateRef<InstanceType<typeof KeyRename>>('keyRenameRef')
 function renameKey() {
-  meRenameKey(share.conn!.id, share.redisKey!, bytesFormat.value)
+  if (!share.redisKey) return
+  keyRenameRef.value?.open({ redisKey: share.redisKey })
 }
 
 // 保存值
@@ -837,6 +839,7 @@ function openKeyShortDialog() {
     <!-- 更新TTL, 字段新增 -->
     <TTLSet ref="ttlSetRef" @success="setTimer" />
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
+    <KeyRename ref="keyRenameRef" />
 
     <!-- Stream消费者组 -->
     <me-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900">

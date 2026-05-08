@@ -409,6 +409,7 @@ export function meFilterHandler<T extends Record<string, unknown>>(
 // #endregion
 
 // #region Redis 键：删除 / 重命名（组合确认框与 meCommands）
+
 export function meDeleteKey(id: string, redisKey: RedisKey_Deserialize, thenFn?: () => void): void {
   meConfirm(t('util.deleteKey', { key: redisKey.key }), async () => {
     await meCommands.del(id, redisKey)
@@ -418,48 +419,6 @@ export function meDeleteKey(id: string, redisKey: RedisKey_Deserialize, thenFn?:
   })
 }
 
-export function meRenameKey(id: string, redisKey: RedisKey_Deserialize, encoding = 'utf8'): void {
-  const message =
-    encoding === 'utf8'
-      ? t('util.renameKey')
-      : t('util.renameKey') + ' (' + String(encoding).toUpperCase() + ')'
-  const inputValue = encoding === 'utf8' ? redisKey.key : meFormatBytes(redisKey.bytes, encoding)
-
-  mePrompt(
-    message,
-    {
-      inputValue,
-      inputType: 'text',
-      inputValidator: (value: string) => {
-        if (!value || value.trim() === '') {
-          return t('util.valueRequired')
-        }
-        if (encoding !== 'utf8') {
-          try {
-            meToBase64(value, encoding)
-          } catch (e) {
-            return errString(e)
-          }
-        }
-        return true
-      },
-    },
-    async ({ value }) => {
-      let newKey: RedisKey_Deserialize
-      if (encoding === 'utf8') {
-        newKey = { key: value, bytes: '' }
-      } else {
-        newKey = { key: '', bytes: meToBase64(value, encoding) }
-      }
-
-      const apiNewKey = await meCommands.rename(id, redisKey, newKey)
-
-      redisKey.key = apiNewKey.key
-      redisKey.bytes = apiNewKey.bytes
-      meOk(t('actionOk'))
-    },
-  )
-}
 // #endregion
 
 // #region 应用内自动更新（Tauri updater）

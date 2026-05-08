@@ -208,7 +208,6 @@ export default {
   util: {
     days: '天',
     deleteKey: '确定删除键【{key}】吗？',
-    renameKey: '重命名键',
     checking: '检查更新中，请稍后...',
     updateHint: '有新版本 v{version}，是否升级？',
     changelog: '更新日志',
@@ -218,7 +217,6 @@ export default {
     updateErr: '下载安装包失败',
     latestVersion: '当前为最新版本',
     checkUpdateErr: '检查更新失败',
-    valueRequired: '值不允许为空',
     invalidHexString: '无效的十六进制字符串：长度为奇数',
     invalidHexCharacter: '无效的十六进制字符',
     invalidBinaryString: '无效的二进制字符串：长度不是 8 的倍数',
@@ -358,6 +356,8 @@ export default {
     deleteKey: '删除键',
     renameKey: '重命名键',
   },
+
+  keyRename: { title: '重命名键', newKeyName: '新键名', keyNameRequired: '键名不允许为空' },
 
   keyTree: {
     noData: '没有数据',
