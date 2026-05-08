@@ -463,14 +463,16 @@ api_model!(RedisFieldAdd {
     key_type: String,
     ttl: i64,
     value: String, // 字段类型为String时的值
-    /// 仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名
-    key_fmt: Option<BytesFormat>,
-    /// 除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等
-    val_fmt: Option<BytesFormat>,
 
     list_push_method: String, // lpush, rpush
     field_value_list: Vec<RedisFieldValue>,
     stream_id: String, // stream
+
+    /// 仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名
+    key_fmt: Option<BytesFormat>,
+    /// 除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等
+    val_fmt: Option<BytesFormat>,
+    
 });
 
 // 字段修改

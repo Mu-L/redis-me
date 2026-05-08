@@ -217,13 +217,13 @@ export type RedisFieldAdd = {
 	type: string,
 	ttl: number,
 	value: string,
+	listPushMethod: string,
+	fieldValueList: RedisFieldValue[],
+	streamId: string,
 	// 仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名
 	keyFmt: BytesFormat | null,
 	// 除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等
 	valFmt: BytesFormat | null,
-	listPushMethod: string,
-	fieldValueList: RedisFieldValue[],
-	streamId: string,
 };
 
 export type RedisFieldDel = RedisFieldDel_Serialize | RedisFieldDel_Deserialize;

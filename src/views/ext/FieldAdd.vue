@@ -66,7 +66,7 @@ const initForm = computed(() => ({
 const form = ref(cloneDeep(toRaw(initForm.value)))
 
 const stringOrJsonType = computed(() => form.value.type === 'string' || form.value.type === 'json')
-const streamOrJsonType = computed(() => form.value.type === 'stream' || form.value.type === 'json')
+const jsonType = computed(() => form.value.type === 'json')
 
 const rules = computed(() => ({
   key: [{ required: true, message: t('fieldAdd.keyRequired') }],
@@ -216,7 +216,7 @@ watch(
 
 // json和stream类型不支持编码
 function handleKeyTypeChange() {
-  if (streamOrJsonType.value) {
+  if (jsonType.value) {
     form.value.keyFmt = 'utf8'
     form.value.valFmt = 'utf8'
   }
@@ -367,7 +367,7 @@ function handleKeyTypeChange() {
         <el-row v-show="showEncoding" :gutter="20">
           <el-col :span="12">
             <el-form-item :label="t('fieldAdd.keyEncoding')" prop="keyFmt">
-              <el-select v-model="form.keyFmt" style="width: 100%" :disabled="streamOrJsonType">
+              <el-select v-model="form.keyFmt" style="width: 100%" :disabled="jsonType">
                 <el-option
                   v-for="item in DISPLAY_FORMAT"
                   :label="item"
@@ -377,7 +377,7 @@ function handleKeyTypeChange() {
           </el-col>
           <el-col :span="12">
             <el-form-item :label="t('fieldAdd.valueEncoding')" prop="valFmt">
-              <el-select v-model="form.valFmt" style="width: 100%" :disabled="streamOrJsonType">
+              <el-select v-model="form.valFmt" style="width: 100%" :disabled="jsonType">
                 <el-option
                   v-for="item in DISPLAY_FORMAT"
                   :label="item"
