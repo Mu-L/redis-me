@@ -20,8 +20,14 @@ import {
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({ open })
+const showEncoding = ref(false)
+function toggleShowEncoding() {
+  showEncoding.value = !showEncoding.value
+}
+
 function open(data: Partial<RedisFieldAdd & RedisKey_Deserialize>) {
   visible.value = true
+  showEncoding.value = false
   Object.assign(form.value, cloneDeep(toRaw(initForm.value)))
   Object.assign(form.value, data)
 }
@@ -221,16 +227,16 @@ function handleKeyTypeChange() {
   <el-dialog
     :title="form.mode === 'key' ? t('fieldAdd.newKey') : t('fieldAdd.newField')"
     v-model="visible"
-    :width="666"
+    :width="600"
     @closed="emit('closed')"
     destroy-on-close
     :close-on-press-escape="false"
     :close-on-click-modal="false"
     draggable>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-      <!-- 键类型、输入格式和 TTL: 仅新建键时显示 -->
+      <!-- 键类型与 TTL: 仅新建键时显示 -->
       <el-row :gutter="20" v-if="form.mode === 'key'">
-        <el-col :span="6">
+        <el-col :span="12">
           <el-form-item :label="t('fieldAdd.type')" prop="type">
             <el-select v-model="form.type" style="width: 100%" @change="handleKeyTypeChange">
               <el-option
@@ -247,23 +253,7 @@ function handleKeyTypeChange() {
           </el-form-item>
         </el-col>
 
-        <el-col :span="6">
-          <el-form-item :label="t('fieldAdd.keyEncoding')" prop="keyFmt">
-            <el-select v-model="form.keyFmt" style="width: 100%" :disabled="streamOrJsonType">
-              <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="6">
-          <el-form-item :label="t('fieldAdd.valueEncoding')" prop="valFmt">
-            <el-select v-model="form.valFmt" style="width: 100%" :disabled="streamOrJsonType">
-              <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="6">
+        <el-col :span="12">
           <el-form-item :label="t('fieldAdd.ttl')" prop="ttl">
             <el-input v-model.number="form.ttl" style="flex: 1">
               <template #append>
@@ -364,6 +354,39 @@ function handleKeyTypeChange() {
           <el-button icon="el-icon-plus" circle @click="newElement(index)" />
         </div>
       </el-form-item>
+
+      <!-- 新建键：编码默认折叠，按需展开 -->
+      <template v-if="form.mode === 'key'">
+        <div class="field-add-encoding-bar">
+          <el-link type="info" :underline="false" @click="toggleShowEncoding">
+            {{
+              showEncoding ? t('fieldAdd.encodingSettingsHide') : t('fieldAdd.encodingSettingsShow')
+            }}
+          </el-link>
+        </div>
+        <el-row v-show="showEncoding" :gutter="20">
+          <el-col :span="12">
+            <el-form-item :label="t('fieldAdd.keyEncoding')" prop="keyFmt">
+              <el-select v-model="form.keyFmt" style="width: 100%" :disabled="streamOrJsonType">
+                <el-option
+                  v-for="item in DISPLAY_FORMAT"
+                  :label="item"
+                  :value="item.toLowerCase()" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item :label="t('fieldAdd.valueEncoding')" prop="valFmt">
+              <el-select v-model="form.valFmt" style="width: 100%" :disabled="streamOrJsonType">
+                <el-option
+                  v-for="item in DISPLAY_FORMAT"
+                  :label="item"
+                  :value="item.toLowerCase()" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </template>
     </el-form>
     <template #footer>
       <el-button @click="visible = false">{{ t('cancel') }}</el-button>
@@ -373,6 +396,10 @@ function handleKeyTypeChange() {
 </template>
 
 <style scoped lang="scss">
+.field-add-encoding-bar {
+  margin: 4px 0 8px;
+}
+
 :deep(.el-input-group__prepend) {
   padding: 0 16px;
 }

@@ -278,6 +278,8 @@ export default {
     type: '类型',
     keyEncoding: '键编码',
     valueEncoding: '值编码',
+    encodingSettingsShow: '编码设置…',
+    encodingSettingsHide: '收起编码设置',
     ttl: 'TTL超时时长 (-1代表永久)',
     negativeOneHint: '-1代表永久',
     permanent: '永久',
