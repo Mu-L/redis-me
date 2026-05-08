@@ -88,21 +88,25 @@ async function submit() {
 <template>
   <el-dialog
     v-model="visible"
-    :title="t('keyRename.title')"
     width="600px"
     destroy-on-close
     align-center
     :close-on-press-escape="false"
     :close-on-click-modal="false"
     draggable>
+
+    <template #header>
+      <me-icon icon="el-icon-edit-pen" :name="t('keyRename.title')" />
+    </template>
+
     <el-form ref="formRef" :model="form" :rules="rules" label-width="0">
       <el-row :gutter="10">
-        <el-col :span="18">
+        <el-col :span="19">
           <el-form-item prop="keyName">
             <el-input v-model="form.keyName" clearable :placeholder="t('keyRename.newKeyName')" />
           </el-form-item>
         </el-col>
-        <el-col :span="6">
+        <el-col :span="5">
           <el-form-item>
             <el-select v-model="encoding" style="width: 100%">
               <el-option
