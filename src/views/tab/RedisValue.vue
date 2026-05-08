@@ -266,7 +266,7 @@ async function refreshKey(
     valueEditorRemountKey.value++
 
     await nextTick(() => {
-      if (jsonType.value || streamType.value) {
+      if (jsonType.value) {
         bytesFormat.value = 'utf8'
       }
     })
@@ -470,8 +470,10 @@ const bytesFormat = ref<BytesFormat>('utf8')
 const showKey = computed(() => {
   const rk = share.redisKey
   if (!rk) return ''
-  if (bytesFormat.value === 'utf8') return rk.key
-  return meFormatBytes(rk.bytes, bytesFormat.value)
+  // if (bytesFormat.value === 'utf8') return rk.key
+  // return meFormatBytes(rk.bytes, bytesFormat.value)
+  // 键显示暂时不跟随字节格式变化
+  return rk.key
 })
 
 // 快捷键
