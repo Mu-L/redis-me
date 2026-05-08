@@ -145,12 +145,11 @@ pub fn field_scan0(
     param: FieldScanParam,
     capabilities: &ServerCapabilities,
 ) -> AnyResult<FieldScanResult> {
-    // 提取显示格式参数
-    let display_format = param.display_format.as_ref().cloned().unwrap_or_default();
+    let bytes_format = param.bytes_format.as_ref().cloned().unwrap_or_default();
 
     // String, Json, List, Hash(WithKey), Stream(WithKey), Stream 直接获取得到值
     let (mut value, key_type, mut cc, length) =
-        field_scan_0_get(&mut conn, &param, &display_format)?;
+        field_scan_0_get(&mut conn, &param, &bytes_format)?;
 
     // Hash, Set, Zset 进行扫描(hscan, sscan, zscan)
     let key = param.key;
@@ -176,7 +175,7 @@ pub fn field_scan0(
                 new_value,
                 &key,
                 capabilities,
-                &display_format,
+                &bytes_format,
             )?;
 
             ready_count += new_count;
@@ -201,7 +200,7 @@ pub fn field_scan0(
 pub fn field_scan_0_get(
     mut conn: &mut MutexGuard<impl Commands>,
     param: &FieldScanParam,
-    display_format: &DisplayFormat,
+    bytes_format: &BytesFormat,
 ) -> AnyResult<(Option<serde_json::Value>, ValueType, ScanCursor, usize)> {
     let key = &param.key;
     let hash_key = param.hash_key.clone();
@@ -216,7 +215,7 @@ pub fn field_scan_0_get(
         ValueType::String => {
             let value: Vec<u8> = conn.get(key)?;
             length = value.len();
-            let value: String = format_bytes(&value, display_format);
+            let value: String = format_bytes(&value, bytes_format);
             cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
@@ -235,7 +234,7 @@ pub fn field_scan_0_get(
                     Some(str) => {
                         length = str.len();
                         cc.finished = true;
-                        Some(serde_json::to_value(format_bytes(&str, display_format))?)
+                        Some(serde_json::to_value(format_bytes(&str, bytes_format))?)
                     }
                     None => bail!(AppError::FieldNotFound { hash_key }),
                 }
@@ -257,10 +256,10 @@ pub fn field_scan_0_get(
             let value: Vec<String> = if !param.load_all && value.len() > param.count as usize {
                 cc.finished = false;
                 cc.now_cursor += param.count;
-                ui_list_value(&value[0..param.count as usize], display_format)
+                ui_list_value(&value[0..param.count as usize], bytes_format)
             } else {
                 cc.finished = true;
-                ui_list_value(&value, display_format)
+                ui_list_value(&value, bytes_format)
             };
             Some(serde_json::to_value(value)?)
         }
@@ -371,13 +370,13 @@ pub fn field_scan_2_value(
     new_value: Value,
     key: &RedisKey,
     capabilities: &ServerCapabilities,
-    display_format: &DisplayFormat,
+    bytes_format: &BytesFormat,
 ) -> AnyResult<usize> {
     let new_count = match key_type {
         ValueType::Hash => {
             let value: Vec<(Vec<u8>, Vec<u8>)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            let mut new_value = ui_hash_value(&value, display_format);
+            let mut new_value = ui_hash_value(&value, bytes_format);
 
             // 补充hash字段ttl
             if capabilities.hash_field_ttl {
@@ -400,14 +399,14 @@ pub fn field_scan_2_value(
         ValueType::Set => {
             let value: HashSet<Vec<u8>> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            scan_value.set.extend(ui_set_value(value, display_format));
+            scan_value.set.extend(ui_set_value(value, bytes_format));
             new_count
         }
 
         ValueType::ZSet => {
             let value: Vec<(Vec<u8>, f64)> = FromRedisValue::from_redis_value(new_value)?;
             let new_count = value.len();
-            scan_value.zset.extend(ui_zset_value(value, display_format));
+            scan_value.zset.extend(ui_zset_value(value, bytes_format));
             new_count
         }
         _ => bail!(AppError::FieldScanNotSupported {
@@ -511,10 +510,10 @@ pub fn field_add0(
     param: RedisFieldAdd,
     capabilities: &ServerCapabilities,
 ) -> AnyResult<RedisKey> {
-    // 获取输入格式，默认为 UTF8
-    let input_format = param.input_format.as_ref().cloned().unwrap_or_default();
+    let key_fmt = param.key_fmt.as_ref().cloned().unwrap_or_default();
+    let val_fmt = param.val_fmt.as_ref().cloned().unwrap_or_default();
 
-    let key: RedisKey = parse_bytes(&param.key, &input_format)?.into();
+    let key: RedisKey = parse_bytes(&param.key, &key_fmt)?.into();
     let mode = param.mode;
     let mut key_type = to_key_type(&param.key_type);
 
@@ -537,13 +536,13 @@ pub fn field_add0(
     match key_type {
         ValueType::String => {
             // 解析输入格式为字节，然后写入
-            let bytes = parse_bytes(&param.value, &input_format)?;
+            let bytes = parse_bytes(&param.value, &val_fmt)?;
             conn.set(&key, &bytes)?
         }
         ValueType::Hash => {
             for f in &fv_list {
-                let key_bytes = parse_bytes(&f.field_key, &input_format)?;
-                let value_bytes = parse_bytes(&f.field_value, &input_format)?;
+                let key_bytes = parse_bytes(&f.field_key, &val_fmt)?;
+                let value_bytes = parse_bytes(&f.field_value, &val_fmt)?;
                 let _: () = conn.hset(&key, &key_bytes, &value_bytes)?;
             }
         }
@@ -551,33 +550,38 @@ pub fn field_add0(
             if "lpush" == param.list_push_method {
                 // 插入头部时保持原有顺序
                 for f in fv_list.iter().rev() {
-                    let bytes = parse_bytes(&f.field_value, &input_format)?;
+                    let bytes = parse_bytes(&f.field_value, &val_fmt)?;
                     let _: () = conn.lpush(&key, &bytes)?;
                 }
             } else {
                 for f in &fv_list {
-                    let bytes = parse_bytes(&f.field_value, &input_format)?;
+                    let bytes = parse_bytes(&f.field_value, &val_fmt)?;
                     let _: () = conn.rpush(&key, &bytes)?;
                 }
             }
         }
         ValueType::Set => {
             for f in &fv_list {
-                let bytes = parse_bytes(&f.field_value, &input_format)?;
+                let bytes = parse_bytes(&f.field_value, &val_fmt)?;
                 let _: () = conn.sadd(&key, &bytes)?;
             }
         }
         ValueType::ZSet => {
             for f in &fv_list {
-                let bytes = parse_bytes(&f.field_value, &input_format)?;
+                let bytes = parse_bytes(&f.field_value, &val_fmt)?;
                 let _: () = conn.zadd(&key, &bytes, f.field_score)?;
             }
         }
         ValueType::Stream => {
-            let items: Vec<(String, String)> = fv_list
+            let items: Vec<(Vec<u8>, Vec<u8>)> = fv_list
                 .iter()
-                .map(|f| (f.field_key.clone(), f.field_value.clone()))
-                .collect();
+                .map(|f| -> AnyResult<(Vec<u8>, Vec<u8>)> {
+                    Ok((
+                        parse_bytes(&f.field_key, &val_fmt)?,
+                        parse_bytes(&f.field_value, &val_fmt)?,
+                    ))
+                })
+                .collect::<AnyResult<Vec<_>>>()?;
             conn.xadd(&key, &param.stream_id, &items)?
         }
         ValueType::JSON => {
@@ -594,7 +598,9 @@ pub fn field_add0(
     if capabilities.hash_field_ttl && matches!(key_type, ValueType::Hash) {
         for fv in &fv_list {
             if fv.field_ttl > 0 {
-                let _: () = conn.hexpire(&key, fv.field_ttl, ExpireOption::NONE, &fv.field_key)?;
+                let field_key_bytes = parse_bytes(&fv.field_key, &val_fmt)?;
+                let _: () =
+                    conn.hexpire(&key, fv.field_ttl, ExpireOption::NONE, &field_key_bytes)?;
             }
         }
     }
@@ -612,32 +618,31 @@ pub fn field_set0(
 ) -> AnyResult<()> {
     let key: RedisKey = param.key;
     let key_type: ValueType = conn.key_type(&key)?;
-    // 获取输入格式，默认为 UTF8
-    let input_format = param.input_format.as_ref().cloned().unwrap_or_default();
+    let val_fmt = param.val_fmt.as_ref().cloned().unwrap_or_default();
 
     match key_type {
         ValueType::Hash => {
             // HSET 会清除字段级的 TTL，将其置为 -1（永久）。因此只需要处理>0的场景
-            let key_bytes = parse_bytes(&param.field_key, &input_format)?;
-            let value_bytes = parse_bytes(&param.field_value, &input_format)?;
+            let key_bytes = parse_bytes(&param.field_key, &val_fmt)?;
+            let value_bytes = parse_bytes(&param.field_value, &val_fmt)?;
             let _: () = conn.hset(&key, &key_bytes, &value_bytes)?;
             if capabilities.hash_field_ttl && param.field_ttl > 0 {
                 let _: () = conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, &key_bytes)?;
             }
         }
         ValueType::List => {
-            let bytes = parse_bytes(&param.field_value, &input_format)?;
+            let bytes = parse_bytes(&param.field_value, &val_fmt)?;
             let _: () = conn.lset(&key, param.field_index, &bytes)?;
         }
         ValueType::Set => {
-            let src_bytes = parse_bytes(&param.src_field_value, &input_format)?;
-            let bytes = parse_bytes(&param.field_value, &input_format)?;
+            let src_bytes = parse_bytes(&param.src_field_value, &val_fmt)?;
+            let bytes = parse_bytes(&param.field_value, &val_fmt)?;
             let _: () = conn.srem(&key, &src_bytes)?;
             let _: () = conn.sadd(&key, &bytes)?;
         }
         ValueType::ZSet => {
-            let src_bytes = parse_bytes(&param.src_field_value, &input_format)?;
-            let bytes = parse_bytes(&param.field_value, &input_format)?;
+            let src_bytes = parse_bytes(&param.src_field_value, &val_fmt)?;
+            let bytes = parse_bytes(&param.field_value, &val_fmt)?;
             let _: () = conn.zrem(&key, &src_bytes)?;
             let _: () = conn.zadd(&key, &bytes, param.field_score)?;
         }

@@ -92,7 +92,7 @@ const minimalFieldScan: FieldScanParam_Deserialize = {
   cursor: null,
   loadAll: false,
   meta: null,
-  displayFormat: null,
+  bytesFormat: null,
 }
 
 const minimalSetParam: RedisSetParam_Deserialize = {
@@ -109,7 +109,8 @@ const minimalFieldAdd: RedisFieldAdd = {
   type: 'string',
   ttl: -1,
   value: '',
-  inputFormat: null,
+  keyFmt: null,
+  valFmt: null,
   listPushMethod: 'lpush',
   fieldValueList: [],
   streamId: '',
@@ -123,7 +124,7 @@ const minimalFieldSet: RedisFieldSet_Deserialize = {
   fieldValue: '',
   fieldScore: 0,
   fieldTtl: -1,
-  inputFormat: null,
+  valFmt: null,
 }
 
 const minimalFieldDel: RedisFieldDel_Deserialize = {

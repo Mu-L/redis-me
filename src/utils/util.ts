@@ -591,11 +591,11 @@ export function meJsonNormal(jsonString: string): string {
 // #endregion
 
 // #region Base64 / Hex / Binary 展示与互转（键编辑等）
-export function meFormatBytes(base64: string, displayFormat: string): string {
-  if (displayFormat === 'base64') return base64
-  if (displayFormat === 'hex') return base64ToHex(base64)
-  if (displayFormat === 'binary') return base64ToBinary(base64)
-  return 'Unknown displayFormat: ' + displayFormat
+export function meFormatBytes(base64: string, bytesFormat: string): string {
+  if (bytesFormat === 'base64') return base64
+  if (bytesFormat === 'hex') return base64ToHex(base64)
+  if (bytesFormat === 'binary') return base64ToBinary(base64)
+  return 'Unknown bytesFormat: ' + bytesFormat
 }
 
 export function meToBase64(bytes: string, encoding: string): string {

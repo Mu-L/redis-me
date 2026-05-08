@@ -5,7 +5,7 @@ import { computed, inject, ref, toRaw, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
-import type { DisplayFormat, RedisFieldAdd, RedisKey_Deserialize } from '@/types/tauri-specta'
+import type { BytesFormat, RedisFieldAdd, RedisKey_Deserialize } from '@/types/tauri-specta'
 import {
   KEY_TYPE_LIST,
   DISPLAY_FORMAT,
@@ -54,7 +54,8 @@ const initForm = computed(() => ({
       fieldTtl: -1,
     },
   ],
-  inputFormat: 'utf8' as const,
+  keyFmt: 'utf8' as const,
+  valFmt: 'utf8' as const,
 }))
 const form = ref(cloneDeep(toRaw(initForm.value)))
 
@@ -179,7 +180,8 @@ function submit() {
         value,
         ttl: meTtlSeconds(form.value.ttl, ttlUnit.value),
         fieldValueList: form.value.fieldValueList,
-        inputFormat: form.value.inputFormat as DisplayFormat,
+        keyFmt: form.value.keyFmt as BytesFormat,
+        valFmt: form.value.valFmt as BytesFormat,
       })
       visible.value = false
       emit('success', redisKey)
@@ -209,7 +211,8 @@ watch(
 // json和stream类型不支持编码
 function handleKeyTypeChange() {
   if (streamOrJsonType.value) {
-    form.value.inputFormat = 'utf8'
+    form.value.keyFmt = 'utf8'
+    form.value.valFmt = 'utf8'
   }
 }
 </script>
@@ -227,7 +230,7 @@ function handleKeyTypeChange() {
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
       <!-- 键类型、输入格式和 TTL: 仅新建键时显示 -->
       <el-row :gutter="20" v-if="form.mode === 'key'">
-        <el-col :span="8">
+        <el-col :span="6">
           <el-form-item :label="t('fieldAdd.type')" prop="type">
             <el-select v-model="form.type" style="width: 100%" @change="handleKeyTypeChange">
               <el-option
@@ -244,15 +247,23 @@ function handleKeyTypeChange() {
           </el-form-item>
         </el-col>
 
-        <el-col :span="8">
-          <el-form-item :label="t('fieldAdd.inputFormat')" prop="inputFormat">
-            <el-select v-model="form.inputFormat" style="width: 100%" :disabled="streamOrJsonType">
+        <el-col :span="6">
+          <el-form-item :label="t('fieldAdd.keyEncoding')" prop="keyFmt">
+            <el-select v-model="form.keyFmt" style="width: 100%" :disabled="streamOrJsonType">
               <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
             </el-select>
           </el-form-item>
         </el-col>
 
-        <el-col :span="8">
+        <el-col :span="6">
+          <el-form-item :label="t('fieldAdd.valueEncoding')" prop="valFmt">
+            <el-select v-model="form.valFmt" style="width: 100%" :disabled="streamOrJsonType">
+              <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="6">
           <el-form-item :label="t('fieldAdd.ttl')" prop="ttl">
             <el-input v-model.number="form.ttl" style="flex: 1">
               <template #append>
@@ -270,7 +281,7 @@ function handleKeyTypeChange() {
 
       <!-- 键：新建键可编辑，新增字段时禁止编辑且前缀补充类型 -->
       <el-row :gutter="20">
-        <el-col :span="form.mode === 'key' ? 24 : 16">
+        <el-col :span="form.mode === 'key' ? 24 : 18">
           <el-form-item :label="t('fieldAdd.key')" prop="key">
             <el-input type="text" v-model="form.key" :disabled="form.mode === 'field'">
               <template #prepend v-if="form.mode === 'field'">
@@ -279,9 +290,9 @@ function handleKeyTypeChange() {
             </el-input>
           </el-form-item>
         </el-col>
-        <el-col :span="8" v-if="form.mode !== 'key'">
-          <el-form-item :label="t('fieldAdd.inputFormat')" prop="inputFormat">
-            <el-select v-model="form.inputFormat" style="width: 100%" disabled>
+        <el-col :span="6" v-if="form.mode !== 'key'">
+          <el-form-item :label="t('fieldAdd.valueEncoding')" prop="valFmt">
+            <el-select v-model="form.valFmt" style="width: 100%" disabled>
               <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
             </el-select>
           </el-form-item>

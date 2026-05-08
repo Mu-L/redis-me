@@ -14,7 +14,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type {
-  DisplayFormat,
+  BytesFormat,
   FieldScanResult,
   RedisFieldDel_Deserialize,
   RedisKey_Deserialize,
@@ -226,7 +226,7 @@ async function refreshKey(
       cursor: cursor.value,
       loadAll,
       meta: meta.value,
-      displayFormat: displayFormat.value as DisplayFormat,
+      bytesFormat: bytesFormat.value as BytesFormat,
     }
 
     const data = await meCommands.fieldScan(share.conn!.id, param)
@@ -267,7 +267,7 @@ async function refreshKey(
 
     await nextTick(() => {
       if (jsonType.value || streamType.value) {
-        displayFormat.value = 'utf8'
+        bytesFormat.value = 'utf8'
       }
     })
   }
@@ -286,7 +286,7 @@ function delKey() {
 }
 
 function renameKey() {
-  meRenameKey(share.conn!.id, share.redisKey!, displayFormat.value)
+  meRenameKey(share.conn!.id, share.redisKey!, bytesFormat.value)
 }
 
 // 保存值
@@ -307,7 +307,7 @@ async function setValue() {
     value,
     ttl: rv.ttl,
     keyType: rv.type,
-    inputFormat: displayFormat.value,
+    inputFormat: bytesFormat.value,
   }
   await meCommands.set(share.conn!.id, param)
   meOk(t('saveOk'))
@@ -335,7 +335,8 @@ function fieldAdd() {
   fieldAddRef.value?.open({
     mode: 'field',
     type: rv.type,
-    inputFormat: displayFormat.value,
+    keyFmt: bytesFormat.value,
+    valFmt: bytesFormat.value,
     ...share.redisKey!,
   })
 }
@@ -360,7 +361,7 @@ function fieldSet(row: ValueTableRow, index: number) {
     srcFieldValue: rowValStr,
     type: rv.type,
     key: share.redisKey!,
-    inputFormat: displayFormat.value,
+    valFmt: bytesFormat.value,
     fieldIndex: -1,
   }
   if (rv.type === 'list') {
@@ -464,13 +465,13 @@ async function showLocation() {
 }
 
 // 值显示方式: string(utf-8), binary, hex等
-const displayFormat = ref<DisplayFormat>('utf8')
+const bytesFormat = ref<BytesFormat>('utf8')
 // 键显示方式
 const showKey = computed(() => {
   const rk = share.redisKey
   if (!rk) return ''
-  if (displayFormat.value === 'utf8') return rk.key
-  return meFormatBytes(rk.bytes, displayFormat.value)
+  if (bytesFormat.value === 'utf8') return rk.key
+  return meFormatBytes(rk.bytes, bytesFormat.value)
 })
 
 // 快捷键
@@ -556,7 +557,7 @@ function openKeyShortDialog() {
           v-if="viewType === 'json'"
           :key="valueEditorRemountKey"
           :modelValue="showValue"
-          :mode="stringTypeOrWithHashKey && displayFormat !== 'utf8' ? 'ignore' : 'json'"
+          :mode="stringTypeOrWithHashKey && bytesFormat !== 'utf8' ? 'ignore' : 'json'"
           @update:modelValue="onCodeUpdate"
           :read-only="!canSave" />
 
@@ -765,7 +766,7 @@ function openKeyShortDialog() {
 
         <div class="me-flex" style="position: relative">
           <el-select
-            v-model="displayFormat"
+            v-model="bytesFormat"
             :disabled="jsonType || streamType"
             style="width: 90px"
             @change="refreshKey(false)">

@@ -32,7 +32,7 @@ const initForm: FieldSetForm = {
   fieldValue: '',
   fieldScore: 0,
   fieldTtl: -1,
-  inputFormat: 'utf8',
+  valFmt: 'utf8',
 }
 const form = ref<FieldSetForm>(cloneDeep(initForm))
 

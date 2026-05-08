@@ -102,27 +102,27 @@ pub fn vec8_to_display_string(bytes: &[u8]) -> String {
 }
 
 /// 按指定格式转换字节数组
-pub fn format_bytes(bytes: &[u8], format: &DisplayFormat) -> String {
+pub fn format_bytes(bytes: &[u8], format: &BytesFormat) -> String {
     match format {
-        DisplayFormat::Hex => bytes
+        BytesFormat::Hex => bytes
             .iter()
             .map(|b| format!("{:02X}", b))
             .collect::<Vec<_>>()
             .join(""),
-        DisplayFormat::Binary => bytes
+        BytesFormat::Binary => bytes
             .iter()
             .map(|b| format!("{:08b}", b))
             .collect::<Vec<_>>()
             .join(""),
-        DisplayFormat::Base64 => BASE64_STANDARD.encode(bytes),
-        DisplayFormat::UTF8 => vec8_to_display_string(bytes),
+        BytesFormat::Base64 => BASE64_STANDARD.encode(bytes),
+        BytesFormat::UTF8 => vec8_to_display_string(bytes),
     }
 }
 
 /// 解析指定格式的字符串为字节数组
-pub fn parse_bytes(input: &str, format: &DisplayFormat) -> AnyResult<Vec<u8>> {
+pub fn parse_bytes(input: &str, format: &BytesFormat) -> AnyResult<Vec<u8>> {
     match format {
-        DisplayFormat::Hex => {
+        BytesFormat::Hex => {
             // 直接解析十六进制
             if !input.len().is_multiple_of(2) {
                 bail!("Invalid hex string: odd number of characters");
@@ -135,7 +135,7 @@ pub fn parse_bytes(input: &str, format: &DisplayFormat) -> AnyResult<Vec<u8>> {
                 })
                 .collect()
         }
-        DisplayFormat::Binary => {
+        BytesFormat::Binary => {
             // 直接解析二进制
             if !input.len().is_multiple_of(8) {
                 bail!("Invalid binary string: length not multiple of 8");
@@ -148,10 +148,10 @@ pub fn parse_bytes(input: &str, format: &DisplayFormat) -> AnyResult<Vec<u8>> {
                 })
                 .collect()
         }
-        DisplayFormat::Base64 => BASE64_STANDARD
+        BytesFormat::Base64 => BASE64_STANDARD
             .decode(input)
             .map_err(|e| anyhow::anyhow!("Base64 decode error: {}", e)),
-        DisplayFormat::UTF8 => Ok(input.as_bytes().to_vec()),
+        BytesFormat::UTF8 => Ok(input.as_bytes().to_vec()),
     }
 }
 
@@ -172,11 +172,11 @@ pub fn ui_key_list(keys: Vec<Vec<u8>>) -> Vec<RedisKey> {
         .collect()
 }
 
-pub fn ui_list_value(value: &[Vec<u8>], format: &DisplayFormat) -> Vec<String> {
+pub fn ui_list_value(value: &[Vec<u8>], format: &BytesFormat) -> Vec<String> {
     value.iter().map(|v| format_bytes(v, format)).collect()
 }
 
-pub fn ui_hash_value(value: &[(Vec<u8>, Vec<u8>)], format: &DisplayFormat) -> Vec<RedisHashItem> {
+pub fn ui_hash_value(value: &[(Vec<u8>, Vec<u8>)], format: &BytesFormat) -> Vec<RedisHashItem> {
     value
         .iter()
         .map(|(key, value)| {
@@ -191,14 +191,14 @@ pub fn ui_hash_value(value: &[(Vec<u8>, Vec<u8>)], format: &DisplayFormat) -> Ve
         .collect()
 }
 
-pub fn ui_set_value(value: HashSet<Vec<u8>>, format: &DisplayFormat) -> Vec<String> {
+pub fn ui_set_value(value: HashSet<Vec<u8>>, format: &BytesFormat) -> Vec<String> {
     value
         .into_iter()
         .map(|v| format_bytes(&v, format))
         .collect()
 }
 
-pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>, format: &DisplayFormat) -> Vec<RedisZetItem> {
+pub fn ui_zset_value(value: Vec<(Vec<u8>, f64)>, format: &BytesFormat) -> Vec<RedisZetItem> {
     value
         .into_iter()
         .map(|(value, score)| RedisZetItem {
