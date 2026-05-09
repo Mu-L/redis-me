@@ -142,7 +142,13 @@ pub fn format_bytes(bytes: &[u8], format: &BytesFormat) -> String {
         BytesFormat::Base64 => BASE64_STANDARD.encode(bytes),
         BytesFormat::UTF8 => vec8_to_display_string(bytes),
         // 非 STRING 场景不应选 MsgPack；若误入则尝试解码以便排错
-        BytesFormat::Msgpack => msgpack_bytes_to_json_pretty(bytes)?,
+        BytesFormat::Msgpack => msgpack_bytes_to_json_pretty(bytes).unwrap_or_else(|_| {
+            format!(
+                "{}\n\n{}",
+                MSGPACK_DECODE_ERR,
+                vec8_to_display_string(bytes)
+            )
+        }),
     }
 }
 
