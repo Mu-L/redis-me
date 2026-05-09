@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisKey_Deserialize } from '@/types/tauri-specta'
-import { DISPLAY_FORMAT, meCommands, meErr, meFormatBytes, meOk, meToBase64 } from '@/utils/util'
+import { BYTES_FORMAT, meCommands, meErr, meFormatBytes, meOk, meToBase64 } from '@/utils/util'
 
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
@@ -71,7 +71,7 @@ async function submit() {
     <template #footer>
       <div class="me-flex">
         <el-select v-model="encoding" style="width: 100px">
-          <el-option v-for="item in DISPLAY_FORMAT" :key="item" :label="item" :value="item.toLowerCase()" />
+          <el-option v-for="item in BYTES_FORMAT" :key="item" :label="item" :value="item.toLowerCase()" />
         </el-select>
         <div>
           <el-button @click="visible = false">{{ t('cancel') }}</el-button>

@@ -12,7 +12,7 @@ import type {
 } from '@/types/tauri-specta'
 import {
   KEY_TYPE_LIST,
-  DISPLAY_FORMAT,
+  BYTES_FORMAT,
   meCommands,
   meOk,
   meJsonParse,
@@ -287,7 +287,7 @@ function handleKeyTypeChange() {
         <el-col :span="6" v-if="form.mode !== 'key'">
           <el-form-item :label="t('fieldAdd.valueEncoding')" prop="valFmt">
             <el-select v-model="form.valFmt" style="width: 100%" disabled>
-              <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
+              <el-option v-for="item in BYTES_FORMAT" :label="item" :value="item.toLowerCase()" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -373,7 +373,7 @@ function handleKeyTypeChange() {
             <el-form-item :label="t('fieldAdd.keyEncoding')" prop="keyFmt">
               <el-select v-model="form.keyFmt" style="width: 100%" :disabled="jsonType">
                 <el-option
-                  v-for="item in DISPLAY_FORMAT"
+                  v-for="item in BYTES_FORMAT"
                   :label="item"
                   :value="item.toLowerCase()" />
               </el-select>
@@ -383,7 +383,7 @@ function handleKeyTypeChange() {
             <el-form-item :label="t('fieldAdd.valueEncoding')" prop="valFmt">
               <el-select v-model="form.valFmt" style="width: 100%" :disabled="jsonType">
                 <el-option
-                  v-for="item in DISPLAY_FORMAT"
+                  v-for="item in BYTES_FORMAT"
                   :label="item"
                   :value="item.toLowerCase()" />
               </el-select>

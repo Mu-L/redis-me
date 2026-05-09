@@ -23,7 +23,7 @@ import type {
 } from '@/types/tauri-specta'
 import {
   bus,
-  DISPLAY_FORMAT,
+  BYTES_FORMAT,
   KEY_DELETE,
   KEY_REFRESH,
   meCopy,
@@ -776,7 +776,7 @@ function openKeyShortDialog() {
             <template #header>
               <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
             </template>
-            <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
+            <el-option v-for="item in BYTES_FORMAT" :label="item" :value="item.toLowerCase()" />
           </el-select>
           <!-- 加载更多、加载全部 -->
           <div class="me-flex" style="width: 45px; margin-left: 10px" v-if="showMore">
