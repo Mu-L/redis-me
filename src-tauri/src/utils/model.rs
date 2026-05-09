@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16};
 
-/// 字节在界面中的表示/编解码方式（UTF-8 文本、Hex、Binary、Base64）
+/// 字节在界面中的表示/编解码方式（UTF-8 文本、Hex、Binary、Base64、MsgPack→JSON）
 #[derive(Debug, Clone, Default, Serialize, Deserialize, Type)]
 #[serde(rename_all = "lowercase")]
 pub enum BytesFormat {
@@ -23,6 +23,8 @@ pub enum BytesFormat {
     Hex,    // 十六进制：00 FF 80
     Binary, // 二进制：00000000 11111111 10000000
     Base64, // Base64 编码
+    /// MessagePack：仅 STRING 类型读写；展示为 JSON 文本，保存时自 JSON 编码为 MsgPack
+    Msgpack,
 }
 
 // 连接信息

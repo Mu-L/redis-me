@@ -215,7 +215,11 @@ pub fn field_scan_0_get(
         ValueType::String => {
             let value: Vec<u8> = conn.get(key)?;
             length = value.len();
-            let value: String = format_bytes(&value, bytes_format);
+            let value: String = if matches!(bytes_format, BytesFormat::Msgpack) {
+                msgpack_bytes_to_json_pretty(&value)?
+            } else {
+                format_bytes(&value, bytes_format)
+            };
             cc.finished = true;
             Some(serde_json::to_value(value)?)
         }
@@ -477,8 +481,11 @@ pub fn ttl0(mut conn: MutexGuard<impl Commands>, key: RedisKey, ttl: i64) -> Any
 pub fn set0(mut conn: MutexGuard<impl Commands>, param: RedisSetParam) -> AnyResult<()> {
     let key = param.key;
     let format = param.input_format.as_ref().cloned().unwrap_or_default();
-    // 解析输入格式为字节
-    let bytes = parse_bytes(&param.value, &format)?;
+    // 解析输入格式为字节（MsgPack 自 JSON 文本编码，见 json_str_to_msgpack_bytes）
+    let bytes = match format {
+        BytesFormat::Msgpack => json_str_to_msgpack_bytes(&param.value)?,
+        _ => parse_bytes(&param.value, &format)?,
+    };
 
     if param.key_type.unwrap_or_default() == ME_JSON_TYPE_NAME {
         // json 类型

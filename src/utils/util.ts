@@ -64,6 +64,10 @@ export const CONN_REFRESH = 'CONN_REFRESH'
 export const CONN_LIST_WINDOWS_SYNC = 'CONN_LIST_WINDOWS_SYNC'
 export const TREE_KEY_ID_PREFIX = '_TREE_KEY_ID_PREFIX_'
 export const BYTES_FORMAT = ['UTF8', 'Hex', 'Binary', 'Base64'] as const
+
+/** STRING 值详情下拉扩展项（展示文案；`value` 为 label 全小写，须与 `BytesFormat` serde 一致） */
+export const EXT_FORMAT = ['MsgPack'] as const
+
 // 预设颜色
 export const PREDEFINE_COLORS = [
   '#409eff', // primary

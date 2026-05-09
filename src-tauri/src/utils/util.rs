@@ -101,6 +101,20 @@ pub fn vec8_to_display_string(bytes: &[u8]) -> String {
     String::from_utf8_lossy(bytes).to_string()
 }
 
+/// MsgPack 字节解码为 JSON 格式化字符串（用于 STRING 展示）
+pub fn msgpack_bytes_to_json_pretty(bytes: &[u8]) -> AnyResult<String> {
+    let v: serde_json::Value = rmp_serde::from_slice(bytes)
+        .map_err(|e| anyhow::anyhow!("MsgPack decode error: {}", e))?;
+    serde_json::to_string_pretty(&v).map_err(|e| anyhow::anyhow!("JSON serialize error: {}", e))
+}
+
+/// JSON 文本编码为 MsgPack 字节（用于 STRING 保存）
+pub fn json_str_to_msgpack_bytes(input: &str) -> AnyResult<Vec<u8>> {
+    let v: serde_json::Value = serde_json::from_str(input.trim())
+        .map_err(|e| anyhow::anyhow!("JSON parse error: {}", e))?;
+    rmp_serde::to_vec_named(&v).map_err(|e| anyhow::anyhow!("MsgPack encode error: {}", e))
+}
+
 /// 按指定格式转换字节数组
 pub fn format_bytes(bytes: &[u8], format: &BytesFormat) -> String {
     match format {
@@ -116,12 +130,16 @@ pub fn format_bytes(bytes: &[u8], format: &BytesFormat) -> String {
             .join(""),
         BytesFormat::Base64 => BASE64_STANDARD.encode(bytes),
         BytesFormat::UTF8 => vec8_to_display_string(bytes),
+        // 非 STRING 场景不应选 MsgPack；若误入则尝试解码以便排错
+        BytesFormat::Msgpack => msgpack_bytes_to_json_pretty(bytes)
+            .unwrap_or_else(|e| format!("[MsgPack] {}", e)),
     }
 }
 
 /// 解析指定格式的字符串为字节数组
 pub fn parse_bytes(input: &str, format: &BytesFormat) -> AnyResult<Vec<u8>> {
     match format {
+        BytesFormat::Msgpack => bail!("MsgPack must use json_str_to_msgpack_bytes for encoding"),
         BytesFormat::Hex => {
             // 直接解析十六进制
             if !input.len().is_multiple_of(2) {

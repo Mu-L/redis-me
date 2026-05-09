@@ -24,6 +24,7 @@ import type {
 import {
   bus,
   BYTES_FORMAT,
+  EXT_FORMAT,
   KEY_DELETE,
   KEY_REFRESH,
   meCopy,
@@ -110,6 +111,20 @@ const streamType = computed(() => 'stream' === redisValue.value?.type)
 const stringTypeOrWithHashKey = computed(
   () => 'string' === redisValue.value?.type || withHashKey.value,
 )
+
+const formatOptions = computed(() => {
+  const base = BYTES_FORMAT.map(item => ({
+    label: item,
+    value: item.toLowerCase() as BytesFormat,
+    disabled: false,
+  }))
+  const ext = EXT_FORMAT.map(label => ({
+    label,
+    value: label.toLowerCase() as BytesFormat,
+    disabled: !stringType.value,
+  }))
+  return [...base, ...ext]
+})
 const showValue = computed(() => {
   const obj = redisValue.value?.value
   if (obj === null || obj === undefined) return ''
@@ -299,8 +314,8 @@ async function setValue() {
 
   // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
   try {
-    if (jsonType.value) {
-      value = meJsonNormal(value) // 支持json5格式输入
+    if (jsonType.value || (stringType.value && bytesFormat.value === 'msgpack')) {
+      value = meJsonNormal(value) // JSON / MsgPack 编辑区：支持 JSON5，落盘为严格 JSON
     }
   } catch {}
 
@@ -337,7 +352,7 @@ function fieldAdd() {
   fieldAddRef.value?.open({
     mode: 'field',
     type: rv.type,
-    valFmt: bytesFormat.value,
+    valFmt: valueFmtForField(),
     key: { ...share.redisKey! },
   })
 }
@@ -362,7 +377,7 @@ function fieldSet(row: ValueTableRow, index: number) {
     srcFieldValue: rowValStr,
     type: rv.type,
     key: share.redisKey!,
-    valFmt: bytesFormat.value,
+    valFmt: valueFmtForField(),
     fieldIndex: -1,
   }
   if (rv.type === 'list') {
@@ -465,8 +480,13 @@ async function showLocation() {
   meOk(msg, true, t('redisValue.locationTitle'), { dangerouslyUseHTMLString: true })
 }
 
-// 值显示方式: string(utf-8), binary, hex等
+// 值显示方式: BYTES_FORMAT + EXT_FORMAT；EXT_FORMAT 项仅在 STRING 键上可选
 const bytesFormat = ref<BytesFormat>('utf8')
+
+/** 字段弹窗不用 MsgPack（仅整串 STRING 详情支持） */
+function valueFmtForField(): BytesFormat {
+  return bytesFormat.value === 'msgpack' ? 'utf8' : bytesFormat.value
+}
 // 键显示方式
 const showKey = computed(() => {
   const rk = share.redisKey
@@ -560,7 +580,11 @@ function openKeyShortDialog() {
           v-if="viewType === 'json'"
           :key="valueEditorRemountKey"
           :modelValue="showValue"
-          :mode="stringTypeOrWithHashKey && bytesFormat !== 'utf8' ? 'ignore' : 'json'"
+          :mode="
+            stringTypeOrWithHashKey && bytesFormat !== 'utf8' && bytesFormat !== 'msgpack'
+              ? 'ignore'
+              : 'json'
+          "
           @update:modelValue="onCodeUpdate"
           :read-only="!canSave" />
 
@@ -771,12 +795,17 @@ function openKeyShortDialog() {
           <el-select
             v-model="bytesFormat"
             :disabled="jsonType || streamType"
-            style="width: 90px"
+            style="width: 100px"
             @change="refreshKey(false)">
             <template #header>
               <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
             </template>
-            <el-option v-for="item in BYTES_FORMAT" :label="item" :value="item.toLowerCase()" />
+            <el-option
+              v-for="item in formatOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+              :disabled="item.disabled" />
           </el-select>
           <!-- 加载更多、加载全部 -->
           <div class="me-flex" style="width: 45px; margin-left: 10px" v-if="showMore">
