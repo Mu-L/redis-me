@@ -337,7 +337,6 @@ function fieldAdd() {
   fieldAddRef.value?.open({
     mode: 'field',
     type: rv.type,
-    keyFmt: bytesFormat.value,
     valFmt: bytesFormat.value,
     ...share.redisKey!,
   })
