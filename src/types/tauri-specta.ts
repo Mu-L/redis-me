@@ -56,13 +56,10 @@ export const commands = {
 };
 
 /* Types */
-// 字节在界面中的表示/编解码方式（含 MsgPack→JSON，MsgPack 仅用于 STRING 详情）
-export type BytesFormat =
-  | 'utf8'
-  | 'hex'
-  | 'binary'
-  | 'base64'
-  | 'msgpack'
+// 字节在界面中的表示/编解码方式（UTF-8 文本、Hex、Binary、Base64、MsgPack→JSON）
+export type BytesFormat = "utf8" | "hex" | "binary" | "base64" | 
+// MessagePack：仅 STRING 类型读写；展示为 JSON 文本，保存时自 JSON 编码为 MsgPack
+"msgpack";
 
 export type ConnConfig = {
 	id: string,

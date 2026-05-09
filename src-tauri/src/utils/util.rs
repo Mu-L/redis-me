@@ -11,6 +11,7 @@ use rand::prelude::IteratorRandom;
 use redis::streams::{StreamId, StreamInfoConsumer, StreamInfoGroup, StreamRangeReply};
 use redis::{FromRedisValue, Value, ValueType};
 use std::collections::{HashMap, HashSet};
+use std::io::Cursor;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -101,11 +102,21 @@ pub fn vec8_to_display_string(bytes: &[u8]) -> String {
     String::from_utf8_lossy(bytes).to_string()
 }
 
+/// 展示用 MsgPack 解码失败时的固定提示（与具体原因无关）
+pub const MSGPACK_DECODE_ERR: &str = "MsgPack Decode Error !";
+
 /// MsgPack 字节解码为 JSON 格式化字符串（用于 STRING 展示）
+///
+/// 必须**完整消费**输入字节。否则普通 UTF-8 文本（如 `ABC`）的首字节可能被误读为 fixint。
 pub fn msgpack_bytes_to_json_pretty(bytes: &[u8]) -> AnyResult<String> {
-    let v: serde_json::Value = rmp_serde::from_slice(bytes)
-        .map_err(|e| anyhow::anyhow!("MsgPack decode error: {}", e))?;
-    serde_json::to_string_pretty(&v).map_err(|e| anyhow::anyhow!("JSON serialize error: {}", e))
+    let mut cur = Cursor::new(bytes);
+    let v: serde_json::Value = rmp_serde::from_read(&mut cur)
+        .map_err(|_| anyhow::anyhow!(MSGPACK_DECODE_ERR))?;
+    let consumed = cur.position() as usize;
+    if consumed != bytes.len() {
+        bail!(MSGPACK_DECODE_ERR);
+    }
+    serde_json::to_string_pretty(&v).map_err(|_| anyhow::anyhow!(MSGPACK_DECODE_ERR))
 }
 
 /// JSON 文本编码为 MsgPack 字节（用于 STRING 保存）
@@ -131,8 +142,7 @@ pub fn format_bytes(bytes: &[u8], format: &BytesFormat) -> String {
         BytesFormat::Base64 => BASE64_STANDARD.encode(bytes),
         BytesFormat::UTF8 => vec8_to_display_string(bytes),
         // 非 STRING 场景不应选 MsgPack；若误入则尝试解码以便排错
-        BytesFormat::Msgpack => msgpack_bytes_to_json_pretty(bytes)
-            .unwrap_or_else(|e| format!("[MsgPack] {}", e)),
+        BytesFormat::Msgpack => msgpack_bytes_to_json_pretty(bytes)?,
     }
 }
 
