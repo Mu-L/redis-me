@@ -553,21 +553,23 @@ pub fn field_add0(
         }
         ValueType::Hash => {
             // 先解析再写入，避免中途解析失败导致已写入部分字段
-            let parsed: Vec<(Vec<u8>, Vec<u8>, i64)> = fv_list
+            let (field_pairs, ttls): (Vec<(Vec<u8>, Vec<u8>)>, Vec<i64>) = fv_list
                 .iter()
                 .map(|f| -> AnyResult<_> {
                     Ok((
-                        parse_bytes(&f.field_key, &val_fmt)?,
-                        parse_bytes(&f.field_value, &val_fmt)?,
+                        (
+                            parse_bytes(&f.field_key, &val_fmt)?,
+                            parse_bytes(&f.field_value, &val_fmt)?,
+                        ),
                         f.field_ttl,
                     ))
                 })
-                .collect::<AnyResult<Vec<_>>>()?;
-            for (fk, fv, _) in &parsed {
-                let _: () = conn.hset(&key, fk, fv)?;
-            }
+                .collect::<AnyResult<Vec<_>>>()?
+                .into_iter()
+                .unzip();
+            let _: () = conn.hset_multiple(&key, &field_pairs)?;
             if capabilities.hash_field_ttl {
-                for (fk, _, ttl) in &parsed {
+                for ((fk, _), ttl) in field_pairs.iter().zip(&ttls) {
                     if *ttl > 0 {
                         let _: () = conn.hexpire(&key, *ttl, ExpireOption::NONE, fk)?;
                     }
@@ -575,29 +577,27 @@ pub fn field_add0(
             }
         }
         ValueType::List => {
-            let items: Vec<Vec<u8>> = fv_list
+            let mut elems: Vec<Vec<u8>> = fv_list
                 .iter()
                 .map(|f| parse_bytes(&f.field_value, &val_fmt))
                 .collect::<AnyResult<Vec<_>>>()?;
-            if "lpush" == param.list_push_method {
-                // 插入头部时保持原有顺序
-                for bytes in items.iter().rev() {
-                    let _: () = conn.lpush(&key, bytes)?;
-                }
-            } else {
-                for bytes in &items {
-                    let _: () = conn.rpush(&key, bytes)?;
-                }
+            let lpush = param.list_push_method == "lpush";
+            if lpush {
+                // 与一次 LPUSH key v_n … v_1 相同：表头插入后顺序与 fv_list 一致
+                elems.reverse();
             }
+            let _: usize = if lpush {
+                conn.lpush(&key, &elems)?
+            } else {
+                conn.rpush(&key, &elems)?
+            };
         }
         ValueType::Set => {
-            let items: Vec<Vec<u8>> = fv_list
+            let members: Vec<Vec<u8>> = fv_list
                 .iter()
                 .map(|f| parse_bytes(&f.field_value, &val_fmt))
                 .collect::<AnyResult<Vec<_>>>()?;
-            for bytes in &items {
-                let _: () = conn.sadd(&key, bytes)?;
-            }
+            let _: usize = conn.sadd(&key, &members)?;
         }
         ValueType::ZSet => {
             let items: Vec<(Vec<u8>, f64)> = fv_list
@@ -606,9 +606,9 @@ pub fn field_add0(
                     Ok((parse_bytes(&f.field_value, &val_fmt)?, f.field_score))
                 })
                 .collect::<AnyResult<Vec<_>>>()?;
-            for (member, score) in &items {
-                let _: () = conn.zadd(&key, member, *score)?;
-            }
+            let pairs: Vec<(f64, Vec<u8>)> =
+                items.into_iter().map(|(m, s)| (s, m)).collect();
+            let _: usize = conn.zadd_multiple(&key, &pairs)?;
         }
         ValueType::Stream => {
             let items: Vec<(Vec<u8>, Vec<u8>)> = fv_list
