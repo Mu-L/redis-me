@@ -283,8 +283,6 @@ export default {
     type: 'Type',
     keyEncoding: 'Key Encoding',
     valueEncoding: 'Value Encoding',
-    encodingSettingsShow: 'Encoding…',
-    encodingSettingsHide: 'Hide encoding',
     ttl: 'TTL (-1 means Forever)',
     negativeOneHint: '-1 means Forever',
     forever: 'Forever',
