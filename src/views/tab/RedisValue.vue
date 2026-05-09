@@ -338,7 +338,7 @@ function fieldAdd() {
     mode: 'field',
     type: rv.type,
     valFmt: bytesFormat.value,
-    ...share.redisKey!,
+    key: { ...share.redisKey! },
   })
 }
 

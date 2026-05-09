@@ -5,7 +5,11 @@ import { computed, inject, ref, toRaw, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
-import type { BytesFormat, RedisFieldAdd, RedisKey_Deserialize } from '@/types/tauri-specta'
+import type {
+  BytesFormat,
+  RedisFieldAdd_Deserialize,
+  RedisKey_Deserialize,
+} from '@/types/tauri-specta'
 import {
   KEY_TYPE_LIST,
   DISPLAY_FORMAT,
@@ -25,7 +29,7 @@ function toggleShowEncoding() {
   showEncoding.value = !showEncoding.value
 }
 
-function open(data: Partial<RedisFieldAdd & RedisKey_Deserialize>) {
+function open(data: Partial<RedisFieldAdd_Deserialize>) {
   visible.value = true
   showEncoding.value = false
   Object.assign(form.value, cloneDeep(toRaw(initForm.value)))
@@ -40,7 +44,7 @@ const visible = ref(false)
 const isSaving = ref(false)
 const initForm = computed(() => ({
   mode: 'key', // key-新增键，field-新增字段
-  key: '',
+  key: { key: '', bytes: '' } satisfies RedisKey_Deserialize,
   type: 'string',
   ttl: -1,
   value: '',
@@ -69,7 +73,7 @@ const stringOrJsonType = computed(() => form.value.type === 'string' || form.val
 const jsonType = computed(() => form.value.type === 'json')
 
 const rules = computed(() => ({
-  key: [{ required: true, message: t('fieldAdd.keyRequired') }],
+  'key.key': [{ required: true, message: t('fieldAdd.keyRequired') }],
   type: [{ required: true, message: t('fieldAdd.typeRequired') }],
   ttl: [
     { required: true, message: t('fieldAdd.ttlRequired') },
@@ -272,8 +276,8 @@ function handleKeyTypeChange() {
       <!-- 键：新建键可编辑，新增字段时禁止编辑且前缀补充类型 -->
       <el-row :gutter="20">
         <el-col :span="form.mode === 'key' ? 24 : 18">
-          <el-form-item :label="t('fieldAdd.key')" prop="key">
-            <el-input type="text" v-model="form.key" :disabled="form.mode === 'field'">
+          <el-form-item :label="t('fieldAdd.key')" prop="key.key">
+            <el-input type="text" v-model="form.key.key" :disabled="form.mode === 'field'">
               <template #prepend v-if="form.mode === 'field'">
                 <el-text :type="meType(form.type)">{{ form.type.toUpperCase() }}</el-text>
               </template>

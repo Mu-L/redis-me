@@ -26,7 +26,7 @@ export const commands = {
 	set: (id: string, param: RedisSetParam_Deserialize) => typedError<null, string>(__TAURI_INVOKE("set", { id, param })),
 	del: (id: string, key: RedisKey_Deserialize) => typedError<null, string>(__TAURI_INVOKE("del", { id, key })),
 	rename: (id: string, key: RedisKey_Deserialize, newKey: RedisKey_Deserialize) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("rename", { id, key, newKey })),
-	fieldAdd: (id: string, param: RedisFieldAdd) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("field_add", { id, param })),
+	fieldAdd: (id: string, param: RedisFieldAdd_Deserialize) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("field_add", { id, param })),
 	fieldSet: (id: string, param: RedisFieldSet_Deserialize) => typedError<null, string>(__TAURI_INVOKE("field_set", { id, param })),
 	fieldDel: (id: string, param: RedisFieldDel_Deserialize) => typedError<null, string>(__TAURI_INVOKE("field_del", { id, param })),
 	executeCommand: (id: string, param: RedisCommand) => typedError<string, string>(__TAURI_INVOKE("execute_command", { id, param })),
@@ -211,8 +211,27 @@ export type RedisExportCsv_Serialize = {
 	withTtl: boolean,
 };
 
-export type RedisFieldAdd = {
-	key: string,
+export type RedisFieldAdd = RedisFieldAdd_Serialize | RedisFieldAdd_Deserialize;
+
+export type RedisFieldAdd_Deserialize = {
+	// 目标 Redis 键（与 `RedisFieldSet` / `RedisFieldDel` 一致）；`bytes` 为空时由 `key` 文本 + `key_fmt` 解析
+	key: RedisKey_Deserialize,
+	mode: string,
+	type: string,
+	ttl: number,
+	value: string,
+	listPushMethod: string,
+	fieldValueList: RedisFieldValue[],
+	streamId: string,
+	// 仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名
+	keyFmt: BytesFormat | null,
+	// 除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等
+	valFmt: BytesFormat | null,
+};
+
+export type RedisFieldAdd_Serialize = {
+	// 目标 Redis 键（与 `RedisFieldSet` / `RedisFieldDel` 一致）；`bytes` 为空时由 `key` 文本 + `key_fmt` 解析
+	key: RedisKey_Serialize,
 	mode: string,
 	type: string,
 	ttl: number,

@@ -219,7 +219,7 @@ const keyRenameRef = useTemplateRef<InstanceType<typeof KeyRename>>('keyRenameRe
 const fieldAddRef = useTemplateRef<InstanceType<typeof FieldAdd>>('fieldAddRef')
 
 function addKey(): void {
-  fieldAddRef.value?.open({ mode: 'key', key: keyPrefix.value })
+  fieldAddRef.value?.open({ mode: 'key', key: { key: keyPrefix.value, bytes: '' } })
 }
 
 const keyTreeRef = useTemplateRef<InstanceType<typeof KeyTree>>('keyTreeRef')

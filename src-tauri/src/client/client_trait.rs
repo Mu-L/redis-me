@@ -513,7 +513,12 @@ pub fn field_add0(
     let key_fmt = param.key_fmt.as_ref().cloned().unwrap_or_default();
     let val_fmt = param.val_fmt.as_ref().cloned().unwrap_or_default();
 
-    let key: RedisKey = parse_bytes(&param.key, &key_fmt)?.into();
+    // `bytes` 为空：沿用界面上的键名 + key_fmt 解析；非空：扫描/详情得到的二进制键，避免经 String 丢失
+    let key: RedisKey = if param.key.bytes.is_empty() {
+        parse_bytes(&param.key.key, &key_fmt)?.into()
+    } else {
+        param.key
+    };
     let mode = param.mode;
     let mut key_type = to_key_type(&param.key_type);
 

@@ -456,7 +456,8 @@ api_model!(RedisStreamItem {
 
 // 字段新增
 api_model!(RedisFieldAdd {
-    key: String,
+    /// 目标 Redis 键（与 `RedisFieldSet` / `RedisFieldDel` 一致）；`bytes` 为空时由 `key` 文本 + `key_fmt` 解析
+    key: RedisKey,
     mode: String,    // key-新增键, field-新增字段
 
     #[serde(rename = "type")]

@@ -10,7 +10,7 @@ import type {
   RedisBatchTtl_Deserialize,
   RedisCommand,
   RedisExportCsv_Deserialize,
-  RedisFieldAdd,
+  RedisFieldAdd_Deserialize,
   RedisFieldDel_Deserialize,
   RedisFieldSet_Deserialize,
   RedisImportCsv,
@@ -103,8 +103,8 @@ const minimalSetParam: RedisSetParam_Deserialize = {
   inputFormat: null,
 }
 
-const minimalFieldAdd: RedisFieldAdd = {
-  key: '',
+const minimalFieldAdd: RedisFieldAdd_Deserialize = {
+  key: { key: '', bytes: '' },
   mode: 'key',
   type: 'string',
   ttl: -1,
