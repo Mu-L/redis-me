@@ -362,7 +362,7 @@ function handleKeyTypeChange() {
       <!-- 新建键：编码默认折叠，按需展开 -->
       <template v-if="form.mode === 'key'">
         <div class="field-add-encoding-bar">
-          <el-link type="info" :underline="false" @click="toggleShowEncoding">
+          <el-link type="info" underline="never" @click="toggleShowEncoding">
             {{
               showEncoding ? t('fieldAdd.encodingSettingsHide') : t('fieldAdd.encodingSettingsShow')
             }}
