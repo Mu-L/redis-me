@@ -27,16 +27,15 @@ import {
   EXT_FORMAT,
   KEY_DELETE,
   KEY_REFRESH,
+  meCommands,
   meCopy,
   meDeleteKey,
-  meFormatBytes,
   meHumanSeconds,
   meHumanSize,
-  meCommands,
   meJsonFormat,
   meJsonNormal,
   meOk,
-  meType,
+  meType
 } from '@/utils/util'
 import TableGroup from '@/views/ext/TableGroup.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
@@ -58,7 +57,11 @@ function fieldValueRows(v: unknown): unknown[] {
   return v as unknown[]
 }
 
-const onKeyRefreshBus = () => void refreshKey()
+const onKeyRefreshBus = () => {
+  bytesFormat.value = 'utf8'
+  void refreshKey()
+}
+
 // 刷新键（mitt 载荷为 undefined，与 refreshKey 多参签名分离）
 onMounted(() => bus.on(KEY_REFRESH, onKeyRefreshBus))
 onUnmounted(() => bus.off(KEY_REFRESH, onKeyRefreshBus))
