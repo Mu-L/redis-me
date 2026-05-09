@@ -545,36 +545,62 @@ pub fn field_add0(
             conn.set(&key, &bytes)?
         }
         ValueType::Hash => {
-            for f in &fv_list {
-                let key_bytes = parse_bytes(&f.field_key, &val_fmt)?;
-                let value_bytes = parse_bytes(&f.field_value, &val_fmt)?;
-                let _: () = conn.hset(&key, &key_bytes, &value_bytes)?;
+            // 先解析再写入，避免中途解析失败导致已写入部分字段
+            let parsed: Vec<(Vec<u8>, Vec<u8>, i64)> = fv_list
+                .iter()
+                .map(|f| -> AnyResult<_> {
+                    Ok((
+                        parse_bytes(&f.field_key, &val_fmt)?,
+                        parse_bytes(&f.field_value, &val_fmt)?,
+                        f.field_ttl,
+                    ))
+                })
+                .collect::<AnyResult<Vec<_>>>()?;
+            for (fk, fv, _) in &parsed {
+                let _: () = conn.hset(&key, fk, fv)?;
+            }
+            if capabilities.hash_field_ttl {
+                for (fk, _, ttl) in &parsed {
+                    if *ttl > 0 {
+                        let _: () = conn.hexpire(&key, *ttl, ExpireOption::NONE, fk)?;
+                    }
+                }
             }
         }
         ValueType::List => {
+            let items: Vec<Vec<u8>> = fv_list
+                .iter()
+                .map(|f| parse_bytes(&f.field_value, &val_fmt))
+                .collect::<AnyResult<Vec<_>>>()?;
             if "lpush" == param.list_push_method {
                 // 插入头部时保持原有顺序
-                for f in fv_list.iter().rev() {
-                    let bytes = parse_bytes(&f.field_value, &val_fmt)?;
-                    let _: () = conn.lpush(&key, &bytes)?;
+                for bytes in items.iter().rev() {
+                    let _: () = conn.lpush(&key, bytes)?;
                 }
             } else {
-                for f in &fv_list {
-                    let bytes = parse_bytes(&f.field_value, &val_fmt)?;
-                    let _: () = conn.rpush(&key, &bytes)?;
+                for bytes in &items {
+                    let _: () = conn.rpush(&key, bytes)?;
                 }
             }
         }
         ValueType::Set => {
-            for f in &fv_list {
-                let bytes = parse_bytes(&f.field_value, &val_fmt)?;
-                let _: () = conn.sadd(&key, &bytes)?;
+            let items: Vec<Vec<u8>> = fv_list
+                .iter()
+                .map(|f| parse_bytes(&f.field_value, &val_fmt))
+                .collect::<AnyResult<Vec<_>>>()?;
+            for bytes in &items {
+                let _: () = conn.sadd(&key, bytes)?;
             }
         }
         ValueType::ZSet => {
-            for f in &fv_list {
-                let bytes = parse_bytes(&f.field_value, &val_fmt)?;
-                let _: () = conn.zadd(&key, &bytes, f.field_score)?;
+            let items: Vec<(Vec<u8>, f64)> = fv_list
+                .iter()
+                .map(|f| -> AnyResult<_> {
+                    Ok((parse_bytes(&f.field_value, &val_fmt)?, f.field_score))
+                })
+                .collect::<AnyResult<Vec<_>>>()?;
+            for (member, score) in &items {
+                let _: () = conn.zadd(&key, member, *score)?;
             }
         }
         ValueType::Stream => {
@@ -598,17 +624,6 @@ pub fn field_add0(
             handle_other_value_type(&key_type, &key)?;
         }
     };
-
-    // 新增：Hash 类型字段 TTL（仅 Redis/Valkey >= 7.4 支持）
-    if capabilities.hash_field_ttl && matches!(key_type, ValueType::Hash) {
-        for fv in &fv_list {
-            if fv.field_ttl > 0 {
-                let field_key_bytes = parse_bytes(&fv.field_key, &val_fmt)?;
-                let _: () =
-                    conn.hexpire(&key, fv.field_ttl, ExpireOption::NONE, &field_key_bytes)?;
-            }
-        }
-    }
 
     if "key" == mode && param.ttl > 0 {
         let _: () = conn.expire(&key, param.ttl)?;
