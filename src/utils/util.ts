@@ -63,7 +63,11 @@ export const INFO_REFRESH = 'INFO_REFRESH'
 export const CONN_REFRESH = 'CONN_REFRESH'
 export const CONN_LIST_WINDOWS_SYNC = 'CONN_LIST_WINDOWS_SYNC'
 export const TREE_KEY_ID_PREFIX = '_TREE_KEY_ID_PREFIX_'
-export const DISPLAY_FORMAT = ['UTF8', 'Hex', 'Binary', 'Base64'] as const
+export const BYTES_FORMAT = ['UTF8', 'Hex', 'Binary', 'Base64'] as const
+
+/** STRING 值详情下拉扩展项（展示文案；`value` 为 label 全小写，须与 `BytesFormat` serde 一致） */
+export const EXT_FORMAT = ['MsgPack'] as const
+
 // 预设颜色
 export const PREDEFINE_COLORS = [
   '#409eff', // primary
@@ -409,6 +413,7 @@ export function meFilterHandler<T extends Record<string, unknown>>(
 // #endregion
 
 // #region Redis 键：删除 / 重命名（组合确认框与 meCommands）
+
 export function meDeleteKey(id: string, redisKey: RedisKey_Deserialize, thenFn?: () => void): void {
   meConfirm(t('util.deleteKey', { key: redisKey.key }), async () => {
     await meCommands.del(id, redisKey)
@@ -418,48 +423,6 @@ export function meDeleteKey(id: string, redisKey: RedisKey_Deserialize, thenFn?:
   })
 }
 
-export function meRenameKey(id: string, redisKey: RedisKey_Deserialize, encoding = 'utf8'): void {
-  const message =
-    encoding === 'utf8'
-      ? t('util.renameKey')
-      : t('util.renameKey') + ' (' + String(encoding).toUpperCase() + ')'
-  const inputValue = encoding === 'utf8' ? redisKey.key : meFormatBytes(redisKey.bytes, encoding)
-
-  mePrompt(
-    message,
-    {
-      inputValue,
-      inputType: 'text',
-      inputValidator: (value: string) => {
-        if (!value || value.trim() === '') {
-          return t('util.valueRequired')
-        }
-        if (encoding !== 'utf8') {
-          try {
-            meToBase64(value, encoding)
-          } catch (e) {
-            return errString(e)
-          }
-        }
-        return true
-      },
-    },
-    async ({ value }) => {
-      let newKey: RedisKey_Deserialize
-      if (encoding === 'utf8') {
-        newKey = { key: value, bytes: '' }
-      } else {
-        newKey = { key: '', bytes: meToBase64(value, encoding) }
-      }
-
-      const apiNewKey = await meCommands.rename(id, redisKey, newKey)
-
-      redisKey.key = apiNewKey.key
-      redisKey.bytes = apiNewKey.bytes
-      meOk(t('actionOk'))
-    },
-  )
-}
 // #endregion
 
 // #region 应用内自动更新（Tauri updater）
@@ -591,11 +554,11 @@ export function meJsonNormal(jsonString: string): string {
 // #endregion
 
 // #region Base64 / Hex / Binary 展示与互转（键编辑等）
-export function meFormatBytes(base64: string, displayFormat: string): string {
-  if (displayFormat === 'base64') return base64
-  if (displayFormat === 'hex') return base64ToHex(base64)
-  if (displayFormat === 'binary') return base64ToBinary(base64)
-  return 'Unknown displayFormat: ' + displayFormat
+export function meFormatBytes(base64: string, bytesFormat: string): string {
+  if (bytesFormat === 'base64') return base64
+  if (bytesFormat === 'hex') return base64ToHex(base64)
+  if (bytesFormat === 'binary') return base64ToBinary(base64)
+  return 'Unknown bytesFormat: ' + bytesFormat
 }
 
 export function meToBase64(bytes: string, encoding: string): string {

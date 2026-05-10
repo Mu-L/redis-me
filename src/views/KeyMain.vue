@@ -20,12 +20,12 @@ import {
   meKeyShort,
   meOk,
   mePrompt,
-  meRenameKey,
   sleep,
 } from '@/utils/util'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
 import KeyImport from '@/views/key/KeyImport.vue'
+import KeyRename from '@/views/key/KeyRename.vue'
 
 import KeyBatch from './key/KeyBatch.vue'
 import KeyMemory from './key/KeyMemory.vue'
@@ -181,7 +181,7 @@ function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
   } else if (command === 'deleteKey') {
     meDeleteKey(share.conn!.id, redisKey)
   } else if (command === 'renameKey') {
-    meRenameKey(share.conn!.id, redisKey)
+    keyRenameRef.value?.open({ redisKey })
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -214,10 +214,12 @@ function contextFolder(command: string, folder: string): void {
   }
 }
 
+const keyRenameRef = useTemplateRef<InstanceType<typeof KeyRename>>('keyRenameRef')
+
 const fieldAddRef = useTemplateRef<InstanceType<typeof FieldAdd>>('fieldAddRef')
 
 function addKey(): void {
-  fieldAddRef.value?.open({ mode: 'key', key: keyPrefix.value })
+  fieldAddRef.value?.open({ mode: 'key', key: { key: keyPrefix.value, bytes: '' } })
 }
 
 const keyTreeRef = useTemplateRef<InstanceType<typeof KeyTree>>('keyTreeRef')
@@ -682,6 +684,7 @@ function editDbName(db: number): void {
     <KeyImport ref="keyImportRef" @success="importStart" />
     <KeyMemory ref="keyMemoryRef" />
     <TTLSet ref="ttlSetRef" />
+    <KeyRename ref="keyRenameRef" />
   </div>
 </template>
 

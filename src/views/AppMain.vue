@@ -31,6 +31,7 @@ import {
   meJsonParse,
   meOk,
 } from '@/utils/util'
+import KeyEmpty from '@/views/key/KeyEmpty.vue'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
 import TabConn from '@/views/TabConn.vue'
@@ -167,7 +168,7 @@ function changeReadonly(): void {
         <div class="redis-key">
           <KeyHeader />
           <KeyMain v-if="share.conn && connPrepared" />
-          <el-empty v-else />
+          <KeyEmpty v-else />
         </div>
       </el-splitter-panel>
 

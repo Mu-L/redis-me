@@ -5,10 +5,14 @@ import { computed, inject, ref, toRaw, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
-import type { DisplayFormat, RedisFieldAdd, RedisKey_Deserialize } from '@/types/tauri-specta'
+import type {
+  BytesFormat,
+  RedisFieldAdd_Deserialize,
+  RedisKey_Deserialize,
+} from '@/types/tauri-specta'
 import {
   KEY_TYPE_LIST,
-  DISPLAY_FORMAT,
+  BYTES_FORMAT,
   meCommands,
   meOk,
   meJsonParse,
@@ -20,7 +24,8 @@ import {
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({ open })
-function open(data: Partial<RedisFieldAdd & RedisKey_Deserialize>) {
+
+function open(data: Partial<RedisFieldAdd_Deserialize>) {
   visible.value = true
   Object.assign(form.value, cloneDeep(toRaw(initForm.value)))
   Object.assign(form.value, data)
@@ -34,7 +39,7 @@ const visible = ref(false)
 const isSaving = ref(false)
 const initForm = computed(() => ({
   mode: 'key', // key-新增键，field-新增字段
-  key: '',
+  key: { key: '', bytes: '' } satisfies RedisKey_Deserialize,
   type: 'string',
   ttl: -1,
   value: '',
@@ -54,15 +59,16 @@ const initForm = computed(() => ({
       fieldTtl: -1,
     },
   ],
-  inputFormat: 'utf8' as const,
+  keyFmt: 'utf8' as const,
+  valFmt: 'utf8' as const,
 }))
 const form = ref(cloneDeep(toRaw(initForm.value)))
 
 const stringOrJsonType = computed(() => form.value.type === 'string' || form.value.type === 'json')
-const streamOrJsonType = computed(() => form.value.type === 'stream' || form.value.type === 'json')
+const jsonType = computed(() => form.value.type === 'json')
 
 const rules = computed(() => ({
-  key: [{ required: true, message: t('fieldAdd.keyRequired') }],
+  'key.key': [{ required: true, message: t('fieldAdd.keyRequired') }],
   type: [{ required: true, message: t('fieldAdd.typeRequired') }],
   ttl: [
     { required: true, message: t('fieldAdd.ttlRequired') },
@@ -179,7 +185,8 @@ function submit() {
         value,
         ttl: meTtlSeconds(form.value.ttl, ttlUnit.value),
         fieldValueList: form.value.fieldValueList,
-        inputFormat: form.value.inputFormat as DisplayFormat,
+        keyFmt: form.value.keyFmt as BytesFormat,
+        valFmt: form.value.valFmt as BytesFormat,
       })
       visible.value = false
       emit('success', redisKey)
@@ -208,8 +215,9 @@ watch(
 
 // json和stream类型不支持编码
 function handleKeyTypeChange() {
-  if (streamOrJsonType.value) {
-    form.value.inputFormat = 'utf8'
+  if (jsonType.value) {
+    form.value.keyFmt = 'utf8'
+    form.value.valFmt = 'utf8'
   }
 }
 </script>
@@ -225,9 +233,9 @@ function handleKeyTypeChange() {
     :close-on-click-modal="false"
     draggable>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-      <!-- 键类型、输入格式和 TTL: 仅新建键时显示 -->
+      <!-- 键类型与 TTL: 仅新建键时显示 -->
       <el-row :gutter="20" v-if="form.mode === 'key'">
-        <el-col :span="8">
+        <el-col :span="12">
           <el-form-item :label="t('fieldAdd.type')" prop="type">
             <el-select v-model="form.type" style="width: 100%" @change="handleKeyTypeChange">
               <el-option
@@ -244,15 +252,7 @@ function handleKeyTypeChange() {
           </el-form-item>
         </el-col>
 
-        <el-col :span="8">
-          <el-form-item :label="t('fieldAdd.inputFormat')" prop="inputFormat">
-            <el-select v-model="form.inputFormat" style="width: 100%" :disabled="streamOrJsonType">
-              <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="8">
+        <el-col :span="12">
           <el-form-item :label="t('fieldAdd.ttl')" prop="ttl">
             <el-input v-model.number="form.ttl" style="flex: 1">
               <template #append>
@@ -269,24 +269,13 @@ function handleKeyTypeChange() {
       </el-row>
 
       <!-- 键：新建键可编辑，新增字段时禁止编辑且前缀补充类型 -->
-      <el-row :gutter="20">
-        <el-col :span="form.mode === 'key' ? 24 : 16">
-          <el-form-item :label="t('fieldAdd.key')" prop="key">
-            <el-input type="text" v-model="form.key" :disabled="form.mode === 'field'">
-              <template #prepend v-if="form.mode === 'field'">
-                <el-text :type="meType(form.type)">{{ form.type.toUpperCase() }}</el-text>
-              </template>
-            </el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8" v-if="form.mode !== 'key'">
-          <el-form-item :label="t('fieldAdd.inputFormat')" prop="inputFormat">
-            <el-select v-model="form.inputFormat" style="width: 100%" disabled>
-              <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-      </el-row>
+      <el-form-item :label="t('fieldAdd.key')" prop="key.key">
+        <el-input type="text" v-model="form.key.key" :disabled="form.mode === 'field'">
+          <template #prepend v-if="form.mode === 'field'">
+            <el-text :type="meType(form.type)">{{ form.type.toUpperCase() }}</el-text>
+          </template>
+        </el-input>
+      </el-form-item>
 
       <!-- 值：新建键且类型为 string 或 json 时显示 -->
       <el-form-item
@@ -355,13 +344,56 @@ function handleKeyTypeChange() {
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="visible = false">{{ t('cancel') }}</el-button>
-      <el-button type="primary" :loading="isSaving" @click="submit()">{{ t('save') }}</el-button>
+      <div class="me-flex">
+        <div>
+          <!-- 键编码：仅新建键时显示 -->
+          <el-text v-show="form.mode === 'key'" type="info">
+            {{ t('fieldAdd.keyEncoding') }}</el-text
+          >
+          <el-select
+            v-show="form.mode === 'key'"
+            v-model="form.keyFmt"
+            style="width: 100px; margin: 0 20px 0 10px"
+            :disabled="jsonType">
+            <el-option v-for="item in BYTES_FORMAT" :label="item" :value="item.toLowerCase()" />
+          </el-select>
+
+          <!-- 值编码：新建键和新增字段时显示 -->
+          <el-text type="info">{{ t('fieldAdd.valueEncoding') }}</el-text>
+          <el-select
+            v-model="form.valFmt"
+            style="width: 100px; margin: 0 20px 0 10px"
+            :disabled="jsonType">
+            <el-option v-for="item in BYTES_FORMAT" :label="item" :value="item.toLowerCase()" />
+          </el-select>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div>
+          <el-button @click="visible = false">{{ t('cancel') }}</el-button>
+          <el-button type="primary" :loading="isSaving" @click="submit()">{{
+            t('save')
+          }}</el-button>
+        </div>
+      </div>
     </template>
   </el-dialog>
 </template>
 
 <style scoped lang="scss">
+.field-add-footer-encoding {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.field-add-footer-enc-label {
+  flex-shrink: 0;
+  font-size: var(--el-font-size-extra-small);
+}
+
 :deep(.el-input-group__prepend) {
   padding: 0 16px;
 }

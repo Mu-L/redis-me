@@ -14,7 +14,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type {
-  DisplayFormat,
+  BytesFormat,
   FieldScanResult,
   RedisFieldDel_Deserialize,
   RedisKey_Deserialize,
@@ -23,23 +23,23 @@ import type {
 } from '@/types/tauri-specta'
 import {
   bus,
-  DISPLAY_FORMAT,
+  BYTES_FORMAT,
+  EXT_FORMAT,
   KEY_DELETE,
   KEY_REFRESH,
+  meCommands,
   meCopy,
   meDeleteKey,
-  meFormatBytes,
   meHumanSeconds,
   meHumanSize,
-  meCommands,
   meJsonFormat,
   meJsonNormal,
   meOk,
-  meRenameKey,
   meType,
 } from '@/utils/util'
 import TableGroup from '@/views/ext/TableGroup.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
+import KeyRename from '@/views/key/KeyRename.vue'
 
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
@@ -57,7 +57,11 @@ function fieldValueRows(v: unknown): unknown[] {
   return v as unknown[]
 }
 
-const onKeyRefreshBus = () => void refreshKey()
+const onKeyRefreshBus = () => {
+  bytesFormat.value = 'utf8'
+  void refreshKey()
+}
+
 // 刷新键（mitt 载荷为 undefined，与 refreshKey 多参签名分离）
 onMounted(() => bus.on(KEY_REFRESH, onKeyRefreshBus))
 onUnmounted(() => bus.off(KEY_REFRESH, onKeyRefreshBus))
@@ -110,6 +114,20 @@ const streamType = computed(() => 'stream' === redisValue.value?.type)
 const stringTypeOrWithHashKey = computed(
   () => 'string' === redisValue.value?.type || withHashKey.value,
 )
+
+const formatOptions = computed(() => {
+  const base = BYTES_FORMAT.map(item => ({
+    label: item,
+    value: item.toLowerCase() as BytesFormat,
+    disabled: false,
+  }))
+  const ext = EXT_FORMAT.map(label => ({
+    label,
+    value: label.toLowerCase() as BytesFormat,
+    disabled: !stringType.value,
+  }))
+  return [...base, ...ext]
+})
 const showValue = computed(() => {
   const obj = redisValue.value?.value
   if (obj === null || obj === undefined) return ''
@@ -226,7 +244,7 @@ async function refreshKey(
       cursor: cursor.value,
       loadAll,
       meta: meta.value,
-      displayFormat: displayFormat.value as DisplayFormat,
+      bytesFormat: bytesFormat.value as BytesFormat,
     }
 
     const data = await meCommands.fieldScan(share.conn!.id, param)
@@ -266,8 +284,8 @@ async function refreshKey(
     valueEditorRemountKey.value++
 
     await nextTick(() => {
-      if (jsonType.value || streamType.value) {
-        displayFormat.value = 'utf8'
+      if (jsonType.value) {
+        bytesFormat.value = 'utf8'
       }
     })
   }
@@ -285,8 +303,10 @@ function delKey() {
   meDeleteKey(share.conn!.id, share.redisKey!)
 }
 
+const keyRenameRef = useTemplateRef<InstanceType<typeof KeyRename>>('keyRenameRef')
 function renameKey() {
-  meRenameKey(share.conn!.id, share.redisKey!, displayFormat.value)
+  if (!share.redisKey) return
+  keyRenameRef.value?.open({ redisKey: share.redisKey })
 }
 
 // 保存值
@@ -297,8 +317,8 @@ async function setValue() {
 
   // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
   try {
-    if (jsonType.value) {
-      value = meJsonNormal(value) // 支持json5格式输入
+    if (jsonType.value || (stringType.value && bytesFormat.value === 'msgpack')) {
+      value = meJsonNormal(value) // JSON / MsgPack 编辑区：支持 JSON5，落盘为严格 JSON
     }
   } catch {}
 
@@ -307,7 +327,7 @@ async function setValue() {
     value,
     ttl: rv.ttl,
     keyType: rv.type,
-    inputFormat: displayFormat.value,
+    inputFormat: bytesFormat.value,
   }
   await meCommands.set(share.conn!.id, param)
   meOk(t('saveOk'))
@@ -335,8 +355,8 @@ function fieldAdd() {
   fieldAddRef.value?.open({
     mode: 'field',
     type: rv.type,
-    inputFormat: displayFormat.value,
-    ...share.redisKey!,
+    valFmt: valueFmtForField(),
+    key: { ...share.redisKey! },
   })
 }
 
@@ -360,7 +380,7 @@ function fieldSet(row: ValueTableRow, index: number) {
     srcFieldValue: rowValStr,
     type: rv.type,
     key: share.redisKey!,
-    inputFormat: displayFormat.value,
+    valFmt: valueFmtForField(),
     fieldIndex: -1,
   }
   if (rv.type === 'list') {
@@ -463,14 +483,21 @@ async function showLocation() {
   meOk(msg, true, t('redisValue.locationTitle'), { dangerouslyUseHTMLString: true })
 }
 
-// 值显示方式: string(utf-8), binary, hex等
-const displayFormat = ref<DisplayFormat>('utf8')
+// 值显示方式: BYTES_FORMAT + EXT_FORMAT；EXT_FORMAT 项仅在 STRING 键上可选
+const bytesFormat = ref<BytesFormat>('utf8')
+
+/** 字段弹窗不用 MsgPack（仅整串 STRING 详情支持） */
+function valueFmtForField(): BytesFormat {
+  return bytesFormat.value === 'msgpack' ? 'utf8' : bytesFormat.value
+}
 // 键显示方式
 const showKey = computed(() => {
   const rk = share.redisKey
   if (!rk) return ''
-  if (displayFormat.value === 'utf8') return rk.key
-  return meFormatBytes(rk.bytes, displayFormat.value)
+  // if (bytesFormat.value === 'utf8') return rk.key
+  // return meFormatBytes(rk.bytes, bytesFormat.value)
+  // 键显示暂时不跟随字节格式变化
+  return rk.key
 })
 
 // 快捷键
@@ -556,7 +583,11 @@ function openKeyShortDialog() {
           v-if="viewType === 'json'"
           :key="valueEditorRemountKey"
           :modelValue="showValue"
-          :mode="stringTypeOrWithHashKey && displayFormat !== 'utf8' ? 'ignore' : 'json'"
+          :mode="
+            stringTypeOrWithHashKey && bytesFormat !== 'utf8' && bytesFormat !== 'msgpack'
+              ? 'ignore'
+              : 'json'
+          "
           @update:modelValue="onCodeUpdate"
           :read-only="!canSave" />
 
@@ -765,14 +796,19 @@ function openKeyShortDialog() {
 
         <div class="me-flex" style="position: relative">
           <el-select
-            v-model="displayFormat"
+            v-model="bytesFormat"
             :disabled="jsonType || streamType"
-            style="width: 90px"
+            style="width: 100px"
             @change="refreshKey(false)">
             <template #header>
               <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
             </template>
-            <el-option v-for="item in DISPLAY_FORMAT" :label="item" :value="item.toLowerCase()" />
+            <el-option
+              v-for="item in formatOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+              :disabled="item.disabled" />
           </el-select>
           <!-- 加载更多、加载全部 -->
           <div class="me-flex" style="width: 45px; margin-left: 10px" v-if="showMore">
@@ -834,6 +870,7 @@ function openKeyShortDialog() {
     <!-- 更新TTL, 字段新增 -->
     <TTLSet ref="ttlSetRef" @success="setTimer" />
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
+    <KeyRename ref="keyRenameRef" />
 
     <!-- Stream消费者组 -->
     <me-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900">

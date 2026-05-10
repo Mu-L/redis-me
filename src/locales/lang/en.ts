@@ -38,6 +38,12 @@ export default {
     writableTip: 'Changed To Writable',
   },
 
+  keyEmpty: {
+    tagline: 'Modern, Lightweight, Cross-Platform',
+    sourceCode: 'Github',
+    bugReport: 'Bug Report',
+  },
+
   setting: {
     toDefault: 'Restore Default',
     confirmToDefault: 'Confirm Restore【{name}】To Default ?',
@@ -209,7 +215,6 @@ export default {
   util: {
     days: 'd',
     deleteKey: 'Delete [{key}]?',
-    renameKey: 'Rename Key',
     checking: 'Checking for update, wait a moment...',
     updateHint: 'New version v{version}, Update?',
     changelog: 'ChangeLog',
@@ -219,7 +224,6 @@ export default {
     updateErr: 'Download Package Fail',
     latestVersion: "You're up-to-date",
     checkUpdateErr: 'Check Update Fail',
-    valueRequired: 'Value required',
     invalidHexString: 'Invalid hex string: odd number of characters',
     invalidHexCharacter: 'Invalid hex character',
     invalidBinaryString: 'Invalid binary string: length not multiple of 8',
@@ -277,7 +281,8 @@ export default {
     key: 'Key',
     field: 'Field',
     type: 'Type',
-    inputFormat: 'Encoding',
+    keyEncoding: 'Key Encoding',
+    valueEncoding: 'Value Encoding',
     ttl: 'TTL (-1 means Forever)',
     negativeOneHint: '-1 means Forever',
     forever: 'Forever',
@@ -351,6 +356,12 @@ export default {
   },
 
   keyList: { refreshKey: 'Reload', copyKey: 'Copy', deleteKey: 'Delete', renameKey: 'Rename' },
+
+  keyRename: {
+    title: 'Rename Key',
+    newKeyName: 'New key name',
+    keyNameRequired: 'Key name required',
+  },
 
   keyTree: {
     noData: 'No Data',

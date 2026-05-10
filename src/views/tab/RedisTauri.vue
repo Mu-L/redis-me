@@ -10,7 +10,7 @@ import type {
   RedisBatchTtl_Deserialize,
   RedisCommand,
   RedisExportCsv_Deserialize,
-  RedisFieldAdd,
+  RedisFieldAdd_Deserialize,
   RedisFieldDel_Deserialize,
   RedisFieldSet_Deserialize,
   RedisImportCsv,
@@ -92,7 +92,7 @@ const minimalFieldScan: FieldScanParam_Deserialize = {
   cursor: null,
   loadAll: false,
   meta: null,
-  displayFormat: null,
+  bytesFormat: null,
 }
 
 const minimalSetParam: RedisSetParam_Deserialize = {
@@ -103,13 +103,14 @@ const minimalSetParam: RedisSetParam_Deserialize = {
   inputFormat: null,
 }
 
-const minimalFieldAdd: RedisFieldAdd = {
-  key: '',
+const minimalFieldAdd: RedisFieldAdd_Deserialize = {
+  key: { key: '', bytes: '' },
   mode: 'key',
   type: 'string',
   ttl: -1,
   value: '',
-  inputFormat: null,
+  keyFmt: null,
+  valFmt: null,
   listPushMethod: 'lpush',
   fieldValueList: [],
   streamId: '',
@@ -123,7 +124,7 @@ const minimalFieldSet: RedisFieldSet_Deserialize = {
   fieldValue: '',
   fieldScore: 0,
   fieldTtl: -1,
-  inputFormat: null,
+  valFmt: null,
 }
 
 const minimalFieldDel: RedisFieldDel_Deserialize = {

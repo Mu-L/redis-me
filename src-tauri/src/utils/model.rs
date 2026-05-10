@@ -14,15 +14,17 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16};
 
-/// 数据显示格式
+/// 字节在界面中的表示/编解码方式（UTF-8 文本、Hex、Binary、Base64、MsgPack→JSON）
 #[derive(Debug, Clone, Default, Serialize, Deserialize, Type)]
 #[serde(rename_all = "lowercase")]
-pub enum DisplayFormat {
+pub enum BytesFormat {
     #[default]
     UTF8, // 默认字符串（UTF-8 lossy）
     Hex,    // 十六进制：00 FF 80
     Binary, // 二进制：00000000 11111111 10000000
     Base64, // Base64 编码
+    /// MessagePack：仅 STRING 类型读写；展示为 JSON 文本，保存时自 JSON 编码为 MsgPack
+    Msgpack,
 }
 
 // 连接信息
@@ -259,7 +261,7 @@ api_model!(FieldScanParam {
     cursor: Option<ScanCursor>,
     load_all: bool,
     meta: Option<FiledScanMeta>, // 扩展参数
-    display_format: Option<DisplayFormat>, // 显示格式
+    bytes_format: Option<BytesFormat>, // 扫描/展示用字节格式
 });
 
 api_model!(FiledScanMeta {
@@ -456,18 +458,24 @@ api_model!(RedisStreamItem {
 
 // 字段新增
 api_model!(RedisFieldAdd {
-    key: String,
+    /// 目标 Redis 键（与 `RedisFieldSet` / `RedisFieldDel` 一致）；`bytes` 为空时由 `key` 文本 + `key_fmt` 解析
+    key: RedisKey,
     mode: String,    // key-新增键, field-新增字段
 
     #[serde(rename = "type")]
     key_type: String,
     ttl: i64,
     value: String, // 字段类型为String时的值
-    input_format: Option<DisplayFormat>, // 输入格式（Hex/Binary/Base64 等）
 
     list_push_method: String, // lpush, rpush
     field_value_list: Vec<RedisFieldValue>,
     stream_id: String, // stream
+
+    /// 仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名
+    key_fmt: Option<BytesFormat>,
+    /// 除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等
+    val_fmt: Option<BytesFormat>,
+    
 });
 
 // 字段修改
@@ -479,7 +487,8 @@ api_model!(RedisFieldSet {
     field_value: String,
     field_score: f64,
     field_ttl: i64, // 字段 TTL（秒），仅 Redis/Valkey >= 7.4
-    input_format: Option<DisplayFormat>, // 输入格式（Hex/Binary/Base64 等）
+    /// 编辑字段时解析用户输入（含 Hash 字段名）；Redis 键由 `key` 承载，不再经此格式解析
+    val_fmt: Option<BytesFormat>,
 });
 
 // 字段值
@@ -505,7 +514,7 @@ api_model!(RedisSetParam {
     value: String,
     ttl: i64,
     key_type: Option<String>,
-    input_format: Option<DisplayFormat>,
+    input_format: Option<BytesFormat>,
 });
 
 // 执行命令

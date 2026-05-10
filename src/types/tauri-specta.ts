@@ -26,7 +26,7 @@ export const commands = {
 	set: (id: string, param: RedisSetParam_Deserialize) => typedError<null, string>(__TAURI_INVOKE("set", { id, param })),
 	del: (id: string, key: RedisKey_Deserialize) => typedError<null, string>(__TAURI_INVOKE("del", { id, key })),
 	rename: (id: string, key: RedisKey_Deserialize, newKey: RedisKey_Deserialize) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("rename", { id, key, newKey })),
-	fieldAdd: (id: string, param: RedisFieldAdd) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("field_add", { id, param })),
+	fieldAdd: (id: string, param: RedisFieldAdd_Deserialize) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("field_add", { id, param })),
 	fieldSet: (id: string, param: RedisFieldSet_Deserialize) => typedError<null, string>(__TAURI_INVOKE("field_set", { id, param })),
 	fieldDel: (id: string, param: RedisFieldDel_Deserialize) => typedError<null, string>(__TAURI_INVOKE("field_del", { id, param })),
 	executeCommand: (id: string, param: RedisCommand) => typedError<string, string>(__TAURI_INVOKE("execute_command", { id, param })),
@@ -56,6 +56,11 @@ export const commands = {
 };
 
 /* Types */
+// 字节在界面中的表示/编解码方式（UTF-8 文本、Hex、Binary、Base64、MsgPack→JSON）
+export type BytesFormat = "utf8" | "hex" | "binary" | "base64" | 
+// MessagePack：仅 STRING 类型读写；展示为 JSON 文本，保存时自 JSON 编码为 MsgPack
+"msgpack";
+
 export type ConnConfig = {
 	id: string,
 	name: string,
@@ -73,9 +78,6 @@ export type ConnConfig = {
 	sshOption: SshOption,
 };
 
-// 数据显示格式
-export type DisplayFormat = "utf8" | "hex" | "binary" | "base64";
-
 export type FieldScanParam = FieldScanParam_Serialize | FieldScanParam_Deserialize;
 
 export type FieldScanParam_Deserialize = {
@@ -85,7 +87,7 @@ export type FieldScanParam_Deserialize = {
 	cursor: ScanCursor | null,
 	loadAll: boolean,
 	meta: FiledScanMeta | null,
-	displayFormat: DisplayFormat | null,
+	bytesFormat: BytesFormat | null,
 };
 
 export type FieldScanParam_Serialize = {
@@ -95,7 +97,7 @@ export type FieldScanParam_Serialize = {
 	cursor: ScanCursor | null,
 	loadAll: boolean,
 	meta: FiledScanMeta | null,
-	displayFormat: DisplayFormat | null,
+	bytesFormat: BytesFormat | null,
 };
 
 export type FieldScanResult = {
@@ -211,16 +213,38 @@ export type RedisExportCsv_Serialize = {
 	withTtl: boolean,
 };
 
-export type RedisFieldAdd = {
-	key: string,
+export type RedisFieldAdd = RedisFieldAdd_Serialize | RedisFieldAdd_Deserialize;
+
+export type RedisFieldAdd_Deserialize = {
+	// 目标 Redis 键（与 `RedisFieldSet` / `RedisFieldDel` 一致）；`bytes` 为空时由 `key` 文本 + `key_fmt` 解析
+	key: RedisKey_Deserialize,
 	mode: string,
 	type: string,
 	ttl: number,
 	value: string,
-	inputFormat: DisplayFormat | null,
 	listPushMethod: string,
 	fieldValueList: RedisFieldValue[],
 	streamId: string,
+	// 仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名
+	keyFmt: BytesFormat | null,
+	// 除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等
+	valFmt: BytesFormat | null,
+};
+
+export type RedisFieldAdd_Serialize = {
+	// 目标 Redis 键（与 `RedisFieldSet` / `RedisFieldDel` 一致）；`bytes` 为空时由 `key` 文本 + `key_fmt` 解析
+	key: RedisKey_Serialize,
+	mode: string,
+	type: string,
+	ttl: number,
+	value: string,
+	listPushMethod: string,
+	fieldValueList: RedisFieldValue[],
+	streamId: string,
+	// 仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名
+	keyFmt: BytesFormat | null,
+	// 除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等
+	valFmt: BytesFormat | null,
 };
 
 export type RedisFieldDel = RedisFieldDel_Serialize | RedisFieldDel_Deserialize;
@@ -251,7 +275,8 @@ export type RedisFieldSet_Deserialize = {
 	fieldValue: string,
 	fieldScore: number,
 	fieldTtl: number,
-	inputFormat: DisplayFormat | null,
+	// 编辑字段时解析用户输入（含 Hash 字段名）；Redis 键由 `key` 承载，不再经此格式解析
+	valFmt: BytesFormat | null,
 };
 
 export type RedisFieldSet_Serialize = {
@@ -262,7 +287,8 @@ export type RedisFieldSet_Serialize = {
 	fieldValue: string,
 	fieldScore: number,
 	fieldTtl: number,
-	inputFormat: DisplayFormat | null,
+	// 编辑字段时解析用户输入（含 Hash 字段名）；Redis 键由 `key` 承载，不再经此格式解析
+	valFmt: BytesFormat | null,
 };
 
 export type RedisFieldValue = {
@@ -337,7 +363,7 @@ export type RedisSetParam_Deserialize = {
 	value: string,
 	ttl: number,
 	keyType: string | null,
-	inputFormat: DisplayFormat | null,
+	inputFormat: BytesFormat | null,
 };
 
 export type RedisSetParam_Serialize = {
@@ -345,7 +371,7 @@ export type RedisSetParam_Serialize = {
 	value: string,
 	ttl: number,
 	keyType: string | null,
-	inputFormat: DisplayFormat | null,
+	inputFormat: BytesFormat | null,
 };
 
 export type RedisSlowLog = {

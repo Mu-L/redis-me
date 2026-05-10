@@ -363,30 +363,16 @@ watch(
 
       <!-- 颜色、复选框 -->
       <el-row :gutter="24" justify="space-between">
+        <!-- 颜色选择 -->
         <el-col :span="6">
           <el-form-item :label="t('conn.color')">
             <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS" />
           </el-form-item>
         </el-col>
+
+        <!-- 复选框 -->
         <el-col :span="18" style="padding-left: 0; padding-right: 0">
-          <el-checkbox v-model="form.ssh">
-            <me-icon
-              name="SSH"
-              icon="el-icon-question-filled"
-              placement="top"
-              :info="t('conn.sshTip')"
-              :icon-left="false"
-              raw-content />
-          </el-checkbox>
-          <el-checkbox v-model="form.ssl">
-            <me-icon
-              name="SSL"
-              icon="el-icon-question-filled"
-              placement="top"
-              :info="t('conn.sslTip')"
-              :icon-left="false"
-              raw-content />
-          </el-checkbox>
+          <!-- 只读模式 -->
           <el-checkbox v-model="form.readonly">
             <me-icon
               :name="t('conn.readonly')"
@@ -396,6 +382,8 @@ watch(
               :icon-left="false"
               raw-content />
           </el-checkbox>
+
+          <!-- 集群模式 -->
           <el-checkbox v-model="form.cluster">
             <me-icon
               :name="t('conn.cluster')"
@@ -405,6 +393,8 @@ watch(
               :icon-left="false"
               raw-content />
           </el-checkbox>
+
+          <!-- 哨兵模式 -->
           <el-checkbox v-model="form.sentinel">
             <me-icon
               :name="t('conn.sentinel')"
@@ -414,8 +404,96 @@ watch(
               :icon-left="false"
               raw-content />
           </el-checkbox>
+
+          <!-- SSL加密 -->
+          <el-checkbox v-model="form.ssl">
+            <me-icon
+              name="SSL"
+              icon="el-icon-question-filled"
+              placement="top"
+              :info="t('conn.sslTip')"
+              :icon-left="false"
+              raw-content />
+          </el-checkbox>
+
+          <!-- SSH隧道 -->
+          <el-checkbox v-model="form.ssh">
+            <me-icon
+              name="SSH"
+              icon="el-icon-question-filled"
+              placement="top"
+              :info="t('conn.sshTip')"
+              :icon-left="false"
+              raw-content />
+          </el-checkbox>
         </el-col>
       </el-row>
+
+      <!-- 哨兵模式 -->
+      <div v-show="form.sentinel">
+        <el-divider content-position="left">{{ t('conn.sentinelConfig') }}</el-divider>
+        <el-form-item
+          :label="t('conn.sentinelOption.masterName')"
+          :label-width="t('conn.sentinelLabelWidth')">
+          <div class="me-flex" style="width: 100%">
+            <el-select
+              v-model="form.sentinelOption.masterName"
+              clearable
+              filterable
+              allow-create
+              style="flex: 1"
+              :placeholder="t('conn.sentinelOption.masterNameHint')">
+              <el-option v-for="item in masters" :key="item.name" :value="item.name">
+                <span style="float: left">{{ item.name }}</span>
+                <span style="float: right; color: var(--el-text-color-secondary)">{{
+                  item.ip + ':' + item.port
+                }}</span>
+              </el-option>
+            </el-select>
+            <el-button @click="autoDiscover(true)">{{ t('conn.autoDiscover') }}</el-button>
+          </div>
+        </el-form-item>
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item
+              :label="t('conn.sentinelOption.masterUsername')"
+              :label-width="t('conn.sentinelLabelWidth')">
+              <el-input
+                v-model.trim="form.sentinelOption.masterUsername"
+                :placeholder="t('conn.sentinelOption.masterUsername')"
+                clearable />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item
+              :label="t('conn.sentinelOption.masterPassword')"
+              :label-width="t('conn.sentinelLabelWidth')">
+              <el-input
+                v-model.trim="form.sentinelOption.masterPassword"
+                :placeholder="t('conn.sentinelOption.masterPassword')"
+                type="password"
+                clearable
+                show-password />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </div>
+
+      <!-- SSL加密 -->
+      <div v-show="form.ssl">
+        <el-divider content-position="left">{{ t('conn.ssl') }}</el-divider>
+        <el-form-item :label="t('conn.sslOption.cert')">
+          <me-file-input
+            v-model="form.sslOption.cert"
+            :placeholder="t('conn.sslOption.certHint')" />
+        </el-form-item>
+        <el-form-item :label="t('conn.sslOption.key')">
+          <me-file-input v-model="form.sslOption.key" :placeholder="t('conn.sslOption.keyHint')" />
+        </el-form-item>
+        <el-form-item :label="t('conn.sslOption.ca')">
+          <me-file-input v-model="form.sslOption.ca" :placeholder="t('conn.sslOption.caHint')" />
+        </el-form-item>
+      </div>
 
       <!-- SSH隧道 -->
       <div v-show="form.ssh">
@@ -495,72 +573,6 @@ watch(
               show-password />
           </el-form-item>
         </template>
-      </div>
-
-      <!-- SSL加密 -->
-      <div v-show="form.ssl">
-        <el-divider content-position="left">{{ t('conn.ssl') }}</el-divider>
-        <el-form-item :label="t('conn.sslOption.cert')">
-          <me-file-input
-            v-model="form.sslOption.cert"
-            :placeholder="t('conn.sslOption.certHint')" />
-        </el-form-item>
-        <el-form-item :label="t('conn.sslOption.key')">
-          <me-file-input v-model="form.sslOption.key" :placeholder="t('conn.sslOption.keyHint')" />
-        </el-form-item>
-        <el-form-item :label="t('conn.sslOption.ca')">
-          <me-file-input v-model="form.sslOption.ca" :placeholder="t('conn.sslOption.caHint')" />
-        </el-form-item>
-      </div>
-
-      <!-- 哨兵模式 -->
-      <div v-show="form.sentinel">
-        <el-divider content-position="left">{{ t('conn.sentinelConfig') }}</el-divider>
-        <el-form-item
-          :label="t('conn.sentinelOption.masterName')"
-          :label-width="t('conn.sentinelLabelWidth')">
-          <div class="me-flex" style="width: 100%">
-            <el-select
-              v-model="form.sentinelOption.masterName"
-              clearable
-              filterable
-              allow-create
-              style="flex: 1"
-              :placeholder="t('conn.sentinelOption.masterNameHint')">
-              <el-option v-for="item in masters" :key="item.name" :value="item.name">
-                <span style="float: left">{{ item.name }}</span>
-                <span style="float: right; color: var(--el-text-color-secondary)">{{
-                  item.ip + ':' + item.port
-                }}</span>
-              </el-option>
-            </el-select>
-            <el-button @click="autoDiscover(true)">{{ t('conn.autoDiscover') }}</el-button>
-          </div>
-        </el-form-item>
-        <el-row :gutter="24">
-          <el-col :span="12">
-            <el-form-item
-              :label="t('conn.sentinelOption.masterUsername')"
-              :label-width="t('conn.sentinelLabelWidth')">
-              <el-input
-                v-model.trim="form.sentinelOption.masterUsername"
-                :placeholder="t('conn.sentinelOption.masterUsername')"
-                clearable />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item
-              :label="t('conn.sentinelOption.masterPassword')"
-              :label-width="t('conn.sentinelLabelWidth')">
-              <el-input
-                v-model.trim="form.sentinelOption.masterPassword"
-                :placeholder="t('conn.sentinelOption.masterPassword')"
-                type="password"
-                clearable
-                show-password />
-            </el-form-item>
-          </el-col>
-        </el-row>
       </div>
     </el-form>
     <template #footer>

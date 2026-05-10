@@ -419,8 +419,8 @@ interface TinyRdmYamlNode {
   markColor?: unknown
   ssl?: unknown
   ssh?: unknown
-  sentinel?: unknown
-  cluster?: unknown | TinyRdmClusterYaml
+  sentinel?: TinyRdmSentinelYaml
+  cluster?: boolean | TinyRdmClusterYaml
 }
 
 type TinyRaw = Record<string, unknown>

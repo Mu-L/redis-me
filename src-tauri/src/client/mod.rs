@@ -212,7 +212,7 @@ mod tests {
             cursor: None,
             load_all: false,
             meta: None,
-            display_format: Some(DisplayFormat::Base64),
+            bytes_format: Some(BytesFormat::Base64),
         }
     }
 
@@ -248,7 +248,8 @@ mod tests {
                 list_push_method: "".into(),
                 field_value_list: vec![],
                 stream_id: "".to_string(),
-                input_format: None,
+                key_fmt: None,
+                val_fmt: None,
             })
             .unwrap();
 
@@ -275,7 +276,8 @@ mod tests {
                     },
                 ],
                 stream_id: "".to_string(),
-                input_format: None,
+                key_fmt: None,
+                val_fmt: None,
             })
             .unwrap();
     }
