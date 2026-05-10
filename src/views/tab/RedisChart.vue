@@ -13,7 +13,16 @@ import {
 import type { ChartOptions, TooltipItem } from 'chart.js'
 import dayjs from 'dayjs'
 import { cloneDeep, merge } from 'lodash'
-import { computed, inject, onUnmounted, ref, shallowRef, useTemplateRef, watch } from 'vue'
+import {
+  computed,
+  inject,
+  onMounted,
+  onUnmounted,
+  ref,
+  shallowRef,
+  useTemplateRef,
+  watch,
+} from 'vue'
 import { Line } from 'vue-chartjs'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import { useI18n } from 'vue-i18n'
@@ -87,6 +96,8 @@ const connectedClientsRef = useTemplateRef<LineChartExposed>('connectedClients')
 const cacheHitRatioRef = useTemplateRef<LineChartExposed>('cacheHitRatio')
 const totalConnectionsReceivedRef = useTemplateRef<LineChartExposed>('totalConnectionsReceived')
 const totalCommandsProcessedRef = useTemplateRef<LineChartExposed>('totalCommandsProcessed')
+const chartsRoot = useTemplateRef<HTMLElement>('charts')
+
 function refreshInstance() {
   commandRef.value?.chart.update()
   memoryRef.value?.chart.update()
@@ -98,6 +109,50 @@ function refreshInstance() {
   totalConnectionsReceivedRef.value?.chart.update()
   totalCommandsProcessedRef.value?.chart.update()
 }
+
+let chartsFullscreenWasOurs = false
+
+async function toggleChartsFullscreen() {
+  const el = chartsRoot.value
+  if (!el) return
+  try {
+    if (document.fullscreenElement === el) {
+      await document.exitFullscreen()
+    } else {
+      await el.requestFullscreen()
+    }
+  } catch (e: unknown) {
+    meLog('charts fullscreen error', e)
+  }
+}
+
+function onChartsFullscreenKey(e: KeyboardEvent) {
+  if (e.key !== 'F11') return
+  e.preventDefault()
+  void toggleChartsFullscreen()
+}
+
+function onChartsFullscreenChange() {
+  const el = chartsRoot.value
+  if (!el) return
+  const now = document.fullscreenElement === el
+  if (now || chartsFullscreenWasOurs) {
+    chartsFullscreenWasOurs = now
+    refreshInstance()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onChartsFullscreenKey, true)
+  document.addEventListener('fullscreenchange', onChartsFullscreenChange)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onChartsFullscreenKey, true)
+  document.removeEventListener('fullscreenchange', onChartsFullscreenChange)
+  if (chartsRoot.value && document.fullscreenElement === chartsRoot.value) {
+    void document.exitFullscreen()
+  }
+})
 
 // 单机节点上来就获取1次数据（注: 集群节点由于watch node的存在上来会自动获取1次数据)
 if (!share.conn?.cluster) {
@@ -561,7 +616,7 @@ watch(
       </div>
     </div>
 
-    <div class="charts">
+    <div ref="charts" class="charts">
       <div class="chart"><Line ref="command" :data="chartData.command" :options /></div>
       <div class="chart">
         <Line ref="memory" :data="chartData.memory" :options="memoryOptions" />
@@ -627,8 +682,18 @@ watch(
     margin-top: -20px;
     flex-grow: 1;
 
+    &:fullscreen {
+      margin-top: 0;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      /* 与 Tab 内容区一致：深色主题下未覆写 --el-bg-color-page，会与主背景脱节 */
+      background-color: var(--el-bg-color);
+    }
+
     .chart {
-      height: min(28vh, 33%);
+      height: 33%;
       padding: 10px;
     }
   }
