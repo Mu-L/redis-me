@@ -61,7 +61,7 @@ async function submit() {
 </script>
 
 <template>
-  <el-dialog v-model="visible" width="600px" destroy-on-close align-center :close-on-press-escape="false"
+  <el-dialog v-model="visible" width="500px" destroy-on-close align-center :close-on-press-escape="false"
     :close-on-click-modal="false" draggable>
     <template #header>
       <me-icon icon="el-icon-edit-pen" :name="t('keyRename.title')" />
