@@ -58,6 +58,14 @@ const cacheRatio = computed(() => {
   }
 })
 
+/** 已用内存占系统总内存比例（展示用，非 Redis maxmemory） */
+const memoryUsagePercent = computed(() => {
+  const used = parseInt(dic.value['used_memory'] ?? '', 10)
+  const total = parseInt(dic.value['total_system_memory'] ?? '', 10)
+  if (!total || Number.isNaN(used) || Number.isNaN(total)) return '--'
+  return ((used / total) * 100).toFixed(2)
+})
+
 // raw原始值发生变化后，其他的值重新计算
 watchEffect(() => {
   dic.value = {}
@@ -264,17 +272,19 @@ const nodeGroups = computed(() => {
       <el-descriptions-item :span="2">
         <template #label><me-icon :name="t('redisInfo.memory')" icon="me-icon-memory" /></template>
         <div class="me-flex">
-          <el-link underline="never" @click="goMemory" type="primary">{{
-            dic['used_memory_human']
-          }}</el-link>
+          <el-link underline="never" @click="goMemory" type="primary">
+            {{ memoryUsagePercent }}% | {{ dic['used_memory_human'] }}
+          </el-link>
           <el-text type="info" style="margin-left: 10px">
             [
             <span style="margin-left: 0px"
               >{{ t('redisInfo.peak') }}: {{ dic['used_memory_peak_human'] }}</span
             >
-            <span style="margin-left: 20px"
+
+            <!-- <span style="margin-left: 20px"
               >{{ t('redisInfo.rss') }}: {{ dic['used_memory_rss_human'] }}</span
-            >
+            > -->
+
             <span style="margin-left: 20px"
               >{{ t('redisInfo.os') }}: {{ dic['total_system_memory_human'] }}</span
             >
