@@ -61,8 +61,14 @@ async function submit() {
 </script>
 
 <template>
-  <el-dialog v-model="visible" width="500px" destroy-on-close align-center :close-on-press-escape="false"
-    :close-on-click-modal="false" draggable>
+  <el-dialog
+    v-model="visible"
+    width="500px"
+    destroy-on-close
+    align-center
+    :close-on-press-escape="false"
+    :close-on-click-modal="false"
+    draggable>
     <template #header>
       <me-icon icon="el-icon-edit-pen" :name="t('keyRename.title')" />
     </template>
@@ -71,13 +77,17 @@ async function submit() {
     <template #footer>
       <div class="me-flex">
         <el-select v-model="encoding" style="width: 100px">
-          <el-option v-for="item in BYTES_FORMAT" :key="item" :label="item" :value="item.toLowerCase()" />
+          <el-option
+            v-for="item in BYTES_FORMAT"
+            :key="item"
+            :label="item"
+            :value="item.toLowerCase()" />
         </el-select>
         <div>
           <el-button @click="visible = false">{{ t('cancel') }}</el-button>
           <el-button type="primary" :loading="loading" @click="submit" :disabled="!inputValue">{{
             t('save')
-            }}</el-button>
+          }}</el-button>
         </div>
       </div>
     </template>

@@ -223,15 +223,25 @@ function handleKeyTypeChange() {
 </script>
 
 <template>
-  <el-dialog :title="form.mode === 'key' ? t('fieldAdd.newKey') : t('fieldAdd.newField')" v-model="visible" :width="666"
-    @closed="emit('closed')" destroy-on-close :close-on-press-escape="false" :close-on-click-modal="false" draggable>
+  <el-dialog
+    :title="form.mode === 'key' ? t('fieldAdd.newKey') : t('fieldAdd.newField')"
+    v-model="visible"
+    :width="666"
+    @closed="emit('closed')"
+    destroy-on-close
+    :close-on-press-escape="false"
+    :close-on-click-modal="false"
+    draggable>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
       <!-- 键类型与 TTL: 仅新建键时显示 -->
       <el-row :gutter="20" v-if="form.mode === 'key'">
         <el-col :span="12">
           <el-form-item :label="t('fieldAdd.type')" prop="type">
             <el-select v-model="form.type" style="width: 100%" @change="handleKeyTypeChange">
-              <el-option v-for="item in KEY_TYPE_LIST" :label="item.value" :value="item.value.toLowerCase()">
+              <el-option
+                v-for="item in KEY_TYPE_LIST"
+                :label="item.value"
+                :value="item.value.toLowerCase()">
                 <el-text :type="item.type">{{ item.value }}</el-text>
               </el-option>
 
@@ -268,12 +278,17 @@ function handleKeyTypeChange() {
       </el-form-item>
 
       <!-- 值：新建键且类型为 string 或 json 时显示 -->
-      <el-form-item :label="t('fieldAdd.value')" prop="value" v-if="form.mode === 'key' && stringOrJsonType">
+      <el-form-item
+        :label="t('fieldAdd.value')"
+        prop="value"
+        v-if="form.mode === 'key' && stringOrJsonType">
         <me-code v-model="form.value" style="height: 150px; width: 100%" />
       </el-form-item>
 
       <!-- list 类型的添加方式：rpush、lpush -->
-      <el-form-item :label="t('fieldAdd.type')" v-if="form.mode === 'field' && form.type === 'list'">
+      <el-form-item
+        :label="t('fieldAdd.type')"
+        v-if="form.mode === 'field' && form.type === 'list'">
         <el-segmented v-model="form.listPushMethod" :options="form.listPushOptions" />
       </el-form-item>
 
@@ -283,20 +298,47 @@ function handleKeyTypeChange() {
       </el-form-item>
 
       <!-- key, value, score: 非 string 和 json 类型 -->
-      <el-form-item :label="t('fieldAdd.element') + ' ' + hint" prop="fieldValueList" v-if="!stringOrJsonType">
-        <div v-for="(item, index) in form.fieldValueList" class="me-flex" style="margin-bottom: 10px; width: 100%"
+      <el-form-item
+        :label="t('fieldAdd.element') + ' ' + hint"
+        prop="fieldValueList"
+        v-if="!stringOrJsonType">
+        <div
+          v-for="(item, index) in form.fieldValueList"
+          class="me-flex"
+          style="margin-bottom: 10px; width: 100%"
           key="id">
-          <el-input type="text" v-model="item.fieldKey"
-            :placeholder="form.type === 'hash' ? t('fieldAdd.hashKey') : t('fieldAdd.field')" style="margin-right: 10px"
-            v-if="form.type === 'hash' || form.type === 'stream'" :validate-event="false" />
-          <el-input type="text" v-model="item.fieldValue" :placeholder="t('fieldAdd.value')" style="margin-right: 10px"
+          <el-input
+            type="text"
+            v-model="item.fieldKey"
+            :placeholder="form.type === 'hash' ? t('fieldAdd.hashKey') : t('fieldAdd.field')"
+            style="margin-right: 10px"
+            v-if="form.type === 'hash' || form.type === 'stream'"
             :validate-event="false" />
-          <el-input-number :controls="false" v-model="item.fieldScore" style="margin-right: 10px"
-            v-if="form.type === 'zset'" :validate-event="false" />
-          <el-input-number v-if="form.type === 'hash' && share.capabilities?.hashFieldTtl" v-model="item.fieldTtl"
-            :min="-1" :controls="false" :placeholder="t('fieldAdd.fieldTtl')" style="margin-right: 10px; width: 250px"
+          <el-input
+            type="text"
+            v-model="item.fieldValue"
+            :placeholder="t('fieldAdd.value')"
+            style="margin-right: 10px"
             :validate-event="false" />
-          <el-button icon="el-icon-delete" circle @click="deleteElement(index)" v-if="form.fieldValueList.length > 1" />
+          <el-input-number
+            :controls="false"
+            v-model="item.fieldScore"
+            style="margin-right: 10px"
+            v-if="form.type === 'zset'"
+            :validate-event="false" />
+          <el-input-number
+            v-if="form.type === 'hash' && share.capabilities?.hashFieldTtl"
+            v-model="item.fieldTtl"
+            :min="-1"
+            :controls="false"
+            :placeholder="t('fieldAdd.fieldTtl')"
+            style="margin-right: 10px; width: 250px"
+            :validate-event="false" />
+          <el-button
+            icon="el-icon-delete"
+            circle
+            @click="deleteElement(index)"
+            v-if="form.fieldValueList.length > 1" />
           <el-button icon="el-icon-plus" circle @click="newElement(index)" />
         </div>
       </el-form-item>
@@ -305,15 +347,23 @@ function handleKeyTypeChange() {
       <div class="me-flex">
         <div>
           <!-- 键编码：仅新建键时显示 -->
-          <el-text v-show="form.mode === 'key'" type="info"> {{ t('fieldAdd.keyEncoding') }}</el-text>
-          <el-select v-show="form.mode === 'key'" v-model="form.keyFmt" style="width: 100px; margin: 0 20px 0 10px;"
+          <el-text v-show="form.mode === 'key'" type="info">
+            {{ t('fieldAdd.keyEncoding') }}</el-text
+          >
+          <el-select
+            v-show="form.mode === 'key'"
+            v-model="form.keyFmt"
+            style="width: 100px; margin: 0 20px 0 10px"
             :disabled="jsonType">
             <el-option v-for="item in BYTES_FORMAT" :label="item" :value="item.toLowerCase()" />
           </el-select>
 
           <!-- 值编码：新建键和新增字段时显示 -->
           <el-text type="info">{{ t('fieldAdd.valueEncoding') }}</el-text>
-          <el-select v-model="form.valFmt" style="width: 100px; margin: 0 20px 0 10px;" :disabled="jsonType">
+          <el-select
+            v-model="form.valFmt"
+            style="width: 100px; margin: 0 20px 0 10px"
+            :disabled="jsonType">
             <el-option v-for="item in BYTES_FORMAT" :label="item" :value="item.toLowerCase()" />
           </el-select>
         </div>
@@ -323,7 +373,7 @@ function handleKeyTypeChange() {
           <el-button @click="visible = false">{{ t('cancel') }}</el-button>
           <el-button type="primary" :loading="isSaving" @click="submit()">{{
             t('save')
-            }}</el-button>
+          }}</el-button>
         </div>
       </div>
     </template>
