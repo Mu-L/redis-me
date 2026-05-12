@@ -6,6 +6,7 @@ const { isDark, lang } = useData()
 
 const imgSrc = computed(() => {
   const suffix = lang.value.startsWith('zh') ? '-zh' : ''
+  // TODO: 部署在服务器上后，切换为dark主题，浏览器刷新后主题是dark但图片是light(可能是vitepress的bug)，先记录一下
   const prefix = isDark.value ? 'dark' : 'light'
   const file = `${prefix}${suffix}.png`
   // 英文首页在站点根、中文在 /zh/，用相对 URL 兼容根路径与子路径部署
