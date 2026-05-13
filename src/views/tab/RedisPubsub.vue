@@ -123,7 +123,7 @@ onUnmounted(() => tauriUnlisten())
           style="width: 280px; margin: 0 10px"
           clearable />
         <el-button
-          :icon="subscribing ? 'el-icon-video-pause' : 'el-icon-video-play'"
+          :icon="subscribing ? 'el-icon-remove' : 'el-icon-user'"
           :loading="loading"
           @click="subscribe"
           type="primary">
@@ -132,7 +132,13 @@ onUnmounted(() => tauriUnlisten())
       </div>
     </div>
     <div class="table">
-      <el-table :data="filterDataList" ref="table" border stripe height="100%">
+      <el-table
+        :data="filterDataList"
+        ref="table"
+        border
+        stripe
+        height="100%"
+        :default-sort="{ prop: 'datetime', order: 'descending' }">
         <el-table-column :label="t('redisPubSub.datetime')" prop="datetime" sortable width="200" />
         <el-table-column :label="t('redisPubSub.channel')" prop="channel" show-overflow-tooltip />
         <el-table-column :label="t('redisPubSub.message')" prop="message" show-overflow-tooltip />
