@@ -722,7 +722,7 @@ fn psubscribe_patterns(channel: Option<String>) -> Vec<String> {
     let Some(raw) = channel.filter(|c| !c.is_empty()) else {
         return vec!["*".into()];
     };
-    let parts: Vec<String> = raw
+    let mut parts: Vec<String> = raw
         .split_whitespace()
         .map(str::to_string)
         .filter(|p| !p.is_empty())
@@ -730,6 +730,8 @@ fn psubscribe_patterns(channel: Option<String>) -> Vec<String> {
     if parts.is_empty() {
         vec!["*".into()]
     } else {
+        // 添加停止订阅频道, 用于停止订阅时发送消息避免阻塞
+        parts.push(REDIS_ME_SUBSCRIBE_STOP_CHANNEL.into());
         parts
     }
 }
@@ -775,8 +777,8 @@ pub fn subscribe_stop0(conn: MutexGuard<impl Commands>, running: Arc<AtomicBool>
     // 停止订阅时必须发送一个消息，否则会阻塞
     publish0(
         conn,
-        REDIS_ME_SUBSCRIBE_STOP_MESSAGE,
-        REDIS_ME_SUBSCRIBE_STOP_MESSAGE,
+        REDIS_ME_SUBSCRIBE_STOP_CHANNEL,
+        REDIS_ME_SUBSCRIBE_STOP_CHANNEL,
     )
 }
 
