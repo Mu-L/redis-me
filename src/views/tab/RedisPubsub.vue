@@ -68,6 +68,13 @@ async function publish() {
   }
 }
 
+/** 消息框回车发送（与发送按钮一致：频道非空且消息非空） */
+function publishOnEnter() {
+  if (sendLoading.value) return
+  if (!sendChannel.value || !sendMessage.value) return
+  void publish()
+}
+
 function clearData() {
   dataList.value = []
   //meConfirm('确定清空消息吗？', () => dataList.value = [])
@@ -162,7 +169,8 @@ onUnmounted(() => tauriUnlisten())
       <el-input
         v-model="sendMessage"
         :placeholder="t('redisPubSub.messageContent')"
-        style="margin: 0 10px"></el-input>
+        style="margin: 0 10px"
+        @keydown.enter.prevent="publishOnEnter" />
       <el-button
         icon="el-icon-promotion"
         @click="publish"
