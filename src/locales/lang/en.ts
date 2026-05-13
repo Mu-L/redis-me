@@ -495,7 +495,7 @@ export default {
     channel: 'Channel',
     message: 'Message',
     messageContent: 'Message Content',
-    send: 'Send',
+    send: 'Publish',
   },
 
   redisSlow: {

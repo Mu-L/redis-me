@@ -489,7 +489,7 @@ export default {
     channel: '频道',
     message: '消息',
     messageContent: '消息内容',
-    send: '发送',
+    send: '发布',
   },
 
   redisSlow: {
