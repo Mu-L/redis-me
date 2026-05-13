@@ -61,6 +61,7 @@ async function publish() {
   sendLoading.value = true
   try {
     await meCommands.publish(share.conn!.id, sendChannel.value, sendMessage.value)
+    sendMessage.value = ''
     meOk(t('redisPubSub.publishOk'))
   } finally {
     sendLoading.value = false
@@ -100,7 +101,7 @@ onUnmounted(() => tauriUnlisten())
           placement="top" />
         <el-input
           v-model="channel"
-          style="width: 200px; margin-left: 10px"
+          style="width: 250px; margin-left: 10px"
           :placeholder="t('redisPubSub.subscribeChannel')"
           :disabled="subscribing"
           clearable>

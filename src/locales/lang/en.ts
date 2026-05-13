@@ -482,11 +482,11 @@ export default {
 
   redisPubSub: {
     psubscribePatternHint:
-      'The <b>PSUBSCRIBE</b> command supports glob-style subscription patterns (Default * subscribes to all channels) <br/><br/>Examples:<br/>h?llo — subscribes to hello, hallo, and hxllo<br/>h*llo — subscribes to hllo and heeeello<br/>h[ae]llo — subscribes to hello and hallo, but not hillo',
+      '<b>PSUBSCRIBE</b> command supports glob-style subscription patterns <br> Default * subscribes to all channels, Enter multiple patterns separated by spaces to subscribe at once<br/><br/>Examples:<br/>h?llo — subscribes to hello, hallo, and hxllo<br/>h*llo — subscribes to hllo and heeeello<br/>h[ae]llo — subscribes to hello and hallo, but not hillo<br/>news.* orders.* — subscribe to two prefixes',
     subscribeStarted: 'Subscribe Started',
     subscribeStopped: 'Subscribe Stopped',
     publishOk: 'Publish Success',
-    subscribeChannel: 'Subscribe Channel',
+    subscribeChannel: 'Patterns, Space Separated',
     clearMessage: 'Clear Message',
     keyword: 'Filter (Channel / Message) ',
     subscribeStart: 'Subscribe Start',

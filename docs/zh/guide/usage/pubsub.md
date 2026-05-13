@@ -6,7 +6,7 @@
 
 ## 功能简述
 
-- 订阅功能: 支持设置订阅频道（glob 风格的模式，默认为\*即订阅所有频道）
+- 订阅功能: 支持设置订阅频道（glob 风格的模式，默认为\*即订阅所有频道）；多个模式可用空格分隔，一次 `PSUBSCRIBE` 多个 pattern（与 RedisInsight 一致）
 - 发布功能: 向指定频道发布消息
 
 ![main.png](../../../public/images/pubsub/main.png)

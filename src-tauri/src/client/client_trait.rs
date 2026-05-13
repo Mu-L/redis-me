@@ -717,6 +717,23 @@ pub fn publish0(
     Ok(())
 }
 
+/// 将订阅框内容拆成多个 `PSUBSCRIBE` 模式（空白分隔，与 RedisInsight 一致）；无有效模式时等价于 `*`。
+fn psubscribe_patterns(channel: Option<String>) -> Vec<String> {
+    let Some(raw) = channel.filter(|c| !c.is_empty()) else {
+        return vec!["*".into()];
+    };
+    let parts: Vec<String> = raw
+        .split_whitespace()
+        .map(str::to_string)
+        .filter(|p| !p.is_empty())
+        .collect();
+    if parts.is_empty() {
+        vec!["*".into()]
+    } else {
+        parts
+    }
+}
+
 pub fn subscribe0(
     mut conn: Connection,
     running: Arc<AtomicBool>,
@@ -727,13 +744,13 @@ pub fn subscribe0(
     set_client_name(&mut conn)?;
     running.store(true, Relaxed);
 
-    let channel = channel
-        .filter(|c| !c.is_empty())
-        .unwrap_or_else(|| "*".into());
+    let patterns = psubscribe_patterns(channel);
 
     let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
-        conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&channel).get_packed_command())?;
-        info!("subscribe start: {}", &channel);
+        conn.send_packed_command(
+            &redis::cmd("PSUBSCRIBE").arg(&patterns).get_packed_command(),
+        )?;
+        info!("subscribe start: {:?}", patterns);
         while running.load(Relaxed) {
             let response = conn.recv_response()?;
             if let Some(msg) = Msg::from_value(&response) {
@@ -747,7 +764,7 @@ pub fn subscribe0(
                 let _ = &app_handle.emit(EVENT_SUBSCRIBE, event);
             }
         }
-        info!("subscribe end: {}", &channel);
+        info!("subscribe end: {:?}", patterns);
         Ok(())
     });
     Ok(())
