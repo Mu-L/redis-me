@@ -7,7 +7,7 @@ use crate::utils::ssh_tunnel::SshTunnel;
 use crate::utils::util::*;
 use anyhow::bail;
 use chrono::Utc;
-use log::{info, warn};
+use log::{info, debug, warn};
 use parking_lot::{Mutex, MutexGuard};
 use redis::{Client, Commands, Connection, ConnectionLike, Pipeline, Value};
 use std::collections::HashMap;
@@ -523,7 +523,7 @@ impl MeSingle {
         if conn.check_connection() {
             conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
             conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
-            info!("检查Redis单机连接正常: {}", self.conf.name);
+            debug!("检查Redis单机连接正常: {}", self.conf.name);
             Ok(true)
         } else {
             warn!("检查Redis单机连接异常: {}", self.conf.name);
