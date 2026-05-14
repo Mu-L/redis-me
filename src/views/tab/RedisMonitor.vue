@@ -66,7 +66,7 @@ async function tauriListen() {
   unlisten = await listen<MonitorRow>('monitor', event => {
     const payload = event.payload
     if (payload.id !== share.conn!.id) return
-    dataList.value.push(payload)
+    dataList.value.unshift(payload)
   })
 }
 
@@ -105,8 +105,8 @@ onUnmounted(() => tauriUnlisten())
       </div>
     </div>
     <div class="table">
-      <el-table :data="filterDataList" ref="table" border stripe height="100%">
-        <el-table-column :label="t('redisMonitor.time')" prop="datetime" sortable width="200" />
+      <me-table :data="filterDataList" ref="table" border stripe height="100%">
+        <el-table-column :label="t('redisMonitor.time')" prop="datetime" width="200" sortable />
         <el-table-column :label="t('redisMonitor.command')" prop="command" show-overflow-tooltip />
         <el-table-column :label="t('action')" width="80" align="center">
           <template #default="scope">
@@ -118,7 +118,7 @@ onUnmounted(() => tauriUnlisten())
               style="justify-content: center" />
           </template>
         </el-table-column>
-      </el-table>
+      </me-table>
     </div>
   </div>
 </template>
