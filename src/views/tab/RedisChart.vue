@@ -279,12 +279,7 @@ const baseOptions = {
   scales: {
     x: {
       type: 'time' as const,
-      time: {
-        unit: 'second' as const,
-        displayFormats: {
-          second: 'HH:mm:ss',
-        },
-      },
+      time: { unit: 'second' as const, displayFormats: { second: 'HH:mm:ss' } },
       // 控制刻度显示数量
       ticks: {
         align: 'center' as const, // 刻度居中
@@ -693,7 +688,7 @@ watch(
     }
 
     .chart {
-      height: 33%;
+      height: min(28vh, 33%);
       padding: 10px;
     }
   }
