@@ -139,12 +139,9 @@ onUnmounted(() => tauriUnlisten())
       </div>
     </div>
     <div class="table">
-      <el-table
+      <me-table
         :data="filterDataList"
         ref="table"
-        border
-        stripe
-        height="100%"
         :default-sort="{ prop: 'datetime', order: 'descending' }">
         <el-table-column :label="t('redisPubSub.datetime')" prop="datetime" sortable width="200" />
         <el-table-column :label="t('redisPubSub.channel')" prop="channel" show-overflow-tooltip />
@@ -159,7 +156,7 @@ onUnmounted(() => tauriUnlisten())
               style="justify-content: center" />
           </template>
         </el-table-column>
-      </el-table>
+      </me-table>
     </div>
     <div class="footer" v-if="canEdit">
       <el-input

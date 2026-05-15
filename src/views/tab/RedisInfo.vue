@@ -128,9 +128,9 @@ const filterDataList = computed(() => {
 })
 
 // 合计列
-function getSummaries() {
-  return [t('redisInfo.total'), '', filterDataList.value.length + ' / ' + dataList.value.length, '']
-}
+// function getSummaries() {
+//   return [t('redisInfo.total'), '', filterDataList.value.length + ' / ' + dataList.value.length, '']
+// }
 
 const tableRef = useTemplateRef('table')
 function tagChange() {
@@ -359,13 +359,7 @@ const nodeGroups = computed(() => {
         </div>
       </template>
 
-      <el-table
-        ref="table"
-        :data="filterDataList"
-        show-summary
-        :summary-method="getSummaries"
-        stripe
-        height="100%">
+      <me-table ref="table" :data="filterDataList">
         <el-table-column prop="tag" :label="t('redisInfo.tag')" width="100" />
         <el-table-column prop="key" :label="t('redisInfo.key')" show-overflow-tooltip />
         <el-table-column prop="value" :label="t('redisInfo.value')" show-overflow-tooltip />
@@ -374,7 +368,7 @@ const nodeGroups = computed(() => {
             <span style="color: var(--el-color-info)">{{ tipMap[scope.row.key] }}</span>
           </template>
         </el-table-column>
-      </el-table>
+      </me-table>
     </el-card>
   </div>
 

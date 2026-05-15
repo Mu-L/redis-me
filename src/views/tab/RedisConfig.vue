@@ -148,9 +148,9 @@ const filterDataList = computed(() => {
 })
 
 // 合计列
-function getSummaries() {
-  return [t('redisConfig.total'), filterDataList.value.length + ' / ' + dataList.value.length, '']
-}
+// function getSummaries() {
+//   return [t('redisConfig.total'), filterDataList.value.length + ' / ' + dataList.value.length, '']
+// }
 
 async function apiConfigGet() {
   const data = await meCommands.configGet(share.conn!.id, '*', node.value)
@@ -170,9 +170,7 @@ async function refresh() {
 refresh()
 
 // 官网默认配置参考
-const dialog = reactive({
-  raw: false,
-})
+const dialog = reactive({ raw: false })
 
 // 行样式展示
 function calcRowStyle({ row }: { row: ConfigTableRow }) {
@@ -183,11 +181,7 @@ function calcRowStyle({ row }: { row: ConfigTableRow }) {
 const formRef = useTemplateRef('formRef')
 const editLoading = ref(false)
 const editShow = ref(false)
-const form = reactive({
-  param: '',
-  value: '',
-  autoBroadcast: true,
-})
+const form = reactive({ param: '', value: '', autoBroadcast: true })
 const command = computed(
   () =>
     `CONFIG SET ${form.param} ${form.value?.includes(' ') ? '"' + form.value + '"' : form.value}`,
@@ -258,48 +252,45 @@ const rules = computed(() => ({
       </div>
     </div>
 
-    <el-table
-      :data="filterDataList"
-      ref="table"
-      style="margin-top: 10px"
-      v-loading="loading"
-      :row-style="calcRowStyle"
-      show-summary
-      :summary-method="getSummaries"
-      border
-      stripe
-      height="100%">
-      <el-table-column
-        :label="t('redisConfig.param')"
-        prop="param"
-        sortable
-        show-overflow-tooltip />
-      <el-table-column :label="t('redisConfig.value')" prop="value" show-overflow-tooltip />
-      <el-table-column
-        :label="dictVersion + ' ' + t('redisConfig.defaultConfig')"
-        prop="value"
-        show-overflow-tooltip>
-        <template #default="scope">
-          {{ dictRaw[scope.row.param] }}
-        </template>
-      </el-table-column>
-      <el-table-column :label="t('redisConfig.tip')" show-overflow-tooltip>
-        <template #default="scope">
-          <span style="color: var(--el-color-info)">{{ tipMap[scope.row.param] }}</span>
-        </template>
-      </el-table-column>
+    <div class="table">
+      <me-table :data="filterDataList" ref="table" v-loading="loading" :row-style="calcRowStyle">
+        <el-table-column
+          :label="t('redisConfig.param')"
+          prop="param"
+          sortable
+          show-overflow-tooltip />
+        <el-table-column :label="t('redisConfig.value')" prop="value" show-overflow-tooltip />
+        <el-table-column
+          :label="dictVersion + ' ' + t('redisConfig.defaultConfig')"
+          prop="value"
+          show-overflow-tooltip>
+          <template #default="scope">
+            {{ dictRaw[scope.row.param] }}
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('redisConfig.tip')" show-overflow-tooltip>
+          <template #default="scope">
+            <span style="color: var(--el-color-info)">{{ tipMap[scope.row.param] }}</span>
+          </template>
+        </el-table-column>
 
-      <el-table-column :label="t('action')" width="80" align="center" fixed="right" v-if="canEdit">
-        <template #default="scope">
-          <me-icon
-            :info="t('redisConfig.configSet')"
-            icon="el-icon-edit"
-            class="icon-btn"
-            @click="editConfig(scope.row)"
-            style="justify-content: center" />
-        </template>
-      </el-table-column>
-    </el-table>
+        <el-table-column
+          :label="t('action')"
+          width="80"
+          align="center"
+          fixed="right"
+          v-if="canEdit">
+          <template #default="scope">
+            <me-icon
+              :info="t('redisConfig.configSet')"
+              icon="el-icon-edit"
+              class="icon-btn"
+              @click="editConfig(scope.row)"
+              style="justify-content: center" />
+          </template>
+        </el-table-column>
+      </me-table>
+    </div>
 
     <me-dialog
       icon="me-icon-redis"

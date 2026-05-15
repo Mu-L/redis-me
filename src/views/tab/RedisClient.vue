@@ -12,9 +12,7 @@ const { t } = useI18n()
 // 共享数据
 const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
-const props = defineProps({
-  initNode: { type: String, default: '' },
-})
+const props = defineProps({ initNode: { type: String, default: '' } })
 
 const node = ref(props.initNode)
 watch(
@@ -41,23 +39,8 @@ const filterDataList = computed(() => {
       (row.name?.toLowerCase() ?? '').indexOf(key) > -1,
   )
 
-  const prop = sortProperty.value as keyof RedisClientInfo
-  const isAsc = sortOrder.value === 'ascending'
-  const arr01 = arr.filter(d => d[prop])
-  const arr02 = arr.filter(d => !d[prop])
-  arr01.sort((a, b) => (a[prop]! < b[prop]! ? -1 : 1) * (isAsc ? 1 : -1))
-  return [...arr01, ...arr02]
+  return arr
 })
-
-function sortChange({ prop, order }: { prop: string; order: string | null }) {
-  if (order) {
-    sortProperty.value = prop
-    sortOrder.value = order
-  } else {
-    sortProperty.value = 'id'
-    sortOrder.value = 'ascending'
-  }
-}
 
 async function refresh() {
   loading.value = true
@@ -166,9 +149,6 @@ function propWidth(item: string) {
         ref="table"
         v-loading="loading"
         :default-sort="{ prop: 'id', order: 'ascending' }"
-        @sort-change="sortChange"
-        border
-        stripe
         height="100%">
         <el-table-column
           label="ID"
