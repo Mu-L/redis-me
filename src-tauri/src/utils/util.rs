@@ -63,6 +63,11 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
 
 pub fn ui_key_type(key_type: ValueType) -> String {
     let key_type: String = key_type.into();
+    ui_key_type_str(&key_type)
+}
+
+/// `TYPE` 等返回的原始类型名（含模块名如 ReJSON-RL）统一为与 `ui_key_type` 一致的展示名
+pub fn ui_key_type_str(key_type: &str) -> String {
     if key_type == REDIS_JSON_TYPE_NAME {
         ME_JSON_TYPE_NAME.to_string()
     } else {
@@ -191,7 +196,12 @@ pub fn parse_bytes(input: &str, format: &BytesFormat) -> AnyResult<Vec<u8>> {
 
 // 辅助函数
 pub fn tuple_to_key_size(keys: Vec<(Vec<u8>, u64, String)>) -> Vec<RedisKeySize> {
-    let mut key_list: Vec<RedisKeySize> = keys.into_iter().map(RedisKeySize::from).collect();
+    let mut key_list: Vec<RedisKeySize> = keys
+        .into_iter()
+        .map(|(key, size, key_type)| {
+            RedisKeySize::from((key, size, ui_key_type_str(&key_type)))
+        })
+        .collect();
     key_list.sort_by_key(|x| x.size);
     key_list.reverse();
     key_list
