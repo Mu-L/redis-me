@@ -8,10 +8,15 @@ import { computed, ref, useAttrs, watch } from 'vue'
 defineOptions({ inheritAttrs: false })
 
 // #region 其他：props、attrs、分页状态（排序变更会重置页码，故放在排序之前）
-const props = withDefaults(defineProps<{ data?: unknown[]; layout?: string }>(), {
-  data: () => [],
-  layout: 'total, sizes, prev, pager, next, jumper',
-})
+const props = withDefaults(
+  defineProps<{
+    data?: unknown[]
+    layout?: string
+    /** 仅一页时是否隐藏分页条；默认 false（始终显示） */
+    hideOnSinglePage?: boolean
+  }>(),
+  { data: () => [], layout: 'total, sizes, prev, pager, next, jumper', hideOnSinglePage: false },
+)
 
 const attrs = useAttrs()
 
@@ -158,6 +163,7 @@ function updatePageSize(size: number): void {
       :style="{ margin: '10px 0 0 0', marginLeft: layout.includes('total') ? '5px' : 0 }"
       size="small"
       background
+      :hide-on-single-page="hideOnSinglePage"
       @change="handleChange"
       :page-size="pageSize"
       :page-sizes="[20, 50, 100]"
