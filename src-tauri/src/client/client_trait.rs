@@ -148,8 +148,7 @@ pub fn field_scan0(
     let bytes_format = param.bytes_format.as_ref().cloned().unwrap_or_default();
 
     // String, Json, List, Hash(WithKey), Stream(WithKey), Stream 直接获取得到值
-    let (mut value, key_type, mut cc, length) =
-        field_scan_0_get(&mut conn, &param, &bytes_format)?;
+    let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, &param, &bytes_format)?;
 
     // Hash, Set, Zset 进行扫描(hscan, sscan, zscan)
     let key = param.key;
@@ -606,8 +605,7 @@ pub fn field_add0(
                     Ok((parse_bytes(&f.field_value, &val_fmt)?, f.field_score))
                 })
                 .collect::<AnyResult<Vec<_>>>()?;
-            let pairs: Vec<(f64, Vec<u8>)> =
-                items.into_iter().map(|(m, s)| (s, m)).collect();
+            let pairs: Vec<(f64, Vec<u8>)> = items.into_iter().map(|(m, s)| (s, m)).collect();
             let _: usize = conn.zadd_multiple(&key, &pairs)?;
         }
         ValueType::Stream => {
@@ -749,9 +747,7 @@ pub fn subscribe0(
     let patterns = psubscribe_patterns(channel);
 
     let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
-        conn.send_packed_command(
-            &redis::cmd("PSUBSCRIBE").arg(&patterns).get_packed_command(),
-        )?;
+        conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&patterns).get_packed_command())?;
         info!("subscribe start: {:?}", patterns);
         while running.load(Relaxed) {
             let response = conn.recv_response()?;

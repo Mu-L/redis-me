@@ -8,6 +8,9 @@ import type { RedisClientInfo, RedisCommand } from '@/types/tauri-specta'
 import { meConfirm, meHumanSeconds, meCommands, meOk } from '@/utils/util'
 import NodeList from '@/views/ext/NodeList.vue'
 
+/** `client_list` 实际载荷字段齐全；`Required` 与 specta 在 `#[serde(default)]` 下生成的可选字段对齐 */
+type RedisClientListRow = Required<RedisClientInfo>
+
 const { t } = useI18n()
 // 共享数据
 const share = inject(shareProvideKey)!
@@ -24,7 +27,7 @@ watch(
 const clientType = ref('')
 const keyword = ref('')
 const loading = ref(false)
-const dataList = ref<RedisClientInfo[]>([])
+const dataList = ref<RedisClientListRow[]>([])
 const sortProperty = ref('id')
 const sortOrder = ref('ascending')
 
@@ -34,9 +37,7 @@ const filterDataList = computed(() => {
   const key = keyword.value.toLowerCase()
   const arr = dataList.value.filter(
     row =>
-      !key ||
-      (row.addr?.toLowerCase() ?? '').indexOf(key) > -1 ||
-      (row.name?.toLowerCase() ?? '').indexOf(key) > -1,
+      !key || row.addr.toLowerCase().indexOf(key) > -1 || row.name.toLowerCase().indexOf(key) > -1,
   )
 
   return arr
@@ -45,14 +46,18 @@ const filterDataList = computed(() => {
 async function refresh() {
   loading.value = true
   try {
-    dataList.value = await meCommands.clientList(share.conn!.id, node.value, clientType.value)
+    dataList.value = (await meCommands.clientList(
+      share.conn!.id,
+      node.value,
+      clientType.value,
+    )) as RedisClientListRow[]
   } finally {
     loading.value = false
   }
 }
 refresh()
 
-async function killClient(row: RedisClientInfo) {
+async function killClient(row: RedisClientListRow) {
   meConfirm(t('redisClient.killClientConfirm', { client: row.addr }), async () => {
     const param: RedisCommand = {
       command: `client kill ${row.addr}`,
@@ -183,9 +188,7 @@ function propWidth(item: string) {
           sortable
           width="140"
           align="right"
-          :formatter="
-            (row: RedisClientInfo) => meHumanSeconds(Number.parseInt(String(row.age ?? ''), 10))
-          ">
+          :formatter="(row: RedisClientListRow) => meHumanSeconds(row.age)">
           <template #header>
             <el-tooltip :content="tipMap['age'] || 'age'" placement="top">
               <span>{{ t('redisClient.age') }}</span>
@@ -198,9 +201,7 @@ function propWidth(item: string) {
           sortable
           width="120"
           align="right"
-          :formatter="
-            (row: RedisClientInfo) => meHumanSeconds(Number.parseInt(String(row.idle ?? ''), 10))
-          ">
+          :formatter="(row: RedisClientListRow) => meHumanSeconds(row.idle)">
           <template #header>
             <el-tooltip :content="tipMap['idle'] || 'idle'" placement="top">
               <span>{{ t('redisClient.idle') }}</span>

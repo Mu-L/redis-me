@@ -475,7 +475,7 @@ api_model!(RedisFieldAdd {
     key_fmt: Option<BytesFormat>,
     /// 除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等
     val_fmt: Option<BytesFormat>,
-    
+
 });
 
 // 字段修改
@@ -573,39 +573,43 @@ impl From<(Vec<u8>, u64, String)> for RedisKeySize {
     }
 }
 
-// 客户端
-api_model!(RedisClientInfo {
-    id: Option<String>,             // 唯一的 64 位客户端 ID
-    addr: Option<String>,           // 客户端的地址/端口
-    laddr: Option<String>,          // 客户端连接到的本地地址/端口（绑定地址）
-    fd: Option<String>,             // 对应于套接字的文件描述符
-    name: Option<String>,           // 客户端使用 CLIENT SETNAME 设置的名称
-    age: Option<String>,            // 连接的总持续时间（秒）
-    idle: Option<String>,           // 连接的空闲时间（秒）
-    flags: Option<String>,          // 客户端标志（见下文）
-    db: Option<String>,             // 当前数据库 ID
-    sub: Option<String>,            // 频道订阅数
-    psub: Option<String>,           // 模式匹配订阅数
-    ssub: Option<String>,           // 分片频道订阅数。在 Redis 7.0.3 中添加
-    multi: Option<String>,          // MULTI/EXEC 上下文中的命令数
-    watch: Option<String>,          // 此客户端当前正在监视的键数。在 Redis 7.4 中添加
-    qbuf: Option<String>,           // 查询缓冲区长度（0 表示没有待处理的查询）
-    qbuf_free: Option<String>,       // 查询缓冲区的可用空间（0 表示缓冲区已满）
-    argv_mem: Option<String>,        // 下一个命令的不完整参数（已从查询缓冲区中提取）
-    multi_mem: Option<String>,       // 缓冲的多命令使用的内存。在 Redis 7.0 中添加
-    obl: Option<String>,            // 输出缓冲区长度
-    oll: Option<String>,            // 输出列表长度（当缓冲区满时，回复在此列表中排队）
-    omem: Option<String>,           // 输出缓冲区内存使用情况
-    tot_mem: Option<String>,         // 此客户端在其各种缓冲区中消耗的总内存
-    events: Option<String>,         // 文件描述符事件（见下文）
-    cmd: Option<String>,            // 执行的最后一条命令
-    user: Option<String>,           // 客户端的已认证用户名
-    redir: Option<String>,          // 当前客户端跟踪重定向的客户端 id
-    resp: Option<String>,           // 客户端 RESP 协议版本。在 Redis 7.0 中添加
-    rbp: Option<String>,            // 客户端连接以来其读取缓冲区的峰值大小。在 Redis 7.0 中添加
-    rbs: Option<String>,            // 客户端读取缓冲区当前大小（字节）。在 Redis 7.0 中添加
-    io_thread: Option<String>,       // 分配给客户端的 I/O 线程 ID。在 Redis 8.0 中添加
-});
+// 客户端（缺省字段：`parse_client_info` 未写入 JSON 时由结构体 `#[serde(default)]` 填 0 / ""）
+api_model!(
+    #[serde(default)]
+    #[derive(Default)]
+    RedisClientInfo {
+        id: u64,        // 唯一的 64 位客户端 ID
+        addr: String,   // 客户端的地址/端口
+        laddr: String,  // 客户端连接到的本地地址/端口（绑定地址）
+        fd: u64,        // 对应于套接字的文件描述符
+        name: String,   // 客户端使用 CLIENT SETNAME 设置的名称
+        age: u64,       // 连接的总持续时间（秒）
+        idle: u64,      // 连接的空闲时间（秒）
+        flags: String,  // 客户端标志（见下文）
+        db: u64,        // 当前数据库 ID
+        sub: u64,       // 频道订阅数
+        psub: u64,      // 模式匹配订阅数
+        ssub: u64,      // 分片频道订阅数。在 Redis 7.0.3 中添加
+        multi: i64,     // MULTI/EXEC 上下文中的命令数（无事务时常为 -1）
+        watch: u64,     // 此客户端当前正在监视的键数。在 Redis 7.4 中添加
+        qbuf: u64,      // 查询缓冲区长度（0 表示没有待处理的查询）
+        qbuf_free: u64, // 查询缓冲区的可用空间（0 表示缓冲区已满）
+        argv_mem: u64,  // 下一个命令的不完整参数（已从查询缓冲区中提取）
+        multi_mem: u64, // 缓冲的多命令使用的内存。在 Redis 7.0 中添加
+        obl: u64,       // 输出缓冲区长度
+        oll: u64,       // 输出列表长度（当缓冲区满时，回复在此列表中排队）
+        omem: u64,      // 输出缓冲区内存使用情况
+        tot_mem: u64,   // 此客户端在其各种缓冲区中消耗的总内存
+        events: String, // 文件描述符事件（见下文）
+        cmd: String,    // 执行的最后一条命令
+        user: String,   // 客户端的已认证用户名
+        redir: u64,     // 当前客户端跟踪重定向的客户端 id
+        resp: u8,       // 客户端 RESP 协议版本。在 Redis 7.0 中添加
+        rbp: u64,       // 客户端连接以来其读取缓冲区的峰值大小。在 Redis 7.0 中添加
+        rbs: u64,       // 客户端读取缓冲区当前大小（字节）。在 Redis 7.0 中添加
+        io_thread: u64, // 分配给客户端的 I/O 线程 ID。在 Redis 8.0 中添加
+    }
+);
 
 api_model!(SubscribeEvent {
     id: String,

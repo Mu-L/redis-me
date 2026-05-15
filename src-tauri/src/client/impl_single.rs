@@ -7,7 +7,7 @@ use crate::utils::ssh_tunnel::SshTunnel;
 use crate::utils::util::*;
 use anyhow::bail;
 use chrono::Utc;
-use log::{info, debug, warn};
+use log::{debug, info, warn};
 use parking_lot::{Mutex, MutexGuard};
 use redis::{Client, Commands, Connection, ConnectionLike, Pipeline, Value};
 use std::collections::HashMap;

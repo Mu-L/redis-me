@@ -7,7 +7,7 @@ use crate::utils::util::*;
 use Ordering::Relaxed;
 use anyhow::bail;
 use chrono::Utc;
-use log::{info, debug,warn};
+use log::{debug, info, warn};
 use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo::SingleNode;
@@ -551,7 +551,8 @@ impl MeClient for MeCluster {
             if let Value::Array(ref slot_data) = slot_entry
                 && slot_data.len() >= 3
                 && let (Value::Int(start), Value::Int(end)) = (&slot_data[0], &slot_data[1])
-                && (*start as u64) <= slot && slot <= (*end as u64)
+                && (*start as u64) <= slot
+                && slot <= (*end as u64)
             {
                 // 找到了！解析所有节点（主 + 从）
                 let mut nodes = Vec::new();
