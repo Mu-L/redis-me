@@ -43,7 +43,7 @@ jobs:
 
         # failed to build app: Target aarch64-pc-windows-msvc is not installed (installed targets: i686-pc-windows-msvc, x86_64-pc-windows-gnu, x86_64-pc-windows-msvc). Please run `rustup target add aarch64-pc-windows-msvc`.
       - name: Install rust target
-        if: ${{ matrix.platform == 'windows-latest' }}
+        if: ${{ matrix.platform == 'windows-2022' }}
         run: rustup target add aarch64-pc-windows-msvc
 
       - name: Install rust target (Linux ARM64)
