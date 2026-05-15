@@ -158,7 +158,6 @@ function updatePageSize(size: number): void {
       :style="{ margin: '10px 0 0 0', marginLeft: layout.includes('total') ? '5px' : 0 }"
       size="small"
       background
-      hide-on-single-page
       @change="handleChange"
       :page-size="pageSize"
       :page-sizes="[20, 50, 100]"
