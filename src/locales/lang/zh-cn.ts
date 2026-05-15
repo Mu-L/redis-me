@@ -476,20 +476,20 @@ export default {
 
   redisPubSub: {
     psubscribePatternHint:
-      '<b>PSUBSCRIBE</b> 命令，支持 glob 风格的订阅模式（默认*订阅所有频道） <br/><br/>示例：<br/>h?llo 订阅 hello、hallo 和 hxllo<br/>h*llo 订阅 hllo 和 heeeello<br/>h[ae]llo 订阅 hello 和 hallo，但不订阅 hillo',
+      '<b>PSUBSCRIBE</b> 命令，支持 glob 风格的订阅模式<br> 默认*订阅所有频道，支持空格分隔订阅多个频道<br/><br/>示例：<br/>h?llo — 订阅 hello、hallo 和 hxllo<br/>h*llo — 订阅 hllo 和 heeeello<br/>h[ae]llo — 订阅 hello 和 hallo，但不订阅 hillo<br/>news.* orders.* — 同时订阅两类前缀',
     subscribeStarted: '订阅已开始',
     subscribeStopped: '订阅已停止',
     publishOk: '发布消息成功',
-    subscribeChannel: '订阅频道',
+    subscribeChannel: '订阅模式，空格分隔多个',
     clearMessage: '清空消息',
     keyword: '模糊筛选（频道、消息）',
-    subscribeStart: '开启订阅',
-    subscribeStop: '停止订阅',
+    subscribeStart: '订阅',
+    subscribeStop: '取消订阅',
     datetime: '时间',
     channel: '频道',
     message: '消息',
     messageContent: '消息内容',
-    send: '发送',
+    send: '发布',
   },
 
   redisSlow: {

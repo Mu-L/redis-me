@@ -149,6 +149,7 @@ const app = shallowReactive<AppMainInject>({
 })
 provide(appProvideKey, app)
 async function checkAutoUpdate(): Promise<void> {
+  if (meTauri.isAppStore) return
   if (!meTauri.settings.autoUpdate) return
   app.update = (await check().catch((): null => null)) as Update | null
 }

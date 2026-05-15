@@ -7,7 +7,7 @@ use crate::utils::util::*;
 use Ordering::Relaxed;
 use anyhow::bail;
 use chrono::Utc;
-use log::{info, warn};
+use log::{debug, info, warn};
 use parking_lot::{Mutex, MutexGuard};
 use redis::cluster::{ClusterClient, ClusterConnection, ClusterPipeline};
 use redis::cluster_routing::RoutingInfo::SingleNode;
@@ -551,7 +551,8 @@ impl MeClient for MeCluster {
             if let Value::Array(ref slot_data) = slot_entry
                 && slot_data.len() >= 3
                 && let (Value::Int(start), Value::Int(end)) = (&slot_data[0], &slot_data[1])
-                && (*start as u64) <= slot && slot <= (*end as u64)
+                && (*start as u64) <= slot
+                && slot <= (*end as u64)
             {
                 // 找到了！解析所有节点（主 + 从）
                 let mut nodes = Vec::new();
@@ -683,7 +684,7 @@ impl MeCluster {
         if conn.check_connection() {
             conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
             conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
-            info!("检查Redis集群连接正常: {}", self.conf.name);
+            debug!("检查Redis集群连接正常: {}", self.conf.name);
             Ok(true)
         } else {
             warn!("检查Redis集群连接异常: {}", self.conf.name);

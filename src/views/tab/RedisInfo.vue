@@ -58,6 +58,14 @@ const cacheRatio = computed(() => {
   }
 })
 
+/** 已用内存占系统总内存比例（展示用，非 Redis maxmemory） */
+// const memoryUsagePercent = computed(() => {
+//   const used = parseInt(dic.value['used_memory'] ?? '', 10)
+//   const total = parseInt(dic.value['total_system_memory'] ?? '', 10)
+//   if (!total || Number.isNaN(used) || Number.isNaN(total)) return '--'
+//   return ((used / total) * 100).toFixed(2)
+// })
+
 // raw原始值发生变化后，其他的值重新计算
 watchEffect(() => {
   dic.value = {}
@@ -120,9 +128,9 @@ const filterDataList = computed(() => {
 })
 
 // 合计列
-function getSummaries() {
-  return [t('redisInfo.total'), '', filterDataList.value.length + ' / ' + dataList.value.length, '']
-}
+// function getSummaries() {
+//   return [t('redisInfo.total'), '', filterDataList.value.length + ' / ' + dataList.value.length, '']
+// }
 
 const tableRef = useTemplateRef('table')
 function tagChange() {
@@ -264,17 +272,19 @@ const nodeGroups = computed(() => {
       <el-descriptions-item :span="2">
         <template #label><me-icon :name="t('redisInfo.memory')" icon="me-icon-memory" /></template>
         <div class="me-flex">
-          <el-link underline="never" @click="goMemory" type="primary">{{
-            dic['used_memory_human']
-          }}</el-link>
+          <el-link underline="never" @click="goMemory" type="primary">
+            {{ dic['used_memory_human'] }}
+          </el-link>
           <el-text type="info" style="margin-left: 10px">
             [
             <span style="margin-left: 0px"
               >{{ t('redisInfo.peak') }}: {{ dic['used_memory_peak_human'] }}</span
             >
+
             <span style="margin-left: 20px"
               >{{ t('redisInfo.rss') }}: {{ dic['used_memory_rss_human'] }}</span
             >
+
             <span style="margin-left: 20px"
               >{{ t('redisInfo.os') }}: {{ dic['total_system_memory_human'] }}</span
             >
@@ -349,13 +359,7 @@ const nodeGroups = computed(() => {
         </div>
       </template>
 
-      <el-table
-        ref="table"
-        :data="filterDataList"
-        show-summary
-        :summary-method="getSummaries"
-        stripe
-        height="100%">
+      <me-table ref="table" :data="filterDataList">
         <el-table-column prop="tag" :label="t('redisInfo.tag')" width="100" />
         <el-table-column prop="key" :label="t('redisInfo.key')" show-overflow-tooltip />
         <el-table-column prop="value" :label="t('redisInfo.value')" show-overflow-tooltip />
@@ -364,7 +368,7 @@ const nodeGroups = computed(() => {
             <span style="color: var(--el-color-info)">{{ tipMap[scope.row.key] }}</span>
           </template>
         </el-table-column>
-      </el-table>
+      </me-table>
     </el-card>
   </div>
 

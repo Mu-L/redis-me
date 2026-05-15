@@ -76,12 +76,12 @@ function humanTotalSize(list: { value: RedisKeySize_Serialize[] }) {
 }
 
 // 合计列
-function getSummaries() {
-  const count = filterDataList.value.length + ' / ' + dataList.value.length
-  const size = humanTotalSize(filterDataList) + ' / ' + humanTotalSize(dataList)
-  const show = h('div', { class: 'me-flex' }, [h('div', null, count), h('div', null, size)])
-  return ['', t('redisMemory.total'), show, '']
-}
+// function getSummaries() {
+//   const count = filterDataList.value.length + ' / ' + dataList.value.length
+//   const size = humanTotalSize(filterDataList) + ' / ' + humanTotalSize(dataList)
+//   const show = h('div', { class: 'me-flex' }, [h('div', null, count), h('div', null, size)])
+//   return ['', t('redisMemory.total'), show, '']
+// }
 
 async function refresh() {
   loading.value = true
@@ -239,73 +239,69 @@ function batchDelKey() {
         }}</el-button>
       </div>
     </div>
-    <el-table
-      :data="filterDataList"
-      ref="table"
-      show-summary
-      :summary-method="getSummaries"
-      :default-sort="{ prop: 'size', order: 'descending' }"
-      style="margin-top: 10px"
-      v-loading="loading"
-      @selection-change="selectionChange"
-      border
-      stripe
-      height="100%">
-      <el-table-column type="selection" width="50" align="center" />
-      <el-table-column
-        :label="t('redisMemory.type')"
-        prop="type"
-        width="100"
-        show-overflow-tooltip
-        sortable
-        :filters="filterTypes"
-        :filter-method="meFilterHandler">
-        <template #default="scope">
-          <el-text :type="meType(scope.row.type)"> {{ scope.row.type?.toUpperCase() }}</el-text>
-        </template>
-      </el-table-column>
-      <el-table-column :label="t('redisMemory.key')" prop="key" show-overflow-tooltip>
-        <template #default="scope">
-          {{ scope.row.key }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        :label="t('redisMemory.size')"
-        prop="size"
-        width="120"
-        sortable
-        show-overflow-tooltip>
-        <template #default="scope">
-          {{ meHumanSize(scope.row.size) }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        :label="t('action')"
-        :width="canEdit ? 100 : 65"
-        fixed="right"
-        align="center">
-        <template #default="scope">
-          <div class="me-flex">
-            <me-icon
-              :info="t('copy')"
-              icon="el-icon-document-copy"
-              class="icon-btn"
-              @click="meCopy(scope.row.key)" />
-            <me-icon
-              :info="t('redisMemory.chooseKey')"
-              icon="el-icon-view"
-              class="icon-btn"
-              @click="chooseKey(scope.row)" />
-            <me-icon
-              :info="t('delete')"
-              icon="el-icon-delete"
-              class="icon-btn"
-              @click="delKey(scope.row)"
-              v-if="canEdit" />
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="table">
+      <me-table
+        :data="filterDataList"
+        ref="table"
+        :default-sort="{ prop: 'size', order: 'descending' }"
+        v-loading="loading"
+        @selection-change="selectionChange">
+        <el-table-column type="selection" width="50" align="center" />
+        <el-table-column
+          :label="t('redisMemory.type')"
+          prop="type"
+          width="100"
+          show-overflow-tooltip
+          sortable
+          :filters="filterTypes"
+          :filter-method="meFilterHandler">
+          <template #default="scope">
+            <el-text :type="meType(scope.row.type)"> {{ scope.row.type?.toUpperCase() }}</el-text>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('redisMemory.key')" prop="key" show-overflow-tooltip>
+          <template #default="scope">
+            {{ scope.row.key }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          :label="t('redisMemory.size')"
+          prop="size"
+          width="120"
+          sortable
+          show-overflow-tooltip>
+          <template #default="scope">
+            {{ meHumanSize(scope.row.size) }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          :label="t('action')"
+          :width="canEdit ? 100 : 65"
+          fixed="right"
+          align="center">
+          <template #default="scope">
+            <div class="me-flex">
+              <me-icon
+                :info="t('copy')"
+                icon="el-icon-document-copy"
+                class="icon-btn"
+                @click="meCopy(scope.row.key)" />
+              <me-icon
+                :info="t('redisMemory.chooseKey')"
+                icon="el-icon-view"
+                class="icon-btn"
+                @click="chooseKey(scope.row)" />
+              <me-icon
+                :info="t('delete')"
+                icon="el-icon-delete"
+                class="icon-btn"
+                @click="delKey(scope.row)"
+                v-if="canEdit" />
+            </div>
+          </template>
+        </el-table-column>
+      </me-table>
+    </div>
   </div>
 </template>
 
@@ -326,6 +322,12 @@ function batchDelKey() {
     :deep(.el-input-group__append) {
       width: 42px;
     }
+  }
+
+  .table {
+    margin-top: 10px;
+    flex-grow: 1;
+    height: 0;
   }
 }
 </style>

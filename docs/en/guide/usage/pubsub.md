@@ -6,7 +6,7 @@ The pub/sub feature in [RedisME](https://www.hepengju.com) is built on Redis `PS
 
 ## Feature Overview
 
-- **Subscribe**: Configure subscription channels (glob-style patterns; default `*` subscribes to all channels).
+- **Subscribe**: Configure subscription patterns (glob-style; default `*` subscribes to all channels). Enter multiple patterns separated by spaces to issue one `PSUBSCRIBE` with several patterns (same idea as RedisInsight).
 - **Publish**: Send messages to a given channel.
 
 ![main.png](../../../public/images/pubsub/main.png)

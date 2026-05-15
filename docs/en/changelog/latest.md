@@ -1,5 +1,28 @@
 # 3.x Changelog
 
+## [v3.4.0](https://mp.weixin.qq.com/s/YlUq0vu4hk3wFYGYDmivNg) (2026-05-16)
+
+### ✨ New Features
+
+- Pub/Sub
+  - **Subscribe to multiple channels at once using space-separated names**
+  - Improved icons and copy for start/cancel subscription
+  - Paginated table, default sort by time (newest first)
+  - Input clears after send; **Enter** sends the message
+- Clients: Fields returned with **proper runtime types** so numeric values sort correctly
+- Command monitor: Icon and copy improvements; paginated table; default sort by time (newest first)
+- Memory analysis: Paginated table; key type **ReJSON-RL** shown as **JSON**
+- Charts: **F11** toggles fullscreen for the chart panel
+- Other improvements
+  - Custom tables: column sort applies to the **full dataset** across pages, not only the current page
+  - Connection health checks logged at **debug** level to reduce noise
+  - Toolchain and all frontend/backend dependencies upgraded to the latest versions
+
+### 🐞 Bug Fixes
+
+- Pub/Sub: Fixed unsubscribe failing when specific channels were subscribed
+- Store installs: Fixed the **New** badge still showing for Microsoft Store / Mac App Store builds
+
 ## [v3.3.0](https://mp.weixin.qq.com/s/vowF5eeThW_TucjsZUFTWQ) (2026-05-05)
 
 ### ✨ New Features

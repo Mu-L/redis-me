@@ -10,6 +10,7 @@ use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
 use redis::streams::{StreamId, StreamInfoConsumer, StreamInfoGroup, StreamRangeReply};
 use redis::{FromRedisValue, Value, ValueType};
+use serde_json::{Map, Value as JsonValue};
 use std::collections::{HashMap, HashSet};
 use std::io::Cursor;
 use std::path::PathBuf;
@@ -21,7 +22,7 @@ pub type ApiResult<T> = Result<T, String>;
 
 // 常量定义
 pub const REDIS_ME_FIELD_TO_DELETE_TMP_VALUE: &str = "REDIS_ME_FIELD_TO_DELETE_TMP_VALUE";
-pub const REDIS_ME_SUBSCRIBE_STOP_MESSAGE: &str = "REDIS_ME_SUBSCRIBE_STOP_MESSAGE";
+pub const REDIS_ME_SUBSCRIBE_STOP_CHANNEL: &str = "REDIS_ME_SUBSCRIBE_STOP_CHANNEL";
 pub const CONNECTION_CHECK_SECONDS: i64 = 30; // 30s 检查 1 次连接，避免频繁检查
 pub const CONNECTION_CHECK_TIMEOUT: Duration = Duration::from_secs(2); // 检查连接超时
 pub const CONNECTION_NORMAL_TIMEOUT: Duration = Duration::from_secs(30); // 连接操作默认操作时长
@@ -63,6 +64,11 @@ pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
 
 pub fn ui_key_type(key_type: ValueType) -> String {
     let key_type: String = key_type.into();
+    ui_key_type_str(&key_type)
+}
+
+/// `TYPE` 等返回的原始类型名（含模块名如 ReJSON-RL）统一为与 `ui_key_type` 一致的展示名
+pub fn ui_key_type_str(key_type: &str) -> String {
     if key_type == REDIS_JSON_TYPE_NAME {
         ME_JSON_TYPE_NAME.to_string()
     } else {
@@ -110,8 +116,8 @@ pub const MSGPACK_DECODE_ERR: &str = "MsgPack Decode Error !";
 /// 必须**完整消费**输入字节。否则普通 UTF-8 文本（如 `ABC`）的首字节可能被误读为 fixint。
 pub fn msgpack_bytes_to_json_pretty(bytes: &[u8]) -> AnyResult<String> {
     let mut cur = Cursor::new(bytes);
-    let v: serde_json::Value = rmp_serde::from_read(&mut cur)
-        .map_err(|_| anyhow::anyhow!(MSGPACK_DECODE_ERR))?;
+    let v: serde_json::Value =
+        rmp_serde::from_read(&mut cur).map_err(|_| anyhow::anyhow!(MSGPACK_DECODE_ERR))?;
     let consumed = cur.position() as usize;
     if consumed != bytes.len() {
         bail!(MSGPACK_DECODE_ERR);
@@ -191,7 +197,10 @@ pub fn parse_bytes(input: &str, format: &BytesFormat) -> AnyResult<Vec<u8>> {
 
 // 辅助函数
 pub fn tuple_to_key_size(keys: Vec<(Vec<u8>, u64, String)>) -> Vec<RedisKeySize> {
-    let mut key_list: Vec<RedisKeySize> = keys.into_iter().map(RedisKeySize::from).collect();
+    let mut key_list: Vec<RedisKeySize> = keys
+        .into_iter()
+        .map(|(key, size, key_type)| RedisKeySize::from((key, size, ui_key_type_str(&key_type))))
+        .collect();
     key_list.sort_by_key(|x| x.size);
     key_list.reverse();
     key_list
@@ -372,18 +381,98 @@ pub fn timestamp_to_string(timestamp: i64) -> String {
     datetime.format("%Y-%m-%d %H:%M:%S").to_string()
 }
 
-// 解析客户端信息
-pub fn parse_client_info(client_info: &str) -> AnyResult<RedisClientInfo> {
-    let mut map = HashMap::with_capacity(32);
+/// `tot_mem` → `totMem`，与 `RedisClientInfo` 的 `rename_all = "camelCase"` 一致。
+fn redis_client_json_key(norm_snake: &str) -> String {
+    let parts: Vec<&str> = norm_snake.split('_').filter(|p| !p.is_empty()).collect();
+    if parts.is_empty() {
+        return String::new();
+    }
+    let mut out = String::from(parts[0]);
+    for p in parts.iter().skip(1) {
+        let mut c = p.chars();
+        if let Some(f) = c.next() {
+            out.push(f.to_ascii_uppercase());
+            out.extend(c);
+        }
+    }
+    out
+}
 
+fn redis_client_put_u64(obj: &mut Map<String, JsonValue>, raw: &HashMap<String, &str>, norm: &str) {
+    if let Some(v) = raw.get(norm) {
+        let n = v.parse::<u64>().unwrap_or(0);
+        obj.insert(redis_client_json_key(norm), JsonValue::Number(n.into()));
+    }
+}
+
+fn redis_client_put_i64(obj: &mut Map<String, JsonValue>, raw: &HashMap<String, &str>, norm: &str) {
+    if let Some(v) = raw.get(norm) {
+        let n = v.parse::<i64>().unwrap_or(0);
+        obj.insert(redis_client_json_key(norm), serde_json::json!(n));
+    }
+}
+
+fn redis_client_put_u8(obj: &mut Map<String, JsonValue>, raw: &HashMap<String, &str>, norm: &str) {
+    if let Some(v) = raw.get(norm) {
+        if let Ok(n) = v.parse::<u8>() {
+            obj.insert(redis_client_json_key(norm), JsonValue::Number(n.into()));
+        }
+    }
+}
+
+fn redis_client_put_str(obj: &mut Map<String, JsonValue>, raw: &HashMap<String, &str>, norm: &str) {
+    if let Some(v) = raw.get(norm) {
+        obj.insert(
+            redis_client_json_key(norm),
+            JsonValue::String((*v).to_string()),
+        );
+    }
+}
+
+// 解析客户端信息（Redis 行里缺字段时由 `RedisClientInfo` 上 `#[serde(default)]` 填 0 / ""）
+pub fn parse_client_info(client_info: &str) -> AnyResult<RedisClientInfo> {
+    let mut raw: HashMap<String, &str> = HashMap::with_capacity(32);
     for key_eq_val in client_info.split_whitespace() {
-        if let Some((key, val)) = key_eq_val.split_once("=") {
-            map.insert(key, val);
+        if let Some((key, val)) = key_eq_val.split_once('=') {
+            raw.insert(key.replace('-', "_"), val);
         }
     }
 
-    let json = serde_json::to_string(&map)?;
-    let client: RedisClientInfo = serde_json::from_str(&json)?;
+    let mut obj = Map::new();
+
+    for k in [
+        "id",
+        "fd",
+        "age",
+        "idle",
+        "db",
+        "sub",
+        "psub",
+        "ssub",
+        "watch",
+        "qbuf",
+        "qbuf_free",
+        "argv_mem",
+        "multi_mem",
+        "obl",
+        "oll",
+        "omem",
+        "tot_mem",
+        "redir",
+        "rbp",
+        "rbs",
+        "io_thread",
+    ] {
+        redis_client_put_u64(&mut obj, &raw, k);
+    }
+    redis_client_put_i64(&mut obj, &raw, "multi");
+    redis_client_put_u8(&mut obj, &raw, "resp");
+
+    for k in ["addr", "laddr", "name", "flags", "events", "cmd", "user"] {
+        redis_client_put_str(&mut obj, &raw, k);
+    }
+
+    let client: RedisClientInfo = serde_json::from_value(JsonValue::Object(obj))?;
     Ok(client)
 }
 

@@ -148,8 +148,7 @@ pub fn field_scan0(
     let bytes_format = param.bytes_format.as_ref().cloned().unwrap_or_default();
 
     // String, Json, List, Hash(WithKey), Stream(WithKey), Stream 直接获取得到值
-    let (mut value, key_type, mut cc, length) =
-        field_scan_0_get(&mut conn, &param, &bytes_format)?;
+    let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, &param, &bytes_format)?;
 
     // Hash, Set, Zset 进行扫描(hscan, sscan, zscan)
     let key = param.key;
@@ -606,8 +605,7 @@ pub fn field_add0(
                     Ok((parse_bytes(&f.field_value, &val_fmt)?, f.field_score))
                 })
                 .collect::<AnyResult<Vec<_>>>()?;
-            let pairs: Vec<(f64, Vec<u8>)> =
-                items.into_iter().map(|(m, s)| (s, m)).collect();
+            let pairs: Vec<(f64, Vec<u8>)> = items.into_iter().map(|(m, s)| (s, m)).collect();
             let _: usize = conn.zadd_multiple(&key, &pairs)?;
         }
         ValueType::Stream => {
@@ -717,6 +715,25 @@ pub fn publish0(
     Ok(())
 }
 
+/// 将订阅框内容拆成多个 `PSUBSCRIBE` 模式（空白分隔，与 RedisInsight 一致）；无有效模式时等价于 `*`。
+fn psubscribe_patterns(channel: Option<String>) -> Vec<String> {
+    let Some(raw) = channel.filter(|c| !c.is_empty()) else {
+        return vec!["*".into()];
+    };
+    let mut parts: Vec<String> = raw
+        .split_whitespace()
+        .map(str::to_string)
+        .filter(|p| !p.is_empty())
+        .collect();
+    if parts.is_empty() {
+        vec!["*".into()]
+    } else {
+        // 添加停止订阅频道, 用于停止订阅时发送消息避免阻塞
+        parts.push(REDIS_ME_SUBSCRIBE_STOP_CHANNEL.into());
+        parts
+    }
+}
+
 pub fn subscribe0(
     mut conn: Connection,
     running: Arc<AtomicBool>,
@@ -727,13 +744,11 @@ pub fn subscribe0(
     set_client_name(&mut conn)?;
     running.store(true, Relaxed);
 
-    let channel = channel
-        .filter(|c| !c.is_empty())
-        .unwrap_or_else(|| "*".into());
+    let patterns = psubscribe_patterns(channel);
 
     let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
-        conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&channel).get_packed_command())?;
-        info!("subscribe start: {}", &channel);
+        conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&patterns).get_packed_command())?;
+        info!("subscribe start: {:?}", patterns);
         while running.load(Relaxed) {
             let response = conn.recv_response()?;
             if let Some(msg) = Msg::from_value(&response) {
@@ -747,7 +762,7 @@ pub fn subscribe0(
                 let _ = &app_handle.emit(EVENT_SUBSCRIBE, event);
             }
         }
-        info!("subscribe end: {}", &channel);
+        info!("subscribe end: {:?}", patterns);
         Ok(())
     });
     Ok(())
@@ -758,8 +773,8 @@ pub fn subscribe_stop0(conn: MutexGuard<impl Commands>, running: Arc<AtomicBool>
     // 停止订阅时必须发送一个消息，否则会阻塞
     publish0(
         conn,
-        REDIS_ME_SUBSCRIBE_STOP_MESSAGE,
-        REDIS_ME_SUBSCRIBE_STOP_MESSAGE,
+        REDIS_ME_SUBSCRIBE_STOP_CHANNEL,
+        REDIS_ME_SUBSCRIBE_STOP_CHANNEL,
     )
 }
 

@@ -61,10 +61,18 @@ async function publish() {
   sendLoading.value = true
   try {
     await meCommands.publish(share.conn!.id, sendChannel.value, sendMessage.value)
+    sendMessage.value = ''
     meOk(t('redisPubSub.publishOk'))
   } finally {
     sendLoading.value = false
   }
+}
+
+/** 消息框回车发送（与发送按钮一致：频道非空且消息非空） */
+function publishOnEnter() {
+  if (sendLoading.value) return
+  if (!sendChannel.value || !sendMessage.value) return
+  void publish()
 }
 
 function clearData() {
@@ -100,7 +108,7 @@ onUnmounted(() => tauriUnlisten())
           placement="top" />
         <el-input
           v-model="channel"
-          style="width: 200px; margin-left: 10px"
+          style="width: 250px; margin-left: 10px"
           :placeholder="t('redisPubSub.subscribeChannel')"
           :disabled="subscribing"
           clearable>
@@ -122,7 +130,7 @@ onUnmounted(() => tauriUnlisten())
           style="width: 280px; margin: 0 10px"
           clearable />
         <el-button
-          :icon="subscribing ? 'el-icon-video-pause' : 'el-icon-video-play'"
+          :icon="subscribing ? 'el-icon-remove' : 'el-icon-user'"
           :loading="loading"
           @click="subscribe"
           type="primary">
@@ -131,7 +139,11 @@ onUnmounted(() => tauriUnlisten())
       </div>
     </div>
     <div class="table">
-      <el-table :data="filterDataList" ref="table" border stripe height="100%">
+      <me-table
+        hide-on-single-page
+        :data="filterDataList"
+        ref="table"
+        :default-sort="{ prop: 'datetime', order: 'descending' }">
         <el-table-column :label="t('redisPubSub.datetime')" prop="datetime" sortable width="200" />
         <el-table-column :label="t('redisPubSub.channel')" prop="channel" show-overflow-tooltip />
         <el-table-column :label="t('redisPubSub.message')" prop="message" show-overflow-tooltip />
@@ -145,7 +157,7 @@ onUnmounted(() => tauriUnlisten())
               style="justify-content: center" />
           </template>
         </el-table-column>
-      </el-table>
+      </me-table>
     </div>
     <div class="footer" v-if="canEdit">
       <el-input
@@ -155,7 +167,8 @@ onUnmounted(() => tauriUnlisten())
       <el-input
         v-model="sendMessage"
         :placeholder="t('redisPubSub.messageContent')"
-        style="margin: 0 10px"></el-input>
+        style="margin: 0 10px"
+        @keydown.enter.prevent="publishOnEnter" />
       <el-button
         icon="el-icon-promotion"
         @click="publish"
