@@ -80,15 +80,23 @@ async function newWindow(): Promise<void> {
       :disabled="share.connList.length === 0"
       value-key="id">
       <el-option v-for="item in share.connList" :label="item.name" :value="item" :key="item.id">
-        <div :style="{ color: item?.color }">{{ item.name }}</div>
+        <div :style="{ color: item?.color }">
+          <me-icon :icon="item.cluster ? 'me-icon-cluster' : 'el-icon-monitor'" :name="item.name" />
+        </div>
       </el-option>
 
       <template #label="{ value }">
-        <div :style="{ color: share.color }">{{ value.name }}</div>
+        <div :style="{ color: share.color }">
+          <me-icon
+            :icon="value.cluster ? 'me-icon-cluster' : 'el-icon-monitor'"
+            :name="value.name" />
+        </div>
       </template>
+      <!-- 
       <template #prefix>
         <me-icon :icon="share.isValkey ? 'me-icon-valkey' : 'me-icon-redis'" />
       </template>
+      -->
     </el-select>
 
     <el-dropdown placement="bottom-end" @command="handleCommand" style="margin-left: 10px">
