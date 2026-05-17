@@ -1,5 +1,12 @@
 # 3.x 更新日志
 
+## v3.5.0
+
+- 首页连接分组功能
+- 新增用户管理
+- 新增CPU占比
+- 删除多余的I18n键
+
 ## [v3.4.0](https://mp.weixin.qq.com/s/YlUq0vu4hk3wFYGYDmivNg) (2026-05-16)
 
 ### ✨ 新增优化
