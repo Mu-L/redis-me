@@ -13,6 +13,8 @@ declare global {
       keySort?: string
       keyHeight?: number
       keyLabel?: string
+      connShow?: 'flat' | 'group'
+      connGroups?: string[]
       uiFont?: string[]
       codeFont?: string[]
       autoUpdate?: boolean

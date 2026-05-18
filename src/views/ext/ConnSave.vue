@@ -2,10 +2,11 @@
 import type { FormItemRule } from 'element-plus'
 import { cloneDeep } from 'lodash'
 import { nanoid } from 'nanoid'
-import { inject, reactive, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey, type UiConn } from '@/types/me-interface'
+import { getConnGroup, normalizeGroupName, setConnGroup } from '@/utils/conn-group'
 import { meCommands, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util'
 const { t } = useI18n()
 
@@ -296,6 +297,23 @@ watch(
     }
   },
 )
+
+const connGroups = computed(() => {
+  const list = meTauri.settings.connGroups
+  return Array.isArray(list) ? list.map(normalizeGroupName).filter(Boolean) : []
+})
+
+const connGroupOptions = computed(() => {
+  const set = new Set(connGroups.value)
+  const current = getConnGroup(form as UiConn)
+  if (current) set.add(current)
+  return [...set]
+})
+
+const connGroup = computed({
+  get: () => getConnGroup(form as UiConn),
+  set: (v: string) => setConnGroup(form as UiConn, v),
+})
 </script>
 
 <template>
@@ -316,9 +334,23 @@ watch(
       :rules="rules"
       label-position="right"
       :label-width="t('conn.labelWidth')">
-      <!-- 连接名称 -->
+      <!-- 连接名称、分组 -->
       <el-form-item :label="t('conn.name')" prop="name">
-        <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
+        <el-row :gutter="8" style="width: 100%">
+          <el-col :span="16">
+            <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
+          </el-col>
+          <el-col :span="8">
+            <el-select
+              v-model="connGroup"
+              clearable
+              :placeholder="t('conn.groupPlaceholder')"
+              style="width: 100%">
+              <el-option :label="t('conn.ungrouped')" value="" />
+              <el-option v-for="g in connGroupOptions" :key="g" :label="g" :value="g" />
+            </el-select>
+          </el-col>
+        </el-row>
       </el-form-item>
 
       <!-- 主机、端口 -->

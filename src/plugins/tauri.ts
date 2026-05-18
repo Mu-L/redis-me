@@ -51,8 +51,12 @@ const initSettings = {
   keySort: 'count',
   keyHeight: 20,
   keyLabel: 'short',
+  connShow: 'flat',
+  connGroups: [] as string[],
 }
 const settings = { ...initSettings, ...storeSettings }
+if (!Array.isArray(settings.connGroups)) settings.connGroups = []
+if (settings.connShow !== 'flat' && settings.connShow !== 'group') settings.connShow = 'flat'
 const meTauri = reactive({
   // 响应式，自动保存
   connList,
@@ -100,7 +104,11 @@ export function checkConnList(connList: ConnFromStore[]): void {
     if ('masterPassword' in conn) delete conn.masterPassword
 
     // v2.5.0 兼容旧版本，补充meta属性
-    if (!('meta' in conn)) conn.meta = {}
+    if (!('meta' in conn) || typeof conn.meta !== 'object' || conn.meta === null) conn.meta = {}
+    const meta = conn.meta as Record<string, unknown>
+    const group = meta['group']
+    if (group !== undefined && typeof group !== 'string') delete meta['group']
+    else if (typeof group === 'string') meta['group'] = group.trim()
 
     // v2.7.0 兼容旧版本，补充SSH属性
     if (!('ssh' in conn) || typeof conn.ssh != 'boolean') conn.ssh = false

@@ -1,21 +1,56 @@
 <script setup lang="ts">
-import { open, save, type DialogFilter } from '@tauri-apps/plugin-dialog'
+import { save, type DialogFilter } from '@tauri-apps/plugin-dialog'
 import { writeTextFile } from '@tauri-apps/plugin-fs'
 import dayjs from 'dayjs'
-import type { TableInstance } from 'element-plus'
 import { debounce } from 'lodash'
 import { Sortable, type SortableEvent } from 'sortablejs'
-import { computed, inject, nextTick, onMounted, reactive, ref, toRaw, useTemplateRef } from 'vue'
+import {
+  computed,
+  inject,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  toRaw,
+  useTemplateRef,
+  watch,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { appProvideKey, shareProvideKey, type UiConn } from '@/types/me-interface'
+import {
+  buildConnGroupSections,
+  mergeConnGroupsFromList,
+  normalizeGroupName,
+  removeConnGroup,
+  renameConnGroup,
+} from '@/utils/conn-group'
 import { encodeRedisMeConnectionsToMec, mergeImportedConnList } from '@/utils/rdm'
-import { meConfirm, meDownloadUpdate, meErr, meLog, meOk, PREDEFINE_COLORS } from '@/utils/util'
+import { meConfirm, meDownloadUpdate, meErr, meOk, mePrompt, meWarn } from '@/utils/util'
+import ConnGroup from '@/views/ext/ConnGroup.vue'
 import ConnImport from '@/views/ext/ConnImport.vue'
 import ConnSave from '@/views/ext/ConnSave.vue'
+import ConnTable from '@/views/ext/ConnTable.vue'
 
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
+
+const connGroups = computed(() => {
+  const list = meTauri.settings.connGroups
+  if (!Array.isArray(list)) {
+    meTauri.settings.connGroups = []
+    return meTauri.settings.connGroups
+  }
+  return list
+})
+
+const connShowGroup = computed({
+  get: () => meTauri.settings.connShow === 'group',
+  set: (v: boolean) => {
+    meTauri.settings.connShow = v ? 'group' : 'flat'
+  },
+})
 
 const keyword = ref('')
 const filterDataList = computed(() => {
@@ -28,12 +63,14 @@ const filterDataList = computed(() => {
   )
 })
 
+const groupSections = computed(() =>
+  buildConnGroupSections(share.connList, connGroups.value, keyword.value),
+)
+
 const connRef = useTemplateRef<InstanceType<typeof ConnSave>>('conn')
 const importRef = useTemplateRef<InstanceType<typeof ConnImport>>('import')
-const dialog = reactive({
-  conn: false,
-  import: false,
-})
+const flatTableRef = useTemplateRef<InstanceType<typeof ConnTable>>('flatTableRef')
+const dialog = reactive({ conn: false, import: false })
 
 function addConn(): void {
   dialog.conn = true
@@ -53,9 +90,7 @@ function editConn(conn: UiConn): void {
 function deleteConn(conn: UiConn): void {
   meConfirm(t('conn.deleteConn', { name: conn.name }), () => {
     const index = share.connList.indexOf(conn)
-    if (index > -1) {
-      share.connList.splice(index, 1)
-    }
+    if (index > -1) share.connList.splice(index, 1)
   })
 }
 
@@ -63,43 +98,101 @@ const selectConn = debounce(async (conn: UiConn) => {
   share.conn = conn
 }, 200)
 
-function cellStyle({ row }: { row: UiConn }): Record<string, string> | undefined {
-  if (row.color) return { color: row.color }
-  return undefined
+let sortables: Sortable[] = []
+
+function destroySortables(): void {
+  for (const s of sortables) s.destroy()
+  sortables = []
 }
 
-const table = useTemplateRef<TableInstance>('table')
-
-function rowDrag(): void {
-  const inst = table.value
-  if (!inst) return
-  const tbody = inst.$el.querySelector('.el-table__body-wrapper tbody')
+function setupFlatDrag(): void {
+  const tbody = flatTableRef.value?.getTbody()
   if (!tbody) return
-  Sortable.create(tbody as HTMLElement, {
-    handle: '.drag-handle',
-    onEnd: ({ oldIndex, newIndex }: SortableEvent) => {
-      if (oldIndex === undefined || newIndex === undefined) return
-      const dragRow = share.connList.splice(oldIndex, 1)[0]
-      share.connList.splice(newIndex, 0, dragRow)
-    },
-  })
+  sortables.push(
+    Sortable.create(tbody, {
+      handle: '.drag-handle',
+      onEnd: ({ oldIndex, newIndex }: SortableEvent) => {
+        if (oldIndex === undefined || newIndex === undefined) return
+        const list = filterDataList.value
+        const dragRow = list[oldIndex]
+        const target = list[newIndex]
+        if (!dragRow || !target) return
+        const from = share.connList.indexOf(dragRow)
+        const to = share.connList.indexOf(target)
+        if (from < 0 || to < 0) return
+        const [item] = share.connList.splice(from, 1)
+        if (item) share.connList.splice(to, 0, item)
+      },
+    }),
+  )
 }
 
-onMounted(() => rowDrag())
+function refreshFlatSortable(): void {
+  if (connShowGroup.value) return
+  destroySortables()
+  void nextTick(() => setupFlatDrag())
+}
+
+onMounted(() => refreshFlatSortable())
+onBeforeUnmount(() => destroySortables())
+watch([connShowGroup, filterDataList], () => refreshFlatSortable())
 
 const filters: DialogFilter[] = [{ name: '', extensions: ['mec'] }]
-
 const isDev = import.meta.env.DEV
 
 function handleCommand(command: string): void {
-  if (command === 'export') {
-    void exportConn()
-  } else if (command === 'import') {
+  if (command === 'export') void exportConn()
+  else if (command === 'import') {
     dialog.import = true
     void nextTick(() => importRef.value?.open())
-  } else if (command === 'clear' && isDev) {
-    clearAllConnections()
-  }
+  } else if (command === 'connShowFlat') connShowGroup.value = false
+  else if (command === 'connShowGroup') connShowGroup.value = true
+  else if (command === 'clear' && isDev) clearAllConnections()
+}
+
+function promptFolderName(title: string, inputValue: string, onOk: (name: string) => void): void {
+  mePrompt(
+    title,
+    {
+      inputValue,
+      inputValidator: v => !!normalizeGroupName(v) || t('conn.folderNameRequired'),
+    },
+    ({ value }) => {
+      const name = normalizeGroupName(value)
+      if (name) onOk(name)
+    },
+  )
+}
+
+function addFolder(): void {
+  promptFolderName(t('conn.newFolder'), '', name => {
+    if (connGroups.value.some(g => normalizeGroupName(g) === name)) {
+      meWarn(t('conn.folderExists'))
+      return
+    }
+    connGroups.value.push(name)
+    meOk(t('addOk'))
+  })
+}
+
+function renameFolder(name: string): void {
+  promptFolderName(t('conn.renameFolder'), name, newName => {
+    if (newName === name) return
+    if (connGroups.value.some(g => normalizeGroupName(g) === newName)) {
+      meWarn(t('conn.folderExists'))
+      return
+    }
+    if (renameConnGroup(share.connList, connGroups.value, name, newName)) {
+      meOk(t('conn.renameFolderOk'))
+    }
+  })
+}
+
+function deleteFolder(name: string): void {
+  meConfirm(t('conn.deleteFolderConfirm', { name }), () => {
+    removeConnGroup(share.connList, connGroups.value, name)
+    meOk(t('conn.deleteFolderOk'))
+  })
 }
 
 function clearAllConnections(): void {
@@ -124,9 +217,8 @@ async function exportConn(): Promise<void> {
 }
 
 function onConnImported(impConnList: UiConn[]): void {
-  meLog('impConnList', impConnList)
   share.connList = mergeImportedConnList(share.connList, impConnList)
-  meLog('newConnList', share.connList)
+  mergeConnGroupsFromList(share.connList, connGroups.value)
   meOk(t('conn.importOk'))
 }
 
@@ -145,6 +237,7 @@ function clickNew(): void {
         <el-button icon="el-icon-plus" type="primary" @click="addConn">{{
           t('conn.add')
         }}</el-button>
+        <el-button v-if="connShowGroup" @click="addFolder">{{ t('conn.newFolder') }}</el-button>
       </div>
       <div class="me-flex">
         <me-icon icon="me-icon-new" class="icon-new" @click="clickNew" v-if="app.update?.version" />
@@ -152,7 +245,13 @@ function clickNew(): void {
           <el-button>...</el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="export" :disabled="share.connList.length === 0">
+              <el-dropdown-item v-if="connShowGroup" command="connShowFlat">
+                <me-icon :name="t('conn.showFlat')" icon="me-icon-list" />
+              </el-dropdown-item>
+              <el-dropdown-item v-if="!connShowGroup" command="connShowGroup">
+                <me-icon :name="t('conn.showGroup')" icon="el-icon-folder" />
+              </el-dropdown-item>
+              <el-dropdown-item command="export" divided :disabled="share.connList.length === 0">
                 <me-icon :name="t('conn.export')" icon="me-icon-export" />
               </el-dropdown-item>
               <el-dropdown-item command="import">
@@ -175,74 +274,29 @@ function clickNew(): void {
           clearable />
       </div>
     </div>
-    <el-table
-      ref="table"
+
+    <ConnTable
+      v-if="!connShowGroup"
+      ref="flatTableRef"
+      class="conn-table-wrap"
       :data="filterDataList"
-      :cell-style="cellStyle"
-      row-key="id"
-      @row-dblclick="selectConn"
-      border
-      stripe
-      height="100%">
-      <el-table-column label="#" type="index" width="50" align="center" class-name="drag-handle" />
-      <el-table-column :label="t('conn.color')" prop="color" width="64" align="center">
-        <template #default="scope">
-          <el-color-picker size="small" v-model="scope.row.color" :predefine="PREDEFINE_COLORS" />
-        </template>
-      </el-table-column>
-      <el-table-column :label="t('conn.name')" prop="name" show-overflow-tooltip>
-        <template #default="scope">
-          <div style="display: flex">
-            <el-link
-              underline="never"
-              type="primary"
-              @click="selectConn(scope.row)"
-              :style="{ '--el-link-text-color': scope.row.color }">
-              <me-icon
-                :icon="scope.row.cluster ? 'me-icon-cluster' : 'el-icon-monitor'"
-                :name="scope.row.name" />
-            </el-link>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column :label="t('conn.hostPort')" prop="host" width="200" show-overflow-tooltip>
-        <template #default="scope">
-          {{ scope.row.host + ':' + scope.row.port }}
-        </template>
-      </el-table-column>
-      <el-table-column :label="t('conn.otherProp')" width="200" show-overflow-tooltip>
-        <template #default="scope">
-          <el-checkbox disabled size="small" v-model="scope.row.readonly">{{
-            t('conn.readonlyShort')
-          }}</el-checkbox>
-          <el-checkbox disabled size="small" v-model="scope.row.cluster">{{
-            t('conn.cluster')
-          }}</el-checkbox>
-          <el-checkbox disabled size="small" v-model="scope.row.ssl">SSL</el-checkbox>
-        </template>
-      </el-table-column>
-      <el-table-column :label="t('action')" width="100" fixed="right" align="center">
-        <template #default="scope">
-          <div class="me-flex">
-            <me-icon
-              :info="t('copy')"
-              icon="el-icon-document-copy"
-              class="icon-btn"
-              @click="copyConn(scope.row)" />
-            <me-icon
-              :info="t('edit')"
-              icon="el-icon-edit"
-              class="icon-btn"
-              @click="editConn(scope.row)" />
-            <me-icon
-              :info="t('delete')"
-              icon="el-icon-delete"
-              class="icon-btn"
-              @click="deleteConn(scope.row)" />
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
+      @select="selectConn"
+      @copy="copyConn"
+      @edit="editConn"
+      @delete="deleteConn" />
+
+    <ConnGroup
+      v-else
+      class="group-list"
+      :sections="groupSections"
+      :conn-groups="connGroups"
+      :conn-list="share.connList"
+      @select="selectConn"
+      @copy="copyConn"
+      @edit="editConn"
+      @delete="deleteConn"
+      @rename-folder="renameFolder"
+      @delete-folder="deleteFolder" />
 
     <ConnSave ref="conn" v-if="dialog.conn" @closed="dialog.conn = false" />
     <ConnImport
@@ -251,7 +305,6 @@ function clickNew(): void {
       @import="onConnImported"
       @closed="dialog.import = false" />
 
-    <!-- 应用升级时的下载进度显示 -->
     <el-progress
       class="downloading"
       type="dashboard"
@@ -267,7 +320,6 @@ function clickNew(): void {
 
 <style scoped lang="scss">
 .redis-conn {
-  //border: 2px solid red;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -275,7 +327,6 @@ function clickNew(): void {
   .header {
     margin-bottom: 10px;
 
-    //新版本图标提示
     .icon-new {
       margin: 0 10px;
       font-size: 30px;
@@ -284,12 +335,17 @@ function clickNew(): void {
     }
   }
 
-  // 其他属性，默认右侧30px改为10px，降低宽度占用
+  .conn-table-wrap,
+  .group-list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+
   :deep(.el-checkbox) {
     margin-right: 10px;
   }
 
-  // 拖拽进行连接的上下调整
   :deep(.drag-handle) {
     cursor: move;
   }
@@ -298,7 +354,6 @@ function clickNew(): void {
     background-color: var(--el-color-primary-light-8);
   }
 
-  // 版本升级过程中显示下载进度
   .downloading {
     position: absolute;
     right: 20px;
