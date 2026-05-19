@@ -298,6 +298,8 @@ watch(
   },
 )
 
+const connShowGroup = computed(() => meTauri.settings.connShow === 'group')
+
 const connGroups = computed(() => {
   const list = meTauri.settings.connGroups
   return Array.isArray(list) ? list.map(normalizeGroupName).filter(Boolean) : []
@@ -337,10 +339,10 @@ const connGroup = computed({
       <!-- 连接名称、分组 -->
       <el-form-item :label="t('conn.name')" prop="name">
         <el-row :gutter="8" style="width: 100%">
-          <el-col :span="16">
+          <el-col :span="connShowGroup ? 16 : 24">
             <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
           </el-col>
-          <el-col :span="8">
+          <el-col v-if="connShowGroup" :span="8">
             <el-select
               v-model="connGroup"
               clearable
