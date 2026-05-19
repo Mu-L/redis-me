@@ -6,7 +6,12 @@ import { useI18n } from 'vue-i18n'
 
 import type { UiConn } from '@/types/me-interface'
 import type { ConnGroupSection } from '@/utils/conn-group'
-import { applyConnGroupOrder, moveConnInGroup, moveConnToGroup } from '@/utils/conn-group'
+import {
+  applyConnGroupOrder,
+  getConnIcon,
+  moveConnInGroup,
+  moveConnToGroup,
+} from '@/utils/conn-group'
 import { PREDEFINE_COLORS } from '@/utils/util'
 
 const props = defineProps<{
@@ -177,7 +182,7 @@ watch(
           :style="connStyle(conn)"
           @dblclick="emit('select', conn)">
           <me-icon
-            :icon="conn.cluster ? 'me-icon-cluster' : 'el-icon-monitor'"
+            :icon="getConnIcon(conn)"
             :name="conn.name"
             class="conn-name"
             @click="emit('select', conn)" />

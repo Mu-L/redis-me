@@ -4,6 +4,7 @@ import { nextTick, onMounted, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { UiConn } from '@/types/me-interface'
+import { getConnIcon } from '@/utils/conn-group'
 import { PREDEFINE_COLORS } from '@/utils/util'
 
 const props = defineProps<{
@@ -67,9 +68,7 @@ defineExpose({
           type="primary"
           @click="emit('select', scope.row)"
           :style="{ '--el-link-text-color': scope.row.color }">
-          <me-icon
-            :icon="scope.row.cluster ? 'me-icon-cluster' : 'el-icon-monitor'"
-            :name="scope.row.name" />
+          <me-icon :icon="getConnIcon(scope.row)" :name="scope.row.name" />
         </el-link>
       </template>
     </el-table-column>

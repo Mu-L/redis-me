@@ -21,6 +21,13 @@ export function getConnGroup(conn: UiConn): string {
   return normalizeGroupName(conn.meta?.[CONN_META_GROUP])
 }
 
+/** 连接列表/分组行图标：集群不变，哨兵、单机分别用对应 SVG */
+export function getConnIcon(conn: Pick<UiConn, 'cluster' | 'sentinel'>): string {
+  if (conn.cluster) return 'me-icon-cluster'
+  if (conn.sentinel) return 'me-icon-sentinel'
+  return 'el-icon-monitor'
+}
+
 export function setConnGroup(conn: UiConn, group: string): void {
   conn.meta ??= {}
   const g = normalizeGroupName(group)

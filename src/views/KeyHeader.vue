@@ -6,6 +6,7 @@ import { inject, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
+import { getConnIcon } from '@/utils/conn-group'
 import { bus, CONN_REFRESH, meCommands, meErr, meOk } from '@/utils/util'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
@@ -81,15 +82,13 @@ async function newWindow(): Promise<void> {
       value-key="id">
       <el-option v-for="item in share.connList" :label="item.name" :value="item" :key="item.id">
         <div :style="{ color: item?.color }">
-          <me-icon :icon="item.cluster ? 'me-icon-cluster' : 'el-icon-monitor'" :name="item.name" />
+          <me-icon :icon="getConnIcon(item)" :name="item.name" />
         </div>
       </el-option>
 
       <template #label="{ value }">
         <div :style="{ color: share.color }">
-          <me-icon
-            :icon="value.cluster ? 'me-icon-cluster' : 'el-icon-monitor'"
-            :name="value.name" />
+          <me-icon :icon="getConnIcon(value)" :name="value.name" />
         </div>
       </template>
       <!-- 
