@@ -3,7 +3,6 @@ export default {
 
   // 通用
   copy: '复制',
-  add: '新增',
   edit: '编辑',
   save: '保存',
   delete: '删除',
@@ -44,7 +43,6 @@ export default {
 
     labelWidth: '60',
     title: '设置',
-    appearance: '外观',
     theme: '主题',
 
     system: '系统',
@@ -62,7 +60,6 @@ export default {
     updateAuto: '自动检查更新',
     nowVersion: '版本',
     updateNow: '检查更新',
-    updateProxy: '更新代理',
     updateAppStore: '应用商店控制更新',
 
     baseSetting: '基础设置',
@@ -113,7 +110,6 @@ export default {
     newFolder: '新建分组',
     renameFolder: '重命名',
     deleteFolder: '删除文件夹',
-    folderName: '文件夹名称',
     folderNameRequired: '请输入文件夹名称',
     folderExists: '文件夹名称已存在',
     renameFolderOk: '重命名成功',
@@ -245,7 +241,6 @@ export default {
     monitor: '命令监控',
     pubsub: '发布订阅',
     chart: '图表',
-    tauri: 'Tauri',
   },
 
   keyHeader: {
@@ -290,9 +285,6 @@ export default {
     keyEncoding: '键编码',
     valueEncoding: '值编码',
     ttl: 'TTL超时时长 (-1代表永久)',
-    negativeOneHint: '-1代表永久',
-    permanent: '永久',
-    second: '秒',
     value: '值',
     element: '元素',
     hashKey: '哈希键',
@@ -361,14 +353,9 @@ export default {
     limit: '（数据量达到扫描限制：${limit}）',
   },
 
-  keyList: {
-    refreshKey: '重新载入',
-    copyKey: '复制键名',
-    deleteKey: '删除键',
-    renameKey: '重命名键',
-  },
+  keyList: { renameKey: '重命名键' },
 
-  keyRename: { title: '重命名键', newKeyName: '新键名', keyNameRequired: '键名不允许为空' },
+  keyRename: { title: '重命名键', newKeyName: '新键名' },
 
   keyTree: {
     noData: '没有数据',
@@ -431,8 +418,6 @@ export default {
     executable: '执行程序',
     config: '配置',
     infoDetail: '参数详情',
-    jumpWebsite: '跳转官网参数详解',
-    redisWebsite: 'https://redis.ac.cn/docs/latest/commands/info/',
     rawInfo: '原始信息',
     tag: '分类',
     keyword: '模糊筛选（键值、说明）',
@@ -469,7 +454,6 @@ export default {
     keyword: '键模糊筛选',
     startScan: '开启分析',
     type: '类型',
-    inputFormat: '输入格式',
     key: '键',
     size: '大小',
     chooseKey: '详情',
@@ -546,7 +530,6 @@ export default {
     summary: '概述',
     since: '版本',
     keyShortHint: '查看快捷键',
-    keyShortTitle: '快捷键',
     keyShortMore: `
         <br> F11     : 全屏
         <br> Enter   : 执行命令
@@ -592,7 +575,6 @@ export default {
     loadAll: '加载剩余所有键',
     renameKey: '重命名键',
     refreshKey: '刷新键',
-    jsonValidator: '值必须为有效的JSON格式',
 
     textMemory: '内存占用：',
     textLength: '字节长度：',
