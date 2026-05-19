@@ -121,6 +121,30 @@ export function moveConnInGroup(
   connList.splice(0, connList.length, ...next)
 }
 
+/** 按 UI 顺序更新文件夹列表，并同步连接在 connList 中的分组顺序 */
+export function applyConnGroupOrder(
+  connList: UiConn[],
+  connGroups: string[],
+  orderedNamedKeys: string[],
+): void {
+  const named = orderedNamedKeys.map(normalizeGroupName).filter(Boolean)
+  const set = new Set(named)
+  for (const g of connGroups) {
+    const n = normalizeGroupName(g)
+    if (n && !set.has(n)) named.push(n)
+  }
+  connGroups.splice(0, connGroups.length, ...named)
+
+  const byGroup = new Map<string, UiConn[]>()
+  for (const c of connList) {
+    const g = getConnGroup(c)
+    if (!byGroup.has(g)) byGroup.set(g, [])
+    byGroup.get(g)!.push(c)
+  }
+  const keys = getSectionKeys(connGroups, connList)
+  connList.splice(0, connList.length, ...keys.flatMap(k => byGroup.get(k) ?? []))
+}
+
 export function mergeConnGroupsFromList(connList: UiConn[], connGroups: string[]): void {
   const set = new Set(connGroups.map(normalizeGroupName).filter(Boolean))
   for (const c of connList) {
@@ -137,6 +161,7 @@ export function renameConnGroup(
   connGroups: string[],
   oldName: string,
   newName: string,
+  expanded?: Record<string, boolean>,
 ): boolean {
   const from = normalizeGroupName(oldName)
   const to = normalizeGroupName(newName)
@@ -147,10 +172,19 @@ export function renameConnGroup(
   }
   const i = connGroups.findIndex(g => normalizeGroupName(g) === from)
   if (i > -1) connGroups[i] = to
+  if (expanded && from in expanded) {
+    expanded[to] = expanded[from]!
+    delete expanded[from]
+  }
   return true
 }
 
-export function removeConnGroup(connList: UiConn[], connGroups: string[], name: string): void {
+export function removeConnGroup(
+  connList: UiConn[],
+  connGroups: string[],
+  name: string,
+  expanded?: Record<string, boolean>,
+): void {
   const key = normalizeGroupName(name)
   if (!key) return
   for (const c of connList) {
@@ -158,4 +192,5 @@ export function removeConnGroup(connList: UiConn[], connGroups: string[], name: 
   }
   const i = connGroups.findIndex(g => normalizeGroupName(g) === key)
   if (i > -1) connGroups.splice(i, 1)
+  if (expanded) delete expanded[key]
 }

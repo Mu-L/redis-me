@@ -15,6 +15,7 @@ declare global {
       keyLabel?: string
       connShow?: 'flat' | 'group'
       connGroups?: string[]
+      connGroupExpanded?: Record<string, boolean>
       uiFont?: string[]
       codeFont?: string[]
       autoUpdate?: boolean

@@ -182,7 +182,15 @@ function renameFolder(name: string): void {
       meWarn(t('conn.folderExists'))
       return
     }
-    if (renameConnGroup(share.connList, connGroups.value, name, newName)) {
+    if (
+      renameConnGroup(
+        share.connList,
+        connGroups.value,
+        name,
+        newName,
+        meTauri.settings.connGroupExpanded as Record<string, boolean>,
+      )
+    ) {
       meOk(t('conn.renameFolderOk'))
     }
   })
@@ -190,7 +198,12 @@ function renameFolder(name: string): void {
 
 function deleteFolder(name: string): void {
   meConfirm(t('conn.deleteFolderConfirm', { name }), () => {
-    removeConnGroup(share.connList, connGroups.value, name)
+    removeConnGroup(
+      share.connList,
+      connGroups.value,
+      name,
+      meTauri.settings.connGroupExpanded as Record<string, boolean>,
+    )
     meOk(t('conn.deleteFolderOk'))
   })
 }
@@ -237,7 +250,9 @@ function clickNew(): void {
         <el-button icon="el-icon-plus" type="primary" @click="addConn">{{
           t('conn.add')
         }}</el-button>
-        <el-button v-if="connShowGroup" @click="addFolder">{{ t('conn.newFolder') }}</el-button>
+        <el-button v-if="connShowGroup" icon="el-icon-folder-add" @click="addFolder">{{
+          t('conn.newFolder')
+        }}</el-button>
       </div>
       <div class="me-flex">
         <me-icon icon="me-icon-new" class="icon-new" @click="clickNew" v-if="app.update?.version" />

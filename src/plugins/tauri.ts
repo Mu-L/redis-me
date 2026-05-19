@@ -53,10 +53,18 @@ const initSettings = {
   keyLabel: 'short',
   connShow: 'flat',
   connGroups: [] as string[],
+  connGroupExpanded: {} as Record<string, boolean>,
 }
 const settings = { ...initSettings, ...storeSettings }
 if (!Array.isArray(settings.connGroups)) settings.connGroups = []
 if (settings.connShow !== 'flat' && settings.connShow !== 'group') settings.connShow = 'flat'
+if (
+  !settings.connGroupExpanded ||
+  typeof settings.connGroupExpanded !== 'object' ||
+  Array.isArray(settings.connGroupExpanded)
+) {
+  settings.connGroupExpanded = {}
+}
 const meTauri = reactive({
   // 响应式，自动保存
   connList,
