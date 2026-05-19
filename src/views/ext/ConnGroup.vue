@@ -293,8 +293,16 @@ watch(
     color: var(--el-color-info);
   }
 
+  .folder-actions {
+    opacity: 0;
+  }
+
   .conn-actions {
     opacity: 0.35;
+  }
+
+  .group-head:hover .folder-actions {
+    opacity: 1;
   }
 
   :deep(.sortable-ghost) {
