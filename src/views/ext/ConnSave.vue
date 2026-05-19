@@ -298,6 +298,7 @@ watch(
   },
 )
 
+// 仅在首页为「分组展示」时显示分组下拉；值写入 form.meta.group
 const connShowGroup = computed(() => meTauri.settings.connShow === 'group')
 
 const connGroups = computed(() => {
@@ -305,6 +306,7 @@ const connGroups = computed(() => {
   return Array.isArray(list) ? list.map(normalizeGroupName).filter(Boolean) : []
 })
 
+/** 下拉选项 = 已登记分组 + 当前连接所属分组（避免仅存在于 meta 时分组名不可选） */
 const connGroupOptions = computed(() => {
   const set = new Set(connGroups.value)
   const current = getConnGroup(form as UiConn)

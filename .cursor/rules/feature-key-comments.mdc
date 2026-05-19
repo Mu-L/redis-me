@@ -1,0 +1,32 @@
+---
+description: 新功能在关键位置补充注释，便于后续维护
+alwaysApply: true
+---
+
+# 功能关键注释
+
+新增或较大改动功能时，在**关键位置**补充简短中文注释，帮助后续读者理解设计与数据流。不要求逐行注释。
+
+## 应注释的位置
+
+1. **数据模型**：字段含义、存储位置、空值/默认值约定（如分组名存 `meta.group`，空串表示默认分组）。
+2. **非显而易见的流程**：多步状态机、拖拽写回顺序、导入合并逻辑、动态 `t()` 键等。
+3. **模块入口**：工具文件顶部用块注释说明职责；复杂 Vue 组件在 script 开头或分区用一行说明。
+4. **持久化设置**：`settings` / store 中新字段在初始化处注明用途。
+
+## 不必注释
+
+- 自解释的变量名、简单 getter、标准 Element Plus 用法。
+- 与模板重复的说明（避免 `// 点击按钮` 类废话）。
+
+## 示例
+
+```ts
+/** 分组区块顺序：connGroups 登记项 → 连接里出现的分组 → 默认分组 '' 垫底 */
+export function getSectionKeys(...) { ... }
+
+// 导入后把 meta.group 里出现的新分组合并进 connGroups
+mergeConnGroupsFromList(share.connList, connGroups.value)
+```
+
+参考实现：`src/utils/conn-group.ts`、`src/views/ext/ConnGroup.vue`、`src/views/TabConn.vue`。

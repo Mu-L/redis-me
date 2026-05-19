@@ -13,8 +13,11 @@ declare global {
       keySort?: string
       keyHeight?: number
       keyLabel?: string
+      /** 首页连接列表：平铺 / 分组 */
       connShow?: 'flat' | 'group'
+      /** 分组名顺序（与 conn.meta.group 配合） */
       connGroups?: string[]
+      /** 各分组是否展开，键 '' 表示默认分组 */
       connGroupExpanded?: Record<string, boolean>
       uiFont?: string[]
       codeFont?: string[]

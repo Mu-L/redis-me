@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/** 分组视图：文件夹行 + 连接行；SortableJS 支持文件夹排序、连接跨组/组内拖拽 */
 import { Sortable, type SortableEvent } from 'sortablejs'
 import { nextTick, onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -26,10 +27,12 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const listRef = useTemplateRef<HTMLElement>('listRef')
 
+/** 分组折叠状态持久化在 settings.connGroupExpanded，键为分组名（默认分组用 ''） */
 function expandedStore(): Record<string, boolean> {
   return meTauri.settings.connGroupExpanded as Record<string, boolean>
 }
 
+// 新出现的分组默认展开
 watch(
   () => props.sections,
   sections => {
@@ -82,11 +85,13 @@ function readSortableFolderOrder(root: HTMLElement): string[] {
     .filter(Boolean)
 }
 
+/** 两层 Sortable：根列表拖文件夹顺序；各 .conn-list 拖连接（group: conn-groups 支持跨组） */
 function setupDrag(): void {
   destroySortables()
   const root = listRef.value
   if (!root) return
 
+  // 仅具名分组（非默认分组）可拖排序
   sortables.push(
     Sortable.create(root, {
       draggable: '.group-block--sortable',
@@ -117,6 +122,7 @@ function setupDrag(): void {
           if (from === to) {
             moveConnInGroup(props.connList, props.connGroups, groupKey, oldIndex, newIndex)
           } else {
+            // 拖到另一分组：更新 meta.group 并重排 connList
             moveConnToGroup(props.connList, props.connGroups, conn, toKey, newIndex)
           }
         },

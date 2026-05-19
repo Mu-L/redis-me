@@ -1,5 +1,15 @@
+/**
+ * 首页连接分组：数据与排序工具。
+ *
+ * 数据约定：
+ * - 每条连接的分组名存在 `conn.meta.group`（空字符串 = 默认分组，UI 显示「默认分组」）
+ * - `settings.connGroups` 为分组名的有序列表（可含空分组占位，用于控制展示顺序）
+ * - `settings.connShow`：`'flat'` 平铺表格 | `'group'` 分组树形列表
+ * - `connList` 在分组模式下按「分组顺序 + 组内顺序」扁平存储，拖拽后需写回此顺序
+ */
 import type { UiConn } from '@/types/me-interface'
 
+/** 连接 meta 中存放分组名的字段 */
 export const CONN_META_GROUP = 'group'
 
 export function normalizeGroupName(name: unknown): string {
@@ -33,6 +43,7 @@ export interface ConnGroupSection {
   conns: UiConn[]
 }
 
+/** 分组区块的展示顺序：先 connGroups，再连接里出现但未登记的分组，最后固定为默认分组 '' */
 export function getSectionKeys(connGroups: string[], connList: UiConn[]): string[] {
   const keys: string[] = []
   const add = (g: string) => {
@@ -41,10 +52,11 @@ export function getSectionKeys(connGroups: string[], connList: UiConn[]): string
   }
   for (const g of connGroups) add(g)
   for (const c of connList) add(getConnGroup(c))
-  keys.push('')
+  keys.push('') // 默认分组始终排在最底部
   return keys
 }
 
+/** 按分组拆成 ConnGroup 组件所需的 sections；keyword 非空时只保留仍有匹配连接的分组 */
 export function buildConnGroupSections(
   connList: UiConn[],
   connGroups: string[],
@@ -73,6 +85,7 @@ export function buildConnGroupSections(
     })
 }
 
+/** 跨分组拖放连接后，更新 meta.group 并按分组顺序重排 connList */
 export function moveConnToGroup(
   connList: UiConn[],
   connGroups: string[],
@@ -97,6 +110,7 @@ export function moveConnToGroup(
   connList.splice(0, connList.length, ...next)
 }
 
+/** 组内拖放排序后，重排 connList（仅调整顺序，不改分组名） */
 export function moveConnInGroup(
   connList: UiConn[],
   connGroups: string[],
@@ -145,6 +159,7 @@ export function applyConnGroupOrder(
   connList.splice(0, connList.length, ...keys.flatMap(k => byGroup.get(k) ?? []))
 }
 
+/** 导入连接后，把连接里出现的新分组名合并进 connGroups */
 export function mergeConnGroupsFromList(connList: UiConn[], connGroups: string[]): void {
   const set = new Set(connGroups.map(normalizeGroupName).filter(Boolean))
   for (const c of connList) {
@@ -156,6 +171,7 @@ export function mergeConnGroupsFromList(connList: UiConn[], connGroups: string[]
   }
 }
 
+/** 重命名分组：同步 conn.meta、connGroups 与折叠状态键名 */
 export function renameConnGroup(
   connList: UiConn[],
   connGroups: string[],
@@ -179,6 +195,7 @@ export function renameConnGroup(
   return true
 }
 
+/** 删除分组：组内连接移至默认分组（meta.group 清空） */
 export function removeConnGroup(
   connList: UiConn[],
   connGroups: string[],

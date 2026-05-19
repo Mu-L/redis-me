@@ -36,6 +36,7 @@ import ConnTable from '@/views/ext/ConnTable.vue'
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
 
+/** 分组名有序列表（持久化）；空数组时自动初始化 */
 const connGroups = computed(() => {
   const list = meTauri.settings.connGroups
   if (!Array.isArray(list)) {
@@ -45,6 +46,7 @@ const connGroups = computed(() => {
   return list
 })
 
+/** 平铺 ConnTable / 分组 ConnGroup，由 settings.connShow 切换 */
 const connShowGroup = computed({
   get: () => meTauri.settings.connShow === 'group',
   set: (v: boolean) => {
@@ -63,6 +65,7 @@ const filterDataList = computed(() => {
   )
 })
 
+/** 分组视图数据源：按 connGroups 顺序拆 section，并应用 keyword 筛选 */
 const groupSections = computed(() =>
   buildConnGroupSections(share.connList, connGroups.value, keyword.value),
 )
@@ -164,6 +167,8 @@ function promptFolderName(title: string, inputValue: string, onOk: (name: string
   )
 }
 
+// —— 分组文件夹 CRUD（仅分组模式下显示） ——
+
 function addFolder(): void {
   promptFolderName(t('conn.newFolder'), '', name => {
     if (connGroups.value.some(g => normalizeGroupName(g) === name)) {
@@ -231,6 +236,7 @@ async function exportConn(): Promise<void> {
 
 function onConnImported(impConnList: UiConn[]): void {
   share.connList = mergeImportedConnList(share.connList, impConnList)
+  // 导入文件中的分组名写入 connGroups，避免分组视图缺块
   mergeConnGroupsFromList(share.connList, connGroups.value)
   meOk(t('conn.importOk'))
 }

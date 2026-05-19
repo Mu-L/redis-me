@@ -51,9 +51,10 @@ const initSettings = {
   keySort: 'count',
   keyHeight: 20,
   keyLabel: 'short',
-  connShow: 'flat',
-  connGroups: [] as string[],
-  connGroupExpanded: {} as Record<string, boolean>,
+  // 首页连接分组（见 src/utils/conn-group.ts）
+  connShow: 'flat', // 'flat' | 'group'
+  connGroups: [] as string[], // 分组名有序列表
+  connGroupExpanded: {} as Record<string, boolean>, // 分组折叠状态，键为分组名（''=默认分组）
 }
 const settings = { ...initSettings, ...storeSettings }
 if (!Array.isArray(settings.connGroups)) settings.connGroups = []
