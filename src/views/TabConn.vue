@@ -36,11 +36,11 @@ import {
   meWarn,
   openNewWindow,
 } from '@/utils/util'
-import ConnEmpty, { type ConnEmptyShortcut } from '@/views/ext/ConnEmpty.vue'
-import ConnGroup from '@/views/ext/ConnGroup.vue'
-import ConnImport from '@/views/ext/ConnImport.vue'
-import ConnSave from '@/views/ext/ConnSave.vue'
-import ConnTable from '@/views/ext/ConnTable.vue'
+import ConnEmpty, { type ConnEmptyShortcut } from '@/views/conn/ConnEmpty.vue'
+import ConnGroup from '@/views/conn/ConnGroup.vue'
+import ConnImport from '@/views/conn/ConnImport.vue'
+import ConnSave from '@/views/conn/ConnSave.vue'
+import ConnTable from '@/views/conn/ConnTable.vue'
 import Setting from '@/views/ext/Setting.vue'
 
 const { t } = useI18n()

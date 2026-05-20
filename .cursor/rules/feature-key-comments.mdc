@@ -29,4 +29,4 @@ export function getSectionKeys(...) { ... }
 mergeConnGroupsFromList(share.connList, connGroups.value)
 ```
 
-参考实现：`src/utils/conn-group.ts`、`src/views/ext/ConnGroup.vue`、`src/views/TabConn.vue`。
+参考实现：`src/utils/conn-group.ts`、`src/views/conn/ConnGroup.vue`、`src/views/TabConn.vue`。
