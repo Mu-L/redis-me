@@ -69,7 +69,7 @@ export default {
 
     baseSetting: 'Base Setting',
     moreSetting: 'More Setting',
-    extLabelWidth: '100',
+    extLabelWidth: '120px',
     keyScanCount: 'Key Scan',
     fieldScanCount: 'Field Scan',
     keyScanCountTip:
@@ -83,11 +83,11 @@ export default {
     sortByAlphabet: 'Alphabet',
 
     keyHeight: 'Key Height',
-    keyLabel: 'Key Name',
-    keyLabelTip:
-      'Display of the names of child node keys when keys are presented in a tree structure',
-    keyLabelFull: 'Full',
-    keyLabelShort: 'Short',
+    fieldShow: 'Field Display',
+    fieldShowTip:
+      'Default view for Hash, List, etc.; table mode prefers table view, still switchable manually',
+    fieldShowAuto: 'Auto',
+    fieldShowTable: 'Table',
 
     dir: 'Directory',
     configDir: 'ConfigDir',

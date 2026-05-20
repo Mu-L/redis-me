@@ -71,9 +71,27 @@ const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value))
 
-// 值的显示方式
+// 值的显示方式（json 代码 / table 表格）
 const viewTypeList = ['json', 'table']
 const viewType = ref('json')
+
+/** 支持表格视图的类型（与底部 segmented 可见条件一致） */
+function supportsTableView(type: string | undefined) {
+  return (
+    type === 'hash' || type === 'list' || type === 'set' || type === 'zset' || type === 'stream'
+  )
+}
+
+/** 切换键或重置参数时，按设置 fieldShow 决定默认视图 */
+function applyDefaultViewType() {
+  const rv = redisValue.value
+  if (!rv || stringTypeOrWithHashKey.value || jsonType.value) {
+    viewType.value = 'json'
+    return
+  }
+  viewType.value =
+    meTauri.settings.fieldShow === 'table' && supportsTableView(rv.type) ? 'table' : 'json'
+}
 const hashKey = ref('')
 const isPretty = ref(true)
 const withHashKey = ref(false)
@@ -282,6 +300,7 @@ async function refreshKey(
     }
     suppressCodeUpdate.value = false
     valueEditorRemountKey.value++
+    if (reset) applyDefaultViewType()
 
     await nextTick(() => {
       if (jsonType.value) {

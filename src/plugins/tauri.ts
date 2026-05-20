@@ -50,13 +50,15 @@ const initSettings = {
   keyShow: 'tree',
   keySort: 'count',
   keyHeight: 20,
-  keyLabel: 'short',
+  fieldShow: 'auto', // 'auto' | 'table'：Hash/List 等值区默认展示方式
   // 首页连接分组（见 src/utils/conn-group.ts）
   connShow: 'flat', // 'flat' | 'group'
   connGroups: [] as string[], // 分组名有序列表
   connGroupExpanded: {} as Record<string, boolean>, // 分组折叠状态，键为分组名（''=默认分组）
 }
 const settings = { ...initSettings, ...storeSettings }
+if (settings.fieldShow !== 'auto' && settings.fieldShow !== 'table') settings.fieldShow = 'auto'
+// delete settings.keyLabel // v3.5+ 移除键名称全称/简称，统一简称
 if (!Array.isArray(settings.connGroups)) settings.connGroups = []
 if (settings.connShow !== 'flat' && settings.connShow !== 'group') settings.connShow = 'flat'
 if (

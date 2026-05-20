@@ -12,7 +12,8 @@ declare global {
       keyShow?: string
       keySort?: string
       keyHeight?: number
-      keyLabel?: string
+      /** Hash/List 等值区默认展示：auto 代码 | table 表格优先 */
+      fieldShow?: 'auto' | 'table'
       /** 首页连接列表：平铺 / 分组 */
       connShow?: 'flat' | 'group'
       /** 分组名顺序（与 conn.meta.group 配合） */

@@ -78,10 +78,10 @@ export default {
     sortByAlphabet: '字母',
 
     keyHeight: '键高度',
-    keyLabel: '键名称',
-    keyLabelTip: '键树形展示时子节点键的名称显示',
-    keyLabelFull: '全称',
-    keyLabelShort: '简称',
+    fieldShow: '字段展示',
+    fieldShowTip: 'Hash、List 等类型的值默认展示方式；表格模式下优先表格，仍可手动切换',
+    fieldShowAuto: '自动',
+    fieldShowTable: '表格',
 
     dir: '目录',
     configDir: '配置目录',
