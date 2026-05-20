@@ -348,7 +348,7 @@ const connGroup = computed({
             <el-select
               v-model="connGroup"
               clearable
-              :placeholder="t('conn.groupPlaceholder')"
+              :placeholder="t('conn.ungrouped')"
               style="width: 100%">
               <el-option :label="t('conn.ungrouped')" value="" />
               <el-option v-for="g in connGroupOptions" :key="g" :label="g" :value="g" />

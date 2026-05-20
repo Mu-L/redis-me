@@ -114,7 +114,6 @@ export default {
     showFlat: 'Flat View',
     showGroup: 'Grouped View',
     ungrouped: 'Default Group',
-    groupPlaceholder: 'Folder',
     newFolder: 'New Group',
     renameFolder: 'Rename',
     deleteFolder: 'Delete Folder',
@@ -184,7 +183,7 @@ export default {
     ssh: 'SSH Tunnel',
     sshModeTip: 'SSH tunnel does not support cluster/sentinel mode now',
     loginType: 'Login',
-    nameHint: '[Optional] Automatically generated based on Host and Port',
+    nameHint: '[Optional] Automatically generated',
     testConn: 'Test Conn',
     sshOption: {
       host: 'Host',

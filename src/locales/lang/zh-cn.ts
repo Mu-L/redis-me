@@ -108,7 +108,6 @@ export default {
     showFlat: '平铺展示',
     showGroup: '分组展示',
     ungrouped: '默认分组',
-    groupPlaceholder: '分组',
     newFolder: '新建分组',
     renameFolder: '重命名',
     deleteFolder: '删除文件夹',

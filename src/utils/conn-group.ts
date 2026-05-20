@@ -87,7 +87,8 @@ export function buildConnGroupSections(
       conns: filter(byGroup.get(groupKey) ?? []),
     }))
     .filter(s => {
-      if (!key) return s.conns.length > 0 || s.key === '' || groupNames.has(s.key)
+      // 无搜索词：有名分组在 connGroups 登记则保留空壳；默认分组仅在有连接时展示
+      if (!key) return s.conns.length > 0 || groupNames.has(s.key)
       return s.conns.length > 0
     })
 }
