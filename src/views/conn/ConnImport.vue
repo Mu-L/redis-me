@@ -111,7 +111,7 @@ async function submit(): Promise<void> {
     :title="t('conn.importTitle')"
     width="500px"
     destroy-on-close
-    @update:model-value="v => !v && close()">
+    @update:model-value="(v: boolean) => !v && close()">
     <el-form label-position="top">
       <el-form-item :label="t('conn.importSource')">
         <el-segmented v-model="source" :options="sourceOptions" />
