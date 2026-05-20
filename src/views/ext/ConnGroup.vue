@@ -155,6 +155,9 @@ watch(
       :data-group-key="sec.key">
       <div class="group-head" @click="toggle(sec.key)">
         <me-icon
+          class="group-expand-icon"
+          :icon="isExpanded(sec.key) ? 'el-icon-arrow-down-bold' : 'el-icon-arrow-right-bold'" />
+        <me-icon
           :icon="isExpanded(sec.key) ? 'el-icon-folder-opened' : 'el-icon-folder'"
           :name="sectionTitle(sec.key)" />
         <span class="group-count">({{ sec.conns.length }})</span>
@@ -219,6 +222,11 @@ watch(
 .conn-group-list {
   font-size: 14px;
 
+  .group-expand-icon {
+    flex-shrink: 0;
+    opacity: 0.65;
+  }
+
   .group-head {
     display: flex;
     align-items: center;
@@ -257,7 +265,7 @@ watch(
   }
 
   .conn-list {
-    padding: 0 0 4px 10px;
+    padding: 0 0 4px 28px;
   }
 
   .conn-row {
