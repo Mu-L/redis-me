@@ -291,7 +291,7 @@ function clickNew(): void {
         <el-input
           v-model="keyword"
           :placeholder="t('conn.keyword')"
-          style="width: 300px; margin-right: 10px"
+          style="width: 300px"
           clearable />
       </div>
     </div>
@@ -344,6 +344,7 @@ function clickNew(): void {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 0 5px;
 
   .header {
     margin-bottom: 10px;
