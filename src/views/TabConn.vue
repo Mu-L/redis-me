@@ -27,11 +27,21 @@ import {
   renameConnGroup,
 } from '@/utils/conn-group'
 import { encodeRedisMeConnectionsToMec, mergeImportedConnList } from '@/utils/rdm'
-import { meConfirm, meDownloadUpdate, meErr, meOk, mePrompt, meWarn } from '@/utils/util'
+import {
+  meConfirm,
+  meDownloadUpdate,
+  meErr,
+  meOk,
+  mePrompt,
+  meWarn,
+  openNewWindow,
+} from '@/utils/util'
+import ConnEmpty, { type ConnEmptyShortcut } from '@/views/ext/ConnEmpty.vue'
 import ConnGroup from '@/views/ext/ConnGroup.vue'
 import ConnImport from '@/views/ext/ConnImport.vue'
 import ConnSave from '@/views/ext/ConnSave.vue'
 import ConnTable from '@/views/ext/ConnTable.vue'
+import Setting from '@/views/ext/Setting.vue'
 
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
@@ -73,11 +83,69 @@ const groupSections = computed(() =>
 const connRef = useTemplateRef<InstanceType<typeof ConnSave>>('conn')
 const importRef = useTemplateRef<InstanceType<typeof ConnImport>>('import')
 const flatTableRef = useTemplateRef<InstanceType<typeof ConnTable>>('flatTableRef')
-const dialog = reactive({ conn: false, import: false })
+const dialog = reactive({ conn: false, import: false, setting: false })
+
+const connListEmpty = computed(() => share.connList.length === 0)
+
+/** 空状态快捷键列表（展示与 TabConn 全局热键一致） */
+const emptyShortcuts = computed((): ConnEmptyShortcut[] => [
+  { action: 'add', label: t('conn.add'), keys: ['mod', 'N'] },
+  { action: 'import', label: t('conn.import'), keys: ['mod', 'I'] },
+  { action: 'newWindow', label: t('conn.emptyNewWindow'), keys: ['mod', 'shift', 'W'] },
+  { action: 'setting', label: t('conn.emptyAppSetting'), keys: ['mod', 'shift', 'S'] },
+])
 
 function addConn(): void {
   dialog.conn = true
   void nextTick(() => connRef.value?.open('add'))
+}
+
+function openImport(): void {
+  dialog.import = true
+  void nextTick(() => importRef.value?.open())
+}
+
+function openSetting(): void {
+  dialog.setting = true
+}
+
+function onEmptyAction(action: string): void {
+  if (action === 'add') addConn()
+  else if (action === 'import') openImport()
+  else if (action === 'newWindow') void openNewWindow()
+  else if (action === 'setting') openSetting()
+}
+
+function isConnHotkeyBlocked(e: KeyboardEvent): boolean {
+  const target = e.target
+  return (
+    target instanceof HTMLElement && !!target.closest('input, textarea, [contenteditable="true"]')
+  )
+}
+
+/** 连接页全局快捷键（输入框内不触发；标点键用 e.code，避免 Ctrl 按下后 e.key 异常） */
+function onConnHotkey(e: KeyboardEvent): void {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || isConnHotkeyBlocked(e)) return
+
+  if (!e.shiftKey && (e.code === 'KeyN' || e.key === 'n' || e.key === 'N')) {
+    e.preventDefault()
+    addConn()
+    return
+  }
+  if (!e.shiftKey && (e.code === 'KeyI' || e.key === 'i' || e.key === 'I')) {
+    e.preventDefault()
+    openImport()
+    return
+  }
+  if (e.shiftKey && (e.code === 'KeyS' || e.key === 's' || e.key === 'S')) {
+    e.preventDefault()
+    openSetting()
+    return
+  }
+  if (e.shiftKey && (e.code === 'KeyW' || e.key === 'w' || e.key === 'W')) {
+    e.preventDefault()
+    void openNewWindow()
+  }
 }
 
 function copyConn(conn: UiConn): void {
@@ -136,8 +204,14 @@ function refreshFlatSortable(): void {
   void nextTick(() => setupFlatDrag())
 }
 
-onMounted(() => refreshFlatSortable())
-onBeforeUnmount(() => destroySortables())
+onMounted(() => {
+  window.addEventListener('keydown', onConnHotkey, true)
+  refreshFlatSortable()
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onConnHotkey, true)
+  destroySortables()
+})
 watch([connShowGroup, filterDataList], () => refreshFlatSortable())
 
 const filters: DialogFilter[] = [{ name: '', extensions: ['mec'] }]
@@ -145,10 +219,8 @@ const isDev = import.meta.env.DEV
 
 function handleCommand(command: string): void {
   if (command === 'export') void exportConn()
-  else if (command === 'import') {
-    dialog.import = true
-    void nextTick(() => importRef.value?.open())
-  } else if (command === 'connShowFlat') connShowGroup.value = false
+  else if (command === 'import') openImport()
+  else if (command === 'connShowFlat') connShowGroup.value = false
   else if (command === 'connShowGroup') connShowGroup.value = true
   else if (command === 'clear' && isDev) clearAllConnections()
 }
@@ -217,6 +289,10 @@ function clearAllConnections(): void {
   meConfirm(t('conn.clearConnectionsConfirm'), () => {
     share.connList.splice(0, share.connList.length)
     share.conn = null
+    // 清空连接时一并重置分组名列表与折叠状态
+    connGroups.value.splice(0, connGroups.value.length)
+    const expanded = meTauri.settings.connGroupExpanded as Record<string, boolean>
+    for (const k of Object.keys(expanded)) delete expanded[k]
     meOk(t('conn.clearConnectionsOk'))
   })
 }
@@ -296,8 +372,14 @@ function clickNew(): void {
       </div>
     </div>
 
+    <ConnEmpty
+      v-if="connListEmpty"
+      class="conn-empty-wrap"
+      :shortcuts="emptyShortcuts"
+      @action="onEmptyAction" />
+
     <ConnTable
-      v-if="!connShowGroup"
+      v-else-if="!connShowGroup"
       ref="flatTableRef"
       class="conn-table-wrap"
       :data="filterDataList"
@@ -325,6 +407,19 @@ function clickNew(): void {
       v-if="dialog.import"
       @import="onConnImported"
       @closed="dialog.import = false" />
+
+    <el-dialog
+      v-model="dialog.setting"
+      width="600"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      align-center
+      draggable>
+      <template #header>
+        <me-icon icon="el-icon-setting" :name="t('setting.title')" />
+      </template>
+      <Setting />
+    </el-dialog>
 
     <el-progress
       class="downloading"
@@ -357,6 +452,7 @@ function clickNew(): void {
     }
   }
 
+  .conn-empty-wrap,
   .conn-table-wrap,
   .group-list {
     flex: 1;

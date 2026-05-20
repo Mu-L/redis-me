@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { getAllWebviewWindows, WebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { type as getOsType } from '@tauri-apps/plugin-os'
-import { nanoid } from 'nanoid'
 import { inject, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import { getConnIcon } from '@/utils/conn-group'
-import { bus, CONN_REFRESH, meCommands, meErr, meOk } from '@/utils/util'
+import { bus, CONN_REFRESH, meCommands, meOk, openNewWindow } from '@/utils/util'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
 import Setting from '@/views/ext/Setting.vue'
@@ -31,7 +28,7 @@ async function handleCommand(command: string): Promise<void> {
   } else if ('setting' === command) {
     dialog.setting = true
   } else if ('window' === command) {
-    await newWindow()
+    await openNewWindow()
   } else if ('info' === command) {
     dialog.info = true
   } else if ('social' === command) {
@@ -39,34 +36,6 @@ async function handleCommand(command: string): Promise<void> {
   } else {
     meOk(`TODO: ${command}`)
   }
-}
-
-// 新建窗口: 便于同时查看多个Redis实例数据
-// https://tauri.app/zh-cn/reference/javascript/api/namespacewebview/
-async function newWindow(): Promise<void> {
-  const isMacOS = getOsType() === 'macos'
-
-  const windows = await getAllWebviewWindows()
-  const hasMainWindow = !!windows.find(item => item.label === 'main')
-
-  const label = hasMainWindow ? 'Window' + nanoid() : 'main'
-  const appWindow = new WebviewWindow(label, {
-    url: 'index.html',
-
-    title: 'RedisME',
-    hiddenTitle: true,
-    width: 1200,
-    height: 800 + 25,
-    dragDropEnabled: false,
-
-    titleBarStyle: 'overlay',
-    decorations: isMacOS,
-  })
-
-  appWindow.once('tauri://created', () => {})
-  appWindow.once('tauri://error', () => {
-    meErr(t('keyHeader.newWindowError'))
-  })
 }
 </script>
 

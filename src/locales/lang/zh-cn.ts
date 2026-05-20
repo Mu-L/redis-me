@@ -92,6 +92,8 @@ export default {
   conn: {
     // 列表展示
     add: '新增连接',
+    emptyNewWindow: '新增窗口',
+    emptyAppSetting: '应用设置',
     export: '导出连接',
     import: '导入连接',
     clearConnections: '清空连接',

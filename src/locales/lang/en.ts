@@ -98,6 +98,8 @@ export default {
   conn: {
     // 列表展示
     add: 'Add Conn',
+    emptyNewWindow: 'New Window',
+    emptyAppSetting: 'App Settings',
     export: 'Export Conn',
     import: 'Import Conn',
     clearConnections: 'Clear Conn',

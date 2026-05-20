@@ -1,4 +1,5 @@
 // 应用级通用工具；以下 `// #region` / `// #endregion` 可在 VS Code / Cursor 中折叠浏览。
+import { getAllWebviewWindows, WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { type } from '@tauri-apps/plugin-os'
 import { relaunch } from '@tauri-apps/plugin-process'
@@ -15,6 +16,7 @@ import JSON5 from 'json5'
 import { applyEdits, format } from 'jsonc-parser'
 import { sampleSize, sortBy } from 'lodash'
 import mitt from 'mitt'
+import { nanoid } from 'nanoid'
 import { computed, h } from 'vue'
 
 import i18n from '@/locales'
@@ -529,6 +531,32 @@ export async function meDownloadUpdate(
     },
     { ...manualCloseOptions, message },
   )
+}
+// #endregion
+
+// #region 新窗口
+/** 新建 Tauri 窗口（与 KeyHeader 菜单「新窗口」一致） */
+export async function openNewWindow(): Promise<void> {
+  const isMacOS = type() === 'macos'
+  const windows = await getAllWebviewWindows()
+  const hasMainWindow = !!windows.find(item => item.label === 'main')
+  const label = hasMainWindow ? 'Window' + nanoid() : 'main'
+
+  const appWindow = new WebviewWindow(label, {
+    url: 'index.html',
+    title: 'RedisME',
+    hiddenTitle: true,
+    width: 1200,
+    height: 800 + 25,
+    dragDropEnabled: false,
+    titleBarStyle: 'overlay',
+    decorations: isMacOS,
+  })
+
+  appWindow.once('tauri://created', () => {})
+  appWindow.once('tauri://error', () => {
+    meErr(i18n.global.t('keyHeader.newWindowError'))
+  })
 }
 // #endregion
 
