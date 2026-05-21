@@ -50,7 +50,7 @@ const initSettings = {
   keyShow: 'tree',
   keySort: 'count',
   keyHeight: 20,
-  fieldShow: 'auto', // 'auto' | 'table'：Hash/List 等值区默认展示方式
+  fieldShow: 'auto', // 'auto' 初始 JSON、手动切换后沿用 | 'table' 优先表格
   // 首页连接分组（见 src/utils/conn-group.ts）
   connShow: 'flat', // 'flat' | 'group'
   connGroups: [] as string[], // 分组名有序列表

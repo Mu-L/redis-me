@@ -85,7 +85,7 @@ export default {
     keyHeight: 'Key Height',
     fieldShow: 'Field Display',
     fieldShowTip:
-      'Default view for Hash, List, etc.; table mode prefers table view, still switchable manually',
+      'Default view for Hash, List, etc.; auto starts with JSON and keeps your last manual choice when switching keys; table mode prefers table view, still switchable manually',
     fieldShowAuto: 'Auto',
     fieldShowTable: 'Table',
 

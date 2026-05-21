@@ -72,8 +72,11 @@ const canEdit = computed(() => !share.readonly)
 const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value))
 
 // 值的显示方式（json 代码 / table 表格）
-const viewTypeList = ['json', 'table']
-const viewType = ref('json')
+type FieldViewType = 'json' | 'table'
+const viewTypeList: FieldViewType[] = ['json', 'table']
+const viewType = ref<FieldViewType>('json')
+/** 自动模式下用户手动切换后的视图偏好，切换键时沿用（初始 json） */
+const autoViewType = ref<FieldViewType>('json')
 
 /** 支持表格视图的类型（与底部 segmented 可见条件一致） */
 function supportsTableView(type: string | undefined) {
@@ -89,8 +92,24 @@ function applyDefaultViewType() {
     viewType.value = 'json'
     return
   }
-  viewType.value =
-    meTauri.settings.fieldShow === 'table' && supportsTableView(rv.type) ? 'table' : 'json'
+  if (!supportsTableView(rv.type)) {
+    viewType.value = 'json'
+    return
+  }
+  if (meTauri.settings.fieldShow === 'table') {
+    viewType.value = 'table'
+    return
+  }
+  // auto：首次 json，之后沿用用户上次手动切换的结果
+  viewType.value = autoViewType.value
+}
+
+/** 自动模式下记录 segmented 手动切换，供切换键时 applyDefaultViewType 沿用 */
+function onViewTypeChange(val: string | number | boolean) {
+  if (meTauri.settings.fieldShow !== 'auto') return
+  if (val === 'json' || val === 'table') {
+    autoViewType.value = val
+  }
 }
 const hashKey = ref('')
 const isPretty = ref(true)
@@ -864,6 +883,7 @@ function openKeyShortDialog() {
             style="margin-left: 10px"
             v-model="viewType"
             :options="viewTypeList"
+            @change="onViewTypeChange"
             v-if="!(stringTypeOrWithHashKey || jsonType)">
             <template #default="scope">
               <me-icon
