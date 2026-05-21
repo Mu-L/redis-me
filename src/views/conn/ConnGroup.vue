@@ -8,6 +8,7 @@ import type { UiConn } from '@/types/me-interface'
 import type { ConnGroupSection } from '@/utils/conn-group'
 import {
   applyConnGroupOrder,
+  getConnGroup,
   getConnIcon,
   moveConnInGroup,
   moveConnToGroup,
@@ -32,32 +33,27 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const listRef = useTemplateRef<HTMLElement>('listRef')
 
+const CONN_DRAG_GROUP = 'conn-groups'
+
 /** 分组折叠状态持久化在 settings.connGroupExpanded，键为分组名（默认分组用 ''） */
 function expandedStore(): Record<string, boolean> {
   return meTauri.settings.connGroupExpanded as Record<string, boolean>
 }
 
-// 新出现的分组默认展开
-watch(
-  () => props.sections,
-  sections => {
-    const store = expandedStore()
-    for (const sec of sections) {
-      const k = sec.key || ''
-      if (!(k in store)) store[k] = true
-    }
-  },
-  { immediate: true },
-)
+function initExpandedForSections(sections: ConnGroupSection[]): void {
+  const store = expandedStore()
+  for (const sec of sections) {
+    const k = sec.key || ''
+    if (!(k in store)) store[k] = true
+  }
+}
 
 function sectionTitle(key: string): string {
   return key || t('conn.ungrouped')
 }
 
 function toggle(key: string): void {
-  const store = expandedStore()
-  const k = key || ''
-  store[k] = !isExpanded(key)
+  expandedStore()[key || ''] = !isExpanded(key)
 }
 
 function isExpanded(key: string): boolean {
@@ -72,16 +68,32 @@ function connStyle(conn: UiConn): Record<string, string> | undefined {
   return undefined
 }
 
+function findConn(id: string | null): UiConn | undefined {
+  if (!id) return undefined
+  return props.connList.find(c => c.id === id)
+}
+
+function appendIndexInGroup(groupKey: string, conn: UiConn): number {
+  let n = 0
+  for (const c of props.connList) {
+    if (c === conn) continue
+    if (getConnGroup(c) === groupKey) n++
+  }
+  return n
+}
+
+function getListGroupKey(el: HTMLElement): string {
+  return el.dataset.groupKey ?? ''
+}
+
+// —— Sortable 实例与拖拽高亮 ——
+
 let sortables: Sortable[] = []
+let highlightFolderKey: string | null = null
 
 function destroySortables(): void {
   for (const s of sortables) s.destroy()
   sortables = []
-}
-
-function findConn(id: string | null): UiConn | undefined {
-  if (!id) return undefined
-  return props.connList.find(c => c.id === id)
 }
 
 function readSortableFolderOrder(root: HTMLElement): string[] {
@@ -90,13 +102,60 @@ function readSortableFolderOrder(root: HTMLElement): string[] {
     .filter(Boolean)
 }
 
-/** 两层 Sortable：根列表拖文件夹顺序；各 .conn-list 拖连接（group: conn-groups 支持跨组） */
+function clearDropHighlight(): void {
+  listRef.value?.querySelectorAll('.group-head--drop-target').forEach(el => {
+    el.classList.remove('group-head--drop-target')
+  })
+  highlightFolderKey = null
+}
+
+function setDropHighlight(groupKey: string | null): void {
+  if (groupKey === highlightFolderKey) return
+  clearDropHighlight()
+  if (groupKey === null) return
+  highlightFolderKey = groupKey
+  listRef.value
+    ?.querySelector(`.group-block[data-group-key="${groupKey}"] .group-head`)
+    ?.classList.add('group-head--drop-target')
+}
+
+function groupKeyFromSortableTarget(el: HTMLElement | null): string | null {
+  const listEl = el?.classList.contains('conn-list') ? el : el?.closest('.conn-list')
+  return listEl ? getListGroupKey(listEl as HTMLElement) : null
+}
+
+/** 跨组放置：写回数据后移除 Sortable 移动的 DOM，避免与 Vue 重渲染重复 */
+function applyCrossGroupDrop(
+  conn: UiConn,
+  item: HTMLElement,
+  targetGroupKey: string,
+  indexInGroup: number,
+): void {
+  moveConnToGroup(props.connList, props.connGroups, conn, targetGroupKey, indexInGroup)
+  item.remove()
+}
+
+function handleConnListSortEnd(evt: SortableEvent, sourceGroupKey: string): void {
+  clearDropHighlight()
+  const { oldIndex, newIndex, from, to, item } = evt
+  const conn = findConn(item.dataset.id ?? null)
+  if (!conn) return
+
+  const toKey = getListGroupKey(to as HTMLElement)
+  if (from !== to) {
+    applyCrossGroupDrop(conn, item, toKey, newIndex ?? appendIndexInGroup(toKey, conn))
+    return
+  }
+  if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== newIndex) {
+    moveConnInGroup(props.connList, props.connGroups, sourceGroupKey, oldIndex, newIndex)
+  }
+}
+
 function setupDrag(): void {
   destroySortables()
   const root = listRef.value
   if (!root) return
 
-  // 仅具名分组（非默认分组）可拖排序
   sortables.push(
     Sortable.create(root, {
       draggable: '.group-block--sortable',
@@ -111,40 +170,32 @@ function setupDrag(): void {
   )
 
   root.querySelectorAll<HTMLElement>('.conn-list').forEach(listEl => {
-    const groupKey = listEl.dataset.groupKey ?? ''
+    const groupKey = getListGroupKey(listEl)
     sortables.push(
       Sortable.create(listEl, {
         draggable: '.conn-row',
         filter: '.conn-actions',
         preventOnFilter: true,
-        group: 'conn-groups',
-        onEnd: (evt: SortableEvent) => {
-          const { oldIndex, newIndex, from, to, item } = evt
-          if (oldIndex === undefined || newIndex === undefined) return
-          const conn = findConn(item.dataset.id ?? null)
-          if (!conn) return
-          const toKey = (to as HTMLElement).dataset.groupKey ?? ''
-          if (from === to) {
-            moveConnInGroup(props.connList, props.connGroups, groupKey, oldIndex, newIndex)
-          } else {
-            // 拖到另一分组：更新 meta.group 并重排 connList
-            moveConnToGroup(props.connList, props.connGroups, conn, toKey, newIndex)
-            // Sortable 已把 DOM 节点移到目标列表，Vue 重渲染会再插入一行，需移除避免重复
-            item.remove()
-          }
+        group: CONN_DRAG_GROUP,
+        onMove: evt => {
+          setDropHighlight(groupKeyFromSortableTarget(evt.to as HTMLElement))
+          return true
         },
+        onEnd: evt => handleConnListSortEnd(evt, groupKey),
       }),
     )
   })
 }
 
-onMounted(() => void nextTick(setupDrag))
-onBeforeUnmount(() => destroySortables())
+watch(() => props.sections, initExpandedForSections, { immediate: true })
 watch(
   () => props.sections,
   () => void nextTick(setupDrag),
   { deep: true },
 )
+
+onMounted(() => void nextTick(setupDrag))
+onBeforeUnmount(() => destroySortables())
 </script>
 
 <template>
@@ -178,7 +229,11 @@ watch(
             @click="emit('deleteFolder', sec.key)" />
         </span>
       </div>
-      <div v-show="isExpanded(sec.key)" class="conn-list" :data-group-key="sec.key">
+      <!-- 折叠时不用 v-show，conn-list 保留在 DOM 内供 Sortable 跨组放入 -->
+      <div
+        class="conn-list"
+        :class="{ 'conn-list--collapsed': !isExpanded(sec.key) }"
+        :data-group-key="sec.key">
         <div
           v-for="conn in sec.conns"
           :key="conn.id"
@@ -237,10 +292,14 @@ watch(
     cursor: pointer;
     border-radius: 4px;
     opacity: 0.8;
-    // color: var(--el-text-color-secondary);
 
     &:hover {
       background: var(--el-fill-color-light);
+    }
+
+    &.group-head--drop-target {
+      outline: 1px dashed var(--el-color-success);
+      outline-offset: -1px;
     }
   }
 
@@ -252,7 +311,6 @@ watch(
     cursor: grabbing;
   }
 
-  /* 颜色 | 复制 | 编辑 | 删除 — 文件夹空两格后与连接的编辑、删除对齐 */
   .row-actions {
     flex-shrink: 0;
     display: grid;
@@ -264,10 +322,19 @@ watch(
 
   .folder-actions {
     margin-left: auto;
+    opacity: 0;
   }
 
   .conn-list {
     padding: 0 0 4px 28px;
+
+    &--collapsed {
+      padding-bottom: 2px;
+
+      .conn-row {
+        display: none;
+      }
+    }
   }
 
   .conn-row {
@@ -312,10 +379,6 @@ watch(
     white-space: nowrap;
     text-align: right;
     color: var(--el-color-info);
-  }
-
-  .folder-actions {
-    opacity: 0;
   }
 
   .conn-actions {

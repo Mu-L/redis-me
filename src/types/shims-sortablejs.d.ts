@@ -14,6 +14,7 @@ declare module 'sortablejs' {
     preventOnFilter?: boolean
     animation?: number
     group?: string | { name: string; pull?: boolean | string; put?: boolean | string }
+    onMove?: (evt: SortableEvent) => boolean | void
     onEnd?: (evt: SortableEvent) => void
   }
   export class Sortable {
