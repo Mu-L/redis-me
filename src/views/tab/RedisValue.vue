@@ -668,11 +668,12 @@ function openKeyShortDialog() {
                 align="center"
                 show-overflow-tooltip>
                 <template #default="scope">
-                  <div v-if="fieldSetIndex !== scope.$index">{{ scope.$index + 1 }}</div>
-                  <me-icon
-                    v-else
-                    icon="el-icon-edit"
-                    :style="{ color: share.color, display: 'block' }"></me-icon>
+                  <div class="index-cell">
+                    <template v-if="fieldSetIndex !== scope.$index">{{
+                      scope.$index + 1
+                    }}</template>
+                    <me-icon v-else icon="el-icon-edit" :style="{ color: share.color }"></me-icon>
+                  </div>
                 </template>
               </el-table-column>
 
@@ -949,6 +950,13 @@ function openKeyShortDialog() {
 
         .field-setting {
           cursor: pointer;
+        }
+
+        // 序号列：编辑态图标与行号均居中
+        .index-cell {
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       }
 
