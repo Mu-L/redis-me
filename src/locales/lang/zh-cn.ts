@@ -80,7 +80,7 @@ export default {
     keyHeight: '键高度',
     fieldShow: '字段展示',
     fieldShowTip:
-      'Hash、List 等类型的值默认展示方式；自动模式初始 JSON，手动切换后切换键时沿用；表格模式优先表格，仍可手动切换',
+      'Hash、List 等类型的值默认展示方式；自动模式初始 JSON，手动切换后会记住并在切换连接/键时沿用；表格模式优先表格，仍可手动切换',
     fieldShowAuto: '自动',
     fieldShowTable: '表格',
 

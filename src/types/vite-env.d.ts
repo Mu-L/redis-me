@@ -14,6 +14,8 @@ declare global {
       keyHeight?: number
       /** Hash/List 等值区默认展示：auto 代码 | table 表格优先 */
       fieldShow?: 'auto' | 'table'
+      /** auto 模式下上次手动选择的 json/table，切换连接时沿用 */
+      fieldShowView?: 'json' | 'table'
       /** 首页连接列表：平铺 / 分组 */
       connShow?: 'flat' | 'group'
       /** 分组名顺序（与 conn.meta.group 配合） */

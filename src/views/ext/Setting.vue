@@ -109,6 +109,7 @@ const moreDefaultSettings = {
   keySort: 'count',
   keyHeight: 20,
   fieldShow: 'auto',
+  fieldShowView: 'json',
 }
 
 type BaseSettingKey = keyof typeof baseDefaultSettings

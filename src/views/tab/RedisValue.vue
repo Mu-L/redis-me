@@ -75,8 +75,6 @@ const canSave = computed(() => canEdit.value && (stringType.value || jsonType.va
 type FieldViewType = 'json' | 'table'
 const viewTypeList: FieldViewType[] = ['json', 'table']
 const viewType = ref<FieldViewType>('json')
-/** 自动模式下用户手动切换后的视图偏好，切换键时沿用（初始 json） */
-const autoViewType = ref<FieldViewType>('json')
 
 /** 支持表格视图的类型（与底部 segmented 可见条件一致） */
 function supportsTableView(type: string | undefined) {
@@ -100,15 +98,15 @@ function applyDefaultViewType() {
     viewType.value = 'table'
     return
   }
-  // auto：首次 json，之后沿用用户上次手动切换的结果
-  viewType.value = autoViewType.value
+  // auto：首次 json，之后沿用 settings.fieldShowView（持久化，切换连接可复用）
+  viewType.value = meTauri.settings.fieldShowView === 'table' ? 'table' : 'json'
 }
 
-/** 自动模式下记录 segmented 手动切换，供切换键时 applyDefaultViewType 沿用 */
+/** 自动模式下记录 segmented 手动切换，写入 settings 持久化 */
 function onViewTypeChange(val: string | number | boolean) {
   if (meTauri.settings.fieldShow !== 'auto') return
   if (val === 'json' || val === 'table') {
-    autoViewType.value = val
+    meTauri.settings.fieldShowView = val
   }
 }
 const hashKey = ref('')

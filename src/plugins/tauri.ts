@@ -51,6 +51,7 @@ const initSettings = {
   keySort: 'count',
   keyHeight: 20,
   fieldShow: 'auto', // 'auto' 初始 JSON、手动切换后沿用 | 'table' 优先表格
+  fieldShowView: 'json', // auto 模式下上次手动选择的 json/table，持久化供切换连接沿用
   // 首页连接分组（见 src/utils/conn-group.ts）
   connShow: 'flat', // 'flat' | 'group'
   connGroups: [] as string[], // 分组名有序列表
@@ -58,6 +59,8 @@ const initSettings = {
 }
 const settings = { ...initSettings, ...storeSettings }
 if (settings.fieldShow !== 'auto' && settings.fieldShow !== 'table') settings.fieldShow = 'auto'
+if (settings.fieldShowView !== 'json' && settings.fieldShowView !== 'table')
+  settings.fieldShowView = 'json'
 // delete settings.keyLabel // v3.5+ 移除键名称全称/简称，统一简称
 if (!Array.isArray(settings.connGroups)) settings.connGroups = []
 if (settings.connShow !== 'flat' && settings.connShow !== 'group') settings.connShow = 'flat'
