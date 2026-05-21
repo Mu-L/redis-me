@@ -5,10 +5,18 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisFieldSet_Deserialize } from '@/types/tauri-specta'
-import { meCommands, meOk } from '@/utils/util'
+import { meCommands, meFormatDisplayValue, meOk } from '@/utils/util'
 
 /** 含 UI 用 type，提交时剔除 */
 type FieldSetForm = RedisFieldSet_Deserialize & { type: string }
+
+const props = withDefaults(
+  defineProps<{
+    /** 与 RedisValue 值区美化开关一致，仅 open 时格式化展示 */
+    pretty?: boolean
+  }>(),
+  { pretty: true },
+)
 
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
@@ -40,6 +48,10 @@ function open(data: Partial<FieldSetForm>) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
   Object.assign(form.value, data)
+  // srcFieldValue 保持原始值；fieldValue 按值区 isPretty 格式化后再编辑
+  if (data.fieldValue !== undefined) {
+    form.value.fieldValue = meFormatDisplayValue(String(data.fieldValue), props.pretty)
+  }
 }
 
 function close() {

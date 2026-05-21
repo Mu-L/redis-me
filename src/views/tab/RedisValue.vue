@@ -32,7 +32,7 @@ import {
   meDeleteKey,
   meHumanSeconds,
   meHumanSize,
-  meJsonFormat,
+  meFormatDisplayValue,
   meJsonNormal,
   meOk,
   meType,
@@ -170,13 +170,7 @@ const showValue = computed(() => {
   if (isPretty.value) {
     if (stringTypeOrWithHashKey.value) {
       const str = streamType.value ? JSON.stringify(obj) : obj.toString()
-      try {
-        return str.startsWith('{') || str.startsWith('[')
-          ? meJsonFormat(str) // 格式化支持非标json
-          : str
-      } catch {
-        return str
-      }
+      return meFormatDisplayValue(str, isPretty.value)
     } else {
       return JSON.stringify(obj, null, 2)
     }
@@ -766,6 +760,7 @@ function openKeyShortDialog() {
             <!-- 字段编辑 -->
             <FieldSet
               ref="fieldSetRef"
+              :pretty="isPretty"
               @success="refreshKey"
               @closed="fieldSetInit"
               class="field-set" />

@@ -569,6 +569,20 @@ export function meJsonFormat(jsonString: string): string {
   return applyEdits(jsonString, format(jsonString, undefined, { insertSpaces: true, tabSize: 2 }))
 }
 
+/** 单字段/字符串值的展示格式化（与 RedisValue isPretty 规则对齐） */
+export function meFormatDisplayValue(raw: string, pretty: boolean): string {
+  if (!pretty || !raw) return raw
+  const trimmed = raw.trim()
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      return meJsonFormat(raw)
+    } catch {
+      return raw
+    }
+  }
+  return raw
+}
+
 export function meJsonParse(jsonString: string | null | undefined): unknown {
   if (!jsonString) return null
   if (jsonString === 'undefined') return null
