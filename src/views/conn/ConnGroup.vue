@@ -129,6 +129,8 @@ function setupDrag(): void {
           } else {
             // 拖到另一分组：更新 meta.group 并重排 connList
             moveConnToGroup(props.connList, props.connGroups, conn, toKey, newIndex)
+            // Sortable 已把 DOM 节点移到目标列表，Vue 重渲染会再插入一行，需移除避免重复
+            item.remove()
           }
         },
       }),
