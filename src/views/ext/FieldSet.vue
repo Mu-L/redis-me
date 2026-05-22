@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisFieldSet_Deserialize } from '@/types/tauri-specta'
-import { meCommands, meFormatDisplayValue, meOk } from '@/utils/util'
+import { meCommands, meCopy, meFormatDisplayValue, meOk } from '@/utils/util'
 
 /** 含 UI 用 type，提交时剔除 */
 type FieldSetForm = RedisFieldSet_Deserialize & { type: string }
@@ -107,12 +107,7 @@ function submit() {
 
 <template>
   <el-card :header="t('fieldSet.editField')" v-show="visible" class="field-set">
-    <el-form
-      ref="formRef"
-      :model="form"
-      :rules="rules"
-      label-position="top"
-      style="display: flex; flex-direction: column; height: 100%">
+    <el-form ref="formRef" class="field-set-form" :model="form" :rules="rules" label-position="top">
       <el-form-item :label="t('fieldSet.hashKey')" v-if="form.type === 'hash'">
         <el-input v-model="form.fieldKey" disabled />
       </el-form-item>
@@ -136,26 +131,33 @@ function submit() {
           align="left"
           style="width: 100%" />
       </el-form-item>
-      <el-form-item
-        :label="t('fieldSet.value')"
-        prop="fieldValue"
-        class="field-value-item"
-        style="display: flex; flex-direction: column; flex: 1">
-        <div class="field-code-wrap">
-          <me-code :key="codeRemountKey" v-model="form.fieldValue" style="flex: 1" />
-          <me-icon
-            placement="top-start"
-            :info="t('fieldSet.prettyHint')"
-            class="icon-btn field-pretty-btn"
-            :style="{ color: fieldPretty ? share.color : '' }"
-            icon="el-icon-magic-stick"
-            @click="togglePretty" />
-        </div>
+      <el-form-item :label="t('fieldSet.value')" prop="fieldValue" class="field-value-item">
+        <me-code :key="codeRemountKey" v-model="form.fieldValue" class="field-code-editor" />
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="cancel">{{ t('cancel') }}</el-button>
-      <el-button type="primary" :loading="isSaving" @click="submit">{{ t('save') }}</el-button>
+      <div class="field-set-footer me-flex">
+        <div class="field-set-footer-left">
+          <me-icon
+            placement="top-start"
+            :info="t('fieldSet.prettyHint')"
+            class="icon-btn"
+            :style="{ color: fieldPretty ? share.color : '' }"
+            icon="el-icon-magic-stick"
+            @click="togglePretty" />
+          <me-icon
+            placement="top-start"
+            :info="t('copy')"
+            class="icon-btn"
+            style="font-size: 18px; margin-left: 5px"
+            icon="el-icon-document-copy"
+            @click="meCopy(form.fieldValue)" />
+        </div>
+        <div>
+          <el-button @click="cancel">{{ t('cancel') }}</el-button>
+          <el-button type="primary" :loading="isSaving" @click="submit">{{ t('save') }}</el-button>
+        </div>
+      </div>
     </template>
   </el-card>
 </template>
@@ -164,44 +166,81 @@ function submit() {
 .field-set {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 
   :deep(.el-card__body) {
     padding: 20px 20px 0 20px; // 覆盖掉最外部的自定义样式
-    flex-grow: 1; // 自动延伸
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   :deep(.el-card__footer) {
     border-top: none; // 去掉默认的顶部线条
-    text-align: right; // 按钮右对齐
+    flex-shrink: 0;
+  }
+
+  .field-set-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .field-set-footer {
+    align-items: center;
+  }
+
+  .field-set-footer-left {
+    display: flex;
+    align-items: center;
+    font-size: 20px; // 与值区 value-footer 图标大小一致
   }
 
   .field-value-item {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     margin-bottom: 0;
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
 
     :deep(.el-form-item__content) {
       display: flex;
       flex-direction: column;
       flex: 1;
       min-height: 0;
+      min-width: 0;
+      width: 100%;
+      overflow: hidden;
     }
   }
 
-  .field-code-wrap {
-    position: relative;
-    display: flex;
-    flex-direction: column;
+  .field-code-editor {
     flex: 1;
-    min-height: 0;
     width: 100%;
-  }
+    max-width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
 
-  .field-pretty-btn {
-    position: absolute;
-    right: 8px;
-    bottom: 8px;
-    z-index: 2;
-    font-size: 18px;
-    padding: 4px;
+    :deep(.cm-editor) {
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+    }
+
+    :deep(.cm-scroller) {
+      overflow: auto;
+    }
   }
 }
 </style>
