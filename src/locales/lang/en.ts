@@ -310,6 +310,8 @@ export default {
     index: 'Index',
     score: 'Score',
     value: 'Value',
+    prettyHint:
+      'Defaults to the key view pretty setting; toggle temporarily to view the raw field value',
   },
 
   nodeList: {

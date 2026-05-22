@@ -304,6 +304,7 @@ export default {
     index: '索引',
     score: '分数',
     value: '值',
+    prettyHint: '默认与键值区美化设置同步；可临时切换以查看原始字段值',
   },
 
   nodeList: {

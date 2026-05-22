@@ -12,7 +12,7 @@ type FieldSetForm = RedisFieldSet_Deserialize & { type: string }
 
 const props = withDefaults(
   defineProps<{
-    /** 与 RedisValue 值区美化开关一致，仅 open 时格式化展示 */
+    /** 与 RedisValue 值区美化开关一致，open 时同步为初始状态 */
     pretty?: boolean
   }>(),
   { pretty: true },
@@ -43,15 +43,31 @@ const initForm: FieldSetForm = {
   valFmt: 'utf8',
 }
 const form = ref<FieldSetForm>(cloneDeep(initForm))
+/** 打开时的原始字段值，关闭美化时用于查看 Redis 原始内容 */
+const rawFieldValue = ref('')
+/** 面板内美化开关，open 时与外部 isPretty 同步，可临时切换 */
+const fieldPretty = ref(true)
+const codeRemountKey = ref(0)
 
 function open(data: Partial<FieldSetForm>) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
   Object.assign(form.value, data)
-  // srcFieldValue 保持原始值；fieldValue 按值区 isPretty 格式化后再编辑
-  if (data.fieldValue !== undefined) {
-    form.value.fieldValue = meFormatDisplayValue(String(data.fieldValue), props.pretty)
+  rawFieldValue.value = String(data.fieldValue ?? '')
+  fieldPretty.value = props.pretty
+  form.value.fieldValue = meFormatDisplayValue(rawFieldValue.value, fieldPretty.value)
+}
+
+function togglePretty() {
+  fieldPretty.value = !fieldPretty.value
+  if (fieldPretty.value) {
+    const source =
+      form.value.fieldValue === rawFieldValue.value ? rawFieldValue.value : form.value.fieldValue
+    form.value.fieldValue = meFormatDisplayValue(source, true)
+  } else {
+    form.value.fieldValue = rawFieldValue.value
   }
+  codeRemountKey.value++
 }
 
 function close() {
@@ -123,8 +139,18 @@ function submit() {
       <el-form-item
         :label="t('fieldSet.value')"
         prop="fieldValue"
+        class="field-value-item"
         style="display: flex; flex-direction: column; flex: 1">
-        <me-code v-model="form.fieldValue" style="flex: 1" />
+        <div class="field-code-wrap">
+          <me-code :key="codeRemountKey" v-model="form.fieldValue" style="flex: 1" />
+          <me-icon
+            placement="top-start"
+            :info="t('fieldSet.prettyHint')"
+            class="icon-btn field-pretty-btn"
+            :style="{ color: fieldPretty ? share.color : '' }"
+            icon="el-icon-magic-stick"
+            @click="togglePretty" />
+        </div>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -147,6 +173,35 @@ function submit() {
   :deep(.el-card__footer) {
     border-top: none; // 去掉默认的顶部线条
     text-align: right; // 按钮右对齐
+  }
+
+  .field-value-item {
+    margin-bottom: 0;
+
+    :deep(.el-form-item__content) {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+  }
+
+  .field-code-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .field-pretty-btn {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 2;
+    font-size: 18px;
+    padding: 4px;
   }
 }
 </style>

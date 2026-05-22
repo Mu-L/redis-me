@@ -776,7 +776,7 @@ function openKeyShortDialog() {
             placement="top-start"
             :info="t('redisValue.prettyHint')"
             class="icon-btn"
-            :style="{ color: isPretty ? 'var(--el-color-success)' : '' }"
+            :style="{ color: isPretty ? share.color : '' }"
             icon="el-icon-magic-stick"
             @click="isPretty = !isPretty" />
 
