@@ -142,7 +142,7 @@ function submit() {
             placement="top-start"
             :info="t('fieldSet.prettyHint')"
             class="icon-btn"
-            :style="{ color: fieldPretty ? share.color : '' }"
+            :style="{ opacity: fieldPretty ? 1 : 0.2 }"
             icon="el-icon-magic-stick"
             @click="togglePretty" />
           <me-icon
