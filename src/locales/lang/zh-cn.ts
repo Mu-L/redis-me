@@ -656,6 +656,7 @@ export default {
     flushDbOk: '清空当前库完成',
     editDbName: '定制数据库名称 (db{index})',
     editDbNamePlaceholder: '请输入定制名称',
+    dbShowLimit: '显示数量限制',
   },
 
   ttlSet: {

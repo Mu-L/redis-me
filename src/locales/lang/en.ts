@@ -667,6 +667,7 @@ export default {
     flushDbOk: 'Flush DB Done',
     editDbName: 'Custom DB Name (db{index})',
     editDbNamePlaceholder: 'input custom name',
+    dbShowLimit: 'DB display limit',
   },
 
   ttlSet: {
