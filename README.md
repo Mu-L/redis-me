@@ -17,6 +17,7 @@
 
 </div>
 
+![empty.png](docs/public/images/empty.png)
 ![light.png](docs/public/images/light.png)
 ![dark.png](docs/public/images/dark.png)
 

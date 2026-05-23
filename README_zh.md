@@ -17,6 +17,7 @@
 
 </div>
 
+![empty.png](docs/public/images/empty-zh.png)
 ![light.png](docs/public/images/light-zh.png)
 ![dark.png](docs/public/images/dark-zh.png)
 
