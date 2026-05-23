@@ -88,9 +88,9 @@ const keySortList = computed(() => [
   { value: 'count', label: t('setting.sortByCount') },
   { value: 'alphabet', label: t('setting.sortByAlphabet') },
 ])
-const keyLabelList = computed(() => [
-  { value: 'full', label: t('setting.keyLabelFull') },
-  { value: 'short', label: t('setting.keyLabelShort') },
+const fieldShowList = computed(() => [
+  { value: 'auto', label: t('setting.fieldShowAuto') },
+  { value: 'table', label: t('setting.fieldShowTable') },
 ])
 
 // 默认设置
@@ -108,7 +108,8 @@ const moreDefaultSettings = {
   keyShow: 'tree',
   keySort: 'count',
   keyHeight: 20,
-  keyLabel: 'short',
+  fieldShow: 'auto',
+  fieldShowView: 'json',
 }
 
 type BaseSettingKey = keyof typeof baseDefaultSettings
@@ -319,15 +320,12 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
         <el-form-item>
           <template #label>
             <me-icon
-              :name="t('setting.keyLabel')"
+              :name="t('setting.fieldShow')"
               icon="el-icon-question-filled"
-              :info="t('setting.keyLabelTip')"
+              :info="t('setting.fieldShowTip')"
               placement="top" />
           </template>
-          <el-segmented
-            v-model="settings.keyLabel"
-            :options="keyLabelList"
-            :disabled="settings.keyShow !== 'tree'" />
+          <el-segmented v-model="settings.fieldShow" :options="fieldShowList" />
         </el-form-item>
       </el-row>
 

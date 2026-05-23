@@ -189,11 +189,10 @@ function buildTree(keyList: RedisKey_Deserialize[]) {
     const parts = rk.key.split(/:+/)
     let nowLevel = root
     parts.forEach((part, index) => {
-      // 叶子节点显示全称且保存原始值
-      // hepengju 这种键直接返回
+      // 叶子节点：hepengju 这种无分隔符的键直接作为叶子
       if (index === parts.length - 1) {
-        // 叶子节点显示简称或全称, 保存原始值
-        const label = keyLabelShort.value ? part : rk.key
+        // 叶子节点显示简称（最后一段）, 保存原始值
+        const label = part
         let node = { id: TREE_KEY_ID_PREFIX + rk.key, label, children: [], redisKey: rk }
         nowLevel.push(node)
         return
@@ -289,9 +288,8 @@ function setCurrentKey(redisKey: RedisKey_Deserialize) {
   treeRef.value?.setCurrentKey(nodeId)
 }
 
-// 键高度配置, 键显示模式
+// 键高度配置
 const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
-const keyLabelShort = computed(() => meTauri.settings.keyLabel !== 'full')
 </script>
 
 <template>

@@ -3,7 +3,6 @@ export default {
 
   // 通用
   copy: 'Copy',
-  add: 'Add',
   edit: 'Edit',
   save: 'Save',
   delete: 'Delete',
@@ -50,7 +49,6 @@ export default {
 
     labelWidth: '86px',
     title: 'Settings',
-    appearance: 'Appearance',
     theme: 'Theme',
 
     system: 'Auto',
@@ -67,12 +65,11 @@ export default {
     updateAuto: 'Auto Check',
     nowVersion: 'Version',
     updateNow: 'Check Now',
-    updateProxy: 'Update Proxy',
     updateAppStore: 'Update By AppStore',
 
     baseSetting: 'Base Setting',
     moreSetting: 'More Setting',
-    extLabelWidth: '100',
+    extLabelWidth: '120px',
     keyScanCount: 'Key Scan',
     fieldScanCount: 'Field Scan',
     keyScanCountTip:
@@ -86,11 +83,11 @@ export default {
     sortByAlphabet: 'Alphabet',
 
     keyHeight: 'Key Height',
-    keyLabel: 'Key Name',
-    keyLabelTip:
-      'Display of the names of child node keys when keys are presented in a tree structure',
-    keyLabelFull: 'Full',
-    keyLabelShort: 'Short',
+    fieldShow: 'Field Display',
+    fieldShowTip:
+      'Default view for Hash, List, etc.; auto starts with JSON and remembers your last manual choice across connections and keys; table mode prefers table view, still switchable manually',
+    fieldShowAuto: 'Auto',
+    fieldShowTable: 'Table',
 
     dir: 'Directory',
     configDir: 'ConfigDir',
@@ -101,6 +98,8 @@ export default {
   conn: {
     // 列表展示
     add: 'Add Conn',
+    emptyNewWindow: 'New Window',
+    emptyAppSetting: 'App Settings',
     export: 'Export Conn',
     import: 'Import Conn',
     clearConnections: 'Clear Conn',
@@ -112,6 +111,17 @@ export default {
     hostPort: 'Host:Port',
     otherProp: 'Other Prop',
     cluster: 'Cluster',
+    showFlat: 'Flat View',
+    showGroup: 'Grouped View',
+    ungrouped: 'Default Group',
+    newFolder: 'New Group',
+    renameFolder: 'Rename',
+    deleteFolder: 'Delete Folder',
+    folderNameRequired: 'Please enter a folder name',
+    folderExists: 'Folder name already exists',
+    renameFolderOk: 'Folder renamed',
+    deleteFolderConfirm: 'Delete folder "{name}"? Connections will move to Default Group.',
+    deleteFolderOk: 'Folder deleted',
 
     exportOk: 'Export Success',
     exportErr: 'Export Error',
@@ -173,7 +183,7 @@ export default {
     ssh: 'SSH Tunnel',
     sshModeTip: 'SSH tunnel does not support cluster/sentinel mode now',
     loginType: 'Login',
-    nameHint: '[Optional] Automatically generated based on Host and Port',
+    nameHint: '[Optional] Automatically generated',
     testConn: 'Test Conn',
     sshOption: {
       host: 'Host',
@@ -239,7 +249,6 @@ export default {
     monitor: 'Monitor',
     pubsub: 'Pub/Sub',
     chart: 'Chart',
-    tauri: 'Tauri',
   },
 
   keyHeader: {
@@ -284,9 +293,6 @@ export default {
     keyEncoding: 'Key Encoding',
     valueEncoding: 'Value Encoding',
     ttl: 'TTL (-1 means Forever)',
-    negativeOneHint: '-1 means Forever',
-    forever: 'Forever',
-    second: 'Second | Seconds',
     value: 'Value',
     element: 'Element',
     hashKey: 'HashKey',
@@ -304,6 +310,8 @@ export default {
     index: 'Index',
     score: 'Score',
     value: 'Value',
+    prettyHint:
+      'Defaults to the key view pretty setting; toggle temporarily to view the raw field value',
   },
 
   nodeList: {
@@ -355,13 +363,9 @@ export default {
     limit: '(Data has reached limit：${limit})',
   },
 
-  keyList: { refreshKey: 'Reload', copyKey: 'Copy', deleteKey: 'Delete', renameKey: 'Rename' },
+  keyList: { renameKey: 'Rename' },
 
-  keyRename: {
-    title: 'Rename Key',
-    newKeyName: 'New key name',
-    keyNameRequired: 'Key name required',
-  },
+  keyRename: { title: 'Rename Key', newKeyName: 'New key name' },
 
   keyTree: {
     noData: 'No Data',
@@ -424,8 +428,6 @@ export default {
     executable: 'Executable',
     config: 'Config',
     infoDetail: 'Info Detail',
-    jumpWebsite: 'Jump To Redis Official Website',
-    redisWebsite: 'https://redis.io/docs/latest/commands/info/',
     rawInfo: 'Raw Info',
     tag: 'Tag',
     keyword: 'Filter (Key / Value / Tip)',
@@ -540,7 +542,6 @@ export default {
     summary: 'Summary',
     since: 'Since',
     keyShortHint: 'View KeyShort',
-    keyShortTitle: 'KeyShort',
     keyShortMore: `
         <br> F11     : Full Screen
         <br> Enter   : Execute Command
@@ -587,7 +588,6 @@ export default {
     loadAll: 'Load All',
     renameKey: 'Rename Key',
     refreshKey: 'Refresh Key',
-    jsonValidator: 'Value must be in a valid JSON format',
 
     textMemory: 'Memory Usage: ',
     textLength: 'Bytes Length: ',
@@ -667,6 +667,7 @@ export default {
     flushDbOk: 'Flush DB Done',
     editDbName: 'Custom DB Name (db{index})',
     editDbNamePlaceholder: 'input custom name',
+    dbShowLimit: 'DB display limit',
   },
 
   ttlSet: {

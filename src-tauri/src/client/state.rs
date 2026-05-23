@@ -33,7 +33,7 @@ impl ClientAccess for AppHandle {
         for conn in conn_list {
             map.insert(conn.id.clone(), conn);
         }
-        info!("同步连接列表完成: {}", map.len());
+        debug!("同步连接列表完成: {}", map.len());
         Ok(())
     }
 

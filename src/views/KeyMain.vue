@@ -46,10 +46,14 @@ const canEdit = computed(() => !share.readonly)
 
 async function refresh(): Promise<void> {
   if (!share.conn) return
+  await syncDbToVisibleList()
   initReset()
   await scanKey()
 }
-onMounted(() => refresh())
+onMounted(async () => {
+  await refreshDbList()
+  await refresh()
+})
 
 function initReset(): void {
   keyType.value = 'ALL'
@@ -139,15 +143,40 @@ function deleteKey(redisKey: RedisKey_Deserialize): void {
 }
 
 const dbList = ref<RedisDB[]>([])
-async function refreshDbList(): Promise<void> {
-  if (!share.conn) return
-  dbList.value = await meCommands.dbList(share.conn!.id)
 
-  if (share.conn.db >= dbList.value.length) {
-    share.conn.db = 0
-  }
+/** 当前 db 不在可见列表时切到第一项，并同步 Redis SELECT */
+async function syncDbToVisibleList(): Promise<boolean> {
+  if (!share.conn || dbList.value.length === 0) return false
+  const prevDb = share.conn.db
+  if (dbList.value.some(d => d.db === prevDb)) return false
+  share.conn.db = dbList.value[0].db
+  await meCommands.selectDb(share.conn.id, share.conn.db)
+  return true
 }
-void refreshDbList()
+
+async function refreshDbList(): Promise<boolean> {
+  if (!share.conn) return false
+  let list = await meCommands.dbList(share.conn!.id)
+  // meta.dbShowLimit：下拉只显示 db0 .. db(N-1)，未设则不限制
+  const limit = share.conn.meta?.dbShowLimit
+  if (typeof limit === 'number' && limit > 0) {
+    list = list.filter(d => d.db < limit)
+  }
+  dbList.value = list
+  return syncDbToVisibleList()
+}
+
+async function onDbShowLimitChange(val: number | undefined | null): Promise<void> {
+  if (!share.conn) return
+  share.conn.meta ??= {}
+  if (typeof val === 'number' && val > 0) {
+    share.conn.meta.dbShowLimit = val
+  } else {
+    delete share.conn.meta.dbShowLimit
+  }
+  const dbChanged = await refreshDbList()
+  if (dbChanged) await refresh()
+}
 
 async function selectDB(): Promise<void> {
   if (!share.conn) return
@@ -285,8 +314,9 @@ async function tauriListen(eventName: 'export' | 'import'): Promise<void> {
         t(`keyMain.${eventName}Done`),
       )
 
-      // 导入完成后刷新连接
+      // 导入完成后刷新键列表与连接信息
       if (eventName === 'import') {
+        void scanKey(false, false)
         bus.emit(INFO_REFRESH)
       }
     }
@@ -539,6 +569,27 @@ function editDbName(db: number): void {
           style="width: 120px"
           filterable
           v-if="!share.conn.cluster">
+          <template #header>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding: 4px 8px;
+                font-size: 12px;
+              ">
+              <span>{{ t('keyMain.dbShowLimit') }}</span>
+              <el-input-number
+                :model-value="share.conn.meta?.dbShowLimit as number | undefined"
+                :min="1"
+                :controls="false"
+                clearable
+                size="small"
+                style="width: 72px"
+                @update:model-value="onDbShowLimitChange" />
+            </div>
+          </template>
           <!-- label for filterable -->
           <el-option
             v-for="item in dbList"

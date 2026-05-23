@@ -1,5 +1,21 @@
 # 3.x Changelog
 
+## [v3.5.0](https://mp.weixin.qq.com/s/l7AcVFTI1bamWU3mfZqF5A) (2026-05-23)
+
+### ✨ New Features
+
+- Added **empty state** for the connection list
+- Added **grouped connection list** display #86
+- Field display modes: **Auto** and **Table** #89
+- Field element editing
+  - **Beautify**: enabled by default, same as the value area #90
+  - **Copy**: one-click copy field values
+  - **Fixed field value dimensions** to prevent global scrollbars from large values
+- DB Select: **display count limit** #92
+- Auto-refresh key list after import completes #93
+- Removed the key tree **full-name display** setting (abbreviated names only)
+- Other details: icons in the connection dropdown; dedicated icon for Sentinel mode; etc.
+
 ## [v3.4.0](https://mp.weixin.qq.com/s/YlUq0vu4hk3wFYGYDmivNg) (2026-05-16)
 
 ### ✨ New Features
@@ -53,7 +69,7 @@
   - **Syntax highlighting supports JSON5**
   - Shortcuts: **F11 fullscreen**, Ctrl+L toggles line wrap, Ctrl+N toggles line numbers
   - Shortcuts: Ctrl+=, Ctrl+-, and Ctrl+0 increase, decrease, and reset editor font size
-- Value view: Added an CodeMirror shortcut reference (dialog)
+- Value view: Added a CodeMirror shortcut reference (dialog)
 - Code: **End-to-end strong typing** (frontend migrated from JavaScript to TypeScript; Tauri commands and events are strongly typed)
 - Updates: No in-app auto-update when installed from the Microsoft Store or Mac App Store (updates follow store policy)
 - Details: Pub/Sub hints, wider "new key" layout, English plural and related copy tweaks, etc.

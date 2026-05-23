@@ -32,7 +32,7 @@ import {
   meDeleteKey,
   meHumanSeconds,
   meHumanSize,
-  meJsonFormat,
+  meFormatDisplayValue,
   meJsonNormal,
   meOk,
   meType,
@@ -71,9 +71,44 @@ const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value))
 
-// 值的显示方式
-const viewTypeList = ['json', 'table']
-const viewType = ref('json')
+// 值的显示方式（json 代码 / table 表格）
+type FieldViewType = 'json' | 'table'
+const viewTypeList: FieldViewType[] = ['json', 'table']
+const viewType = ref<FieldViewType>('json')
+
+/** 支持表格视图的类型（与底部 segmented 可见条件一致） */
+function supportsTableView(type: string | undefined) {
+  return (
+    type === 'hash' || type === 'list' || type === 'set' || type === 'zset' || type === 'stream'
+  )
+}
+
+/** 切换键或重置参数时，按设置 fieldShow 决定默认视图 */
+function applyDefaultViewType() {
+  const rv = redisValue.value
+  if (!rv || stringTypeOrWithHashKey.value || jsonType.value) {
+    viewType.value = 'json'
+    return
+  }
+  if (!supportsTableView(rv.type)) {
+    viewType.value = 'json'
+    return
+  }
+  if (meTauri.settings.fieldShow === 'table') {
+    viewType.value = 'table'
+    return
+  }
+  // auto：首次 json，之后沿用 settings.fieldShowView（持久化，切换连接可复用）
+  viewType.value = meTauri.settings.fieldShowView === 'table' ? 'table' : 'json'
+}
+
+/** 自动模式下记录 segmented 手动切换，写入 settings 持久化 */
+function onViewTypeChange(val: string | number | boolean) {
+  if (meTauri.settings.fieldShow !== 'auto') return
+  if (val === 'json' || val === 'table') {
+    meTauri.settings.fieldShowView = val
+  }
+}
 const hashKey = ref('')
 const isPretty = ref(true)
 const withHashKey = ref(false)
@@ -135,13 +170,7 @@ const showValue = computed(() => {
   if (isPretty.value) {
     if (stringTypeOrWithHashKey.value) {
       const str = streamType.value ? JSON.stringify(obj) : obj.toString()
-      try {
-        return str.startsWith('{') || str.startsWith('[')
-          ? meJsonFormat(str) // 格式化支持非标json
-          : str
-      } catch {
-        return str
-      }
+      return meFormatDisplayValue(str, isPretty.value)
     } else {
       return JSON.stringify(obj, null, 2)
     }
@@ -282,6 +311,7 @@ async function refreshKey(
     }
     suppressCodeUpdate.value = false
     valueEditorRemountKey.value++
+    if (reset) applyDefaultViewType()
 
     await nextTick(() => {
       if (jsonType.value) {
@@ -649,11 +679,12 @@ function openKeyShortDialog() {
                 align="center"
                 show-overflow-tooltip>
                 <template #default="scope">
-                  <div v-if="fieldSetIndex !== scope.$index">{{ scope.$index + 1 }}</div>
-                  <me-icon
-                    v-else
-                    icon="el-icon-edit"
-                    :style="{ color: share.color, display: 'block' }"></me-icon>
+                  <div class="index-cell">
+                    <template v-if="fieldSetIndex !== scope.$index">{{
+                      scope.$index + 1
+                    }}</template>
+                    <me-icon v-else icon="el-icon-edit" :style="{ color: share.color }"></me-icon>
+                  </div>
                 </template>
               </el-table-column>
 
@@ -729,6 +760,7 @@ function openKeyShortDialog() {
             <!-- 字段编辑 -->
             <FieldSet
               ref="fieldSetRef"
+              :pretty="isPretty"
               @success="refreshKey"
               @closed="fieldSetInit"
               class="field-set" />
@@ -744,7 +776,7 @@ function openKeyShortDialog() {
             placement="top-start"
             :info="t('redisValue.prettyHint')"
             class="icon-btn"
-            :style="{ color: isPretty ? 'var(--el-color-success)' : '' }"
+            :style="{ opacity: isPretty ? 1 : 0.2 }"
             icon="el-icon-magic-stick"
             @click="isPretty = !isPretty" />
 
@@ -844,6 +876,7 @@ function openKeyShortDialog() {
             style="margin-left: 10px"
             v-model="viewType"
             :options="viewTypeList"
+            @change="onViewTypeChange"
             v-if="!(stringTypeOrWithHashKey || jsonType)">
             <template #default="scope">
               <me-icon
@@ -930,6 +963,13 @@ function openKeyShortDialog() {
 
         .field-setting {
           cursor: pointer;
+        }
+
+        // 序号列：编辑态图标与行号均居中
+        .index-cell {
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       }
 

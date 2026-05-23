@@ -2,10 +2,11 @@
 import type { FormItemRule } from 'element-plus'
 import { cloneDeep } from 'lodash'
 import { nanoid } from 'nanoid'
-import { inject, reactive, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey, type UiConn } from '@/types/me-interface'
+import { getConnGroup, normalizeGroupName, setConnGroup } from '@/utils/conn-group'
 import { meCommands, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util'
 const { t } = useI18n()
 
@@ -296,6 +297,27 @@ watch(
     }
   },
 )
+
+// 仅在首页为「分组展示」时显示分组下拉；值写入 form.meta.group
+const connShowGroup = computed(() => meTauri.settings.connShow === 'group')
+
+const connGroups = computed(() => {
+  const list = meTauri.settings.connGroups
+  return Array.isArray(list) ? list.map(normalizeGroupName).filter(Boolean) : []
+})
+
+/** 下拉选项 = 已登记分组 + 当前连接所属分组（避免仅存在于 meta 时分组名不可选） */
+const connGroupOptions = computed(() => {
+  const set = new Set(connGroups.value)
+  const current = getConnGroup(form as UiConn)
+  if (current) set.add(current)
+  return [...set]
+})
+
+const connGroup = computed({
+  get: () => getConnGroup(form as UiConn),
+  set: (v: string) => setConnGroup(form as UiConn, v),
+})
 </script>
 
 <template>
@@ -316,9 +338,26 @@ watch(
       :rules="rules"
       label-position="right"
       :label-width="t('conn.labelWidth')">
-      <!-- 连接名称 -->
+      <!-- 连接名称、分组 -->
       <el-form-item :label="t('conn.name')" prop="name">
-        <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
+        <el-row style="width: 100%">
+          <div style="display: flex; gap: 8px; width: 100%">
+            <el-input
+              v-model.trim="form.name"
+              :placeholder="t('conn.nameHint')"
+              clearable
+              style="flex: 1; min-width: 0" />
+            <el-select
+              v-if="connShowGroup"
+              v-model="connGroup"
+              clearable
+              :placeholder="t('conn.ungrouped')"
+              style="width: calc(100% * 8 / 24); flex-shrink: 0">
+              <el-option :label="t('conn.ungrouped')" value="" />
+              <el-option v-for="g in connGroupOptions" :key="g" :label="g" :value="g" />
+            </el-select>
+          </div>
+        </el-row>
       </el-form-item>
 
       <!-- 主机、端口 -->

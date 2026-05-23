@@ -50,9 +50,27 @@ const initSettings = {
   keyShow: 'tree',
   keySort: 'count',
   keyHeight: 20,
-  keyLabel: 'short',
+  fieldShow: 'auto', // 'auto' 初始 JSON、手动切换后沿用 | 'table' 优先表格
+  fieldShowView: 'json', // auto 模式下上次手动选择的 json/table，持久化供切换连接沿用
+  // 首页连接分组（见 src/utils/conn-group.ts）
+  connShow: 'flat', // 'flat' | 'group'
+  connGroups: [] as string[], // 分组名有序列表
+  connGroupExpanded: {} as Record<string, boolean>, // 分组折叠状态，键为分组名（''=默认分组）
 }
 const settings = { ...initSettings, ...storeSettings }
+if (settings.fieldShow !== 'auto' && settings.fieldShow !== 'table') settings.fieldShow = 'auto'
+if (settings.fieldShowView !== 'json' && settings.fieldShowView !== 'table')
+  settings.fieldShowView = 'json'
+// delete settings.keyLabel // v3.5+ 移除键名称全称/简称，统一简称
+if (!Array.isArray(settings.connGroups)) settings.connGroups = []
+if (settings.connShow !== 'flat' && settings.connShow !== 'group') settings.connShow = 'flat'
+if (
+  !settings.connGroupExpanded ||
+  typeof settings.connGroupExpanded !== 'object' ||
+  Array.isArray(settings.connGroupExpanded)
+) {
+  settings.connGroupExpanded = {}
+}
 const meTauri = reactive({
   // 响应式，自动保存
   connList,
@@ -100,7 +118,11 @@ export function checkConnList(connList: ConnFromStore[]): void {
     if ('masterPassword' in conn) delete conn.masterPassword
 
     // v2.5.0 兼容旧版本，补充meta属性
-    if (!('meta' in conn)) conn.meta = {}
+    if (!('meta' in conn) || typeof conn.meta !== 'object' || conn.meta === null) conn.meta = {}
+    const meta = conn.meta as Record<string, unknown>
+    const group = meta['group']
+    if (group !== undefined && typeof group !== 'string') delete meta['group']
+    else if (typeof group === 'string') meta['group'] = group.trim()
 
     // v2.7.0 兼容旧版本，补充SSH属性
     if (!('ssh' in conn) || typeof conn.ssh != 'boolean') conn.ssh = false

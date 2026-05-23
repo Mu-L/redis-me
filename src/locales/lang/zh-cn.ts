@@ -3,7 +3,6 @@ export default {
 
   // 通用
   copy: '复制',
-  add: '新增',
   edit: '编辑',
   save: '保存',
   delete: '删除',
@@ -44,7 +43,6 @@ export default {
 
     labelWidth: '60',
     title: '设置',
-    appearance: '外观',
     theme: '主题',
 
     system: '系统',
@@ -62,7 +60,6 @@ export default {
     updateAuto: '自动检查更新',
     nowVersion: '版本',
     updateNow: '检查更新',
-    updateProxy: '更新代理',
     updateAppStore: '应用商店控制更新',
 
     baseSetting: '基础设置',
@@ -81,10 +78,11 @@ export default {
     sortByAlphabet: '字母',
 
     keyHeight: '键高度',
-    keyLabel: '键名称',
-    keyLabelTip: '键树形展示时子节点键的名称显示',
-    keyLabelFull: '全称',
-    keyLabelShort: '简称',
+    fieldShow: '字段展示',
+    fieldShowTip:
+      'Hash、List 等类型的值默认展示方式；自动模式初始 JSON，手动切换后会记住并在切换连接/键时沿用；表格模式优先表格，仍可手动切换',
+    fieldShowAuto: '自动',
+    fieldShowTable: '表格',
 
     dir: '目录',
     configDir: '配置目录',
@@ -95,6 +93,8 @@ export default {
   conn: {
     // 列表展示
     add: '新增连接',
+    emptyNewWindow: '新增窗口',
+    emptyAppSetting: '应用设置',
     export: '导出连接',
     import: '导入连接',
     clearConnections: '清空连接',
@@ -106,6 +106,17 @@ export default {
     hostPort: '主机端口',
     otherProp: '其他属性',
     cluster: '集群',
+    showFlat: '平铺展示',
+    showGroup: '分组展示',
+    ungrouped: '默认分组',
+    newFolder: '新建分组',
+    renameFolder: '重命名',
+    deleteFolder: '删除文件夹',
+    folderNameRequired: '请输入文件夹名称',
+    folderExists: '文件夹名称已存在',
+    renameFolderOk: '重命名成功',
+    deleteFolderConfirm: '删除文件夹「{name}」？其中的连接将移至默认分组。',
+    deleteFolderOk: '已删除文件夹',
 
     exportOk: '导出成功',
     exportErr: '导出失败',
@@ -232,7 +243,6 @@ export default {
     monitor: '命令监控',
     pubsub: '发布订阅',
     chart: '图表',
-    tauri: 'Tauri',
   },
 
   keyHeader: {
@@ -277,9 +287,6 @@ export default {
     keyEncoding: '键编码',
     valueEncoding: '值编码',
     ttl: 'TTL超时时长 (-1代表永久)',
-    negativeOneHint: '-1代表永久',
-    permanent: '永久',
-    second: '秒',
     value: '值',
     element: '元素',
     hashKey: '哈希键',
@@ -297,6 +304,7 @@ export default {
     index: '索引',
     score: '分数',
     value: '值',
+    prettyHint: '默认与键值区美化设置同步；可临时切换以查看原始字段值',
   },
 
   nodeList: {
@@ -348,14 +356,9 @@ export default {
     limit: '（数据量达到扫描限制：${limit}）',
   },
 
-  keyList: {
-    refreshKey: '重新载入',
-    copyKey: '复制键名',
-    deleteKey: '删除键',
-    renameKey: '重命名键',
-  },
+  keyList: { renameKey: '重命名键' },
 
-  keyRename: { title: '重命名键', newKeyName: '新键名', keyNameRequired: '键名不允许为空' },
+  keyRename: { title: '重命名键', newKeyName: '新键名' },
 
   keyTree: {
     noData: '没有数据',
@@ -418,8 +421,6 @@ export default {
     executable: '执行程序',
     config: '配置',
     infoDetail: '参数详情',
-    jumpWebsite: '跳转官网参数详解',
-    redisWebsite: 'https://redis.ac.cn/docs/latest/commands/info/',
     rawInfo: '原始信息',
     tag: '分类',
     keyword: '模糊筛选（键值、说明）',
@@ -456,7 +457,6 @@ export default {
     keyword: '键模糊筛选',
     startScan: '开启分析',
     type: '类型',
-    inputFormat: '输入格式',
     key: '键',
     size: '大小',
     chooseKey: '详情',
@@ -533,7 +533,6 @@ export default {
     summary: '概述',
     since: '版本',
     keyShortHint: '查看快捷键',
-    keyShortTitle: '快捷键',
     keyShortMore: `
         <br> F11     : 全屏
         <br> Enter   : 执行命令
@@ -579,7 +578,6 @@ export default {
     loadAll: '加载剩余所有键',
     renameKey: '重命名键',
     refreshKey: '刷新键',
-    jsonValidator: '值必须为有效的JSON格式',
 
     textMemory: '内存占用：',
     textLength: '字节长度：',
@@ -658,6 +656,7 @@ export default {
     flushDbOk: '清空当前库完成',
     editDbName: '定制数据库名称 (db{index})',
     editDbNamePlaceholder: '请输入定制名称',
+    dbShowLimit: '显示数量限制',
   },
 
   ttlSet: {
