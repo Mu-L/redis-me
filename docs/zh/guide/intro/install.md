@@ -40,8 +40,8 @@ sudo xattr -d com.apple.quarantine /Applications/RedisME.app
 
 ## Linux
 
-- DEB包(Debian系): `RedisME_{{version}}_amd64.deb` | `RedisME_{{version}}_arm64.deb`
-- RPM包(Redhat系): `RedisME-{{version}}-1.x86_64.rpm` | `RedisME-{{version}}-1.aarch64.rpm`
+- Debian: `RedisME_{{version}}_amd64.deb` | `RedisME_{{version}}_arm64.deb`
+- Redhat: `RedisME-{{version}}-1.x86_64.rpm` | `RedisME-{{version}}-1.aarch64.rpm`
 - 通用包: `RedisME_{{version}}_amd64.AppImage` | `RedisME_{{version}}_aarch64.AppImage`
 
 `deb` 安装使用 `apt`

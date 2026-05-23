@@ -40,8 +40,8 @@ Then try opening **RedisME** again.
 
 ## Linux
 
-- DEB (Debian-based): `RedisME_{{version}}_amd64.deb` | `RedisME_{{version}}_arm64.deb`
-- RPM (Red Hat–based): `RedisME-{{version}}-1.x86_64.rpm` | `RedisME-{{version}}-1.aarch64.rpm`
+- Debian: `RedisME_{{version}}_amd64.deb` | `RedisME_{{version}}_arm64.deb`
+- Redhat: `RedisME-{{version}}-1.x86_64.rpm` | `RedisME-{{version}}-1.aarch64.rpm`
 - Generic: `RedisME_{{version}}_amd64.AppImage` | `RedisME_{{version}}_aarch64.AppImage`
 
 Install `deb` packages with `apt`:
