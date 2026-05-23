@@ -516,12 +516,24 @@ export async function meDownloadUpdate(
         }
 
         const isWindows = type() === 'windows'
+        const isMacOS = type() === 'macos'
         if (isWindows) {
           await update.download(downloadingHandle)
           meConfirm(t('util.downloadDown'), async () => await update.install(), manualCloseOptions)
         } else {
           await update.downloadAndInstall(downloadingHandle)
-          meConfirm(t('util.updateDone'), async () => await relaunch(), manualCloseOptions)
+          // macOS：relaunch 会与 single-instance 竞态，改走 Rust 延迟 open 重启
+          meConfirm(
+            t('util.updateDone'),
+            async () => {
+              if (isMacOS) {
+                await meCommands.restartAfterUpdate()
+              } else {
+                await relaunch()
+              }
+            },
+            manualCloseOptions,
+          )
         }
       } catch (e) {
         meErr(t('util.updateErr', { message: errString(e) }))

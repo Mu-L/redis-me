@@ -33,6 +33,46 @@ pub fn is_app_store() -> bool {
     app_store::detect()
 }
 
+/// 更新安装完成后重启。macOS 上延迟 `open` 再退出，避免 single-instance 与 `relaunch()` 竞态。
+#[command]
+#[specta]
+pub fn restart_after_update(app: AppHandle) -> ApiResult<()> {
+    #[cfg(target_os = "macos")]
+    {
+        let exe = tauri::process::current_binary(&app.env()).map_err(|e| e.to_string())?;
+        let app_bundle = macos_app_bundle_path(&exe).ok_or_else(|| "无法定位应用 bundle".to_string())?;
+        let bundle = shell_escape(&app_bundle.to_string_lossy());
+        std::process::Command::new("sh")
+            .args(["-c", &format!("sleep 0.8; open {bundle}")])
+            .spawn()
+            .map_err(|e| e.to_string())?;
+        app.exit(0);
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        app.request_restart();
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn macos_app_bundle_path(exe: &std::path::Path) -> Option<std::path::PathBuf> {
+    let macos_dir = exe.parent()?;
+    if macos_dir.file_name()? != "MacOS" {
+        return None;
+    }
+    let contents = macos_dir.parent()?;
+    if contents.file_name()? != "Contents" {
+        return None;
+    }
+    Some(contents.parent()?.to_path_buf())
+}
+
+#[cfg(target_os = "macos")]
+fn shell_escape(s: &str) -> String {
+    format!("'{}'", s.replace('\'', "'\\''"))
+}
+
 // 测试连接
 #[command]
 #[specta]

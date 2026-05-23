@@ -25,7 +25,7 @@ import {
   normalizeGroupName,
   removeConnGroup,
   renameConnGroup,
-} from '@/utils/conn-group'
+} from '@/utils/conn'
 import { encodeRedisMeConnectionsToMec, mergeImportedConnList } from '@/utils/rdm'
 import {
   meConfirm,

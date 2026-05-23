@@ -52,7 +52,7 @@ const initSettings = {
   keyHeight: 20,
   fieldShow: 'auto', // 'auto' 初始 JSON、手动切换后沿用 | 'table' 优先表格
   fieldShowView: 'json', // auto 模式下上次手动选择的 json/table，持久化供切换连接沿用
-  // 首页连接分组（见 src/utils/conn-group.ts）
+  // 首页连接分组（见 src/utils/conn.ts）
   connShow: 'flat', // 'flat' | 'group'
   connGroups: [] as string[], // 分组名有序列表
   connGroupExpanded: {} as Record<string, boolean>, // 分组折叠状态，键为分组名（''=默认分组）

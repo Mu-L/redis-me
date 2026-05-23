@@ -3,7 +3,7 @@ import { inject, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
-import { getConnIcon } from '@/utils/conn-group'
+import { getConnIcon } from '@/utils/conn'
 import { bus, CONN_REFRESH, meCommands, meOk, openNewWindow } from '@/utils/util'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'

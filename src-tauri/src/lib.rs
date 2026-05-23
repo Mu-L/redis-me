@@ -16,6 +16,7 @@ fn tauri_specta_commands() -> Commands<tauri::Wry> {
         greet,
         app_dir,
         is_app_store,
+        restart_after_update,
         test_conn,
         masters,
         conn_list,
