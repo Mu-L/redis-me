@@ -1,6 +1,6 @@
 # 3.x Changelog
 
-## v3.5.0
+## [v3.5.0](https://mp.weixin.qq.com/s/l7AcVFTI1bamWU3mfZqF5A) (2026-05-23)
 
 ### ✨ New Features
 
@@ -11,6 +11,8 @@
   - **Beautify**: enabled by default, same as the value area #90
   - **Copy**: one-click copy field values
   - **Fixed field value dimensions** to prevent global scrollbars from large values
+- DB Select: **display count limit** #92
+- Auto-refresh key list after import completes #93
 - Removed the key tree **full-name display** setting (abbreviated names only)
 - Other details: icons in the connection dropdown; dedicated icon for Sentinel mode; etc.
 
