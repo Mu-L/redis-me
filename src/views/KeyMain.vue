@@ -285,8 +285,9 @@ async function tauriListen(eventName: 'export' | 'import'): Promise<void> {
         t(`keyMain.${eventName}Done`),
       )
 
-      // 导入完成后刷新连接
+      // 导入完成后刷新键列表与连接信息
       if (eventName === 'import') {
+        void scanKey(false, false)
         bus.emit(INFO_REFRESH)
       }
     }
