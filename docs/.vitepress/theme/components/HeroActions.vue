@@ -48,6 +48,32 @@ function winItem(arch, type, fileName) {
   }
 }
 
+function macItem(chip, fileName) {
+  const label =
+    chip === 'apple'
+      ? isZh.value
+        ? 'Apple芯片'
+        : 'Apple Silicon'
+      : isZh.value
+        ? 'Intel芯片'
+        : 'Intel Mac'
+  return {
+    text: `${label} (.dmg)`,
+    link: downloadLink(fileName),
+  }
+}
+
+function linuxItem(arch, format, fileName) {
+  const label = isZh.value
+    ? { deb: 'Debian', rpm: 'Redhat', appimage: '通用' }[format]
+    : { deb: 'Debian', rpm: 'Redhat', appimage: 'Generic' }[format]
+  const suffix = format === 'appimage' ? 'AppImage' : format
+  return {
+    text: `${arch} ${label} (.${suffix})`,
+    link: downloadLink(fileName),
+  }
+}
+
 const downloadMenu = computed(() => {
   return [
     {
@@ -64,44 +90,20 @@ const downloadMenu = computed(() => {
       os: 'macOS',
       icon: Apple,
       items: [
-        {
-          text: 'x64 (.dmg)',
-          link: downloadLink(`RedisME_${version}_x64.dmg`),
-        },
-        {
-          text: 'arm64 (.dmg)',
-          link: downloadLink(`RedisME_${version}_aarch64.dmg`),
-        },
+        macItem('apple', `RedisME_${version}_aarch64.dmg`),
+        macItem('intel', `RedisME_${version}_x64.dmg`),
       ],
     },
     {
       os: 'Linux',
       icon: Linux,
       items: [
-        {
-          text: 'x64 (.deb)',
-          link: downloadLink(`RedisME_${version}_amd64.deb`),
-        },
-        {
-          text: 'x64 (.rpm)',
-          link: downloadLink(`RedisME-${version}-1.x86_64.rpm`),
-        },
-        {
-          text: 'x64 (.AppImage)',
-          link: downloadLink(`RedisME_${version}_amd64.AppImage`),
-        },
-        {
-          text: 'arm64 (.deb)',
-          link: downloadLink(`RedisME_${version}_arm64.deb`),
-        },
-        {
-          text: 'arm64 (.rpm)',
-          link: downloadLink(`RedisME-${version}-1.aarch64.rpm`),
-        },
-        {
-          text: 'arm64 (.AppImage)',
-          link: downloadLink(`RedisME_${version}_aarch64.AppImage`),
-        },
+        linuxItem('x64', 'deb', `RedisME_${version}_amd64.deb`),
+        linuxItem('x64', 'rpm', `RedisME-${version}-1.x86_64.rpm`),
+        linuxItem('x64', 'appimage', `RedisME_${version}_amd64.AppImage`),
+        linuxItem('arm64', 'deb', `RedisME_${version}_arm64.deb`),
+        linuxItem('arm64', 'rpm', `RedisME-${version}-1.aarch64.rpm`),
+        linuxItem('arm64', 'appimage', `RedisME_${version}_aarch64.AppImage`),
       ],
     },
   ]
