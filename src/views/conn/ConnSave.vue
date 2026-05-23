@@ -340,20 +340,23 @@ const connGroup = computed({
       :label-width="t('conn.labelWidth')">
       <!-- 连接名称、分组 -->
       <el-form-item :label="t('conn.name')" prop="name">
-        <el-row :gutter="8" style="width: 100%">
-          <el-col :span="connShowGroup ? 16 : 24">
-            <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
-          </el-col>
-          <el-col v-if="connShowGroup" :span="8">
+        <el-row style="width: 100%">
+          <div style="display: flex; gap: 8px; width: 100%">
+            <el-input
+              v-model.trim="form.name"
+              :placeholder="t('conn.nameHint')"
+              clearable
+              style="flex: 1; min-width: 0" />
             <el-select
+              v-if="connShowGroup"
               v-model="connGroup"
               clearable
               :placeholder="t('conn.ungrouped')"
-              style="width: 100%">
+              style="width: calc(100% * 8 / 24); flex-shrink: 0">
               <el-option :label="t('conn.ungrouped')" value="" />
               <el-option v-for="g in connGroupOptions" :key="g" :label="g" :value="g" />
             </el-select>
-          </el-col>
+          </div>
         </el-row>
       </el-form-item>
 
