@@ -20,7 +20,7 @@ If the app asks you to install the WebView runtime but the download fails, insta
 ## MacOS
 
 - **Apple Silicon: Download `RedisME_{{version}}_aarch64.dmg`**
-- Intel: Download `RedisME_{{version}}_x64.dmg`
+- Intel Mac: Download `RedisME_{{version}}_x64.dmg`
 
 Open the `.dmg` file and drag `RedisME.app` into the `Applications` folder.
 

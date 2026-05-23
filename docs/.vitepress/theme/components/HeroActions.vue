@@ -48,6 +48,21 @@ function winItem(arch, type, fileName) {
   }
 }
 
+function macItem(chip, fileName) {
+  const label =
+    chip === 'apple'
+      ? isZh.value
+        ? 'Apple芯片'
+        : 'Apple Silicon'
+      : isZh.value
+        ? 'Intel芯片'
+        : 'Intel Mac'
+  return {
+    text: `${label} (.dmg)`,
+    link: downloadLink(fileName),
+  }
+}
+
 const downloadMenu = computed(() => {
   return [
     {
@@ -64,14 +79,8 @@ const downloadMenu = computed(() => {
       os: 'macOS',
       icon: Apple,
       items: [
-        {
-          text: 'x64 (.dmg)',
-          link: downloadLink(`RedisME_${version}_x64.dmg`),
-        },
-        {
-          text: 'arm64 (.dmg)',
-          link: downloadLink(`RedisME_${version}_aarch64.dmg`),
-        },
+        macItem('apple', `RedisME_${version}_aarch64.dmg`),
+        macItem('intel', `RedisME_${version}_x64.dmg`),
       ],
     },
     {
