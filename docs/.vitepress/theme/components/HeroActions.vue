@@ -1,6 +1,6 @@
 <script setup>
 import { useData } from 'vitepress'
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import { version } from '../../../../package.json'
 import Apple from './icon/Apple.vue'
@@ -9,12 +9,43 @@ import Windows from './icon/Windows.vue'
 
 const { lang } = useData()
 const isZh = computed(() => lang.value.startsWith('zh'))
-const downloadText = computed(() => (isZh.value ? '下载安装' : 'Download'))
 const viewText = computed(() => (isZh.value ? '进入Github' : 'View on GitHub'))
 const gitHost = computed(() => (isZh.value ? 'gitee' : 'github'))
 
+/** 客户端检测 OS；SSR 与 Android 等未知平台默认 Windows */
+const detectedOs = ref('Windows')
+
+onMounted(() => {
+  detectedOs.value = detectOs()
+})
+
+function detectOs() {
+  const ua = navigator.userAgent
+  const platform = (navigator.platform || '').toLowerCase()
+
+  if (/win/i.test(platform) || /windows/i.test(ua)) return 'Windows'
+  if (/mac/i.test(platform) || /macintosh|mac os x/i.test(ua)) return 'macOS'
+  if (/linux/i.test(platform) || /linux/i.test(ua)) return 'Linux'
+  return 'Windows'
+}
+
 function downloadLink(fileName) {
   return `https://${gitHost.value}.com/hepengju/redis-me/releases/download/v${version}/${fileName}`
+}
+
+function winItem(arch, type, fileName) {
+  const isInstaller = type === 'exe'
+  const label = isZh.value
+    ? isInstaller
+      ? '安装版'
+      : '绿色版'
+    : isInstaller
+      ? 'Installer'
+      : 'Portable'
+  return {
+    text: `${arch} ${label} (.${type})`,
+    link: downloadLink(fileName),
+  }
 }
 
 const downloadMenu = computed(() => {
@@ -23,22 +54,10 @@ const downloadMenu = computed(() => {
       os: 'Windows',
       icon: Windows,
       items: [
-        {
-          text: 'x64 (.exe)',
-          link: downloadLink(`RedisME_${version}_x64-setup.exe`),
-        },
-        {
-          text: 'x64 (.zip)',
-          link: downloadLink(`RedisME_${version}_portable_x64.zip`),
-        },
-        {
-          text: 'arm64 (.exe)',
-          link: downloadLink(`RedisME_${version}_arm64-setup.exe`),
-        },
-        {
-          text: 'arm64 (.zip)',
-          link: downloadLink(`RedisME_${version}_portable_arm64.zip`),
-        },
+        winItem('x64', 'exe', `RedisME_${version}_x64-setup.exe`),
+        winItem('x64', 'zip', `RedisME_${version}_portable_x64.zip`),
+        winItem('arm64', 'exe', `RedisME_${version}_arm64-setup.exe`),
+        winItem('arm64', 'zip', `RedisME_${version}_portable_arm64.zip`),
       ],
     },
     {
@@ -87,30 +106,65 @@ const downloadMenu = computed(() => {
     },
   ]
 })
+
+const currentOsGroup = computed(
+  () => downloadMenu.value.find(group => group.os === detectedOs.value) ?? downloadMenu.value[0],
+)
+
+const otherOsGroups = computed(() =>
+  downloadMenu.value.filter(group => group.os !== detectedOs.value),
+)
+
+const primaryDownload = computed(() => currentOsGroup.value.items[0])
+
+const otherPlatformsLabel = computed(() =>
+  isZh.value ? '其他平台下载' : 'Download for other platforms',
+)
 </script>
 
 <template>
   <div class="actions">
-    <div class="action">
-      <a class="action-button brand dropdown-button">
-        <span class="download-icon" />
-        <span>{{ downloadText }}</span>
-      </a>
-      <ul class="dropdown-menu">
-        <template v-for="(group, i) in downloadMenu" :key="group.os">
-          <li class="group-title" :class="{ 'group-title-first': i === 0 }">
-            <component :is="group.icon" />
-            <span>{{ group.os }}</span>
-          </li>
-          <li
-            v-for="item in group.items"
-            :key="item.link"
-            class="group-item"
-            style="font-size: 14px">
-            <a :href="item.link" target="_blank">{{ item.text }}</a>
-          </li>
-        </template>
-      </ul>
+    <div class="action download-action">
+      <div class="split-button action-button brand">
+        <div class="split-main">
+          <a
+            class="split-main-button"
+            :href="primaryDownload.link"
+            rel="noreferrer"
+            target="_blank">
+            <component :is="currentOsGroup.icon" class="os-icon" />
+            <span>{{ currentOsGroup.os }}</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li
+              v-for="item in currentOsGroup.items"
+              :key="item.link"
+              class="group-item"
+              style="font-size: 14px">
+              <a :href="item.link" rel="noreferrer" target="_blank">{{ item.text }}</a>
+            </li>
+          </ul>
+        </div>
+        <span class="split-divider" aria-hidden="true">|</span>
+        <div class="split-more">
+          <span class="more-button" :aria-label="otherPlatformsLabel">⋯</span>
+          <ul class="dropdown-menu other-menu">
+            <template v-for="(group, i) in otherOsGroups" :key="group.os">
+              <li class="group-title" :class="{ 'group-title-first': i === 0 }">
+                <component :is="group.icon" />
+                <span>{{ group.os }}</span>
+              </li>
+              <li
+                v-for="item in group.items"
+                :key="item.link"
+                class="group-item"
+                style="font-size: 14px">
+                <a :href="item.link" rel="noreferrer" target="_blank">{{ item.text }}</a>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </div>
     </div>
     <div class="action">
       <a
@@ -177,21 +231,91 @@ const downloadMenu = computed(() => {
   cursor: pointer;
 }
 
-.action:hover .dropdown-menu {
+.download-action {
+  position: relative;
+}
+
+.split-button {
+  display: inline-flex;
+  align-items: stretch;
+  padding: 0;
+}
+
+.split-main,
+.split-more {
+  position: relative;
+}
+
+.split-main:hover .dropdown-menu,
+.split-main .dropdown-menu:hover,
+.split-more:hover .dropdown-menu,
+.split-more .dropdown-menu:hover {
   display: block;
+}
+
+.split-main-button {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  line-height: 38px;
+  font-size: 14px;
+  font-weight: 600;
+  color: inherit;
+  white-space: nowrap;
+  border-radius: 10px 0 0 10px;
+}
+
+.split-divider {
+  display: flex;
+  align-items: center;
+  opacity: 0.45;
+  font-weight: 400;
+  line-height: 1;
+  user-select: none;
+}
+
+.more-button {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  line-height: 38px;
+  font-size: 14px;
+  font-weight: 600;
+  color: inherit;
+  border-radius: 0 10px 10px 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.os-icon {
+  flex-shrink: 0;
+  margin-right: 8px;
+  margin-left: -4px;
 }
 
 .dropdown-menu {
   position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
   list-style-type: none;
-  margin: 5px 0 0;
+  margin: 0;
   padding: 5px;
   border-radius: 10px;
   border: 1px solid var(--vp-c-divider);
   background-color: var(--vp-c-bg-soft);
   box-shadow: var(--vp-shadow-2);
-  z-index: 1;
+  z-index: 10;
   display: none;
+}
+
+/* 透明桥接区，避免按钮与菜单之间的空隙导致 hover 丢失 */
+.dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 10px;
 }
 
 .dropdown-menu li {
@@ -233,6 +357,10 @@ const downloadMenu = computed(() => {
   background-color: transparent;
 }
 
+.split-main .dropdown-menu .group-item {
+  padding: 6px 8px;
+}
+
 .dropdown-menu .group-item {
   padding: 6px 8px 6px 30px;
 }
@@ -259,20 +387,9 @@ const downloadMenu = computed(() => {
   margin-right: 8px;
 }
 
-.download-icon {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  background-color: currentColor;
-  -webkit-mask-image: var(--svg);
-  mask-image: var(--svg);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='black' d='M10.797 14.182H3.635L16.728 0l-3.525 9.818h7.162L7.272 24l3.524-9.818Z'/%3E%3C/svg%3E");
-
-  margin-right: 8px;
-  margin-left: -10px;
+.other-menu {
+  right: 0;
+  left: auto;
+  min-width: 220px;
 }
 </style>
