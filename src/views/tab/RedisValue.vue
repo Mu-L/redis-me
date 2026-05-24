@@ -1009,8 +1009,7 @@ function openKeyShortDialog() {
               :key="item.value"
               :label="item.label"
               :value="item.value"
-              :disabled="item.disabled"
-              :style="{ color: item.disabled ? '' : 'var(--el-color-success)' }" />
+              :disabled="item.disabled" />
           </el-select>
           <!-- 加载更多、加载全部 -->
           <div class="me-flex" style="width: 45px; margin-left: 10px" v-if="showMore">
