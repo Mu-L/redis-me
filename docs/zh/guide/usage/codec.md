@@ -31,7 +31,7 @@
 
 约定：
 
-- 参数 2 由应用加引号后传给 shell，脚本用 `sys.argv[2]`（Python）或 `process.argv[3]`（Node，因 `argv[1]` 为脚本路径）读取即可
+- 参数 2 为标准 Base64 单行字符串（无空格），脚本用 `sys.argv[2]`（Python）或 `process.argv[3]`（Node，因 `argv[1]` 为脚本路径）读取即可
 - **decode** 成功：stdout 输出可编辑文本；**encode** 成功：stdout 仅一行 Base64
 - 失败：stderr 输出错误信息，非 0 退出码；应用会在错误提示中附上实际执行的完整命令
 
@@ -113,12 +113,12 @@ node C:\path\to\codec.js
 
 ## 故障排查
 
-| 现象                          | 常见原因                                                          |
-| ----------------------------- | ----------------------------------------------------------------- |
-| `invalid utf-8 sequence`      | 脚本 stdout 非 UTF-8（Windows 中文输出）                          |
-| `Illegal base64 character 22` | 经 `.cmd` 转发时引号传入脚本；bat 内用 `%~1 %~2` 或脚本内去掉 `"` |
-| 找不到 python / java          | PATH 无解释器 → 改用 **完整路径**                                 |
-| 解码结果为空                  | 脚本 decode 未向 stdout 输出，或退出码非 0                        |
+| 现象                          | 常见原因                                                             |
+| ----------------------------- | -------------------------------------------------------------------- |
+| `invalid utf-8 sequence`      | 脚本 stdout 非 UTF-8（Windows 中文输出）                             |
+| `Illegal base64 character 22` | 参数 2 含非 Base64 字符（如引号）；检查脚本或 bat 转发是否改动了参数 |
+| 找不到 python / java          | PATH 无解释器 → 改用 **完整路径**                                    |
+| 解码结果为空                  | 脚本 decode 未向 stdout 输出，或退出码非 0                           |
 
 错误提示中会包含 **执行命令** 一行，可复制到终端对照调试。
 

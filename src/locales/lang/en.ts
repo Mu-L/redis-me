@@ -230,7 +230,7 @@ export default {
     commandHelp: `Enter the <b>full command with interpreter</b>, e.g. python C:\\path\\codec.py<br/><br/>
 <b>The app appends two arguments</b><br/>
 • Arg 1: decode (read) or encode (write)<br/>
-• Arg 2: Base64 string (quoted by the app)<br/><br/>
+• Arg 2: Base64 string<br/><br/>
 <b>Decode</b> (Redis → editor)<br/>
 • Arg 2: Base64 of raw Redis bytes<br/>
 • stdout: UTF-8 text for the editor<br/><br/>

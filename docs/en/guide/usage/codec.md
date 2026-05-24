@@ -31,7 +31,7 @@ The app appends **two arguments** after your command:
 
 Notes:
 
-- Arg 2 is quoted by the app for the shell; read it with `sys.argv[2]` (Python) or `process.argv[3]` (Node — `argv[1]` is the script path)
+- Arg 2 is a single-line standard Base64 string (no spaces); read it with `sys.argv[2]` (Python) or `process.argv[3]` (Node — `argv[1]` is the script path)
 - On **decode** success, stdout is editable text; on **encode** success, stdout is a single Base64 line
 - On failure, write to stderr and use a non-zero exit code; the app shows the full executed command in the error message
 
@@ -113,12 +113,12 @@ node C:\path\to\codec.js
 
 ## Troubleshooting
 
-| Symptom                       | Likely cause                                                                                        |
-| ----------------------------- | --------------------------------------------------------------------------------------------------- |
-| `invalid utf-8 sequence`      | Script stdout is not UTF-8 (e.g. Chinese output on Windows)                                         |
-| `Illegal base64 character 22` | Quotes passed through a `.cmd` wrapper — use `%~1 %~2` in the batch file or strip `"` in the script |
-| python / java not found       | Interpreter not on PATH — use the **full path**                                                     |
-| Empty decode                  | Script did not write to stdout on decode, or exit code is non-zero                                  |
+| Symptom                       | Likely cause                                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `invalid utf-8 sequence`      | Script stdout is not UTF-8 (e.g. Chinese output on Windows)                                                   |
+| `Illegal base64 character 22` | Arg 2 contains non-Base64 characters (e.g. quotes); check whether a script or `.cmd` wrapper alters arguments |
+| python / java not found       | Interpreter not on PATH — use the **full path**                                                               |
+| Empty decode                  | Script did not write to stdout on decode, or exit code is non-zero                                            |
 
 The error message includes the **executed command** line for copy/paste into a terminal.
 

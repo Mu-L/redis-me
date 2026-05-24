@@ -47,17 +47,7 @@ function getExecTimeoutSec(): number {
   return typeof n === 'number' && n > 0 ? n : 30
 }
 
-/** Unix：单引号包裹（标准 base64 不含 `'`） */
-function shellQuoteSingle(s: string): string {
-  return `'${s.replace(/'/g, `'\\''`)}'`
-}
-
-/** Windows cmd：双引号包裹 */
-function shellQuoteCmd(s: string): string {
-  return `"${s.replace(/"/g, '""')}"`
-}
-
-/** 拼完整命令行：`{command} decode|encode {quoted_b64}` */
+/** 拼完整命令行：`{command} decode|encode {b64}`（标准 base64 无空格，无需 shell 引号） */
 export function buildFormatterCommand(
   formatter: CustomFormatter,
   mode: FormatterMode,
@@ -65,8 +55,7 @@ export function buildFormatterCommand(
 ): string {
   const cmd = formatter.command.trim()
   if (!cmd) throw new Error(t('customFormatter.emptyCommand'))
-  const quoted = type() === 'windows' ? shellQuoteCmd(b64) : shellQuoteSingle(b64)
-  return `${cmd} ${mode} ${quoted}`
+  return `${cmd} ${mode} ${b64}`
 }
 
 function formatExecError(name: string, result: ShellExecResult, fullCommand: string): string {
