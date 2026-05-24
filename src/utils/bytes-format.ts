@@ -73,6 +73,53 @@ export function viewFmtForField(view: ViewBytesFormat): ViewBytesFormat {
   return isStringOnlyView(view) ? 'utf8' : view
 }
 
+export type FieldViewOption = { label: string; value: ViewBytesFormat }
+
+/** 字段编辑下拉：utf8 wire 仅文本视图；base64 wire 为保字节视图 + custom */
+export function fieldViewOptions(
+  keyWireFmt: BytesFormat,
+  customNames: string[] = [],
+): FieldViewOption[] {
+  if (keyWireFmt === 'utf8') {
+    return [
+      { label: 'UTF8', value: 'utf8' },
+      { label: 'StrJson', value: 'strjson' },
+    ]
+  }
+  const opts: FieldViewOption[] = BYTES_FORMAT.filter(label => label !== 'UTF8').map(label => ({
+    label,
+    value: label.toLowerCase() as ViewBytesFormat,
+  }))
+  opts.push({ label: 'MsgPack', value: 'msgpack' })
+  for (const name of customNames) {
+    opts.push({ label: name, value: customFormatValue(name) })
+  }
+  return opts
+}
+
+/** 字段编辑默认 view：键级 view 在可选范围内则沿用，否则取首项 */
+export function defaultFieldViewFmt(
+  keyView: ViewBytesFormat,
+  keyWireFmt: BytesFormat,
+): ViewBytesFormat {
+  const options = fieldViewOptions(keyWireFmt)
+  if (options.some(o => o.value === keyView)) return keyView
+  return options[0]!.value
+}
+
+/** MeCode 语法模式 */
+export function codeMirrorModeForView(view: ViewBytesFormat): string {
+  if (view === 'utf8' || view === 'msgpack' || view === 'strjson' || isCustomView(view)) {
+    return 'json'
+  }
+  return 'ignore'
+}
+
+/** 保存前需 JSON 校验并 compact */
+export function needsJsonNormalize(view: ViewBytesFormat): boolean {
+  return view === 'msgpack' || view === 'strjson'
+}
+
 /** wire 字符串（utf8 或 base64）→ 编辑器/表格展示 */
 export function meFormatViewValue(wire: string, view: ViewBytesFormat): string {
   if (!wire || view === 'utf8') return wire

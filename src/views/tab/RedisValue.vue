@@ -526,18 +526,16 @@ function fieldSet(row: ValueTableRow, index: number) {
   if (!rv) return
   fieldSetIndex.value = index
   const rowValWire = String(row.value ?? '')
-  const fieldViewFmt = viewFmtForField(bytesFormat.value)
   const params = {
-    fieldKey: meFormatViewValue(row.key || '', fieldViewFmt),
-    fieldValue: meFormatViewValue(rowValWire, fieldViewFmt),
+    fieldKey: row.key || '',
     fieldScore: row.score || 0,
     fieldTtl: row.ttl ?? -1,
     srcFieldValue: rowValWire,
     wireFieldKey: row.key || '',
+    keyWireFmt: toWireFormat(bytesFormat.value),
+    keyViewFmt: bytesFormat.value,
     type: rv.type,
     key: share.redisKey!,
-    valFmt: toWireFormat(fieldViewFmt),
-    viewValFmt: fieldViewFmt,
     fieldIndex: -1,
   }
   if (rv.type === 'list') {

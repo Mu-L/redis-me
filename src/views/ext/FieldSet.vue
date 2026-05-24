@@ -1,18 +1,37 @@
 <script setup lang="ts">
 import { cloneDeep } from 'lodash'
-import { computed, inject, ref, useTemplateRef } from 'vue'
+import { computed, inject, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
-import type { RedisFieldSet_Deserialize } from '@/types/tauri-specta'
-import { meViewToWire, type ViewBytesFormat } from '@/utils/bytes-format'
-import { meCommands, meCopy, meFormatDisplayValue, meOk } from '@/utils/util'
+import type { BytesFormat, RedisFieldSet_Deserialize } from '@/types/tauri-specta'
+import {
+  codeMirrorModeForView,
+  customFormatName,
+  defaultFieldViewFmt,
+  fieldViewOptions,
+  isCustomView,
+  meFormatViewValue,
+  meFormatViewValueAsync,
+  meViewToWire,
+  meViewToWireAsync,
+  needsJsonNormalize,
+  toWireFormat,
+  type ViewBytesFormat,
+} from '@/utils/bytes-format'
+import { meCommands, meCopy, meErr, meFormatDisplayValue, meJsonNormal, meOk } from '@/utils/util'
 
-/** 含 UI 用 type / viewValFmt / wireFieldKey，提交时剔除 */
+/** 含 UI 用 type / wireFieldKey，提交时剔除 */
 type FieldSetForm = RedisFieldSet_Deserialize & {
   type: string
-  viewValFmt?: ViewBytesFormat
   wireFieldKey?: string
+}
+
+type FieldSetOpen = Partial<FieldSetForm> & {
+  /** fieldScan 返回的 wire 形态 */
+  keyWireFmt?: BytesFormat
+  /** 键级数据编码，用于默认字段 view */
+  keyViewFmt?: ViewBytesFormat
 }
 
 const props = withDefaults(
@@ -27,19 +46,14 @@ const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({ open, close })
 
-// 共享数据（本组件仅在已选连接后的键区使用，conn 视为必有）
 const share = inject(shareProvideKey)!
 
-// 表单数据
 const visible = ref(false)
 const isSaving = ref(false)
 const initForm: FieldSetForm = {
-  key: {
-    key: '',
-    bytes: '',
-  },
+  key: { key: '', bytes: '' },
   type: 'string',
-  srcFieldValue: '', // set/zset 删除原成员用的 wire 值
+  srcFieldValue: '',
   fieldIndex: 0,
   fieldKey: '',
   fieldValue: '',
@@ -48,32 +62,72 @@ const initForm: FieldSetForm = {
   valFmt: 'utf8',
 }
 const form = ref<FieldSetForm>(cloneDeep(initForm))
-const viewValFmt = ref<ViewBytesFormat>('utf8')
-/** 打开时的展示用字段值，关闭美化时用于查看原始 wire 文本 */
-const rawFieldValue = ref('')
-/** 面板内美化开关，open 时与外部 isPretty 同步，可临时切换 */
+
+/** fieldScan 原始 wire，切换字段编码时始终以此为源 */
+const srcFieldWire = ref('')
+const keyWireFmt = ref<BytesFormat>('utf8')
+const fieldViewFmt = ref<ViewBytesFormat>('utf8')
 const fieldPretty = ref(true)
+const editorLoading = ref(false)
 const codeRemountKey = ref(0)
 
-function open(data: Partial<FieldSetForm>) {
+const customNames = computed(() =>
+  (window.meTauri.settings.customFormatters ?? []).map(f => f.name),
+)
+const fieldViewOptionList = computed(() => fieldViewOptions(keyWireFmt.value, customNames.value))
+const codeMode = computed(() => codeMirrorModeForView(fieldViewFmt.value))
+const prettyEnabled = computed(
+  () => fieldViewFmt.value === 'utf8' || fieldViewFmt.value === 'strjson',
+)
+
+/** wire + 字段 view → 编辑区文本 */
+async function syncFieldEditor() {
+  const wire = srcFieldWire.value
+  const fmt = fieldViewFmt.value
+  if (!wire) {
+    form.value.fieldValue = ''
+    return
+  }
+  if (!fieldPretty.value && fmt === 'strjson') {
+    form.value.fieldValue = wire
+    return
+  }
+  editorLoading.value = true
+  try {
+    if (isCustomView(fmt)) {
+      form.value.fieldValue = await meFormatViewValueAsync(wire, fmt)
+    } else if (fmt === 'utf8') {
+      form.value.fieldValue = meFormatDisplayValue(wire, fieldPretty.value)
+    } else {
+      form.value.fieldValue = meFormatViewValue(wire, fmt)
+    }
+  } catch (e) {
+    form.value.fieldValue = e instanceof Error ? e.message : String(e)
+  } finally {
+    editorLoading.value = false
+  }
+}
+
+function open(data: FieldSetOpen) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
   Object.assign(form.value, data)
-  viewValFmt.value = data.viewValFmt ?? 'utf8'
-  rawFieldValue.value = String(data.fieldValue ?? '')
+  srcFieldWire.value = String(data.srcFieldValue ?? '')
+  keyWireFmt.value = data.keyWireFmt ?? 'utf8'
+  fieldViewFmt.value = defaultFieldViewFmt(data.keyViewFmt ?? 'utf8', keyWireFmt.value)
   fieldPretty.value = props.pretty
-  form.value.fieldValue = meFormatDisplayValue(rawFieldValue.value, fieldPretty.value)
+  void syncFieldEditor()
+}
+
+function onFieldViewFmtChange() {
+  void syncFieldEditor()
+  codeRemountKey.value++
 }
 
 function togglePretty() {
+  if (!prettyEnabled.value) return
   fieldPretty.value = !fieldPretty.value
-  if (fieldPretty.value) {
-    const source =
-      form.value.fieldValue === rawFieldValue.value ? rawFieldValue.value : form.value.fieldValue
-    form.value.fieldValue = meFormatDisplayValue(source, true)
-  } else {
-    form.value.fieldValue = rawFieldValue.value
-  }
+  void syncFieldEditor()
   codeRemountKey.value++
 }
 
@@ -81,18 +135,26 @@ function close() {
   visible.value = false
 }
 
+/** 自定义编解码被删后，当前字段 view 失效则回退 */
+watch(customNames, names => {
+  if (!visible.value || !isCustomView(fieldViewFmt.value)) return
+  const name = customFormatName(fieldViewFmt.value)
+  if (!name || !names.includes(name)) {
+    fieldViewFmt.value = defaultFieldViewFmt('utf8', keyWireFmt.value)
+    void syncFieldEditor()
+  }
+})
+
 const rules = computed(() => ({
   fieldValue: [{ required: true, message: t('fieldSet.fieldValueRequired') }],
   fieldScore: [{ required: true, message: t('fieldSet.fieldScoreRequired') }],
 }))
 
-// 取消
 function cancel() {
   visible.value = false
   emit('closed')
 }
 
-// 提交
 const formRef = useTemplateRef('formRef')
 function submit() {
   formRef.value.validate(async (valid: boolean) => {
@@ -100,19 +162,28 @@ function submit() {
 
     isSaving.value = true
     try {
-      const { type: _type, viewValFmt: _viewValFmt, wireFieldKey, ...rest } = form.value
-      const fmt = viewValFmt.value
+      const { type: _type, wireFieldKey, ...rest } = form.value
+      const fmt = fieldViewFmt.value
+      let fieldValue = form.value.fieldValue
+      if (needsJsonNormalize(fmt)) {
+        fieldValue = meJsonNormal(fieldValue)
+      }
+      if (isCustomView(fmt)) {
+        fieldValue = await meViewToWireAsync(fieldValue, fmt)
+      } else {
+        fieldValue = meViewToWire(fieldValue, fmt)
+      }
       await meCommands.fieldSet(share.conn!.id, {
         ...rest,
-        fieldKey:
-          form.value.type === 'hash' && wireFieldKey
-            ? wireFieldKey
-            : meViewToWire(form.value.fieldKey, fmt),
-        fieldValue: meViewToWire(form.value.fieldValue, fmt),
+        fieldKey: form.value.type === 'hash' && wireFieldKey ? wireFieldKey : form.value.fieldKey,
+        fieldValue,
+        valFmt: toWireFormat(fmt),
       })
       visible.value = false
       emit('success')
       meOk(t('editOk'))
+    } catch (e) {
+      meErr(e instanceof Error ? e.message : String(e))
     } finally {
       isSaving.value = false
     }
@@ -147,7 +218,12 @@ function submit() {
           style="width: 100%" />
       </el-form-item>
       <el-form-item :label="t('fieldSet.value')" prop="fieldValue" class="field-value-item">
-        <me-code :key="codeRemountKey" v-model="form.fieldValue" class="field-code-editor" />
+        <me-code
+          :key="codeRemountKey"
+          v-model="form.fieldValue"
+          :mode="codeMode"
+          :read-only="editorLoading"
+          class="field-code-editor" />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -157,7 +233,10 @@ function submit() {
             placement="top-start"
             :info="t('fieldSet.prettyHint')"
             class="icon-btn"
-            :style="{ opacity: fieldPretty ? 1 : 0.2 }"
+            :style="{
+              opacity: prettyEnabled && fieldPretty ? 1 : 0.2,
+              cursor: prettyEnabled ? 'pointer' : 'default',
+            }"
             icon="el-icon-magic-stick"
             @click="togglePretty" />
           <me-icon
@@ -167,6 +246,18 @@ function submit() {
             style="font-size: 18px; margin-left: 5px"
             icon="el-icon-document-copy"
             @click="meCopy(form.fieldValue)" />
+          <el-select
+            v-model="fieldViewFmt"
+            size="small"
+            class="field-set-enc-select"
+            :disabled="editorLoading"
+            @change="onFieldViewFmtChange">
+            <el-option
+              v-for="item in fieldViewOptionList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value" />
+          </el-select>
         </div>
         <div>
           <el-button @click="cancel">{{ t('cancel') }}</el-button>
@@ -186,7 +277,7 @@ function submit() {
   overflow: hidden;
 
   :deep(.el-card__body) {
-    padding: 20px 20px 0 20px; // 覆盖掉最外部的自定义样式
+    padding: 20px 20px 0 20px;
     flex: 1;
     min-width: 0;
     min-height: 0;
@@ -196,7 +287,7 @@ function submit() {
   }
 
   :deep(.el-card__footer) {
-    border-top: none; // 去掉默认的顶部线条
+    border-top: none;
     flex-shrink: 0;
   }
 
@@ -215,7 +306,17 @@ function submit() {
   .field-set-footer-left {
     display: flex;
     align-items: center;
-    font-size: 20px; // 与值区 value-footer 图标大小一致
+    font-size: 20px;
+  }
+
+  .field-set-enc-select {
+    width: 100px;
+    margin-left: 12px;
+    font-size: var(--el-font-size-base);
+
+    :deep(.el-select__wrapper) {
+      min-height: 28px;
+    }
   }
 
   .field-value-item {
