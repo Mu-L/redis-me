@@ -55,7 +55,7 @@ import TableGroup from '@/views/ext/TableGroup.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
 import KeyRename from '@/views/key/KeyRename.vue'
 
-import CustomFormat from '../ext/CustomFormat.vue'
+import CustomFormatter from '../ext/CustomFormatter.vue'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 
@@ -971,6 +971,7 @@ function openKeyShortDialog() {
                 style="align-items: center; justify-content: space-between; width: 100%">
                 <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
                 <me-icon
+                  v-if="canEdit"
                   icon="el-icon-edit"
                   :name="t('customFormatter.title')"
                   hint
@@ -1054,7 +1055,7 @@ function openKeyShortDialog() {
     <TTLSet ref="ttlSetRef" @success="setTimer" />
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
     <KeyRename ref="keyRenameRef" />
-    <CustomFormat v-model="customFormatterVisible" />
+    <CustomFormatter v-model="customFormatterVisible" />
 
     <!-- Stream消费者组 -->
     <me-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900">

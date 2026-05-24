@@ -255,7 +255,7 @@ interface CustomFormatter {
 | **新建** `src/utils/custom-formatter.ts` | `runDecode` / `runEncode`、拼 shell 命令、引号转义、超时（默认 30s）                                       |
 | `src/utils/bytes-format.ts`              | `isCustomView`、`isStringOnlyView`、扩展 `viewFmtForField`；`meFormatViewValueAsync` / `meViewToWireAsync` |
 | `src/plugins/tauri.ts`                   | `customFormatters: []` 默认值 + 持久化                                                                     |
-| `src/views/ext/CustomFormat.vue`         | 自定义编解码 CRUD + 测试 decode/encode（数据编码下拉入口）                                                 |
+| `src/views/ext/CustomFormatter.vue`      | 自定义编解码 CRUD + 测试 decode/encode（数据编码下拉入口）                                                 |
 | `src/views/tab/RedisValue.vue`           | `formatOptions` 追加 custom；`displayValue` async；`setValue` encode                                       |
 
 ### bytes-format.ts 辅助逻辑
@@ -314,14 +314,14 @@ export function viewFmtForField(view: ViewBytesFormat): ViewBytesFormat {
 
 ## 改动清单（Phase 1）
 
-| 区域     | 文件                             | 约行数 |
-| -------- | -------------------------------- | ------ |
-| 后端配置 | Cargo.toml, lib.rs, capabilities | ~15    |
-| 前端新建 | custom-formatter.ts              | ~80    |
-| 前端扩展 | bytes-format.ts                  | ~30    |
-| 前端 UI  | CustomFormat.vue, RedisValue.vue | ~120   |
-| 前端配置 | plugins/tauri.ts, locales        | ~20    |
-| **合计** | ~8 文件                          | ~225   |
+| 区域     | 文件                                | 约行数 |
+| -------- | ----------------------------------- | ------ |
+| 后端配置 | Cargo.toml, lib.rs, capabilities    | ~15    |
+| 前端新建 | custom-formatter.ts                 | ~80    |
+| 前端扩展 | bytes-format.ts                     | ~30    |
+| 前端 UI  | CustomFormatter.vue, RedisValue.vue | ~120   |
+| 前端配置 | plugins/tauri.ts, locales           | ~20    |
+| **合计** | ~8 文件                             | ~225   |
 
 ---
 
