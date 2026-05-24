@@ -77,6 +77,7 @@ function sidebarGuide() {
         // {text: '客户端', link: '/usage/client'},
         // {text: '配置', link: '/usage/config'},
         { text: '键值', link: '/usage/value' },
+        { text: '自定义编解码', link: '/usage/codec' },
         { text: '终端', link: '/usage/terminal' },
         { text: '内存分析', link: '/usage/memory' },
         { text: '慢日志', link: '/usage/slowlog' },
