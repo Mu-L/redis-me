@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import MeIcon from '@/components/MeIcon.vue'
 import { commandHelp } from '@/locales/cmd'
 import { shareProvideKey } from '@/types/me-interface'
+import { isReadonlyCommand } from '@/utils/redis-cmd-readonly'
 import { meCopy, meCommands } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
@@ -30,8 +31,8 @@ const welcome = computed(() =>
 
 // 定制化执行命令
 async function execCommand(command: string): Promise<string> {
-  if (!canEdit.value) {
-    return colorText('var(--el-color-warning)', t('redisTerminal.readonlyHint'))
+  if (!canEdit.value && !isReadonlyCommand(command)) {
+    return colorText('var(--el-color-warning)', t('redisTerminal.readonlyWriteHint'))
   }
 
   try {

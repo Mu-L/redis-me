@@ -562,6 +562,7 @@ export default {
     welcome: '欢迎使用 {RedisME} Terminal',
     autoBroadcast: '自动广播',
     readonlyHint: '只读模式下暂不支持执行命令',
+    readonlyWriteHint: '只读模式下不允许执行写入或非只读命令',
     autoCopyHint: '自动复制命令结果',
     commandHint: '查看命令列表',
     commandTitle: '命令列表',
