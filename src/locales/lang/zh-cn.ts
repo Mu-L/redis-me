@@ -216,6 +216,45 @@ export default {
       'Redis Sentinel 哨兵模式<br/>• 多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置<br/>• 主节点用户密码为哨兵监听的Master节点的用户密码',
   },
 
+  customFormatter: {
+    title: '自定义编解码',
+    name: '名称',
+    namePlaceholder: '显示在「数据编码」下拉中',
+    command: '命令',
+    commandHelp: `需填写<b>含解释器的完整命令</b>，例如 python C:\\path\\codec.py<br/><br/>
+<b>程序会自动追加两个参数</b><br/>
+• 参数 1：decode（读）或 encode（写）<br/>
+• 参数 2：Base64 字符串（程序会自动加引号）<br/><br/>
+<b>解码</b>（读 Redis → 编辑器）<br/>
+• 参数 2 为 Redis 原始字节的 Base64<br/>
+• stdout：UTF-8 展示文本（写入编辑器）<br/><br/>
+<b>编码</b>（写 编辑器 → Redis）<br/>
+• 参数 2 为编辑区文本的 UTF-8 字节 Base64<br/>
+• stdout：单行 Redis 原始字节的 Base64（保存时写回 Redis）<br/><br/>
+<b>失败时</b>：优先展示 stderr；退出码非 0 则提示执行失败<br/>
+<b>适用范围</b>：目前仅 STRING 类型键可用`,
+    commandPlaceholder: 'python C:\\path\\codec.py',
+    add: '添加',
+    edit: '编辑',
+    testDecode: '测试解码',
+    testEncode: '测试编码',
+    testSample: '样例 Base64',
+    testOk: '执行成功',
+    execCommand: '执行命令：\n{command}',
+    execError: '错误提示：',
+    emptyCommand: '命令不能为空',
+    notFound: '未找到自定义编解码「{name}」',
+    shellUnavailable: '自定义编解码需在桌面应用中运行',
+    execFailed: '自定义编解码「{name}」执行失败（退出码 {code}）',
+    invalidOutput: '自定义编解码「{name}」输出无效',
+    decodeEmpty: '自定义编解码「{name}」解码结果为空',
+    encodeEmpty: '自定义编解码「{name}」编码结果为空',
+    encodeNotBase64: '自定义编解码「{name}」编码输出不是有效的 Base64',
+    timeout: '自定义编解码「{name}」执行超时（{sec}s）',
+    duplicateName: '名称已存在',
+    nameRequired: '请填写名称',
+  },
+
   util: {
     days: '天',
     deleteKey: '确定删除键【{key}】吗？',

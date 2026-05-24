@@ -8,6 +8,7 @@ import {
   onUnmounted,
   ref,
   useTemplateRef,
+  watch,
   watchEffect,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -23,8 +24,14 @@ import type {
 import {
   BYTES_FORMAT,
   EXT_FORMAT,
+  customFormatName,
+  customFormatValue,
+  isCustomView,
+  isStringOnlyView,
   meFormatViewValue,
+  meFormatViewValueAsync,
   meViewToWire,
+  meViewToWireAsync,
   toWireFormat,
   viewFmtForField,
   type ViewBytesFormat,
@@ -36,6 +43,7 @@ import {
   meCommands,
   meCopy,
   meDeleteKey,
+  meErr,
   meHumanSeconds,
   meHumanSize,
   meFormatDisplayValue,
@@ -47,6 +55,7 @@ import TableGroup from '@/views/ext/TableGroup.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
 import KeyRename from '@/views/key/KeyRename.vue'
 
+import CustomFormat from '../ext/CustomFormat.vue'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 
@@ -156,24 +165,100 @@ const stringTypeOrWithHashKey = computed(
   () => 'string' === redisValue.value?.type || withHashKey.value,
 )
 
+// 值显示方式: BYTES_FORMAT + EXT_FORMAT + custom；扩展项仅在 STRING 键上可选
+const bytesFormat = ref<ViewBytesFormat>('utf8')
+/**
+ * 展示层快照（防切换编码闪烁）：
+ * - bytesFormat：下拉选中项，触发 fieldScan
+ * - displayBytesFormat + displayWire：fieldScan 完成后才更新，供编辑器渲染
+ * - resolvedWireView：custom 异步 decode 结果（仅 custom 时使用）
+ */
+const displayBytesFormat = ref<ViewBytesFormat>('utf8')
+const displayWire = ref('')
+const customFormatterVisible = ref(false)
+
 const formatOptions = computed(() => {
-  const base = BYTES_FORMAT.map(item => ({
-    label: item,
-    value: item.toLowerCase() as ViewBytesFormat,
-    disabled: false,
-  }))
-  const ext = EXT_FORMAT.map(label => ({
-    label,
-    value: label.toLowerCase() as ViewBytesFormat,
+  const builtin = [
+    ...BYTES_FORMAT.map(item => ({
+      label: item,
+      value: item.toLowerCase() as ViewBytesFormat,
+    })),
+    ...EXT_FORMAT.map(label => ({
+      label,
+      value: label.toLowerCase() as ViewBytesFormat,
+      disabled: !stringType.value,
+    })),
+  ]
+  const custom = (window.meTauri.settings.customFormatters ?? []).map(f => ({
+    label: f.name,
+    value: customFormatValue(f.name),
     disabled: !stringType.value,
   }))
-  return [...base, ...ext]
+  return { builtin, custom }
 })
 
-/** 表格/编辑器：wire 单元格 → 当前视图格式 */
+/** 自定义编解码被删或改名后，当前选中项失效则回退 utf8 */
+watch(
+  () => window.meTauri.settings.customFormatters,
+  list => {
+    if (!isCustomView(bytesFormat.value)) return
+    const name = customFormatName(bytesFormat.value)
+    if (!name || !list?.some(f => f.name === name)) {
+      bytesFormat.value = 'utf8'
+      void refreshKey(false)
+    }
+  },
+  { deep: true },
+)
+
+/** STRING 单键：wire → 当前视图文本（custom 异步解码） */
+const resolvedWireView = ref('')
+
+function syncDisplaySnapshot() {
+  const rv = redisValue.value
+  if (!rv || rv.value === null || rv.value === undefined) {
+    displayWire.value = ''
+  } else if (streamType.value) {
+    displayWire.value = JSON.stringify(rv.value)
+  } else {
+    displayWire.value = String(rv.value)
+  }
+  displayBytesFormat.value = bytesFormat.value
+}
+
+async function refreshResolvedWireView() {
+  if (!stringTypeOrWithHashKey.value || !isCustomView(displayBytesFormat.value)) {
+    resolvedWireView.value = ''
+    return
+  }
+  const wire = displayWire.value
+  if (!wire) {
+    resolvedWireView.value = ''
+    return
+  }
+  try {
+    resolvedWireView.value = await meFormatViewValueAsync(wire, displayBytesFormat.value)
+  } catch (e) {
+    resolvedWireView.value = e instanceof Error ? e.message : String(e)
+  }
+}
+
+watch(stringType, isString => {
+  if (!isString && isStringOnlyView(bytesFormat.value)) {
+    bytesFormat.value = 'utf8'
+  }
+})
+
+function stringWireDisplayText(wire: string): string {
+  if (stringType.value && isCustomView(displayBytesFormat.value)) {
+    return resolvedWireView.value
+  }
+  return meFormatViewValue(wire, displayBytesFormat.value)
+}
+
 function formatTableCell(raw: unknown): string {
   const wire = String(raw ?? '')
-  return meFormatViewValue(wire, bytesFormat.value)
+  return stringWireDisplayText(wire)
 }
 
 const showValue = computed(() => {
@@ -182,8 +267,7 @@ const showValue = computed(() => {
 
   if (isPretty.value) {
     if (stringTypeOrWithHashKey.value) {
-      const wire = streamType.value ? JSON.stringify(obj) : obj.toString()
-      const str = meFormatViewValue(wire, bytesFormat.value)
+      const str = stringWireDisplayText(displayWire.value)
       return meFormatDisplayValue(str, isPretty.value)
     } else {
       return JSON.stringify(obj, null, 2)
@@ -198,7 +282,7 @@ const showValue = computed(() => {
       return JSON.stringify(obj)
     }
     if (stringTypeOrWithHashKey.value) {
-      return meFormatViewValue(obj.toString(), bytesFormat.value)
+      return stringWireDisplayText(displayWire.value)
     }
     return obj.toString()
   }
@@ -285,6 +369,7 @@ async function refreshKey(
   }
 
   loading.value = true
+  let replaceData: FieldScanResult | undefined
   try {
     const param = {
       key: share.redisKey!,
@@ -315,29 +400,36 @@ async function refreshKey(
         const merged: unknown[] = [...a, ...b]
         ;(prev as { value: unknown }).value = merged
       } else {
-        redisValue.value = toViewState(data)
+        replaceData = data
       }
     } else {
-      redisValue.value = toViewState(data)
+      replaceData = data
     }
 
     showMore.value = !cursor.value?.finished
-    const rvDone = redisValue.value
+    const rvDone = replaceData ? toViewState(replaceData) : redisValue.value
     if (rvDone) await setTimer(rvDone.ttl)
   } finally {
-    loading.value = false
+    if (replaceData) {
+      redisValue.value = toViewState(replaceData)
+    }
     if (redisValue.value) {
       redisValue.value.newValue = ''
     }
     suppressCodeUpdate.value = false
-    valueEditorRemountKey.value++
     if (reset) applyDefaultViewType()
 
     await nextTick(() => {
       if (jsonType.value) {
         bytesFormat.value = 'utf8'
+      } else if (!stringType.value && isStringOnlyView(bytesFormat.value)) {
+        bytesFormat.value = 'utf8'
       }
     })
+    syncDisplaySnapshot()
+    await refreshResolvedWireView()
+    valueEditorRemountKey.value++
+    loading.value = false
   }
 }
 
@@ -370,10 +462,15 @@ async function setValue() {
     if (jsonType.value || (stringType.value && bytesFormat.value === 'msgpack')) {
       value = meJsonNormal(value)
     }
-    if (stringType.value && bytesFormat.value !== 'utf8') {
+    if (stringType.value && isCustomView(bytesFormat.value)) {
+      value = await meViewToWireAsync(value, bytesFormat.value)
+    } else if (stringType.value && bytesFormat.value !== 'utf8') {
       value = meViewToWire(value, bytesFormat.value)
     }
-  } catch {}
+  } catch (e) {
+    meErr(e instanceof Error ? e.message : String(e))
+    return
+  }
 
   const param = {
     key: share.redisKey!,
@@ -542,8 +639,6 @@ async function showLocation() {
   meOk(msg, true, t('redisValue.locationTitle'), { dangerouslyUseHTMLString: true })
 }
 
-// 值显示方式: BYTES_FORMAT + EXT_FORMAT；EXT_FORMAT 项仅在 STRING 键上可选
-const bytesFormat = ref<ViewBytesFormat>('utf8')
 // 键显示方式
 const showKey = computed(() => {
   const rk = share.redisKey
@@ -638,7 +733,10 @@ function openKeyShortDialog() {
           :key="valueEditorRemountKey"
           :modelValue="showValue"
           :mode="
-            stringTypeOrWithHashKey && bytesFormat !== 'utf8' && bytesFormat !== 'msgpack'
+            stringTypeOrWithHashKey &&
+            displayBytesFormat !== 'utf8' &&
+            displayBytesFormat !== 'msgpack' &&
+            !isCustomView(displayBytesFormat)
               ? 'ignore'
               : 'json'
           "
@@ -864,17 +962,35 @@ function openKeyShortDialog() {
           <el-select
             v-model="bytesFormat"
             :disabled="jsonType || streamType"
+            popper-class="bytes-format-select"
             style="width: 100px"
             @change="refreshKey(false)">
             <template #header>
-              <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
+              <div
+                class="me-flex"
+                style="align-items: center; justify-content: space-between; width: 100%">
+                <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
+                <me-icon
+                  icon="el-icon-edit"
+                  :name="t('customFormatter.title')"
+                  hint
+                  class="icon-btn"
+                  @click.stop="customFormatterVisible = true" />
+              </div>
             </template>
             <el-option
-              v-for="item in formatOptions"
+              v-for="item in formatOptions.builtin"
               :key="item.value"
               :label="item.label"
               :value="item.value"
               :disabled="item.disabled" />
+            <el-option
+              v-for="(item, index) in formatOptions.custom"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+              :disabled="item.disabled"
+              :class="{ 'format-option-custom--first': index === 0 }" />
           </el-select>
           <!-- 加载更多、加载全部 -->
           <div class="me-flex" style="width: 45px; margin-left: 10px" v-if="showMore">
@@ -938,6 +1054,7 @@ function openKeyShortDialog() {
     <TTLSet ref="ttlSetRef" @success="setTimer" />
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
     <KeyRename ref="keyRenameRef" />
+    <CustomFormat v-model="customFormatterVisible" />
 
     <!-- Stream消费者组 -->
     <me-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900">
@@ -1032,6 +1149,16 @@ function openKeyShortDialog() {
     :deep(.el-select-dropdown__item) {
       padding: 0 20px 0 20px;
     }
+  }
+}
+</style>
+
+<style lang="scss">
+/* 下拉层 teleport 到 body，需独立样式 */
+.bytes-format-select {
+  .format-option-custom--first {
+    border-top: 1px solid var(--el-border-color-lighter);
+    margin-top: 4px;
   }
 }
 </style>

@@ -1,16 +1,51 @@
-/** 字节视图格式与 wire(utf8/base64) 编解码；后端仅 utf8/base64，hex/binary/msgpack 在前端处理 */
+/** 字节视图格式与 wire(utf8/base64) 编解码；后端仅 utf8/base64，hex/binary/msgpack/custom 在前端处理 */
 import { decode, encode } from '@msgpack/msgpack'
 import JSON5 from 'json5'
 
 import i18n from '@/locales'
 import type { BytesFormat } from '@/types/tauri-specta'
+import {
+  findCustomFormatter,
+  runDecode,
+  runEncode,
+  type CustomFormatter,
+} from '@/utils/custom-formatter'
 
 const t = i18n.global.t
 
 export const BYTES_FORMAT = ['UTF8', 'Hex', 'Binary', 'Base64'] as const
 
-/** 前端值/键展示格式（hex/binary/msgpack 等编解码均在前端完成） */
-export type ViewBytesFormat = 'utf8' | 'hex' | 'binary' | 'base64' | 'msgpack'
+/** 前端值/键展示格式 */
+export type ViewBytesFormat = 'utf8' | 'hex' | 'binary' | 'base64' | 'msgpack' | `custom:${string}`
+
+export const CUSTOM_FORMAT_PREFIX = 'custom:' as const
+
+export function isCustomView(view: ViewBytesFormat): view is `custom:${string}` {
+  return view.startsWith(CUSTOM_FORMAT_PREFIX)
+}
+
+/** custom 下拉项 value：`custom:${name}` */
+export function customFormatValue(name: string): ViewBytesFormat {
+  return `${CUSTOM_FORMAT_PREFIX}${name}`
+}
+
+/** 从 custom view 解析名称；非 custom 返回 null */
+export function customFormatName(view: ViewBytesFormat): string | null {
+  return isCustomView(view) ? view.slice(CUSTOM_FORMAT_PREFIX.length) : null
+}
+
+/** 仅整键 STRING 可选（MsgPack、自定义 Formatter） */
+export function isStringOnlyView(view: ViewBytesFormat): boolean {
+  return view === 'msgpack' || isCustomView(view)
+}
+
+function resolveCustomFormatter(view: ViewBytesFormat): CustomFormatter {
+  const name = customFormatName(view)
+  if (!name) throw new Error(t('customFormatter.notFound', { name: view }))
+  const formatter = findCustomFormatter(name)
+  if (!formatter) throw new Error(t('customFormatter.notFound', { name }))
+  return formatter
+}
 
 /** STRING 值详情下拉扩展项（仅整键 STRING 可选） */
 export const EXT_FORMAT = ['MsgPack'] as const
@@ -23,9 +58,9 @@ export function toWireFormat(view: ViewBytesFormat): BytesFormat {
   return view === 'utf8' ? 'utf8' : 'base64'
 }
 
-/** 字段弹窗等场景：MsgPack 视图不适用，降级为 utf8 */
+/** 字段弹窗等场景：MsgPack / custom 不适用，降级为 utf8 */
 export function viewFmtForField(view: ViewBytesFormat): ViewBytesFormat {
-  return view === 'msgpack' ? 'utf8' : view
+  return isStringOnlyView(view) ? 'utf8' : view
 }
 
 /** wire 字符串（utf8 或 base64）→ 编辑器/表格展示 */
@@ -34,7 +69,19 @@ export function meFormatViewValue(wire: string, view: ViewBytesFormat): string {
   if (view === 'base64') return wire
   if (view === 'hex' || view === 'binary') return meFormatBytes(wire, view)
   if (view === 'msgpack') return meMsgpackBase64ToJson(wire)
+  if (isCustomView(view)) {
+    throw new Error('custom view requires meFormatViewValueAsync')
+  }
   return wire
+}
+
+/** wire → 展示（含 custom shell 解码；wire 已由 fieldScan 以 base64 返回） */
+export async function meFormatViewValueAsync(wire: string, view: ViewBytesFormat): Promise<string> {
+  if (!wire || view === 'utf8') return wire
+  if (isCustomView(view)) {
+    return runDecode(wire, resolveCustomFormatter(view))
+  }
+  return meFormatViewValue(wire, view)
 }
 
 /** 编辑器/表单输入 → wire 字符串（保存用） */
@@ -43,7 +90,19 @@ export function meViewToWire(text: string, view: ViewBytesFormat): string {
   if (view === 'base64') return text
   if (view === 'hex' || view === 'binary') return meToBase64(text, view)
   if (view === 'msgpack') return meJsonToMsgpackBase64(text)
+  if (isCustomView(view)) {
+    throw new Error('custom view requires meViewToWireAsync')
+  }
   return text
+}
+
+/** 编辑区 → wire（含 custom shell 编码） */
+export async function meViewToWireAsync(text: string, view: ViewBytesFormat): Promise<string> {
+  if (!text || view === 'utf8') return text
+  if (isCustomView(view)) {
+    return runEncode(text, resolveCustomFormatter(view))
+  }
+  return meViewToWire(text, view)
 }
 
 export function meFormatBytes(base64: string, bytesFormat: string): string {

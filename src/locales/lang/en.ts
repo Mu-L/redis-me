@@ -222,6 +222,45 @@ export default {
       'Redis Cluster Mode<br/>• Choose any one of multiple sentinels, please fill in sentinel configuration for address, port, and password<br/>• Master node username and password are for the Master node monitored by the sentinel',
   },
 
+  customFormatter: {
+    title: 'Custom Codec',
+    name: 'Name',
+    namePlaceholder: 'Shown in the encoding dropdown',
+    command: 'Command',
+    commandHelp: `Enter the <b>full command with interpreter</b>, e.g. python C:\\path\\codec.py<br/><br/>
+<b>The app appends two arguments</b><br/>
+• Arg 1: decode (read) or encode (write)<br/>
+• Arg 2: Base64 string (quoted by the app)<br/><br/>
+<b>Decode</b> (Redis → editor)<br/>
+• Arg 2: Base64 of raw Redis bytes<br/>
+• stdout: UTF-8 text for the editor<br/><br/>
+<b>Encode</b> (editor → Redis)<br/>
+• Arg 2: Base64 of editor text as UTF-8 bytes<br/>
+• stdout: one line of Base64 raw Redis bytes (written on save)<br/><br/>
+<b>On failure</b>: stderr is shown first; non-zero exit code shows an exec error<br/>
+<b>Scope</b>: STRING keys only for now`,
+    commandPlaceholder: 'python C:\\path\\codec.py',
+    add: 'Add',
+    edit: 'Edit',
+    testDecode: 'Test Decode',
+    testEncode: 'Test Encode',
+    testSample: 'Sample Base64',
+    testOk: 'Success',
+    execCommand: 'Executed command:\n{command}',
+    execError: 'Error:',
+    emptyCommand: 'Command is required',
+    notFound: 'Custom codec "{name}" not found',
+    shellUnavailable: 'Custom codecs require the desktop app',
+    execFailed: 'Custom codec "{name}" failed (exit code {code})',
+    invalidOutput: 'Custom codec "{name}" returned invalid output',
+    decodeEmpty: 'Custom codec "{name}" decode returned empty',
+    encodeEmpty: 'Custom codec "{name}" encode returned empty',
+    encodeNotBase64: 'Custom codec "{name}" encode output is not valid Base64',
+    timeout: 'Custom codec "{name}" timed out ({sec}s)',
+    duplicateName: 'Name already exists',
+    nameRequired: 'Name is required',
+  },
+
   util: {
     days: 'd',
     deleteKey: 'Delete [{key}]?',

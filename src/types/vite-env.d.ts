@@ -25,6 +25,9 @@ declare global {
       uiFont?: string[]
       codeFont?: string[]
       autoUpdate?: boolean
+      /** 自定义 STRING 值编解码脚本配置 */
+      customFormatters?: { name: string; command: string }[]
+      formatterExecTimeoutSec?: number
     }
     systemTheme: string
     systemLanguage: string

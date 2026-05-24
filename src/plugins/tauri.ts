@@ -56,6 +56,9 @@ const initSettings = {
   connShow: 'flat', // 'flat' | 'group'
   connGroups: [] as string[], // 分组名有序列表
   connGroupExpanded: {} as Record<string, boolean>, // 分组折叠状态，键为分组名（''=默认分组）
+  // 自定义 Formatter（STRING 值编解码，见 plans/custom-formatter.md）
+  customFormatters: [] as { name: string; command: string }[],
+  formatterExecTimeoutSec: 30,
 }
 const settings = { ...initSettings, ...storeSettings }
 if (settings.fieldShow !== 'auto' && settings.fieldShow !== 'table') settings.fieldShow = 'auto'
@@ -70,6 +73,10 @@ if (
   Array.isArray(settings.connGroupExpanded)
 ) {
   settings.connGroupExpanded = {}
+}
+if (!Array.isArray(settings.customFormatters)) settings.customFormatters = []
+if (typeof settings.formatterExecTimeoutSec !== 'number' || settings.formatterExecTimeoutSec <= 0) {
+  settings.formatterExecTimeoutSec = 30
 }
 const meTauri = reactive({
   // 响应式，自动保存
