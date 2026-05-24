@@ -968,7 +968,7 @@ function openKeyShortDialog() {
             <template #header>
               <div
                 class="me-flex"
-                style="align-items: center; justify-content: space-between; width: 100%">
+                style="align-items: center; justify-content: space-evenly; width: 100%">
                 <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
                 <me-icon
                   v-if="canEdit"
@@ -976,6 +976,7 @@ function openKeyShortDialog() {
                   :name="t('customFormatter.title')"
                   hint
                   class="icon-btn"
+                  style="margin-left: 5px"
                   @click.stop="customFormatterVisible = true" />
               </div>
             </template>
@@ -991,7 +992,7 @@ function openKeyShortDialog() {
               :label="item.label"
               :value="item.value"
               :disabled="item.disabled"
-              :class="{ 'format-option-custom--first': index === 0 }" />
+              style="color: var(--el-color-danger)" />
           </el-select>
           <!-- 加载更多、加载全部 -->
           <div class="me-flex" style="width: 45px; margin-left: 10px" v-if="showMore">
@@ -1150,16 +1151,6 @@ function openKeyShortDialog() {
     :deep(.el-select-dropdown__item) {
       padding: 0 20px 0 20px;
     }
-  }
-}
-</style>
-
-<style lang="scss">
-/* 下拉层 teleport 到 body，需独立样式 */
-.bytes-format-select {
-  .format-option-custom--first {
-    border-top: 1px solid var(--el-border-color-lighter);
-    margin-top: 4px;
   }
 }
 </style>
