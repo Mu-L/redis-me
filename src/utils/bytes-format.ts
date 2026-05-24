@@ -1,4 +1,4 @@
-/** 字节视图格式与 wire(utf8/base64) 编解码；后端仅 utf8/base64，hex/binary/msgpack/custom 在前端处理 */
+/** 字节视图格式与 wire(utf8/base64) 编解码；后端仅 utf8/base64，hex/binary/msgpack/strjson/custom 在前端处理 */
 import { decode, encode } from '@msgpack/msgpack'
 import JSON5 from 'json5'
 
@@ -16,7 +16,14 @@ const t = i18n.global.t
 export const BYTES_FORMAT = ['UTF8', 'Hex', 'Binary', 'Base64'] as const
 
 /** 前端值/键展示格式 */
-export type ViewBytesFormat = 'utf8' | 'hex' | 'binary' | 'base64' | 'msgpack' | `custom:${string}`
+export type ViewBytesFormat =
+  | 'utf8'
+  | 'hex'
+  | 'binary'
+  | 'base64'
+  | 'msgpack'
+  | 'strjson'
+  | `custom:${string}`
 
 export const CUSTOM_FORMAT_PREFIX = 'custom:' as const
 
@@ -34,9 +41,9 @@ export function customFormatName(view: ViewBytesFormat): string | null {
   return isCustomView(view) ? view.slice(CUSTOM_FORMAT_PREFIX.length) : null
 }
 
-/** 仅整键 STRING 可选（MsgPack、自定义 Formatter） */
+/** 仅整键 STRING 可选（MsgPack、StrJson、自定义 Formatter） */
 export function isStringOnlyView(view: ViewBytesFormat): boolean {
-  return view === 'msgpack' || isCustomView(view)
+  return view === 'msgpack' || view === 'strjson' || isCustomView(view)
 }
 
 function resolveCustomFormatter(view: ViewBytesFormat): CustomFormatter {
@@ -48,14 +55,17 @@ function resolveCustomFormatter(view: ViewBytesFormat): CustomFormatter {
 }
 
 /** STRING 值详情下拉扩展项（仅整键 STRING 可选） */
-export const EXT_FORMAT = ['MsgPack'] as const
+export const EXT_FORMAT = ['MsgPack', 'StrJson'] as const
 
 /** MsgPack 解码失败时的固定提示 */
 export const MSGPACK_DECODE_ERR = 'MsgPack Decode Error !'
 
-/** 视图格式 → 后端 wire 格式（非 utf8 一律 base64） */
+/** StrJson 解码失败时的固定提示 */
+export const STRJSON_DECODE_ERR = 'StrJson Decode Error !'
+
+/** 视图格式 → 后端 wire 格式（utf8/strjson 为文本，其余非 utf8 视图用 base64） */
 export function toWireFormat(view: ViewBytesFormat): BytesFormat {
-  return view === 'utf8' ? 'utf8' : 'base64'
+  return view === 'utf8' || view === 'strjson' ? 'utf8' : 'base64'
 }
 
 /** 字段弹窗等场景：MsgPack / custom 不适用，降级为 utf8 */
@@ -69,6 +79,7 @@ export function meFormatViewValue(wire: string, view: ViewBytesFormat): string {
   if (view === 'base64') return wire
   if (view === 'hex' || view === 'binary') return meFormatBytes(wire, view)
   if (view === 'msgpack') return meMsgpackBase64ToJson(wire)
+  if (view === 'strjson') return meStrJsonWireToDisplay(wire)
   if (isCustomView(view)) {
     throw new Error('custom view requires meFormatViewValueAsync')
   }
@@ -90,6 +101,7 @@ export function meViewToWire(text: string, view: ViewBytesFormat): string {
   if (view === 'base64') return text
   if (view === 'hex' || view === 'binary') return meToBase64(text, view)
   if (view === 'msgpack') return meJsonToMsgpackBase64(text)
+  if (view === 'strjson') return meDisplayToStrJsonWire(text)
   if (isCustomView(view)) {
     throw new Error('custom view requires meViewToWireAsync')
   }
@@ -203,4 +215,30 @@ export function meMsgpackBase64ToJson(base64: string): string {
 export function meJsonToMsgpackBase64(json: string): string {
   const v = JSON5.parse(json.trim())
   return uint8ArrayToBase64(encode(v))
+}
+
+/** 解包 JSON 字符串层；外层必须是 JSON 字符串（非普通 JSON 对象文本） */
+function unwrapStrJsonValue(wire: string): unknown {
+  const parsed = JSON5.parse(wire.trim())
+  if (typeof parsed !== 'string') {
+    throw new Error('StrJson wire is not a JSON string wrapper')
+  }
+  return JSON5.parse(parsed.trim())
+}
+
+/** StrJson wire(utf8) → 编辑器 JSON 文本（解包一层 JSON 字符串并格式化） */
+export function meStrJsonWireToDisplay(wire: string): string {
+  if (!wire) return ''
+  try {
+    const value = unwrapStrJsonValue(wire)
+    return JSON.stringify(value, null, 2)
+  } catch {
+    return `${STRJSON_DECODE_ERR}\n\n${wire}`
+  }
+}
+
+/** 编辑器 JSON 文本 → StrJson wire(utf8)（compact 后再 stringify 一层） */
+export function meDisplayToStrJsonWire(text: string): string {
+  const value = JSON5.parse(text.trim())
+  return JSON.stringify(JSON.stringify(value))
 }

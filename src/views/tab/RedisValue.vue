@@ -459,7 +459,10 @@ async function setValue() {
 
   // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
   try {
-    if (jsonType.value || (stringType.value && bytesFormat.value === 'msgpack')) {
+    if (
+      jsonType.value ||
+      (stringType.value && (bytesFormat.value === 'msgpack' || bytesFormat.value === 'strjson'))
+    ) {
       value = meJsonNormal(value)
     }
     if (stringType.value && isCustomView(bytesFormat.value)) {
@@ -736,6 +739,7 @@ function openKeyShortDialog() {
             stringTypeOrWithHashKey &&
             displayBytesFormat !== 'utf8' &&
             displayBytesFormat !== 'msgpack' &&
+            displayBytesFormat !== 'strjson' &&
             !isCustomView(displayBytesFormat)
               ? 'ignore'
               : 'json'
