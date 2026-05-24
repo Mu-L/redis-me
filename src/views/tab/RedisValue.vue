@@ -28,6 +28,7 @@ import {
   customFormatValue,
   isCustomView,
   isStringOnlyView,
+  isViewDecodeError,
   meFormatViewValue,
   meFormatViewValueAsync,
   meViewToWire,
@@ -213,6 +214,17 @@ watch(
 
 /** STRING 单键：wire → 当前视图文本（custom 异步解码） */
 const resolvedWireView = ref('')
+const customDecodeFailed = ref(false)
+
+const viewDecodeFailed = computed(() => {
+  if (!stringType.value) return false
+  const fmt = displayBytesFormat.value
+  if (fmt === 'utf8' || fmt === 'hex' || fmt === 'binary' || fmt === 'base64') return false
+  const wire = displayWire.value
+  if (!wire) return false
+  if (isCustomView(fmt)) return customDecodeFailed.value
+  return isViewDecodeError(meFormatViewValue(wire, fmt))
+})
 
 function syncDisplaySnapshot() {
   const rv = redisValue.value
@@ -229,17 +241,21 @@ function syncDisplaySnapshot() {
 async function refreshResolvedWireView() {
   if (!stringTypeOrWithHashKey.value || !isCustomView(displayBytesFormat.value)) {
     resolvedWireView.value = ''
+    customDecodeFailed.value = false
     return
   }
   const wire = displayWire.value
   if (!wire) {
     resolvedWireView.value = ''
+    customDecodeFailed.value = false
     return
   }
   try {
     resolvedWireView.value = await meFormatViewValueAsync(wire, displayBytesFormat.value)
+    customDecodeFailed.value = false
   } catch (e) {
     resolvedWireView.value = e instanceof Error ? e.message : String(e)
+    customDecodeFailed.value = true
   }
 }
 
@@ -1017,7 +1033,7 @@ function openKeyShortDialog() {
           <!-- 保存 -->
           <me-button
             style="margin-left: 10px"
-            :disabled="!redisValue?.newValue"
+            :disabled="viewDecodeFailed || !redisValue?.newValue"
             v-if="canSave"
             :info="t('save')"
             type="primary"

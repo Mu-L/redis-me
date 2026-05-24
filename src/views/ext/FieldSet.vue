@@ -11,6 +11,7 @@ import {
   defaultFieldViewFmt,
   fieldViewOptions,
   isCustomView,
+  isViewDecodeError,
   meFormatViewValue,
   meFormatViewValueAsync,
   meViewToWire,
@@ -69,6 +70,7 @@ const keyWireFmt = ref<BytesFormat>('utf8')
 const fieldViewFmt = ref<ViewBytesFormat>('utf8')
 const fieldPretty = ref(true)
 const editorLoading = ref(false)
+const decodeFailed = ref(false)
 const codeRemountKey = ref(0)
 
 const customNames = computed(() =>
@@ -86,10 +88,12 @@ async function syncFieldEditor() {
   const fmt = fieldViewFmt.value
   if (!wire) {
     form.value.fieldValue = ''
+    decodeFailed.value = false
     return
   }
   if (!fieldPretty.value && fmt === 'strjson') {
     form.value.fieldValue = wire
+    decodeFailed.value = false
     return
   }
   editorLoading.value = true
@@ -101,8 +105,10 @@ async function syncFieldEditor() {
     } else {
       form.value.fieldValue = meFormatViewValue(wire, fmt)
     }
+    decodeFailed.value = isViewDecodeError(form.value.fieldValue)
   } catch (e) {
     form.value.fieldValue = e instanceof Error ? e.message : String(e)
+    decodeFailed.value = true
   } finally {
     editorLoading.value = false
   }
@@ -261,7 +267,9 @@ function submit() {
         </div>
         <div>
           <el-button @click="cancel">{{ t('cancel') }}</el-button>
-          <el-button type="primary" :loading="isSaving" @click="submit">{{ t('save') }}</el-button>
+          <el-button type="primary" :loading="isSaving" :disabled="decodeFailed" @click="submit">{{
+            t('save')
+          }}</el-button>
         </div>
       </div>
     </template>

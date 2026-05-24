@@ -55,13 +55,18 @@ function resolveCustomFormatter(view: ViewBytesFormat): CustomFormatter {
 }
 
 /** STRING 值详情下拉扩展项（仅整键 STRING 可选） */
-export const EXT_FORMAT = ['MsgPack', 'StrJson'] as const
+export const EXT_FORMAT = ['StrJson', 'MsgPack'] as const
 
 /** MsgPack 解码失败时的固定提示 */
 export const MSGPACK_DECODE_ERR = 'MsgPack Decode Error !'
 
 /** StrJson 解码失败时的固定提示 */
 export const STRJSON_DECODE_ERR = 'StrJson Decode Error !'
+
+/** 展示文本是否为内置解码器失败结果（MsgPack / StrJson） */
+export function isViewDecodeError(text: string): boolean {
+  return text.startsWith(MSGPACK_DECODE_ERR) || text.startsWith(STRJSON_DECODE_ERR)
+}
 
 /** 视图格式 → 后端 wire 格式（utf8/strjson 为文本，其余非 utf8 视图用 base64） */
 export function toWireFormat(view: ViewBytesFormat): BytesFormat {
