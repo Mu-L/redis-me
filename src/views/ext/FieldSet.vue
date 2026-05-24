@@ -5,10 +5,15 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisFieldSet_Deserialize } from '@/types/tauri-specta'
+import { meViewToWire, type ViewBytesFormat } from '@/utils/bytes-format'
 import { meCommands, meCopy, meFormatDisplayValue, meOk } from '@/utils/util'
 
-/** 含 UI 用 type，提交时剔除 */
-type FieldSetForm = RedisFieldSet_Deserialize & { type: string }
+/** 含 UI 用 type / viewValFmt / wireFieldKey，提交时剔除 */
+type FieldSetForm = RedisFieldSet_Deserialize & {
+  type: string
+  viewValFmt?: ViewBytesFormat
+  wireFieldKey?: string
+}
 
 const props = withDefaults(
   defineProps<{
@@ -34,7 +39,7 @@ const initForm: FieldSetForm = {
     bytes: '',
   },
   type: 'string',
-  srcFieldValue: '', // set/zset 需要先删除原始值再新增新的值
+  srcFieldValue: '', // set/zset 删除原成员用的 wire 值
   fieldIndex: 0,
   fieldKey: '',
   fieldValue: '',
@@ -43,7 +48,8 @@ const initForm: FieldSetForm = {
   valFmt: 'utf8',
 }
 const form = ref<FieldSetForm>(cloneDeep(initForm))
-/** 打开时的原始字段值，关闭美化时用于查看 Redis 原始内容 */
+const viewValFmt = ref<ViewBytesFormat>('utf8')
+/** 打开时的展示用字段值，关闭美化时用于查看原始 wire 文本 */
 const rawFieldValue = ref('')
 /** 面板内美化开关，open 时与外部 isPretty 同步，可临时切换 */
 const fieldPretty = ref(true)
@@ -53,6 +59,7 @@ function open(data: Partial<FieldSetForm>) {
   visible.value = true
   Object.assign(form.value, cloneDeep(initForm))
   Object.assign(form.value, data)
+  viewValFmt.value = data.viewValFmt ?? 'utf8'
   rawFieldValue.value = String(data.fieldValue ?? '')
   fieldPretty.value = props.pretty
   form.value.fieldValue = meFormatDisplayValue(rawFieldValue.value, fieldPretty.value)
@@ -93,8 +100,16 @@ function submit() {
 
     isSaving.value = true
     try {
-      const { type: _type, ...param } = form.value
-      await meCommands.fieldSet(share.conn!.id, param)
+      const { type: _type, viewValFmt: _viewValFmt, wireFieldKey, ...rest } = form.value
+      const fmt = viewValFmt.value
+      await meCommands.fieldSet(share.conn!.id, {
+        ...rest,
+        fieldKey:
+          form.value.type === 'hash' && wireFieldKey
+            ? wireFieldKey
+            : meViewToWire(form.value.fieldKey, fmt),
+        fieldValue: meViewToWire(form.value.fieldValue, fmt),
+      })
       visible.value = false
       emit('success')
       meOk(t('editOk'))

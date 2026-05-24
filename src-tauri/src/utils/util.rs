@@ -12,7 +12,6 @@ use redis::streams::{StreamId, StreamInfoConsumer, StreamInfoGroup, StreamRangeR
 use redis::{FromRedisValue, Value, ValueType};
 use serde_json::{Map, Value as JsonValue};
 use std::collections::{HashMap, HashSet};
-use std::io::Cursor;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -108,86 +107,17 @@ pub fn vec8_to_display_string(bytes: &[u8]) -> String {
     String::from_utf8_lossy(bytes).to_string()
 }
 
-/// 展示用 MsgPack 解码失败时的固定提示（与具体原因无关）
-pub const MSGPACK_DECODE_ERR: &str = "MsgPack Decode Error !";
-
-/// MsgPack 字节解码为 JSON 格式化字符串（用于 STRING 展示）
-///
-/// 必须**完整消费**输入字节。否则普通 UTF-8 文本（如 `ABC`）的首字节可能被误读为 fixint。
-pub fn msgpack_bytes_to_json_pretty(bytes: &[u8]) -> AnyResult<String> {
-    let mut cur = Cursor::new(bytes);
-    let v: serde_json::Value =
-        rmp_serde::from_read(&mut cur).map_err(|_| anyhow::anyhow!(MSGPACK_DECODE_ERR))?;
-    let consumed = cur.position() as usize;
-    if consumed != bytes.len() {
-        bail!(MSGPACK_DECODE_ERR);
-    }
-    serde_json::to_string_pretty(&v).map_err(|_| anyhow::anyhow!(MSGPACK_DECODE_ERR))
-}
-
-/// JSON 文本编码为 MsgPack 字节（用于 STRING 保存）
-pub fn json_str_to_msgpack_bytes(input: &str) -> AnyResult<Vec<u8>> {
-    let v: serde_json::Value = serde_json::from_str(input.trim())
-        .map_err(|e| anyhow::anyhow!("JSON parse error: {}", e))?;
-    rmp_serde::to_vec_named(&v).map_err(|e| anyhow::anyhow!("MsgPack encode error: {}", e))
-}
-
-/// 按指定格式转换字节数组
+/// 按 wire 格式将字节转为 IPC 字符串
 pub fn format_bytes(bytes: &[u8], format: &BytesFormat) -> String {
     match format {
-        BytesFormat::Hex => bytes
-            .iter()
-            .map(|b| format!("{:02X}", b))
-            .collect::<Vec<_>>()
-            .join(""),
-        BytesFormat::Binary => bytes
-            .iter()
-            .map(|b| format!("{:08b}", b))
-            .collect::<Vec<_>>()
-            .join(""),
         BytesFormat::Base64 => BASE64_STANDARD.encode(bytes),
         BytesFormat::UTF8 => vec8_to_display_string(bytes),
-        // 非 STRING 场景不应选 MsgPack；若误入则尝试解码以便排错
-        BytesFormat::Msgpack => msgpack_bytes_to_json_pretty(bytes).unwrap_or_else(|_| {
-            format!(
-                "{}\n\n{}",
-                MSGPACK_DECODE_ERR,
-                vec8_to_display_string(bytes)
-            )
-        }),
     }
 }
 
-/// 解析指定格式的字符串为字节数组
+/// 将 IPC 字符串解析为字节（hex/binary/msgpack 等在前端转为 base64 后再传入）
 pub fn parse_bytes(input: &str, format: &BytesFormat) -> AnyResult<Vec<u8>> {
     match format {
-        BytesFormat::Msgpack => bail!("MsgPack must use json_str_to_msgpack_bytes for encoding"),
-        BytesFormat::Hex => {
-            // 直接解析十六进制
-            if !input.len().is_multiple_of(2) {
-                bail!("Invalid hex string: odd number of characters");
-            }
-            (0..input.len())
-                .step_by(2)
-                .map(|i| {
-                    u8::from_str_radix(&input[i..i + 2], 16)
-                        .map_err(|e| anyhow::anyhow!("Invalid hex character: {}", e))
-                })
-                .collect()
-        }
-        BytesFormat::Binary => {
-            // 直接解析二进制
-            if !input.len().is_multiple_of(8) {
-                bail!("Invalid binary string: length not multiple of 8");
-            }
-            (0..input.len())
-                .step_by(8)
-                .map(|i| {
-                    u8::from_str_radix(&input[i..i + 8], 2)
-                        .map_err(|e| anyhow::anyhow!("Invalid binary character: {}", e))
-                })
-                .collect()
-        }
         BytesFormat::Base64 => BASE64_STANDARD
             .decode(input)
             .map_err(|e| anyhow::anyhow!("Base64 decode error: {}", e)),

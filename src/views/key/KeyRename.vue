@@ -4,7 +4,8 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisKey_Deserialize } from '@/types/tauri-specta'
-import { BYTES_FORMAT, meCommands, meErr, meFormatBytes, meOk, meToBase64 } from '@/utils/util'
+import { BYTES_FORMAT, meFormatBytes, meToBase64 } from '@/utils/bytes-format'
+import { meCommands, meErr, meOk } from '@/utils/util'
 
 const { t } = useI18n()
 const share = inject(shareProvideKey)!

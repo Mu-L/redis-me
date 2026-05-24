@@ -14,7 +14,6 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type {
-  BytesFormat,
   FieldScanResult,
   RedisFieldDel_Deserialize,
   RedisKey_Deserialize,
@@ -22,9 +21,16 @@ import type {
   XInfoGroup,
 } from '@/types/tauri-specta'
 import {
-  bus,
   BYTES_FORMAT,
   EXT_FORMAT,
+  meFormatViewValue,
+  meViewToWire,
+  toWireFormat,
+  viewFmtForField,
+  type ViewBytesFormat,
+} from '@/utils/bytes-format'
+import {
+  bus,
   KEY_DELETE,
   KEY_REFRESH,
   meCommands,
@@ -153,34 +159,48 @@ const stringTypeOrWithHashKey = computed(
 const formatOptions = computed(() => {
   const base = BYTES_FORMAT.map(item => ({
     label: item,
-    value: item.toLowerCase() as BytesFormat,
+    value: item.toLowerCase() as ViewBytesFormat,
     disabled: false,
   }))
   const ext = EXT_FORMAT.map(label => ({
     label,
-    value: label.toLowerCase() as BytesFormat,
+    value: label.toLowerCase() as ViewBytesFormat,
     disabled: !stringType.value,
   }))
   return [...base, ...ext]
 })
+
+/** 表格/编辑器：wire 单元格 → 当前视图格式 */
+function formatTableCell(raw: unknown): string {
+  const wire = String(raw ?? '')
+  return meFormatViewValue(wire, bytesFormat.value)
+}
+
 const showValue = computed(() => {
   const obj = redisValue.value?.value
   if (obj === null || obj === undefined) return ''
 
   if (isPretty.value) {
     if (stringTypeOrWithHashKey.value) {
-      const str = streamType.value ? JSON.stringify(obj) : obj.toString()
+      const wire = streamType.value ? JSON.stringify(obj) : obj.toString()
+      const str = meFormatViewValue(wire, bytesFormat.value)
       return meFormatDisplayValue(str, isPretty.value)
     } else {
       return JSON.stringify(obj, null, 2)
     }
   } else {
-    return ('hash' === redisValue.value?.type && !withHashKey.value) ||
-      'zset' === redisValue.value?.type || // zset包含分数
+    if (
+      ('hash' === redisValue.value?.type && !withHashKey.value) ||
+      'zset' === redisValue.value?.type ||
       'json' === redisValue.value?.type ||
       'stream' === redisValue.value?.type
-      ? JSON.stringify(obj)
-      : obj.toString()
+    ) {
+      return JSON.stringify(obj)
+    }
+    if (stringTypeOrWithHashKey.value) {
+      return meFormatViewValue(obj.toString(), bytesFormat.value)
+    }
+    return obj.toString()
   }
 })
 
@@ -206,9 +226,9 @@ const filterDataList = computed(() => {
   const key = tableKeyword.value.toLowerCase()
   return dataList.value.filter(row => {
     if (!key) return true
-    if ((row.key?.toLowerCase() ?? '').indexOf(key) > -1) return true
+    if ((formatTableCell(row.key).toLowerCase() ?? '').indexOf(key) > -1) return true
     if ((row.id?.toLowerCase() ?? '').indexOf(key) > -1) return true
-    const cell = streamType.value ? JSON.stringify(row.value) : String(row.value ?? '')
+    const cell = streamType.value ? JSON.stringify(row.value) : formatTableCell(row.value)
     if (cell.toLowerCase().indexOf(key) > -1) return true
     if ((row.score?.toString() ?? '').toLowerCase().indexOf(key) > -1) return true
     return false
@@ -273,7 +293,7 @@ async function refreshKey(
       cursor: cursor.value,
       loadAll,
       meta: meta.value,
-      bytesFormat: bytesFormat.value as BytesFormat,
+      bytesFormat: toWireFormat(bytesFormat.value),
     }
 
     const data = await meCommands.fieldScan(share.conn!.id, param)
@@ -348,7 +368,10 @@ async function setValue() {
   // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
   try {
     if (jsonType.value || (stringType.value && bytesFormat.value === 'msgpack')) {
-      value = meJsonNormal(value) // JSON / MsgPack 编辑区：支持 JSON5，落盘为严格 JSON
+      value = meJsonNormal(value)
+    }
+    if (stringType.value && bytesFormat.value !== 'utf8') {
+      value = meViewToWire(value, bytesFormat.value)
     }
   } catch {}
 
@@ -357,7 +380,7 @@ async function setValue() {
     value,
     ttl: rv.ttl,
     keyType: rv.type,
-    inputFormat: bytesFormat.value,
+    inputFormat: toWireFormat(bytesFormat.value),
   }
   await meCommands.set(share.conn!.id, param)
   meOk(t('saveOk'))
@@ -385,7 +408,8 @@ function fieldAdd() {
   fieldAddRef.value?.open({
     mode: 'field',
     type: rv.type,
-    valFmt: valueFmtForField(),
+    valFmt: toWireFormat(viewFmtForField(bytesFormat.value)),
+    viewValFmt: viewFmtForField(bytesFormat.value),
     key: { ...share.redisKey! },
   })
 }
@@ -401,16 +425,19 @@ function fieldSet(row: ValueTableRow, index: number) {
   const rv = redisValue.value
   if (!rv) return
   fieldSetIndex.value = index
-  const rowValStr = String(row.value ?? '')
+  const rowValWire = String(row.value ?? '')
+  const fieldViewFmt = viewFmtForField(bytesFormat.value)
   const params = {
-    fieldKey: row.key || '',
-    fieldValue: rowValStr,
+    fieldKey: meFormatViewValue(row.key || '', fieldViewFmt),
+    fieldValue: meFormatViewValue(rowValWire, fieldViewFmt),
     fieldScore: row.score || 0,
     fieldTtl: row.ttl ?? -1,
-    srcFieldValue: rowValStr,
+    srcFieldValue: rowValWire,
+    wireFieldKey: row.key || '',
     type: rv.type,
     key: share.redisKey!,
-    valFmt: valueFmtForField(),
+    valFmt: toWireFormat(fieldViewFmt),
+    viewValFmt: fieldViewFmt,
     fieldIndex: -1,
   }
   if (rv.type === 'list') {
@@ -445,12 +472,14 @@ function rowClick(row: ValueTableRow, _column: unknown, event: MouseEvent) {
 async function fieldDel(row: ValueTableRow) {
   const rv = redisValue.value
   if (!rv) return
+  const fieldViewFmt = viewFmtForField(bytesFormat.value)
   const param: RedisFieldDel_Deserialize = {
     fieldKey: row.key || '',
     fieldValue: String(row.value ?? ''),
     key: share.redisKey!,
     streamId: row.id || '',
     fieldIndex: -1,
+    valFmt: toWireFormat(fieldViewFmt),
   }
   if (rv.type === 'list') {
     param.fieldIndex = fieldValueRows(rv.value).indexOf(row.value)
@@ -514,12 +543,7 @@ async function showLocation() {
 }
 
 // 值显示方式: BYTES_FORMAT + EXT_FORMAT；EXT_FORMAT 项仅在 STRING 键上可选
-const bytesFormat = ref<BytesFormat>('utf8')
-
-/** 字段弹窗不用 MsgPack（仅整串 STRING 详情支持） */
-function valueFmtForField(): BytesFormat {
-  return bytesFormat.value === 'msgpack' ? 'utf8' : bytesFormat.value
-}
+const bytesFormat = ref<ViewBytesFormat>('utf8')
 // 键显示方式
 const showKey = computed(() => {
   const rk = share.redisKey
@@ -703,10 +727,16 @@ function openKeyShortDialog() {
                 :label="t('redisValue.key')"
                 prop="key"
                 show-overflow-tooltip
-                v-if="redisValue.type === 'hash'" />
+                v-if="redisValue.type === 'hash'">
+                <template #default="scope">
+                  {{ formatTableCell(scope.row.key) }}
+                </template>
+              </el-table-column>
               <el-table-column :label="t('redisValue.value')" prop="value" show-overflow-tooltip>
                 <template #default="scope">
-                  {{ streamType ? JSON.stringify(scope.row.value) : scope.row.value }}
+                  {{
+                    streamType ? JSON.stringify(scope.row.value) : formatTableCell(scope.row.value)
+                  }}
                 </template>
               </el-table-column>
               <el-table-column
@@ -736,7 +766,11 @@ function openKeyShortDialog() {
                       icon="el-icon-document-copy"
                       class="icon-btn"
                       @click.stop="
-                        meCopy(streamType ? JSON.stringify(scope.row.value) : scope.row.value)
+                        meCopy(
+                          streamType
+                            ? JSON.stringify(scope.row.value)
+                            : formatTableCell(scope.row.value),
+                        )
                       " />
                     <me-icon
                       :info="t('edit')"

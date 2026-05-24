@@ -58,10 +58,8 @@ export const commands = {
 };
 
 /* Types */
-// 字节在界面中的表示/编解码方式（UTF-8 文本、Hex、Binary、Base64、MsgPack→JSON）
-export type BytesFormat = "utf8" | "hex" | "binary" | "base64" | 
-// MessagePack：仅 STRING 类型读写；展示为 JSON 文本，保存时自 JSON 编码为 MsgPack
-"msgpack";
+// 前后端 IPC 字节格式：utf8 文本或 base64 原始字节（hex/binary/msgpack 等视图格式在前端处理）
+export type BytesFormat = "utf8" | "base64";
 
 export type ConnConfig = {
 	id: string,
@@ -257,6 +255,7 @@ export type RedisFieldDel_Deserialize = {
 	fieldKey: string,
 	fieldValue: string,
 	streamId: string,
+	valFmt: BytesFormat | null,
 };
 
 export type RedisFieldDel_Serialize = {
@@ -265,6 +264,7 @@ export type RedisFieldDel_Serialize = {
 	fieldKey: string,
 	fieldValue: string,
 	streamId: string,
+	valFmt: BytesFormat | null,
 };
 
 export type RedisFieldSet = RedisFieldSet_Serialize | RedisFieldSet_Deserialize;

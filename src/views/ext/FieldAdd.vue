@@ -5,14 +5,15 @@ import { computed, inject, ref, toRaw, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
-import type {
-  BytesFormat,
-  RedisFieldAdd_Deserialize,
-  RedisKey_Deserialize,
-} from '@/types/tauri-specta'
+import type { RedisFieldAdd_Deserialize, RedisKey_Deserialize } from '@/types/tauri-specta'
+import {
+  BYTES_FORMAT,
+  meViewToWire,
+  toWireFormat,
+  type ViewBytesFormat,
+} from '@/utils/bytes-format'
 import {
   KEY_TYPE_LIST,
-  BYTES_FORMAT,
   meCommands,
   meOk,
   meJsonParse,
@@ -25,10 +26,14 @@ const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 defineExpose({ open })
 
-function open(data: Partial<RedisFieldAdd_Deserialize>) {
+function open(data: Partial<RedisFieldAdd_Deserialize & { viewValFmt?: ViewBytesFormat }>) {
   visible.value = true
   Object.assign(form.value, cloneDeep(toRaw(initForm.value)))
-  Object.assign(form.value, data)
+  const { viewValFmt, ...rest } = data
+  Object.assign(form.value, rest)
+  if (viewValFmt) {
+    form.value.valFmt = viewValFmt
+  }
 }
 
 // 共享数据
@@ -59,8 +64,8 @@ const initForm = computed(() => ({
       fieldTtl: -1,
     },
   ],
-  keyFmt: 'utf8' as const,
-  valFmt: 'utf8' as const,
+  keyFmt: 'utf8' as ViewBytesFormat,
+  valFmt: 'utf8' as ViewBytesFormat,
 }))
 const form = ref(cloneDeep(toRaw(initForm.value)))
 
@@ -174,19 +179,38 @@ function submit() {
 
     isSaving.value = true
     try {
-      // json 输入支持 json5 格式，此处转换为正常 json 字符串
-      const value = form.value.type === 'json' ? meJsonNormal(form.value.value) : form.value.value
-      form.value.fieldValueList.forEach(item => {
+      const keyViewFmt = form.value.keyFmt as ViewBytesFormat
+      const valViewFmt = form.value.valFmt as ViewBytesFormat
+      const keyWireFmt = toWireFormat(keyViewFmt)
+      const valWireFmt = toWireFormat(valViewFmt)
+
+      let value = form.value.type === 'json' ? meJsonNormal(form.value.value) : form.value.value
+      if (form.value.type === 'string' && valViewFmt !== 'utf8') {
+        value = meViewToWire(value, valViewFmt)
+      }
+
+      const fieldValueList = form.value.fieldValueList.map(item => ({
+        ...item,
+        fieldKey: meViewToWire(item.fieldKey, valViewFmt),
+        fieldValue: meViewToWire(item.fieldValue, valViewFmt),
+      }))
+      fieldValueList.forEach(item => {
         if (item.fieldTtl === null) item.fieldTtl = -1
       })
 
+      const key: RedisKey_Deserialize =
+        form.value.mode === 'key' && keyViewFmt !== 'utf8' && !form.value.key.bytes
+          ? { key: meViewToWire(form.value.key.key, keyViewFmt), bytes: '' }
+          : form.value.key
+
       const redisKey = await meCommands.fieldAdd(share.conn!.id, {
         ...form.value,
+        key,
         value,
         ttl: meTtlSeconds(form.value.ttl, ttlUnit.value),
-        fieldValueList: form.value.fieldValueList,
-        keyFmt: form.value.keyFmt as BytesFormat,
-        valFmt: form.value.valFmt as BytesFormat,
+        fieldValueList,
+        keyFmt: keyWireFmt,
+        valFmt: valWireFmt,
       })
       visible.value = false
       emit('success', redisKey)
