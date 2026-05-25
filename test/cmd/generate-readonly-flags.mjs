@@ -134,7 +134,7 @@ for (const [name, def] of Object.entries(json)) {
   }
 }
 
-const outPath = join(__dirname, '../../src/utils/redis-cmd-flags.gen.ts')
+const outPath = join(__dirname, '../../src/locales/cmd/flags.gen.ts')
 const content = `/** 由 test/cmd/generate-readonly-flags.mjs 从 commands.json 生成，勿手改 */
 export const commandFlags: Record<string, readonly string[]> = ${JSON.stringify(commandFlags, null, 2)}
 

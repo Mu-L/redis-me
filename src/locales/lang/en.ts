@@ -581,6 +581,9 @@ export default {
     usage: 'Usage',
     summary: 'Summary',
     since: 'Since',
+    readonly: 'Read-only',
+    readonlyYes: 'Yes',
+    readonlyNo: 'No',
     keyShortHint: 'View KeyShort',
     keyShortMore: `
         <br> F11     : Full Screen

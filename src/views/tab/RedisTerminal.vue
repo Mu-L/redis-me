@@ -3,10 +3,9 @@ import { computed, inject, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeIcon from '@/components/MeIcon.vue'
-import { commandHelp } from '@/locales/cmd'
+import { commandHelp, isReadonlyCommand } from '@/locales/cmd'
 import { shareProvideKey } from '@/types/me-interface'
-import { isReadonlyCommand } from '@/utils/redis-cmd-readonly'
-import { meCopy, meCommands } from '@/utils/util'
+import { meCopy, meCommands, isZh } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
 
@@ -14,6 +13,8 @@ const { t } = useI18n()
 // 共享数据
 const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
+/** 只读列表头：英文 Read-only 较宽，中文只读可窄一些 */
+const readonlyColWidth = computed(() => (isZh.value ? 80 : 120))
 
 // 待颜色的文本
 function colorText(color: string, text: string, bold = false): string {
@@ -201,6 +202,16 @@ function openKeyShortDialog() {
               width="100"
               show-overflow-tooltip
               sortable />
+            <el-table-column
+              :label="t('redisTerminal.readonly')"
+              prop="readonly"
+              :width="readonlyColWidth"
+              align="center"
+              sortable>
+              <template #default="{ row }">
+                {{ row.readonly ? t('redisTerminal.readonlyYes') : t('redisTerminal.readonlyNo') }}
+              </template>
+            </el-table-column>
           </me-table>
         </div>
       </div>

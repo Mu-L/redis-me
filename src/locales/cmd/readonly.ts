@@ -2,7 +2,7 @@
  * 终端只读模式：判断 Redis 命令是否可在只读模式下执行。
  * 规则：readonly 标记 > write 标记 > 灰区白名单（CONFIG GET 等）> 脚本/事务黑名单。
  */
-import { commandFlags, grayReadonlyCommands } from './redis-cmd-flags.gen'
+import { commandFlags, grayReadonlyCommands } from './flags.gen'
 
 const commandNameSet = new Set(Object.keys(commandFlags))
 

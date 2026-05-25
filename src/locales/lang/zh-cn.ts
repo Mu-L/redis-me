@@ -572,6 +572,9 @@ export default {
     usage: '使用',
     summary: '概述',
     since: '版本',
+    readonly: '只读',
+    readonlyYes: '是',
+    readonlyNo: '否',
     keyShortHint: '查看快捷键',
     keyShortMore: `
         <br> F11     : 全屏
