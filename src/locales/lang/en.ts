@@ -4,6 +4,7 @@ export default {
   // 通用
   copy: 'Copy',
   edit: 'Edit',
+  view: 'View',
   save: 'Save',
   delete: 'Delete',
   action: 'Action',
@@ -342,6 +343,7 @@ export default {
     fieldValueRequired: 'Value Required',
     fieldScoreRequired: 'Score Required',
     editField: 'Edit Field',
+    viewField: 'View Field',
     hashKey: 'HashKey',
     fieldTtl: 'Field TTL (Second)',
     index: 'Index',

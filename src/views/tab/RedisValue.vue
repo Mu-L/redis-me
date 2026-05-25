@@ -533,17 +533,20 @@ function fieldAdd() {
   })
 }
 
-// 字段编辑
+// 字段编辑 / 查看
 const fieldSetIndex = ref(-1)
+const fieldSetReadonly = ref(false)
 const fieldSetRef = useTemplateRef('fieldSetRef')
 function fieldSetInit() {
   fieldSetIndex.value = -1
+  fieldSetReadonly.value = false
   fieldSetRef.value?.close()
 }
-function fieldSet(row: ValueTableRow, index: number) {
+function openFieldPanel(row: ValueTableRow, index: number, readonly: boolean) {
   const rv = redisValue.value
   if (!rv) return
   fieldSetIndex.value = index
+  fieldSetReadonly.value = readonly
   const rowValWire = String(row.value ?? '')
   const params = {
     fieldKey: row.key || '',
@@ -556,6 +559,7 @@ function fieldSet(row: ValueTableRow, index: number) {
     type: rv.type,
     key: share.redisKey!,
     fieldIndex: -1,
+    readonly,
   }
   if (rv.type === 'list') {
     // 此处不要直接取索引，而是重新去计算下（因为表格可能被关键字过滤过）
@@ -563,13 +567,19 @@ function fieldSet(row: ValueTableRow, index: number) {
   }
   fieldSetRef.value?.open(params)
 }
+function fieldSet(row: ValueTableRow, index: number) {
+  openFieldPanel(row, index, false)
+}
+function fieldView(row: ValueTableRow, index: number) {
+  openFieldPanel(row, index, true)
+}
 
 function rowClassName({ row, rowIndex }: { row: ValueTableRow; rowIndex: number }) {
   return `table-row-index-${rowIndex}` // 给每行加一个带有索引的class
 }
 
 function rowClick(row: ValueTableRow, _column: unknown, event: MouseEvent) {
-  // 编辑字段值没有开启时，忽略行点击事件
+  // 字段面板未开启时，忽略行点击事件
   if (fieldSetIndex.value === -1) return
 
   // 从点击事件的当前元素（即 <tr>）获取 class
@@ -579,7 +589,7 @@ function rowClick(row: ValueTableRow, _column: unknown, event: MouseEvent) {
   for (let className of classList) {
     if (className.startsWith('table-row-index-')) {
       const rowIndex = Number.parseInt(className.split('-')[3]!, 10) // 提取索引数字
-      fieldSet(row, rowIndex)
+      openFieldPanel(row, rowIndex, fieldSetReadonly.value)
       break
     }
   }
@@ -832,7 +842,10 @@ function openKeyShortDialog() {
                     <template v-if="fieldSetIndex !== scope.$index">{{
                       scope.$index + 1
                     }}</template>
-                    <me-icon v-else icon="el-icon-edit" :style="{ color: share.color }"></me-icon>
+                    <me-icon
+                      v-else
+                      :icon="fieldSetReadonly ? 'el-icon-view' : 'el-icon-edit'"
+                      :style="{ color: share.color }"></me-icon>
                   </div>
                 </template>
               </el-table-column>
@@ -897,6 +910,12 @@ function openKeyShortDialog() {
                             : formatTableCell(scope.row.value),
                         )
                       " />
+                    <me-icon
+                      :info="t('view')"
+                      icon="el-icon-view"
+                      class="icon-btn"
+                      @click.stop="fieldView(scope.row, scope.$index)"
+                      v-if="!canEdit && !streamType" />
                     <me-icon
                       :info="t('edit')"
                       icon="el-icon-edit"

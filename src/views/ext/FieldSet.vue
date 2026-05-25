@@ -33,6 +33,8 @@ type FieldSetOpen = Partial<FieldSetForm> & {
   keyWireFmt?: BytesFormat
   /** 键级数据编码，用于默认字段 view */
   keyViewFmt?: ViewBytesFormat
+  /** 查看模式：表单只读，隐藏保存 */
+  readonly?: boolean
 }
 
 const props = withDefaults(
@@ -50,6 +52,7 @@ defineExpose({ open, close })
 const share = inject(shareProvideKey)!
 
 const visible = ref(false)
+const readonly = ref(false)
 const isSaving = ref(false)
 const initForm: FieldSetForm = {
   key: { key: '', bytes: '' },
@@ -116,6 +119,7 @@ async function syncFieldEditor() {
 
 function open(data: FieldSetOpen) {
   visible.value = true
+  readonly.value = !!data.readonly
   Object.assign(form.value, cloneDeep(initForm))
   Object.assign(form.value, data)
   srcFieldWire.value = String(data.srcFieldValue ?? '')
@@ -198,7 +202,10 @@ function submit() {
 </script>
 
 <template>
-  <el-card :header="t('fieldSet.editField')" v-show="visible" class="field-set">
+  <el-card
+    :header="readonly ? t('fieldSet.viewField') : t('fieldSet.editField')"
+    v-show="visible"
+    class="field-set">
     <el-form ref="formRef" class="field-set-form" :model="form" :rules="rules" label-position="top">
       <el-form-item :label="t('fieldSet.hashKey')" v-if="form.type === 'hash'">
         <el-input v-model="form.fieldKey" disabled />
@@ -210,6 +217,7 @@ function submit() {
           v-model="form.fieldTtl"
           :min="-1"
           :controls="false"
+          :disabled="readonly"
           style="width: 100%"
           align="left" />
       </el-form-item>
@@ -220,6 +228,7 @@ function submit() {
         <el-input-number
           :controls="false"
           v-model="form.fieldScore"
+          :disabled="readonly"
           align="left"
           style="width: 100%" />
       </el-form-item>
@@ -228,7 +237,7 @@ function submit() {
           :key="codeRemountKey"
           v-model="form.fieldValue"
           :mode="codeMode"
-          :read-only="editorLoading"
+          :read-only="editorLoading || readonly"
           class="field-code-editor" />
       </el-form-item>
     </el-form>
@@ -267,9 +276,14 @@ function submit() {
         </div>
         <div>
           <el-button @click="cancel">{{ t('cancel') }}</el-button>
-          <el-button type="primary" :loading="isSaving" :disabled="decodeFailed" @click="submit">{{
-            t('save')
-          }}</el-button>
+          <el-button
+            v-if="!readonly"
+            type="primary"
+            :loading="isSaving"
+            :disabled="decodeFailed"
+            @click="submit"
+            >{{ t('save') }}</el-button
+          >
         </div>
       </div>
     </template>

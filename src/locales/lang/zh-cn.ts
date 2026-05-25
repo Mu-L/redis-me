@@ -4,6 +4,7 @@ export default {
   // 通用
   copy: '复制',
   edit: '编辑',
+  view: '查看',
   save: '保存',
   delete: '删除',
   action: '操作',
@@ -336,6 +337,7 @@ export default {
     fieldValueRequired: '值不能为空',
     fieldScoreRequired: '请输入分数',
     editField: '编辑字段',
+    viewField: '查看字段',
     hashKey: '哈希键',
     fieldTtl: '字段过期 (秒)',
     index: '索引',
