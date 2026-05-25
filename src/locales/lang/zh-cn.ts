@@ -620,6 +620,7 @@ export default {
     textMemory: '内存占用：',
     textLength: '字节长度：',
     textEntries: '条目：',
+    totalCount: '元素总数：',
     viewAs: '数据编码',
     keyShortHint: '查看快捷键',
     keyShortMore: `

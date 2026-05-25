@@ -192,8 +192,20 @@ pub fn field_scan0(
         value = Some(field_scan_3_json(&key_type, &scan_value)?)
     }
 
-    // 返回值添加TTL和内存占用
-    field_scan_4_return(conn, key, key_type, value.unwrap_or_default(), cc, length)
+    let with_field_key = param
+        .hash_key
+        .as_ref()
+        .is_some_and(|k| !k.is_empty());
+    // 返回值添加 TTL、内存占用与元素总数
+    field_scan_4_return(
+        conn,
+        key,
+        key_type,
+        value.unwrap_or_default(),
+        cc,
+        length,
+        with_field_key,
+    )
 }
 
 pub fn field_scan_0_get(
@@ -430,6 +442,29 @@ pub fn field_scan_3_json(
     Ok(value)
 }
 
+/// 集合类型用 HLEN/LLEN 等填充 length；String/单字段仍用已算好的 bytes 长度
+fn resolve_field_scan_length(
+    conn: &mut MutexGuard<impl Commands>,
+    key: &RedisKey,
+    key_type: &ValueType,
+    field_byte_len: usize,
+    with_field_key: bool,
+) -> AnyResult<usize> {
+    if with_field_key {
+        return Ok(field_byte_len);
+    }
+    let len = match key_type {
+        ValueType::String => field_byte_len,
+        ValueType::Hash => conn.hlen(key)?,
+        ValueType::List => conn.llen(key)?,
+        ValueType::Set => conn.scard(key)?,
+        ValueType::ZSet => conn.zcard(key)?,
+        ValueType::Stream => redis::cmd("XLEN").arg(key).query(conn)?,
+        _ => field_byte_len,
+    };
+    Ok(len)
+}
+
 pub fn field_scan_4_return(
     mut conn: MutexGuard<impl Commands>,
     key: RedisKey,
@@ -437,6 +472,7 @@ pub fn field_scan_4_return(
     value: serde_json::Value,
     cursor: ScanCursor,
     length: usize,
+    with_field_key: bool,
 ) -> AnyResult<FieldScanResult> {
     let ttl: i64 = conn.ttl(&key)?;
     let size: u64 = redis::cmd("memory")
@@ -445,6 +481,7 @@ pub fn field_scan_4_return(
         .query(&mut conn)
         // 兼容腾讯云Redis等不支持memory usage的第三方缓存数据库 #81
         .unwrap_or(0);
+    let length = resolve_field_scan_length(&mut conn, &key, &key_type, length, with_field_key)?;
 
     Ok(FieldScanResult {
         key_type: ui_key_type(key_type),

@@ -630,6 +630,7 @@ export default {
     textMemory: 'Memory Usage: ',
     textLength: 'Bytes Length: ',
     textEntries: 'Entries: ',
+    totalCount: 'Total Count: ',
     viewAs: 'Encoding',
     keyShortHint: 'View KeyShort',
     keyShortMore: `

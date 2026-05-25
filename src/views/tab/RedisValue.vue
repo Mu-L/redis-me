@@ -415,6 +415,9 @@ async function refreshKey(
         const b = fieldValueRows(data.value)
         const merged: unknown[] = [...a, ...b]
         ;(prev as { value: unknown }).value = merged
+        prev.length = data.length
+        prev.ttl = data.ttl
+        prev.size = data.size
       } else {
         replaceData = data
       }
@@ -626,21 +629,27 @@ async function showGroups() {
   tableGroupVisible.value = true
 }
 
-// 内存占用和条目
+// 内存占用、长度/总数、条目
 const textMemory = computed(() => {
   const sz = redisValue.value?.size
   return sz != null && sz > 0 ? t('redisValue.textMemory') + meHumanSize(sz) : ''
 })
+/** 与 textLength 同一位置：String/单字段为字节长度，集合类型为元素总数 */
 const textLength = computed(() => {
   const rv = redisValue.value
-  if (!rv) return ''
-  if (jsonType.value || (streamType.value && withHashKey.value)) return ''
-  return stringTypeOrWithHashKey.value
-    ? t('redisValue.textLength') + rv.length
-    : t('redisValue.textEntries') +
-        filterDataList.value.length +
-        ' / ' +
-        fieldValueRows(rv.value).length
+  if (!rv || jsonType.value || (streamType.value && withHashKey.value)) return ''
+  if (stringTypeOrWithHashKey.value) {
+    return t('redisValue.textLength') + rv.length
+  }
+  if (rv.length <= 0) return ''
+  return t('redisValue.totalCount') + rv.length
+})
+const textEntries = computed(() => {
+  const rv = redisValue.value
+  if (!rv || jsonType.value || stringTypeOrWithHashKey.value) return ''
+  const filtered = filterDataList.value.length
+  const loaded = fieldValueRows(rv.value).length
+  return t('redisValue.textEntries') + `${filtered} / ${loaded}`
 })
 
 // 查看此键所在节点
@@ -972,8 +981,13 @@ function openKeyShortDialog() {
 
           <el-divider direction="vertical" v-if="textLength" />
 
-          <!-- 长度/条目 -->
-          <el-text> {{ textLength }}</el-text>
+          <!-- 字节长度 / 元素总数（同一位置，按类型切换标签） -->
+          <el-text> {{ textLength }} </el-text>
+
+          <el-divider direction="vertical" v-if="textEntries" />
+
+          <!-- 条目：筛选 / 已加载 -->
+          <el-text> {{ textEntries }} </el-text>
         </div>
 
         <div class="me-flex" style="position: relative">
