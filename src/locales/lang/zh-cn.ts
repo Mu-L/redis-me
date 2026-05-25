@@ -566,7 +566,7 @@ export default {
     autoCopyHint: '自动复制命令结果',
     commandHint: '查看命令列表',
     commandTitle: '命令列表',
-    keywordHint: '命令模糊筛选',
+    keywordHint: '命令或概述模糊筛选',
     group: '分组',
     command: '命令',
     usage: '使用',

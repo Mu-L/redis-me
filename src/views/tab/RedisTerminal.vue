@@ -72,12 +72,12 @@ const keyword = ref('')
 const group = ref('')
 const groupList = computed(() => new Set(commandHelp.value.map(row => row.group)))
 const filterDataList = computed(() => {
-  const key = keyword.value.toLowerCase()
-  return commandHelp.value.filter(
-    row =>
-      (!key || row.title.toLowerCase().indexOf(key) > -1) &&
-      (!group.value || row.group === group.value),
-  )
+  const key = keyword.value.toLowerCase().trim()
+  return commandHelp.value.filter(row => {
+    if (group.value && row.group !== group.value) return false
+    if (!key) return true
+    return row.title.toLowerCase().includes(key) || row.summary.toLowerCase().includes(key)
+  })
 })
 function openCommandDialog() {
   keyword.value = ''

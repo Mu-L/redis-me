@@ -575,7 +575,7 @@ export default {
 
     commandHint: 'View Command List',
     commandTitle: 'Commands',
-    keywordHint: 'Filter (Command)',
+    keywordHint: 'Filter (Command or Summary)',
     group: 'Group',
     command: 'Command',
     usage: 'Usage',
