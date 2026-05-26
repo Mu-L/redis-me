@@ -286,6 +286,15 @@ export function meErr(message: string | Error, title: string = t('error')): void
   void ElMessageBox.alert(text, title, { type: 'error', draggable: true }).then(DoNothing)
 }
 
+/** 错误弹窗（HTML 换行，用于自定义编解码测试等） */
+export function meErrHtml(message: string, title: string = t('error')): void {
+  void ElMessageBox.alert(message, title, {
+    type: 'error',
+    draggable: true,
+    dangerouslyUseHTMLString: true,
+  }).then(DoNothing)
+}
+
 export function meConfirm(
   message: string,
   thenFun: () => void | Promise<void>,

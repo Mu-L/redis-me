@@ -1,15 +1,15 @@
 <script setup lang="ts">
 /** 自定义编解码 CRUD：由 RedisValue 数据编码下拉头部编辑入口打开 */
-import { ElMessageBox } from 'element-plus'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
   buildFormatterCommand,
+  parseFormatterErrorDetail,
   testFormatter,
   type CustomFormatter,
 } from '@/utils/custom-formatter'
-import { DoNothing, meErr, meOk } from '@/utils/util'
+import { meErr, meErrHtml, meOk } from '@/utils/util'
 
 const visible = defineModel<boolean>({ default: false })
 
@@ -78,19 +78,6 @@ function saveForm() {
   formVisible.value = false
 }
 
-function showTestErr(e: unknown) {
-  const text = (e instanceof Error ? e.message : String(e))
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\r?\n/g, '<br>')
-  void ElMessageBox.alert(text, t('error'), {
-    type: 'error',
-    draggable: true,
-    dangerouslyUseHTMLString: true,
-  }).then(DoNothing)
-}
-
 async function runTest(mode: 'decode' | 'encode') {
   const formatter = readForm()
   if (!formatter) {
@@ -110,7 +97,9 @@ async function runTest(mode: 'decode' | 'encode') {
       { dangerouslyUseHTMLString: true },
     )
   } catch (e) {
-    showTestErr(e)
+    const preview = buildFormatterCommand(formatter, mode, sample)
+    const detail = parseFormatterErrorDetail(e instanceof Error ? e.message : String(e))
+    meErrHtml(t('customFormatter.testErrorResult', { command: preview, input: sample, detail }))
   } finally {
     loading.value = false
   }

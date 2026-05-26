@@ -215,7 +215,13 @@ watch(
 
 /** STRING 单键：wire → 当前视图文本（custom 异步解码） */
 const resolvedWireView = ref('')
-const customDecodeFailed = ref(false)
+/** custom 编解码失败时为 true，编辑器展示 resolvedWireView 中的错误信息 */
+const customCodecFailed = ref(false)
+
+function setCustomCodecError(message: string) {
+  resolvedWireView.value = message
+  customCodecFailed.value = true
+}
 
 const viewDecodeFailed = computed(() => {
   if (!stringType.value) return false
@@ -223,7 +229,7 @@ const viewDecodeFailed = computed(() => {
   if (fmt === 'utf8' || fmt === 'hex' || fmt === 'base64') return false
   const wire = displayWire.value
   if (!wire) return false
-  if (isCustomView(fmt)) return customDecodeFailed.value
+  if (isCustomView(fmt)) return customCodecFailed.value
   return isViewDecodeError(meFormatViewValue(wire, fmt))
 })
 
@@ -242,21 +248,20 @@ function syncDisplaySnapshot() {
 async function refreshResolvedWireView() {
   if (!stringTypeOrWithHashKey.value || !isCustomView(displayBytesFormat.value)) {
     resolvedWireView.value = ''
-    customDecodeFailed.value = false
+    customCodecFailed.value = false
     return
   }
   const wire = displayWire.value
   if (!wire) {
     resolvedWireView.value = ''
-    customDecodeFailed.value = false
+    customCodecFailed.value = false
     return
   }
   try {
     resolvedWireView.value = await meFormatViewValueAsync(wire, displayBytesFormat.value)
-    customDecodeFailed.value = false
+    customCodecFailed.value = false
   } catch (e) {
-    resolvedWireView.value = e instanceof Error ? e.message : String(e)
-    customDecodeFailed.value = true
+    setCustomCodecError(e instanceof Error ? e.message : String(e))
   }
 }
 
@@ -491,7 +496,14 @@ async function setValue() {
       value = meViewToWire(value, bytesFormat.value)
     }
   } catch (e) {
-    meErr(e instanceof Error ? e.message : String(e))
+    const msg = e instanceof Error ? e.message : String(e)
+    if (stringType.value && isCustomView(bytesFormat.value)) {
+      setCustomCodecError(msg)
+      rv.newValue = ''
+      valueEditorRemountKey.value++
+      return
+    }
+    meErr(msg)
     return
   }
 

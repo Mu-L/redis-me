@@ -73,7 +73,23 @@ function formatExecError(name: string, result: ShellExecResult, fullCommand: str
 
 /** 错误信息前附上实际执行的完整命令，便于排查 */
 function withExecCommand(fullCommand: string, message: string): string {
-  return `${t('customFormatter.execCommand', { command: fullCommand })}\n\n${t('customFormatter.execError')}\n${message}`
+  return t('customFormatter.execFailResult', { command: fullCommand, detail: message })
+}
+
+/** 从 withExecCommand 拼装的错误里取出 detail（兼容旧版 \\n 格式） */
+export function parseFormatterErrorDetail(message: string): string {
+  const markers = [
+    '\n错误：',
+    '\nError: ',
+    '<br>错误：',
+    '<br>Error: ',
+    `\n\n${t('customFormatter.execError')}\n`,
+  ]
+  for (const m of markers) {
+    const i = message.lastIndexOf(m)
+    if (i >= 0) return message.slice(i + m.length).trim()
+  }
+  return message.trim()
 }
 
 function toExecError(fullCommand: string, e: unknown): Error {

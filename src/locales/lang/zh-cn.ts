@@ -245,6 +245,8 @@ export default {
     testEncodeSamplePh: '编辑区 UTF-8 Base64，Hex 示例默认 Njg2NTZjNmM2Zg==（68656c6c6f）',
     testOk: '执行成功',
     testResult: '命令：{command}<br>输入：{input}<br>输出：{output}',
+    testErrorResult: '命令：{command}<br>输入：{input}<br>错误：{detail}',
+    execFailResult: '命令：{command}\n错误：{detail}',
     execCommand: '执行命令：\n{command}',
     execError: '错误提示：',
     emptyCommand: '命令不能为空',

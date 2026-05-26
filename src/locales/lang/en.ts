@@ -251,6 +251,8 @@ export default {
     testEncodeSamplePh: 'editor UTF-8 Base64, Hex default Njg2NTZjNmM2Zg== (68656c6c6f)',
     testOk: 'Success',
     testResult: 'Command: {command}<br>Input: {input}<br>Output: {output}',
+    testErrorResult: 'Command: {command}<br>Input: {input}<br>Error: {detail}',
+    execFailResult: 'Command: {command}\nError: {detail}',
     execCommand: 'Executed command:\n{command}',
     execError: 'Error:',
     emptyCommand: 'Command is required',
