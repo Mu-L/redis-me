@@ -183,6 +183,7 @@ const formatOptions = computed(() => {
     ...BYTES_FORMAT.map(item => ({
       label: item,
       value: item.toLowerCase() as ViewBytesFormat,
+      disabled: false,
     })),
     ...EXT_FORMAT.map(label => ({
       label,
