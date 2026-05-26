@@ -44,7 +44,7 @@ export function findCustomFormatter(name: string): CustomFormatter | undefined {
 
 function getExecTimeoutSec(): number {
   const n = window.meTauri.settings.formatterExecTimeoutSec
-  return typeof n === 'number' && n > 0 ? n : 30
+  return typeof n === 'number' && n > 0 ? n : 5
 }
 
 /** 拼完整命令行：`{command} decode|encode {b64}`（标准 base64 无空格，无需 shell 引号） */

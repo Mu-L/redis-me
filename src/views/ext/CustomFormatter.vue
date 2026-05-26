@@ -1,5 +1,6 @@
 <script setup lang="ts">
 /** 自定义编解码 CRUD：由 RedisValue 数据编码下拉头部编辑入口打开 */
+import { ElMessageBox } from 'element-plus'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -8,7 +9,7 @@ import {
   testFormatter,
   type CustomFormatter,
 } from '@/utils/custom-formatter'
-import { meErr, meOk } from '@/utils/util'
+import { DoNothing, meErr, meOk } from '@/utils/util'
 
 const visible = defineModel<boolean>({ default: false })
 
@@ -18,9 +19,12 @@ const list = computed(() => window.meTauri.settings.customFormatters ?? [])
 
 const formVisible = ref(false)
 const editIndex = ref(-1)
-const testing = ref(false)
+const testingDecode = ref(false)
+const testingEncode = ref(false)
 const form = reactive<CustomFormatter>({ name: '', command: '' })
-const testSample = ref('aGVsbG8=') // "hello"
+// 解码：wire Base64（hello）；编码：编辑区 Hex 文本 68656c6c6f 的 UTF-8 Base64
+const testDecodeSample = ref('aGVsbG8=')
+const testEncodeSample = ref('Njg2NTZjNmM2Zg==')
 
 const formValid = computed(() => form.name.trim() !== '' && form.command.trim() !== '')
 
@@ -74,22 +78,41 @@ function saveForm() {
   formVisible.value = false
 }
 
+function showTestErr(e: unknown) {
+  const text = (e instanceof Error ? e.message : String(e))
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r?\n/g, '<br>')
+  void ElMessageBox.alert(text, t('error'), {
+    type: 'error',
+    draggable: true,
+    dangerouslyUseHTMLString: true,
+  }).then(DoNothing)
+}
+
 async function runTest(mode: 'decode' | 'encode') {
   const formatter = readForm()
   if (!formatter) {
     meErr(t('customFormatter.emptyCommand'))
     return
   }
-  const sample = testSample.value.trim()
-  testing.value = true
+  const sample = (mode === 'decode' ? testDecodeSample : testEncodeSample).value.trim()
+  const loading = mode === 'decode' ? testingDecode : testingEncode
+  loading.value = true
   try {
     const out = await testFormatter(formatter, mode, sample)
     const preview = buildFormatterCommand(formatter, mode, sample)
-    meOk(`${t('customFormatter.testOk')}\n\n${preview}\n\n---\n${out}`, true)
+    meOk(
+      t('customFormatter.testResult', { command: preview, input: sample, output: out }),
+      true,
+      t('customFormatter.testOk'),
+      { dangerouslyUseHTMLString: true },
+    )
   } catch (e) {
-    meErr(e instanceof Error ? e.message : String(e))
+    showTestErr(e)
   } finally {
-    testing.value = false
+    loading.value = false
   }
 }
 </script>
@@ -145,16 +168,25 @@ async function runTest(mode: 'decode' | 'encode') {
         </template>
         <el-input v-model="form.command" :placeholder="t('customFormatter.commandPlaceholder')" />
       </el-form-item>
-      <el-form-item :label="t('customFormatter.testSample')">
-        <el-input v-model="testSample" />
+      <el-form-item :label="t('customFormatter.testDecodeSample')">
+        <div class="test-row">
+          <el-input
+            v-model="testDecodeSample"
+            :placeholder="t('customFormatter.testDecodeSamplePh')" />
+          <el-button :loading="testingDecode" @click="runTest('decode')">{{
+            t('customFormatter.testDecode')
+          }}</el-button>
+        </div>
       </el-form-item>
-      <el-form-item>
-        <el-button :loading="testing" @click="runTest('decode')">{{
-          t('customFormatter.testDecode')
-        }}</el-button>
-        <el-button :loading="testing" @click="runTest('encode')">{{
-          t('customFormatter.testEncode')
-        }}</el-button>
+      <el-form-item :label="t('customFormatter.testEncodeSample')">
+        <div class="test-row">
+          <el-input
+            v-model="testEncodeSample"
+            :placeholder="t('customFormatter.testEncodeSamplePh')" />
+          <el-button :loading="testingEncode" @click="runTest('encode')">{{
+            t('customFormatter.testEncode')
+          }}</el-button>
+        </div>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -176,5 +208,16 @@ async function runTest(mode: 'decode' | 'encode') {
   align-items: center;
   gap: 4px;
   white-space: nowrap;
+}
+
+.test-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+
+  :deep(.el-input) {
+    flex: 1;
+    min-width: 0;
+  }
 }
 </style>
