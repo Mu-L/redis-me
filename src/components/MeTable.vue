@@ -160,6 +160,17 @@ const pageData = computed(() => {
   )
 })
 
+const showExportMenu = computed(() => !props.hideExport && sortedData.value.length > 0)
+
+const showPagination = computed(() => {
+  if (sortedData.value.length === 0) return false
+  if (!props.hideOnSinglePage) return true
+  return sortedData.value.length > pageSize.value
+})
+
+/** 无数据时不显示 footer；有数据时显示分页和/或 … */
+const showTableFooter = computed(() => showExportMenu.value || showPagination.value)
+
 function handleChange(page: number, size: number): void {
   currentPage.value = page
   pageSize.value = size
@@ -260,8 +271,9 @@ defineExpose({
         <slot></slot>
       </el-table>
     </div>
-    <div class="me-table-footer">
+    <div v-if="showTableFooter" class="me-table-footer">
       <el-pagination
+        v-if="showPagination"
         class="me-table-pagination"
         :style="{ marginLeft: layout.includes('total') ? '5px' : 0 }"
         size="small"
@@ -273,7 +285,11 @@ defineExpose({
         @update:page-size="updatePageSize"
         :total="sortedData.length"
         :layout />
-      <el-dropdown v-if="!hideExport" trigger="click" @command="handleExportCommand">
+      <el-dropdown
+        v-if="showExportMenu"
+        class="me-table-more-wrap"
+        trigger="click"
+        @command="handleExportCommand">
         <me-icon icon="el-icon-more-filled" class="icon-btn me-table-more" />
         <template #dropdown>
           <el-dropdown-menu>
@@ -319,8 +335,9 @@ defineExpose({
       min-width: 0;
     }
 
-    .me-table-more {
+    .me-table-more-wrap {
       flex-shrink: 0;
+      margin-left: auto;
       margin-right: 5px;
     }
   }

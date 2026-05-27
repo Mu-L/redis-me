@@ -140,7 +140,6 @@ onUnmounted(() => tauriUnlisten())
     </div>
     <div class="table">
       <me-table
-        hide-on-single-page
         :data="filterDataList"
         ref="table"
         :default-sort="{ prop: 'datetime', order: 'descending' }">
