@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/**
+ * 键值详情页：fieldScan 拉取 → JSON 编辑器 / 表格展示 → set / field* 写回。
+ * 数据流：bytesFormat 触发 refreshKey → syncDisplaySnapshot → showValue / dataList 渲染。
+ */
+// #region 导入
 import dayjs from 'dayjs'
 import {
   computed,
@@ -59,35 +64,66 @@ import KeyRename from '@/views/key/KeyRename.vue'
 import CustomFormatter from '../ext/CustomFormatter.vue'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
+// #endregion
 
-const { t } = useI18n()
-
+// #region 类型与本地工具
 type FieldScanViewState = FieldScanResult & { newValue: string }
-
-function toViewState(data: FieldScanResult): FieldScanViewState {
-  return { ...data, newValue: '' }
-}
 
 /** fieldScan 的 `value` 在 Specta 中为 serde 联合类型，表格/拼接按行数组处理 */
 function fieldValueRows(v: unknown): unknown[] {
   return v as unknown[]
 }
 
-const onKeyRefreshBus = () => {
-  bytesFormat.value = 'utf8'
-  void refreshKey()
+function toViewState(data: FieldScanResult): FieldScanViewState {
+  return { ...data, newValue: '' }
 }
 
-// 刷新键（mitt 载荷为 undefined，与 refreshKey 多参签名分离）
-onMounted(() => bus.on(KEY_REFRESH, onKeyRefreshBus))
-onUnmounted(() => bus.off(KEY_REFRESH, onKeyRefreshBus))
+/** 值表格行（fieldScan 各类型字段混合） */
+type ValueTableRow = Record<string, unknown> & {
+  key?: string
+  value?: unknown
+  id?: string
+  score?: number
+  ttl?: number
+}
+// #endregion
 
-// 共享数据
+// #region 共享上下文与权限
+const { t } = useI18n()
 const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
 const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value))
+// #endregion
 
-// 值的显示方式（json 代码 / table 表格）
+// #region 核心状态（fieldScan 结果 / 游标 / 编辑）
+const redisValue = ref<FieldScanViewState | null>(null)
+const cursor = ref<ScanCursor | null>(null) // list/hash/set/zset/stream 分页游标
+const loading = ref(false)
+const hashKey = ref('') // hash 子键 / stream 起始 ID
+const withHashKey = ref(false) // 是否处于「单字段」模式（hashKey 非空）
+const isPretty = ref(true)
+const tableKeyword = ref('')
+const suppressCodeUpdate = ref(false)
+/** fieldScan 成功后递增，强制 me-code 与服务器同步（未保存时 modelValue 字符串可能不变） */
+const valueEditorRemountKey = ref(0)
+/** 手动控制「加载更多」按钮，避免 cursor 变化导致按钮闪现 */
+const showMore = ref(false)
+
+/** Stream 扫描范围（meta 传给 fieldScan） */
+const meta = ref({ maxId: '', minId: '' })
+// #endregion
+
+// #region 键类型（派生）
+const hashType = computed(() => 'hash' === redisValue.value?.type)
+const stringType = computed(() => 'string' === redisValue.value?.type)
+const jsonType = computed(() => 'json' === redisValue.value?.type)
+const streamType = computed(() => 'stream' === redisValue.value?.type)
+const stringTypeOrWithHashKey = computed(
+  () => 'string' === redisValue.value?.type || withHashKey.value,
+)
+// #endregion
+
+// #region 视图模式：JSON 编辑器 / 表格
 type FieldViewType = 'json' | 'table'
 const viewTypeList: FieldViewType[] = ['json', 'table']
 const viewType = ref<FieldViewType>('json')
@@ -99,7 +135,7 @@ function supportsTableView(type: string | undefined) {
   )
 }
 
-/** 切换键或重置参数时，按设置 fieldShow 决定默认视图 */
+/** 切换键或 reset 时，按 settings.fieldShow 决定默认视图 */
 function applyDefaultViewType() {
   const rv = redisValue.value
   if (!rv || stringTypeOrWithHashKey.value || jsonType.value) {
@@ -125,58 +161,30 @@ function onViewTypeChange(val: string | number | boolean) {
     meTauri.settings.fieldShowView = val
   }
 }
-const hashKey = ref('')
-const isPretty = ref(true)
-const withHashKey = ref(false)
-const tableKeyword = ref('')
-const redisValue = ref<FieldScanViewState | null>(null)
-const cursor = ref<ScanCursor | null>(null) // 新增游标，支持list/hash/set/zset的扫描，避免一次性获取所有数据
-const loading = ref(false)
-const suppressCodeUpdate = ref(false)
-/** 每次 fieldScan 成功后递增，用于强制 me-code 与服务器内容同步（未保存编辑时 modelValue 字符串可能与上次相同，子组件 watch 不触发） */
-const valueEditorRemountKey = ref(0)
 
-/** 值表格行（fieldScan 各类型字段混合） */
-type ValueTableRow = Record<string, unknown> & {
-  key?: string
-  value?: unknown
-  id?: string
-  score?: number
-  ttl?: number
-}
-
-// 处理CodeMirror的更新事件
-function onCodeUpdate(newValue: string) {
-  if (suppressCodeUpdate.value || !redisValue.value) return
-  redisValue.value.newValue = newValue
-}
-
-// 刷新值的扩展参数
-const meta = ref({
-  maxId: '',
-  minId: '',
+// string / json 仅支持 JSON 视图，强制切回
+watchEffect(() => {
+  if (stringTypeOrWithHashKey.value || jsonType.value) {
+    viewType.value = 'json'
+  }
 })
+// #endregion
 
-// 计算属性
-const hashType = computed(() => 'hash' === redisValue.value?.type)
-const stringType = computed(() => 'string' === redisValue.value?.type)
-const jsonType = computed(() => 'json' === redisValue.value?.type)
-const streamType = computed(() => 'stream' === redisValue.value?.type)
-const stringTypeOrWithHashKey = computed(
-  () => 'string' === redisValue.value?.type || withHashKey.value,
-)
-
-// 值显示方式: BYTES_FORMAT + EXT_FORMAT + custom；扩展项仅在 STRING 键上可选
+// #region 字节格式与展示快照（wire ↔ 视图文本）
+/** 下拉选中项，变更时触发 fieldScan */
 const bytesFormat = ref<ViewBytesFormat>('utf8')
 /**
  * 展示层快照（防切换编码闪烁）：
- * - bytesFormat：下拉选中项，触发 fieldScan
  * - displayBytesFormat + displayWire：fieldScan 完成后才更新，供编辑器渲染
  * - resolvedWireView：custom 异步 decode 结果（仅 custom 时使用）
  */
 const displayBytesFormat = ref<ViewBytesFormat>('utf8')
 const displayWire = ref('')
 const customFormatterVisible = ref(false)
+/** STRING 单键：wire → 当前视图文本（custom 异步解码） */
+const resolvedWireView = ref('')
+/** custom 编解码失败时为 true，编辑器展示 resolvedWireView 中的错误信息 */
+const customCodecFailed = ref(false)
 
 const formatOptions = computed(() => {
   const builtin = [
@@ -199,6 +207,16 @@ const formatOptions = computed(() => {
   return { builtin, custom }
 })
 
+const viewDecodeFailed = computed(() => {
+  if (!stringType.value) return false
+  const fmt = displayBytesFormat.value
+  if (fmt === 'utf8' || fmt === 'hex' || fmt === 'base64') return false
+  const wire = displayWire.value
+  if (!wire) return false
+  if (isCustomView(fmt)) return customCodecFailed.value
+  return isViewDecodeError(meFormatViewValue(wire, fmt))
+})
+
 /** 自定义编解码被删或改名后，当前选中项失效则回退 utf8 */
 watch(
   () => window.meTauri.settings.customFormatters,
@@ -213,25 +231,16 @@ watch(
   { deep: true },
 )
 
-/** STRING 单键：wire → 当前视图文本（custom 异步解码） */
-const resolvedWireView = ref('')
-/** custom 编解码失败时为 true，编辑器展示 resolvedWireView 中的错误信息 */
-const customCodecFailed = ref(false)
+watch(stringType, isString => {
+  if (!isString && isStringOnlyView(bytesFormat.value)) {
+    bytesFormat.value = 'utf8'
+  }
+})
 
 function setCustomCodecError(message: string) {
   resolvedWireView.value = message
   customCodecFailed.value = true
 }
-
-const viewDecodeFailed = computed(() => {
-  if (!stringType.value) return false
-  const fmt = displayBytesFormat.value
-  if (fmt === 'utf8' || fmt === 'hex' || fmt === 'base64') return false
-  const wire = displayWire.value
-  if (!wire) return false
-  if (isCustomView(fmt)) return customCodecFailed.value
-  return isViewDecodeError(meFormatViewValue(wire, fmt))
-})
 
 function syncDisplaySnapshot() {
   const rv = redisValue.value
@@ -265,12 +274,6 @@ async function refreshResolvedWireView() {
   }
 }
 
-watch(stringType, isString => {
-  if (!isString && isStringOnlyView(bytesFormat.value)) {
-    bytesFormat.value = 'utf8'
-  }
-})
-
 function stringWireDisplayText(wire: string): string {
   if (stringType.value && isCustomView(displayBytesFormat.value)) {
     return resolvedWireView.value
@@ -279,10 +282,11 @@ function stringWireDisplayText(wire: string): string {
 }
 
 function formatTableCell(raw: unknown): string {
-  const wire = String(raw ?? '')
-  return stringWireDisplayText(wire)
+  return stringWireDisplayText(String(raw ?? ''))
 }
+// #endregion
 
+// #region 编辑器展示内容（showValue）
 const showValue = computed(() => {
   const obj = redisValue.value?.value
   if (obj === null || obj === undefined) return ''
@@ -291,39 +295,41 @@ const showValue = computed(() => {
     if (stringTypeOrWithHashKey.value) {
       const str = stringWireDisplayText(displayWire.value)
       return meFormatDisplayValue(str, isPretty.value)
-    } else {
-      return JSON.stringify(obj, null, 2)
     }
-  } else {
-    if (
-      ('hash' === redisValue.value?.type && !withHashKey.value) ||
-      'zset' === redisValue.value?.type ||
-      'json' === redisValue.value?.type ||
-      'stream' === redisValue.value?.type
-    ) {
-      return JSON.stringify(obj)
-    }
-    if (stringTypeOrWithHashKey.value) {
-      return stringWireDisplayText(displayWire.value)
-    }
-    return obj.toString()
+    return JSON.stringify(obj, null, 2)
   }
+
+  if (
+    ('hash' === redisValue.value?.type && !withHashKey.value) ||
+    'zset' === redisValue.value?.type ||
+    'json' === redisValue.value?.type ||
+    'stream' === redisValue.value?.type
+  ) {
+    return JSON.stringify(obj)
+  }
+  if (stringTypeOrWithHashKey.value) {
+    return stringWireDisplayText(displayWire.value)
+  }
+  return obj.toString()
 })
 
-// 加载更多(手动控制，而不是计算属性，避免cursor变化多次导致按钮闪现又丢失)
-const showMore = ref(false)
+/** me-code 编辑回调：写入 redisValue.newValue，保存时由 setValue 读回 */
+function onCodeUpdate(newValue: string) {
+  if (suppressCodeUpdate.value || !redisValue.value) return
+  redisValue.value.newValue = newValue
+}
+// #endregion
 
-// 表格数据
+// #region 表格行数据与筛选
 const dataList = computed(() => {
   const rv = redisValue.value
   if (rv === null || rv === undefined || rv.value === null || rv.value === undefined) return []
 
   const data: ValueTableRow[] = []
-
   if (rv.type === 'list' || rv.type === 'set') {
     fieldValueRows(rv.value).forEach(value => data.push({ value }))
   } else if (rv.type === 'zset' || rv.type === 'stream' || rv.type === 'hash') {
-    fieldValueRows(rv.value).forEach(value => data.push(value as ValueTableRow)) // 返回的直接是[{score: '', value: ''}]
+    fieldValueRows(rv.value).forEach(value => data.push(value as ValueTableRow))
   }
   return data
 })
@@ -336,23 +342,138 @@ const filterDataList = computed(() => {
     if ((row.id?.toLowerCase() ?? '').indexOf(key) > -1) return true
     const cell = streamType.value ? JSON.stringify(row.value) : formatTableCell(row.value)
     if (cell.toLowerCase().indexOf(key) > -1) return true
-    if ((row.score?.toString() ?? '').toLowerCase().indexOf(key) > -1) return true
+    if ((row.score?.toString() ?? '').indexOf(key) > -1) return true
     return false
   })
 })
+// #endregion
 
-// 监听属性
-watchEffect(() => {
-  if (stringTypeOrWithHashKey.value || jsonType.value) {
-    viewType.value = 'json'
+// #region 键刷新 fieldScan
+
+/** 切换键或全量刷新时清空 hash 子键、表格筛选等 UI 状态 */
+function resetParam() {
+  tableKeyword.value = ''
+  hashKey.value = ''
+  withHashKey.value = false
+}
+
+/** 组装 fieldScan 参数：游标分页、Stream 范围 meta、wire 字节格式 */
+function buildFieldScanParam(loadAll: boolean) {
+  return {
+    key: share.redisKey!,
+    hashKey: hashKey.value,
+    count: meTauri.settings.fieldScanCount ?? 10,
+    cursor: cursor.value,
+    loadAll,
+    meta: meta.value,
+    bytesFormat: toWireFormat(bytesFormat.value),
   }
-})
+}
 
-// TTL设置
+/**
+ * 「加载更多」专用：把新一页行追加到已有 redisValue.value，避免整表重渲染。
+ * 仅 hash/list/set/zset/stream 的行数组可拼接；string/json 等走整包替换。
+ * @returns true 已就地 merge；false 调用方应 set replaceData 整包换
+ */
+function mergeFieldScanPage(prev: FieldScanViewState, data: FieldScanResult): boolean {
+  if (!supportsTableView(data.type)) return false
+  const merged: unknown[] = [...fieldValueRows(prev.value), ...fieldValueRows(data.value)]
+  ;(prev as { value: unknown }).value = merged
+  // length/ttl/size 随服务端最新统计更新（length 为键内总条数，非当前已加载数）
+  prev.length = data.length
+  prev.ttl = data.ttl
+  prev.size = data.size
+  return true
+}
+
+/**
+ * fieldScan 成功或失败都会走 finally：统一收尾，保证 loading 关闭、编辑器与展示层一致。
+ * replaceData 有值表示本次需整包替换 redisValue；undefined 表示已 merge 或无需换对象。
+ */
+async function finalizeAfterFieldScan(reset: boolean, replaceData?: FieldScanResult) {
+  if (replaceData) {
+    redisValue.value = toViewState(replaceData)
+  }
+  // 清空未保存编辑；fieldScan 结果即当前权威内容
+  if (redisValue.value) {
+    redisValue.value.newValue = ''
+  }
+  suppressCodeUpdate.value = false
+  if (reset) applyDefaultViewType()
+
+  // 键类型可能在 scan 后才确定，nextTick 等 computed 更新后再校正编码下拉
+  await nextTick(() => {
+    if (jsonType.value) {
+      bytesFormat.value = 'utf8'
+    } else if (!stringType.value && isStringOnlyView(bytesFormat.value)) {
+      bytesFormat.value = 'utf8'
+    }
+  })
+  // displayWire / displayBytesFormat 与 resolvedWireView 对齐，供 me-code 渲染
+  syncDisplaySnapshot()
+  await refreshResolvedWireView()
+  // 强制 me-code remount：未保存时 modelValue 字符串可能不变，子组件 watch 不触发
+  valueEditorRemountKey.value++
+  loading.value = false
+}
+
+/**
+ * 拉取/刷新当前键（fieldScan → 更新 redisValue → 同步编辑器）。
+ *
+ * 典型调用：
+ * - refreshKey() / refreshKey(true)：选中新键或切换 hashKey，从头 scan
+ * - refreshKey(false)：同键刷新（改 bytesFormat、保存/删字段后）
+ * - refreshKey(false, true)：加载更多（useCursor，追加一页）
+ * - refreshKey(false, true, true)：加载全部
+ *
+ * @param reset 是否 resetParam + 重算 json/table 默认视图
+ * @param useCursor 为 true 时保留 cursor，请求下一页并尝试 merge
+ * @param loadAll 为 true 时后端一次返回剩余全部页（仍走 cursor 协议）
+ */
+async function refreshKey(
+  reset: boolean = true,
+  useCursor: boolean = false,
+  loadAll: boolean = false,
+) {
+  fieldSetInit()
+  // 刷新过程中 me-code 的 modelValue 会变，避免误写入 newValue
+  suppressCodeUpdate.value = true
+
+  if (reset) resetParam()
+  // 非「加载更多」时从第一页重新 scan
+  if (!useCursor) cursor.value = null
+
+  loading.value = true
+  // 有值则 finally 整包替换；undefined 表示 merge 成功或仅更新了 prev 字段
+  let replaceData: FieldScanResult | undefined
+  try {
+    const data = await meCommands.fieldScan(share.conn!.id, buildFieldScanParam(loadAll))
+    cursor.value = data.cursor
+    // hashKey 非空时进入「单字段」模式，UI 按 string 展示
+    withHashKey.value = !!hashKey.value
+
+    if (useCursor) {
+      const prev = redisValue.value
+      if (!prev || !mergeFieldScanPage(prev, data)) {
+        replaceData = data
+      }
+    } else {
+      replaceData = data
+    }
+
+    showMore.value = !cursor.value?.finished
+    // setTimer 用 ttl 启本地倒计时；merge 场景直接用 prev
+    const rvDone = replaceData ? toViewState(replaceData) : redisValue.value
+    if (rvDone) await setTimer(rvDone.ttl)
+  } finally {
+    await finalizeAfterFieldScan(reset, replaceData)
+  }
+}
+// #endregion
+
+// #region TTL 倒计时
 let timer: ReturnType<typeof setInterval> | null = null
-onUnmounted(() => {
-  if (timer) clearInterval(timer)
-})
+
 async function setTimer(seconds: number) {
   const rv = redisValue.value
   if (!rv) return
@@ -362,106 +483,21 @@ async function setTimer(seconds: number) {
   if (rv.ttl > 0) {
     timer = setInterval(() => {
       const cur = redisValue.value
-      if (cur && cur.ttl > 0) {
-        cur.ttl--
-      }
+      if (cur && cur.ttl > 0) cur.ttl--
     }, 1000)
   }
 }
 
-function resetParam() {
-  tableKeyword.value = ''
-  hashKey.value = ''
-  withHashKey.value = false
+const ttlSetRef = useTemplateRef('ttlSetRef')
+function updateTTL() {
+  if (!canEdit.value) return
+  const rv = redisValue.value
+  if (!rv) return
+  ttlSetRef.value?.open({ ttl: rv.ttl })
 }
-async function refreshKey(
-  reset: boolean = true,
-  useCursor: boolean = false,
-  loadAll: boolean = false,
-) {
-  fieldSetInit() // 关闭字段编辑
-  suppressCodeUpdate.value = true
+// #endregion
 
-  if (reset) {
-    resetParam()
-  }
-
-  if (!useCursor) {
-    cursor.value = null // 不使用游标时重置游标
-  }
-
-  loading.value = true
-  let replaceData: FieldScanResult | undefined
-  try {
-    const param = {
-      key: share.redisKey!,
-      hashKey: hashKey.value,
-      count: meTauri.settings.fieldScanCount ?? 10,
-      cursor: cursor.value,
-      loadAll,
-      meta: meta.value,
-      bytesFormat: toWireFormat(bytesFormat.value),
-    }
-
-    const data = await meCommands.fieldScan(share.conn!.id, param)
-    cursor.value = data.cursor
-    withHashKey.value = !!hashKey.value
-
-    if (useCursor) {
-      const prev = redisValue.value
-      if (
-        prev &&
-        (data.type === 'list' ||
-          data.type === 'set' ||
-          data.type === 'zset' ||
-          data.type === 'hash' ||
-          data.type === 'stream')
-      ) {
-        const a = fieldValueRows(prev.value)
-        const b = fieldValueRows(data.value)
-        const merged: unknown[] = [...a, ...b]
-        ;(prev as { value: unknown }).value = merged
-        prev.length = data.length
-        prev.ttl = data.ttl
-        prev.size = data.size
-      } else {
-        replaceData = data
-      }
-    } else {
-      replaceData = data
-    }
-
-    showMore.value = !cursor.value?.finished
-    const rvDone = replaceData ? toViewState(replaceData) : redisValue.value
-    if (rvDone) await setTimer(rvDone.ttl)
-  } finally {
-    if (replaceData) {
-      redisValue.value = toViewState(replaceData)
-    }
-    if (redisValue.value) {
-      redisValue.value.newValue = ''
-    }
-    suppressCodeUpdate.value = false
-    if (reset) applyDefaultViewType()
-
-    await nextTick(() => {
-      if (jsonType.value) {
-        bytesFormat.value = 'utf8'
-      } else if (!stringType.value && isStringOnlyView(bytesFormat.value)) {
-        bytesFormat.value = 'utf8'
-      }
-    })
-    syncDisplaySnapshot()
-    await refreshResolvedWireView()
-    valueEditorRemountKey.value++
-    loading.value = false
-  }
-}
-
-// 删除键
-onMounted(() => bus.on(KEY_DELETE, deleteKey))
-onUnmounted(() => bus.off(KEY_DELETE, deleteKey))
-
+// #region 键级操作（重命名 / 删除）
 function deleteKey(_payload?: RedisKey_Deserialize) {
   redisValue.value = null
 }
@@ -475,14 +511,14 @@ function renameKey() {
   if (!share.redisKey) return
   keyRenameRef.value?.open({ redisKey: share.redisKey })
 }
+// #endregion
 
-// 保存值
+// #region 保存整键值（STRING / JSON）
 async function setValue() {
   const rv = redisValue.value
   if (!rv) return
   let value = rv.newValue
 
-  // json格式验证 ==> 前端暂不校验了，后端rust的校验可以精确提示第几行第几列错误
   try {
     if (
       jsonType.value ||
@@ -507,32 +543,19 @@ async function setValue() {
     return
   }
 
-  const param = {
+  await meCommands.set(share.conn!.id, {
     key: share.redisKey!,
     value,
     ttl: rv.ttl,
     keyType: rv.type,
     inputFormat: toWireFormat(bytesFormat.value),
-  }
-  await meCommands.set(share.conn!.id, param)
+  })
   meOk(t('saveOk'))
   await refreshKey()
 }
+// #endregion
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// 更新TTL
-const ttlSetRef = useTemplateRef('ttlSetRef')
-function updateTTL() {
-  if (!canEdit.value) return
-  const rv = redisValue.value
-  if (!rv) return
-
-  ttlSetRef.value?.open({
-    ttl: rv.ttl,
-  })
-}
-
-// 字段新增
+// #region 字段级操作（新增 / 编辑 / 删除）
 const fieldAddRef = useTemplateRef('fieldAddRef')
 function fieldAdd() {
   const rv = redisValue.value
@@ -546,15 +569,16 @@ function fieldAdd() {
   })
 }
 
-// 字段编辑 / 查看
 const fieldSetIndex = ref(-1)
 const fieldSetReadonly = ref(false)
 const fieldSetRef = useTemplateRef('fieldSetRef')
+
 function fieldSetInit() {
   fieldSetIndex.value = -1
   fieldSetReadonly.value = false
   fieldSetRef.value?.close()
 }
+
 function openFieldPanel(row: ValueTableRow, index: number, readonly: boolean) {
   const rv = redisValue.value
   if (!rv) return
@@ -575,11 +599,12 @@ function openFieldPanel(row: ValueTableRow, index: number, readonly: boolean) {
     readonly,
   }
   if (rv.type === 'list') {
-    // 此处不要直接取索引，而是重新去计算下（因为表格可能被关键字过滤过）
+    // 表格可能被关键字过滤，list 索引需从完整 value 数组重算
     params.fieldIndex = fieldValueRows(rv.value).indexOf(row.value)
   }
   fieldSetRef.value?.open(params)
 }
+
 function fieldSet(row: ValueTableRow, index: number) {
   openFieldPanel(row, index, false)
 }
@@ -587,28 +612,23 @@ function fieldView(row: ValueTableRow, index: number) {
   openFieldPanel(row, index, true)
 }
 
-function rowClassName({ row, rowIndex }: { row: ValueTableRow; rowIndex: number }) {
-  return `table-row-index-${rowIndex}` // 给每行加一个带有索引的class
+function rowClassName({ rowIndex }: { row: ValueTableRow; rowIndex: number }) {
+  return `table-row-index-${rowIndex}`
 }
 
 function rowClick(row: ValueTableRow, _column: unknown, event: MouseEvent) {
-  // 字段面板未开启时，忽略行点击事件
   if (fieldSetIndex.value === -1) return
-
-  // 从点击事件的当前元素（即 <tr>）获取 class
   const trElement = event.currentTarget as HTMLElement | null
   if (!trElement) return
-  const classList = trElement.classList
-  for (let className of classList) {
+  for (const className of trElement.classList) {
     if (className.startsWith('table-row-index-')) {
-      const rowIndex = Number.parseInt(className.split('-')[3]!, 10) // 提取索引数字
+      const rowIndex = Number.parseInt(className.split('-')[3]!, 10)
       openFieldPanel(row, rowIndex, fieldSetReadonly.value)
       break
     }
   }
 }
 
-// 字段删除
 async function fieldDel(row: ValueTableRow) {
   const rv = redisValue.value
   if (!rv) return
@@ -624,17 +644,17 @@ async function fieldDel(row: ValueTableRow) {
   if (rv.type === 'list') {
     param.fieldIndex = fieldValueRows(rv.value).indexOf(row.value)
   }
-
   if (rv.type === 'stream') {
-    param.fieldValue = '' // 后端接收需要是String
+    param.fieldValue = ''
   }
 
   await meCommands.fieldDel(share.conn!.id, param)
   meOk(t('deleteOk'))
   await refreshKey()
 }
+// #endregion
 
-// Stream的ID转换为字符串时间
+// #region Stream 扩展（Groups / ID 时间）
 function streamIdToDate(id: string) {
   try {
     const timestamp = Number.parseInt(id.split('-')[0]!, 10)
@@ -644,19 +664,20 @@ function streamIdToDate(id: string) {
   }
 }
 
-// Stream显示Groups
 const groupDataList = ref<XInfoGroup[]>([])
 const tableGroupVisible = ref(false)
 async function showGroups() {
   groupDataList.value = await meCommands.xinfoGroups(share.conn!.id, share.redisKey!)
   tableGroupVisible.value = true
 }
+// #endregion
 
-// 内存占用、长度/总数、条目
+// #region 底部信息栏（内存 / 条数 / 槽位）
 const textMemory = computed(() => {
   const sz = redisValue.value?.size
   return sz != null && sz > 0 ? t('redisValue.textMemory') + meHumanSize(sz) : ''
 })
+
 /** 与 textLength 同一位置：String/单字段为字节长度，集合类型为元素总数 */
 const textLength = computed(() => {
   const rv = redisValue.value
@@ -667,6 +688,7 @@ const textLength = computed(() => {
   if (rv.length <= 0) return ''
   return t('redisValue.totalCount') + rv.length
 })
+
 const textEntries = computed(() => {
   const rv = redisValue.value
   if (!rv || jsonType.value || stringTypeOrWithHashKey.value) return ''
@@ -675,34 +697,48 @@ const textEntries = computed(() => {
   return t('redisValue.textEntries') + `${filtered} / ${loaded}`
 })
 
-// 查看此键所在节点
+const showKey = computed(() => {
+  const rk = share.redisKey
+  if (!rk) return ''
+  return rk.key
+})
+
 async function showSlot() {
   const data = await meCommands.keySlot(share.conn!.id, share.redisKey!)
   meOk(String(data), true, t('redisValue.slotTitle'))
 }
 
-// 查看此键所在节点
 async function showLocation() {
   const data = await meCommands.keyNode(share.conn!.id, share.redisKey!)
   const msg = data.map(item => item.node + ' | ' + item.flags.toUpperCase()).join('<br>')
   meOk(msg, true, t('redisValue.locationTitle'), { dangerouslyUseHTMLString: true })
 }
+// #endregion
 
-// 键显示方式
-const showKey = computed(() => {
-  const rk = share.redisKey
-  if (!rk) return ''
-  // if (bytesFormat.value === 'utf8') return rk.key
-  // return meFormatBytes(rk.bytes, bytesFormat.value)
-  // 键显示暂时不跟随字节格式变化
-  return rk.key
-})
-
-// 快捷键
+// #region 快捷键说明弹窗
 const keyShortVisible = ref(false)
 function openKeyShortDialog() {
   keyShortVisible.value = true
 }
+// #endregion
+
+// #region 事件总线与生命周期
+const onKeyRefreshBus = () => {
+  bytesFormat.value = 'utf8'
+  void refreshKey()
+}
+
+onMounted(() => {
+  bus.on(KEY_REFRESH, onKeyRefreshBus)
+  bus.on(KEY_DELETE, deleteKey)
+})
+
+onUnmounted(() => {
+  bus.off(KEY_REFRESH, onKeyRefreshBus)
+  bus.off(KEY_DELETE, deleteKey)
+  if (timer) clearInterval(timer)
+})
+// #endregion
 </script>
 
 <template>
