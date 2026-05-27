@@ -1,6 +1,8 @@
 <script setup lang="ts">
-/** 自定义编解码 CRUD：由 RedisValue 数据编码下拉头部编辑入口打开 */
-import { computed, reactive, ref } from 'vue'
+/** 自定义编解码 CRUD：由 RedisValue 数据编码下拉头部编辑入口打开；列表顺序即下拉展示顺序 */
+import type { TableInstance } from 'element-plus'
+import { Sortable, type SortableEvent } from 'sortablejs'
+import { computed, nextTick, onBeforeUnmount, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
@@ -15,7 +17,50 @@ const visible = defineModel<boolean>({ default: false })
 
 const { t } = useI18n()
 
+const tableRef = useTemplateRef<TableInstance>('table')
 const list = computed(() => window.meTauri.settings.customFormatters ?? [])
+
+let sortable: Sortable | null = null
+
+function destroySortable() {
+  sortable?.destroy()
+  sortable = null
+}
+
+/** 绑定 el-table tbody；顺序写入 settings.customFormatters */
+function setupSortable() {
+  destroySortable()
+  const tbody = tableRef.value?.$el.querySelector(
+    '.el-table__body-wrapper tbody',
+  ) as HTMLElement | null
+  if (!tbody) return
+  sortable = Sortable.create(tbody, {
+    handle: '.drag-handle',
+    filter: '.row-actions',
+    preventOnFilter: true,
+    animation: 150,
+    onEnd({ oldIndex, newIndex }: SortableEvent) {
+      if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return
+      const arr = window.meTauri.settings.customFormatters
+      if (!Array.isArray(arr)) return
+      const [item] = arr.splice(oldIndex, 1)
+      if (item) arr.splice(newIndex, 0, item)
+    },
+  })
+}
+
+watch(
+  () => [visible.value, list.value.length] as const,
+  ([open]) => {
+    if (!open) {
+      destroySortable()
+      return
+    }
+    void nextTick(setupSortable)
+  },
+)
+
+onBeforeUnmount(() => destroySortable())
 
 const formVisible = ref(false)
 const editIndex = ref(-1)
@@ -120,13 +165,20 @@ async function runTest(mode: 'decode' | 'encode') {
       }}</el-button>
     </div>
 
-    <el-table :data="list" empty-text="—" size="small">
-      <el-table-column :label="t('customFormatter.name')" prop="name" width="140" />
+    <el-table ref="table" :data="list" row-key="name" empty-text="—" size="small">
+      <el-table-column label="#" type="index" width="44" align="center" class-name="drag-handle" />
+      <el-table-column
+        :label="t('customFormatter.name')"
+        prop="name"
+        width="100"
+        show-overflow-tooltip />
       <el-table-column :label="t('customFormatter.command')" prop="command" show-overflow-tooltip />
       <el-table-column width="100" align="center">
         <template #default="{ row, $index }">
-          <el-button link type="primary" icon="el-icon-edit" @click="openEdit(row, $index)" />
-          <el-button link type="danger" icon="el-icon-delete" @click="removeAt($index)" />
+          <div class="row-actions">
+            <el-button link type="primary" icon="el-icon-edit" @click="openEdit(row, $index)" />
+            <el-button link type="danger" icon="el-icon-delete" @click="removeAt($index)" />
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -208,5 +260,13 @@ async function runTest(mode: 'decode' | 'encode') {
     flex: 1;
     min-width: 0;
   }
+}
+
+:deep(.drag-handle) {
+  cursor: move;
+}
+
+:deep(.sortable-ghost) {
+  background-color: var(--el-color-primary-light-8);
 }
 </style>
