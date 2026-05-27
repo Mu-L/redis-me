@@ -265,6 +265,8 @@ export default {
   meTable: {
     copyJson: '复制 JSON',
     copyCsv: '复制 CSV',
+    copyHtml: '复制 HTML',
+    copyMarkdown: '复制 Markdown',
     exportJson: '导出 JSON',
     exportCsv: '导出 CSV',
     exportExcel: '导出 Excel',

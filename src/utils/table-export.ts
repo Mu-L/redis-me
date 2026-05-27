@@ -5,7 +5,7 @@ import type { TableInstance } from 'element-plus'
 import * as XLSX from 'xlsx'
 
 import i18n from '@/locales'
-import { meErr, meOk } from '@/utils/util'
+import { meCopy, meErr, meOk } from '@/utils/util'
 
 const { t } = i18n.global
 
@@ -78,8 +78,7 @@ function htmlEscape(value: string): string {
     .replace(/"/g, '&quot;')
 }
 
-/** 导出可在浏览器直接打开的 HTML 表格 */
-export function matrixToHtml(headers: string[], rows: string[][]): string {
+function buildTableHtml(headers: string[], rows: string[][]): string {
   const headerHtml = headers.map(h => `<th>${htmlEscape(h)}</th>`).join('')
   const bodyHtml = rows
     .map(row => {
@@ -87,6 +86,43 @@ export function matrixToHtml(headers: string[], rows: string[][]): string {
       return `<tr>${cells}</tr>`
     })
     .join('')
+  return `<table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;"><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`
+}
+
+function mdEscapeCell(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\n/g, ' ')
+}
+
+export function matrixToMarkdown(headers: string[], rows: string[][]): string {
+  const headerRow = `| ${headers.map(mdEscapeCell).join(' | ')} |`
+  const separator = `| ${headers.map(() => '---').join(' | ')} |`
+  const bodyRows = rows.map(row => {
+    const cells = headers.map((_, index) => mdEscapeCell(row[index] ?? ''))
+    return `| ${cells.join(' | ')} |`
+  })
+  return [headerRow, separator, ...bodyRows].join('\n')
+}
+
+/** 复制 HTML 表格片段（富文本 + Markdown 纯文本回退） */
+export async function copyTableHtml(headers: string[], rows: string[][]): Promise<void> {
+  const html = buildTableHtml(headers, rows)
+  const plain = matrixToMarkdown(headers, rows)
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([plain], { type: 'text/plain' }),
+      }),
+    ])
+    meOk(t('copyOk'))
+  } catch {
+    meCopy(html)
+  }
+}
+
+/** 导出可在浏览器直接打开的 HTML 表格 */
+export function matrixToHtml(headers: string[], rows: string[][]): string {
+  const table = buildTableHtml(headers, rows)
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -101,10 +137,7 @@ export function matrixToHtml(headers: string[], rows: string[][]): string {
   </style>
 </head>
 <body>
-  <table>
-    <thead><tr>${headerHtml}</tr></thead>
-    <tbody>${bodyHtml}</tbody>
-  </table>
+  ${table}
 </body>
 </html>`
 }

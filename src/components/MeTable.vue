@@ -10,9 +10,11 @@ import { computed, nextTick, ref, useAttrs, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
+  copyTableHtml,
   matrixToCsv,
   matrixToHtml,
   matrixToJson,
+  matrixToMarkdown,
   readTableFromDom,
   saveTableTextFile,
   saveTableXlsxFile,
@@ -234,6 +236,12 @@ async function handleExportCommand(command: string): Promise<void> {
     case 'copyCsv':
       meCopy(matrixToCsv(headers, rows))
       break
+    case 'copyHtml':
+      await copyTableHtml(headers, rows)
+      break
+    case 'copyMarkdown':
+      meCopy(matrixToMarkdown(headers, rows))
+      break
     case 'exportJson':
       await saveTableTextFile(matrixToJson(headers, rows), exportFileName('json'), ['json'])
       break
@@ -295,14 +303,18 @@ defineExpose({
           <el-dropdown-menu>
             <el-dropdown-item command="copyJson">{{ t('meTable.copyJson') }}</el-dropdown-item>
             <el-dropdown-item command="copyCsv">{{ t('meTable.copyCsv') }}</el-dropdown-item>
+            <el-dropdown-item command="copyHtml">{{ t('meTable.copyHtml') }}</el-dropdown-item>
+            <el-dropdown-item command="copyMarkdown">{{
+              t('meTable.copyMarkdown')
+            }}</el-dropdown-item>
             <el-dropdown-item command="exportJson" divided>{{
               t('meTable.exportJson')
             }}</el-dropdown-item>
             <el-dropdown-item command="exportCsv">{{ t('meTable.exportCsv') }}</el-dropdown-item>
+            <el-dropdown-item command="exportHtml">{{ t('meTable.exportHtml') }}</el-dropdown-item>
             <el-dropdown-item command="exportExcel">{{
               t('meTable.exportExcel')
             }}</el-dropdown-item>
-            <el-dropdown-item command="exportHtml">{{ t('meTable.exportHtml') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

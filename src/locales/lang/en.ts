@@ -271,6 +271,8 @@ export default {
   meTable: {
     copyJson: 'Copy JSON',
     copyCsv: 'Copy CSV',
+    copyHtml: 'Copy HTML',
+    copyMarkdown: 'Copy Markdown',
     exportJson: 'Export JSON',
     exportCsv: 'Export CSV',
     exportExcel: 'Export Excel',
