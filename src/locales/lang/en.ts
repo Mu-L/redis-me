@@ -268,6 +268,18 @@ export default {
     nameRequired: 'Name is required',
   },
 
+  meTable: {
+    copyJson: 'Copy JSON',
+    copyCsv: 'Copy CSV',
+    exportJson: 'Export JSON',
+    exportCsv: 'Export CSV',
+    exportExcel: 'Export Excel',
+    exportHtml: 'Export HTML',
+    exportOk: 'Export Success',
+    exportErr: 'Export Failed',
+    exportEmpty: 'No data',
+  },
+
   util: {
     days: 'd',
     deleteKey: 'Delete [{key}]?',

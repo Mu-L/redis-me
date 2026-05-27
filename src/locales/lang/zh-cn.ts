@@ -262,6 +262,18 @@ export default {
     nameRequired: '请填写名称',
   },
 
+  meTable: {
+    copyJson: '复制 JSON',
+    copyCsv: '复制 CSV',
+    exportJson: '导出 JSON',
+    exportCsv: '导出 CSV',
+    exportExcel: '导出 Excel',
+    exportHtml: '导出 HTML',
+    exportOk: '导出成功',
+    exportErr: '导出失败',
+    exportEmpty: '暂无数据',
+  },
+
   util: {
     days: '天',
     deleteKey: '确定删除键【{key}】吗？',
