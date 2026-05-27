@@ -69,14 +69,11 @@ watch(commandHelp, () => {
 // 表格Redis命令的帮助手册显示
 const visible = ref(false)
 const keyword = ref('')
+const group = ref('')
+const groupList = computed(() => new Set(commandHelp.value.map(row => row.group)))
 const tableKey = ref(0)
 /** 列头筛选（MeTable 分页前先过滤全量数据，列上 filter-method 仅保留 UI） */
 const activeFilters = ref<Record<string, unknown[]>>({})
-const groupFilters = computed(() =>
-  [...new Set(commandHelp.value.map(row => row.group))]
-    .sort()
-    .map(value => ({ text: value, value })),
-)
 const sinceFilters = computed(() =>
   [...new Set(commandHelp.value.map(row => row.since))]
     .sort()
@@ -89,13 +86,12 @@ const readonlyFilters = computed(() => [
 const filterDataList = computed(() => {
   let rows = commandHelp.value
   const key = keyword.value.toLowerCase().trim()
+  if (group.value) rows = rows.filter(row => row.group === group.value)
   if (key) {
     rows = rows.filter(
       row => row.title.toLowerCase().includes(key) || row.summary.toLowerCase().includes(key),
     )
   }
-  const groups = activeFilters.value.group as string[] | undefined
-  if (groups?.length) rows = rows.filter(row => groups.includes(row.group))
   const sinces = activeFilters.value.since as string[] | undefined
   if (sinces?.length) rows = rows.filter(row => sinces.includes(row.since))
   const readonlys = activeFilters.value.readonly as boolean[] | undefined
@@ -108,6 +104,7 @@ function onFilterChange(filters: Record<string, unknown[]>) {
 }
 function openCommandDialog() {
   keyword.value = ''
+  group.value = ''
   activeFilters.value = {}
   tableKey.value++
   visible.value = true
@@ -181,7 +178,17 @@ function openKeyShortDialog() {
       width="80vw">
       <div style="height: 100%; display: flex; flex-direction: column">
         <div class="me-flex">
-          <me-website to="command" />
+          <div class="me-flex">
+            <el-select
+              v-model="group"
+              style="width: 200px"
+              :placeholder="t('redisTerminal.group')"
+              clearable
+              filterable>
+              <el-option v-for="item in groupList" :key="item" :value="item">{{ item }}</el-option>
+            </el-select>
+            <me-website to="command" />
+          </div>
           <el-input
             v-model="keyword"
             :placeholder="t('redisTerminal.keywordHint')"
@@ -202,11 +209,9 @@ function openKeyShortDialog() {
             <el-table-column
               :label="t('redisTerminal.group')"
               prop="group"
-              column-key="group"
               width="120"
               show-overflow-tooltip
-              :filters="groupFilters"
-              :filter-method="() => true" />
+              sortable />
             <el-table-column
               :label="t('redisTerminal.command')"
               prop="key"
