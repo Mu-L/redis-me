@@ -59,7 +59,7 @@
     "vue-codemirror6": "^1.5.2",
     "vue-i18n": "^11.4.2",
     "vue-web-terminal": "^3.4.2",
-    "xlsx": "^0.18.5",
+    "xlsx": "npm:@e965/xlsx@^0.20.3",
     "yaml": "^2.9.0"
   },
   "devDependencies": {
