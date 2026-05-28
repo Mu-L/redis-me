@@ -271,6 +271,7 @@ export default {
     exportCsv: '导出 CSV',
     exportExcel: '导出 Excel',
     exportHtml: '导出 HTML',
+    exportMarkdown: '导出 Markdown',
     exportOk: '导出成功',
     exportErr: '导出失败',
     exportEmpty: '暂无数据',

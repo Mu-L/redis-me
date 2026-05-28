@@ -254,6 +254,9 @@ async function handleExportCommand(command: string): Promise<void> {
     case 'exportHtml':
       await saveTableTextFile(matrixToHtml(headers, rows), exportFileName('html'), ['html'])
       break
+    case 'exportMarkdown':
+      await saveTableTextFile(matrixToMarkdown(headers, rows), exportFileName('md'), ['md'])
+      break
   }
 }
 
@@ -312,6 +315,9 @@ defineExpose({
             }}</el-dropdown-item>
             <el-dropdown-item command="exportCsv">{{ t('meTable.exportCsv') }}</el-dropdown-item>
             <el-dropdown-item command="exportHtml">{{ t('meTable.exportHtml') }}</el-dropdown-item>
+            <el-dropdown-item command="exportMarkdown">{{
+              t('meTable.exportMarkdown')
+            }}</el-dropdown-item>
             <el-dropdown-item command="exportExcel">{{
               t('meTable.exportExcel')
             }}</el-dropdown-item>

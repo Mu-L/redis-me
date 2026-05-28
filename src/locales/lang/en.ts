@@ -277,6 +277,7 @@ export default {
     exportCsv: 'Export CSV',
     exportExcel: 'Export Excel',
     exportHtml: 'Export HTML',
+    exportMarkdown: 'Export Markdown',
     exportOk: 'Export Success',
     exportErr: 'Export Failed',
     exportEmpty: 'No data',
