@@ -154,7 +154,8 @@ function propWidth(item: string) {
         ref="table"
         v-loading="loading"
         :default-sort="{ prop: 'id', order: 'ascending' }"
-        height="100%">
+        height="100%"
+        export-name="client">
         <el-table-column
           label="ID"
           prop="id"

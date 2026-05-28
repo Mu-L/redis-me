@@ -878,6 +878,7 @@ onUnmounted(() => {
               stripe
               ref="table"
               height="100%"
+              export-name="value"
               :row-class-name="rowClassName"
               @row-click="rowClick">
               <el-table-column

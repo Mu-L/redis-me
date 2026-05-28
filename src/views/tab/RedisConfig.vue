@@ -253,7 +253,12 @@ const rules = computed(() => ({
     </div>
 
     <div class="table">
-      <me-table :data="filterDataList" ref="table" v-loading="loading" :row-style="calcRowStyle">
+      <me-table
+        :data="filterDataList"
+        ref="table"
+        v-loading="loading"
+        :row-style="calcRowStyle"
+        export-name="config">
         <el-table-column
           :label="t('redisConfig.param')"
           prop="param"

@@ -227,6 +227,7 @@ const rules = computed(() => ({
         ref="table"
         v-loading="loading"
         :default-sort="{ prop: 'time', order: 'descending' }"
+        export-name="slowlog"
         @sort-change="sortChange"
         border
         stripe>

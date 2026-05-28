@@ -194,7 +194,7 @@ function ensureExportRows(): boolean {
 }
 
 function exportFileName(ext: string): string {
-  return `${props.exportName}_${dayjs().format('YYYYMMDDHHmmss')}.${ext}`
+  return `RedisME_${props.exportName}_${dayjs().format('YYYYMMDDHHmmss')}.${ext}`
 }
 
 /** 导出前临时展示全部 sortedData，以便 DOM 含自定义 slot 列（如 Info 说明） */

@@ -245,6 +245,7 @@ function batchDelKey() {
         ref="table"
         :default-sort="{ prop: 'size', order: 'descending' }"
         v-loading="loading"
+        export-name="memory"
         @selection-change="selectionChange">
         <el-table-column type="selection" width="50" align="center" />
         <el-table-column

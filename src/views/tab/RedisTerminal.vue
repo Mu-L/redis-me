@@ -204,6 +204,7 @@ function openKeyShortDialog() {
             border
             stripe
             height="100%"
+            export-name="command"
             :default-sort="{ prop: 'key', order: 'ascending' }"
             @filter-change="onFilterChange">
             <el-table-column

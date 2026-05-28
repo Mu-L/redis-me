@@ -359,7 +359,7 @@ const nodeGroups = computed(() => {
         </div>
       </template>
 
-      <me-table ref="table" :data="filterDataList">
+      <me-table ref="table" :data="filterDataList" export-name="info">
         <el-table-column prop="tag" :label="t('redisInfo.tag')" width="100" />
         <el-table-column prop="key" :label="t('redisInfo.key')" show-overflow-tooltip />
         <el-table-column prop="value" :label="t('redisInfo.value')" show-overflow-tooltip />
