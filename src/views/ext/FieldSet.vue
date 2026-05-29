@@ -6,7 +6,6 @@ import { useI18n } from 'vue-i18n'
 import { shareProvideKey } from '@/types/me-interface'
 import type { BytesFormat, RedisFieldSet_Deserialize } from '@/types/tauri-specta'
 import {
-  codeMirrorModeForView,
   customFormatName,
   defaultFieldViewFmt,
   fieldViewOptions,
@@ -80,7 +79,6 @@ const customNames = computed(() =>
   (window.meTauri.settings.customFormatters ?? []).map(f => f.name),
 )
 const fieldViewOptionList = computed(() => fieldViewOptions(keyWireFmt.value, customNames.value))
-const codeMode = computed(() => codeMirrorModeForView(fieldViewFmt.value))
 const prettyEnabled = computed(
   () => fieldViewFmt.value === 'utf8' || fieldViewFmt.value === 'strjson',
 )
@@ -236,7 +234,6 @@ function submit() {
         <me-code
           :key="codeRemountKey"
           v-model="form.fieldValue"
-          :mode="codeMode"
           :read-only="editorLoading || readonly"
           class="field-code-editor" />
       </el-form-item>

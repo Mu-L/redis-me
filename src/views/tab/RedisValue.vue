@@ -817,15 +817,6 @@ onUnmounted(() => {
           v-if="viewType === 'json'"
           :key="valueEditorRemountKey"
           :modelValue="showValue"
-          :mode="
-            stringTypeOrWithHashKey &&
-            displayBytesFormat !== 'utf8' &&
-            displayBytesFormat !== 'msgpack' &&
-            displayBytesFormat !== 'strjson' &&
-            !isCustomView(displayBytesFormat)
-              ? 'ignore'
-              : 'json'
-          "
           @update:modelValue="onCodeUpdate"
           :read-only="!canSave" />
 

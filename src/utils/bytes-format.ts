@@ -105,14 +105,6 @@ export function defaultFieldViewFmt(
   return options[0]!.value
 }
 
-/** MeCode 语法模式 */
-export function codeMirrorModeForView(view: ViewBytesFormat): string {
-  if (view === 'utf8' || view === 'msgpack' || view === 'strjson' || isCustomView(view)) {
-    return 'json'
-  }
-  return 'ignore'
-}
-
 /** 保存前需 JSON 校验并 compact */
 export function needsJsonNormalize(view: ViewBytesFormat): boolean {
   return view === 'msgpack' || view === 'strjson'
