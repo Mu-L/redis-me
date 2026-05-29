@@ -51,10 +51,10 @@ function resolveCustomFormatter(view: ViewBytesFormat): CustomFormatter {
 export const EXT_FORMAT = ['StrJson', 'MsgPack'] as const
 
 /** MsgPack 解码失败时的固定提示 */
-export const MSGPACK_DECODE_ERR = 'MsgPack Decode Error !'
+export const MSGPACK_DECODE_ERR = '⚠️ MsgPack Decode Error'
 
 /** StrJson 解码失败时的固定提示 */
-export const STRJSON_DECODE_ERR = 'StrJson Decode Error !'
+export const STRJSON_DECODE_ERR = '⚠️ StrJson Decode Error'
 
 /** 展示文本是否为内置解码器失败结果（MsgPack / StrJson） */
 export function isViewDecodeError(text: string): boolean {
@@ -222,7 +222,7 @@ export function meMsgpackBase64ToJson(base64: string): string {
     const decoded = decode(base64ToUint8Array(base64))
     return JSON.stringify(decoded, null, 2)
   } catch {
-    return `${MSGPACK_DECODE_ERR}\n\n${base64}`
+    return `${MSGPACK_DECODE_ERR}\n${base64}`
   }
 }
 
@@ -248,7 +248,7 @@ export function meStrJsonWireToDisplay(wire: string): string {
     const value = unwrapStrJsonValue(wire)
     return JSON.stringify(value, null, 2)
   } catch {
-    return `${STRJSON_DECODE_ERR}\n\n${wire}`
+    return `${STRJSON_DECODE_ERR}\n${wire}`
   }
 }
 

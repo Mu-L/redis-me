@@ -76,18 +76,17 @@ function withExecCommand(fullCommand: string, message: string): string {
   return t('customFormatter.execFailResult', { command: fullCommand, detail: message })
 }
 
-/** 从 withExecCommand 拼装的错误里取出 detail（兼容旧版 \\n 格式） */
+/** 从 execFailResult 拼装的错误里取出 detail 部分 */
 export function parseFormatterErrorDetail(message: string): string {
-  const markers = [
-    '\n错误：',
-    '\nError: ',
-    '<br>错误：',
-    '<br>Error: ',
-    `\n\n${t('customFormatter.execError')}\n`,
-  ]
-  for (const m of markers) {
-    const i = message.lastIndexOf(m)
-    if (i >= 0) return message.slice(i + m.length).trim()
+  const headPrefixes = ['⚠️ 错误：', '⚠️ Error: ']
+  for (const prefix of headPrefixes) {
+    if (!message.startsWith(prefix)) continue
+    const rest = message.slice(prefix.length)
+    for (const m of ['\n🔔 命令：', '\n🔔 Command: ']) {
+      const i = rest.indexOf(m)
+      if (i >= 0) return rest.slice(0, i).trim()
+    }
+    return rest.trim()
   }
   return message.trim()
 }

@@ -252,7 +252,7 @@ export default {
     testOk: 'Success',
     testResult: 'Command: {command}<br>Input: {input}<br>Output: {output}',
     testErrorResult: 'Command: {command}<br>Input: {input}<br>Error: {detail}',
-    execFailResult: 'Command: {command}\nError: {detail}',
+    execFailResult: '⚠️ Error: {detail}\n🔔 Command: {command}',
     execCommand: 'Executed command:\n{command}',
     execError: 'Error:',
     emptyCommand: 'Command is required',

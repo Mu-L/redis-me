@@ -246,7 +246,7 @@ export default {
     testOk: '执行成功',
     testResult: '命令：{command}<br>输入：{input}<br>输出：{output}',
     testErrorResult: '命令：{command}<br>输入：{input}<br>错误：{detail}',
-    execFailResult: '命令：{command}\n错误：{detail}',
+    execFailResult: '⚠️ 错误：{detail}\n🔔 命令：{command}',
     execCommand: '执行命令：\n{command}',
     execError: '错误提示：',
     emptyCommand: '命令不能为空',
