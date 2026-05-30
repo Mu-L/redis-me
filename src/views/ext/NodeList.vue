@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, onMounted } from 'vue'
+import { inject, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
@@ -7,19 +7,21 @@ import { shareProvideKey } from '@/types/me-interface'
 const { t } = useI18n()
 
 const share = inject(shareProvideKey)!
-const node = defineModel()
+const node = defineModel<string>()
 const emit = defineEmits(['update:modelValue'])
 
 const props = defineProps({
+  /** 集群模式下默认选中第一个 master（nodeList 异步就绪后也会补设） */
   initNode: { type: Boolean, default: false },
 })
 
-const firstMaster = computed(() => share.nodeList.find(item => item.isMaster))
-onMounted(() => {
-  if (props.initNode) {
-    emit('update:modelValue', firstMaster.value?.node || '')
-  }
-})
+function tryInitNode() {
+  if (!props.initNode || node.value) return
+  const master = share.nodeList.find(item => item.isMaster)
+  if (master?.node) emit('update:modelValue', master.node)
+}
+
+watch(() => share.nodeList, tryInitNode, { immediate: true })
 </script>
 
 <template>
