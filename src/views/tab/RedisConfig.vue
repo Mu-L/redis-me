@@ -75,6 +75,7 @@ const allConfigVersions = [
   'Redis8.2',
   'Redis8.4',
   'Redis8.6',
+  'Redis8.8',
   'Valkey7.2',
   'Valkey8.0',
   'Valkey8.1',
