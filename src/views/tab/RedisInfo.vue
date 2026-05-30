@@ -352,9 +352,6 @@ const nodeGroups = computed(() => {
             [
             <span>{{ t('redisInfo.peak') }}: {{ dic['used_memory_peak_human'] }}</span>
             <span style="margin-left: 20px"
-              >{{ t('redisInfo.os') }}: {{ dic['total_system_memory_human'] }}</span
-            >
-            <span style="margin-left: 20px"
               >{{ t('redisInfo.maxmemoryLimit') }}: {{ maxmemorySummary }}</span
             >
             ]
@@ -387,6 +384,9 @@ const nodeGroups = computed(() => {
           <el-text type="info" style="margin-left: 10px">
             [
             <span>PID: {{ dic['process_id'] }}</span>
+            <span style="margin-left: 20px"
+              >{{ t('redisInfo.memory') }}: {{ dic['total_system_memory_human'] }}</span
+            >
             <span style="margin-left: 20px" v-if="cacheRatio !== 'error'"
               >{{ t('redisInfo.cacheRatio') }}: {{ cacheRatio }}</span
             >
