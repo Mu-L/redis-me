@@ -56,4 +56,7 @@ export default defineConfig({
   // 显示最后更新时间
   lastUpdated: false,
   // srcExclude: ['latest.json', '/zz/**'],
+
+  // Windows（Hyper-V/WSL 等）常保留 5172–5271，Vite 默认 5173 会 EACCES
+  vite: { server: { port: 3333, host: '127.0.0.1' }, preview: { port: 3333, host: '127.0.0.1' } },
 })

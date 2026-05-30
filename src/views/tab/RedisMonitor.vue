@@ -105,7 +105,7 @@ onUnmounted(() => tauriUnlisten())
       </div>
     </div>
     <div class="table">
-      <me-table :data="filterDataList" ref="table" hide-on-single-page>
+      <me-table :data="filterDataList" ref="table" export-name="monitor">
         <el-table-column :label="t('redisMonitor.time')" prop="datetime" width="200" sortable />
         <el-table-column :label="t('redisMonitor.command')" prop="command" show-overflow-tooltip />
         <el-table-column :label="t('action')" width="80" align="center">

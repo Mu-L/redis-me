@@ -6,6 +6,7 @@ use crate::utils::setup::{app_setup, init_logger};
 use api::*;
 use client::state::AppState;
 use rustls::crypto::ring::default_provider;
+#[cfg(any(debug_assertions, test))]
 use specta_typescript::Typescript;
 use std::path::PathBuf;
 use tauri::Manager;
@@ -16,6 +17,7 @@ fn tauri_specta_commands() -> Commands<tauri::Wry> {
         greet,
         app_dir,
         is_app_store,
+        restart_after_update,
         test_conn,
         masters,
         conn_list,
@@ -102,6 +104,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build()) // 状态存储插件(连接、设置的自动保存和读取)
         .plugin(tauri_plugin_dialog::init()) // 弹框选择文件
         .plugin(tauri_plugin_opener::init()) // 打开外部链接
+        .plugin(tauri_plugin_shell::init()) // 自定义 Formatter 执行外部脚本
         .plugin(init_logger().build()) // 日志插件
         .setup(move |app| {
             specta_builder.mount_events(app);

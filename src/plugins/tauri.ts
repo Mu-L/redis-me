@@ -50,12 +50,15 @@ const initSettings = {
   keyShow: 'tree',
   keySort: 'count',
   keyHeight: 20,
-  fieldShow: 'auto', // 'auto' 初始 JSON、手动切换后沿用 | 'table' 优先表格
-  fieldShowView: 'json', // auto 模式下上次手动选择的 json/table，持久化供切换连接沿用
-  // 首页连接分组（见 src/utils/conn-group.ts）
+  fieldShow: 'table', // 'auto' 初始 JSON、手动切换后沿用 | 'table' 优先表格
+  fieldShowView: 'table', // auto 模式下上次手动选择的 json/table，持久化供切换连接沿用
+  // 首页连接分组（见 src/utils/conn.ts）
   connShow: 'flat', // 'flat' | 'group'
   connGroups: [] as string[], // 分组名有序列表
   connGroupExpanded: {} as Record<string, boolean>, // 分组折叠状态，键为分组名（''=默认分组）
+  // 自定义 Formatter（STRING 值编解码，见 plans/custom-formatter.md）
+  customFormatters: [] as { name: string; command: string }[],
+  formatterExecTimeoutSec: 5,
 }
 const settings = { ...initSettings, ...storeSettings }
 if (settings.fieldShow !== 'auto' && settings.fieldShow !== 'table') settings.fieldShow = 'auto'
@@ -70,6 +73,10 @@ if (
   Array.isArray(settings.connGroupExpanded)
 ) {
   settings.connGroupExpanded = {}
+}
+if (!Array.isArray(settings.customFormatters)) settings.customFormatters = []
+if (typeof settings.formatterExecTimeoutSec !== 'number' || settings.formatterExecTimeoutSec <= 0) {
+  settings.formatterExecTimeoutSec = 5
 }
 const meTauri = reactive({
   // 响应式，自动保存

@@ -133,6 +133,7 @@ const minimalFieldDel: RedisFieldDel_Deserialize = {
   fieldKey: '',
   fieldValue: '',
   streamId: '',
+  valFmt: null,
 }
 
 const minimalRedisCmd: RedisCommand = {

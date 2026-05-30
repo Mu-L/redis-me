@@ -5,14 +5,14 @@ import { nextTick, onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue
 import { useI18n } from 'vue-i18n'
 
 import type { UiConn } from '@/types/me-interface'
-import type { ConnGroupSection } from '@/utils/conn-group'
+import type { ConnGroupSection } from '@/utils/conn'
 import {
   applyConnGroupOrder,
   getConnGroup,
   getConnIcon,
   moveConnInGroup,
   moveConnToGroup,
-} from '@/utils/conn-group'
+} from '@/utils/conn'
 import { PREDEFINE_COLORS } from '@/utils/util'
 
 const props = defineProps<{

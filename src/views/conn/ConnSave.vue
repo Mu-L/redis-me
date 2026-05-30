@@ -6,7 +6,7 @@ import { computed, inject, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey, type UiConn } from '@/types/me-interface'
-import { getConnGroup, normalizeGroupName, setConnGroup } from '@/utils/conn-group'
+import { getConnGroup, normalizeGroupName, setConnGroup } from '@/utils/conn'
 import { meCommands, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util'
 const { t } = useI18n()
 

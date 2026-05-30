@@ -58,6 +58,7 @@ function sidebarGuide() {
         // {text: 'Client', link: '/usage/client'},
         // {text: 'Config', link: '/usage/config'},
         { text: 'Value', link: '/usage/value' },
+        { text: 'Custom Codec', link: '/usage/codec' },
         { text: 'Terminal', link: '/usage/terminal' },
         { text: 'Memory', link: '/usage/memory' },
         { text: 'SlowLog', link: '/usage/slowlog' },

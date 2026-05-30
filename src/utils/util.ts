@@ -65,10 +65,6 @@ export const INFO_REFRESH = 'INFO_REFRESH'
 export const CONN_REFRESH = 'CONN_REFRESH'
 export const CONN_LIST_WINDOWS_SYNC = 'CONN_LIST_WINDOWS_SYNC'
 export const TREE_KEY_ID_PREFIX = '_TREE_KEY_ID_PREFIX_'
-export const BYTES_FORMAT = ['UTF8', 'Hex', 'Binary', 'Base64'] as const
-
-/** STRING 值详情下拉扩展项（展示文案；`value` 为 label 全小写，须与 `BytesFormat` serde 一致） */
-export const EXT_FORMAT = ['MsgPack'] as const
 
 // 预设颜色
 export const PREDEFINE_COLORS = [
@@ -288,6 +284,15 @@ export function meWarn(message: string): void {
 export function meErr(message: string | Error, title: string = t('error')): void {
   const text = message instanceof Error ? message.message : message
   void ElMessageBox.alert(text, title, { type: 'error', draggable: true }).then(DoNothing)
+}
+
+/** 错误弹窗（HTML 换行，用于自定义编解码测试等） */
+export function meErrHtml(message: string, title: string = t('error')): void {
+  void ElMessageBox.alert(message, title, {
+    type: 'error',
+    draggable: true,
+    dangerouslyUseHTMLString: true,
+  }).then(DoNothing)
 }
 
 export function meConfirm(
@@ -516,12 +521,24 @@ export async function meDownloadUpdate(
         }
 
         const isWindows = type() === 'windows'
+        const isMacOS = type() === 'macos'
         if (isWindows) {
           await update.download(downloadingHandle)
           meConfirm(t('util.downloadDown'), async () => await update.install(), manualCloseOptions)
         } else {
           await update.downloadAndInstall(downloadingHandle)
-          meConfirm(t('util.updateDone'), async () => await relaunch(), manualCloseOptions)
+          // macOS：relaunch 会与 single-instance 竞态，改走 Rust 延迟 open 重启
+          meConfirm(
+            t('util.updateDone'),
+            async () => {
+              if (isMacOS) {
+                await meCommands.restartAfterUpdate()
+              } else {
+                await relaunch()
+              }
+            },
+            manualCloseOptions,
+          )
         }
       } catch (e) {
         meErr(t('util.updateErr', { message: errString(e) }))
@@ -592,77 +609,5 @@ export function meJsonParse(jsonString: string | null | undefined): unknown {
 
 export function meJsonNormal(jsonString: string): string {
   return JSON.stringify(JSON5.parse(jsonString), null, 2)
-}
-// #endregion
-
-// #region Base64 / Hex / Binary 展示与互转（键编辑等）
-export function meFormatBytes(base64: string, bytesFormat: string): string {
-  if (bytesFormat === 'base64') return base64
-  if (bytesFormat === 'hex') return base64ToHex(base64)
-  if (bytesFormat === 'binary') return base64ToBinary(base64)
-  return 'Unknown bytesFormat: ' + bytesFormat
-}
-
-export function meToBase64(bytes: string, encoding: string): string {
-  if (encoding === 'base64') return bytes
-  if (encoding === 'hex') return hexToBase64(bytes)
-  if (encoding === 'binary') return binaryToBase64(bytes)
-  return 'Unknown encoding: ' + encoding
-}
-
-function base64ToHex(base64: string): string {
-  if (!base64) return ''
-  const binary = atob(base64)
-  return Array.from(binary)
-    .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
-    .join('')
-}
-
-function base64ToBinary(base64: string): string {
-  if (!base64) return ''
-  const binary = atob(base64)
-  return Array.from(binary)
-    .map(char => char.charCodeAt(0).toString(2).padStart(8, '0'))
-    .join('')
-}
-
-function hexToBase64(hex: string): string {
-  if (!hex) return ''
-  if (hex.length % 2 !== 0) {
-    throw new Error(t('util.invalidHexString'))
-  }
-  if (!/^[0-9a-fA-F]+$/.test(hex)) {
-    throw new Error(t('util.invalidHexCharacter'))
-  }
-  const bytes: number[] = []
-  for (let i = 0; i < hex.length; i += 2) {
-    const byte = Number.parseInt(hex.slice(i, i + 2), 16)
-    if (Number.isNaN(byte)) {
-      throw new Error(t('util.invalidHexCharacter'))
-    }
-    bytes.push(byte)
-  }
-  const binary = bytes.map(b => String.fromCharCode(b)).join('')
-  return btoa(binary)
-}
-
-function binaryToBase64(binary: string): string {
-  if (!binary) return ''
-  if (binary.length % 8 !== 0) {
-    throw new Error(t('util.invalidBinaryString'))
-  }
-  if (!/^[01]+$/.test(binary)) {
-    throw new Error(t('util.invalidBinaryCharacter'))
-  }
-  const bytes: number[] = []
-  for (let i = 0; i < binary.length; i += 8) {
-    const byte = Number.parseInt(binary.slice(i, i + 8), 2)
-    if (Number.isNaN(byte)) {
-      throw new Error(t('util.invalidBinaryCharacter'))
-    }
-    bytes.push(byte)
-  }
-  const binaryStr = bytes.map(b => String.fromCharCode(b)).join('')
-  return btoa(binaryStr)
 }
 // #endregion

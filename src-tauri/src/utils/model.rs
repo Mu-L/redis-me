@@ -14,17 +14,13 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16};
 
-/// 字节在界面中的表示/编解码方式（UTF-8 文本、Hex、Binary、Base64、MsgPack→JSON）
+/// 前后端 IPC 字节格式：utf8 文本或 base64 原始字节（hex/binary/msgpack 等视图格式在前端处理）
 #[derive(Debug, Clone, Default, Serialize, Deserialize, Type)]
 #[serde(rename_all = "lowercase")]
 pub enum BytesFormat {
     #[default]
     UTF8, // 默认字符串（UTF-8 lossy）
-    Hex,    // 十六进制：00 FF 80
-    Binary, // 二进制：00000000 11111111 10000000
-    Base64, // Base64 编码
-    /// MessagePack：仅 STRING 类型读写；展示为 JSON 文本，保存时自 JSON 编码为 MsgPack
-    Msgpack,
+    Base64, // 原始字节的 Base64 编码
 }
 
 // 连接信息
@@ -316,7 +312,7 @@ api_model!(FieldScanResult {
     size: u64,
     value: serde_json::Value,
     cursor: ScanCursor,
-    length: usize, // String类型的原始bytes长度
+    length: usize, // String/Hash字段：原始 bytes 长度；集合类型：元素总数(HLEN/LLEN/SCARD/ZCARD/XLEN)
 });
 
 // Redis键: 由于键是字节存储的，考虑转换为utf-8字符串显示后可能会丢失信息，因此封装为对象
@@ -506,6 +502,7 @@ api_model!(RedisFieldDel {
     field_key: String,
     field_value: String,
     stream_id: String, // stream
+    val_fmt: Option<BytesFormat>, // 非 utf8 时 field_key/field_value 为 base64  wire 字符串
 });
 
 // 设置参数

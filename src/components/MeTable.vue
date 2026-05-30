@@ -1,11 +1,29 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
 // 说明: 前端分页表，用于数据量比较大的场景（比如内存分析等），进行前端分页，避免卡顿。
 // 在分页前对整表排序：与 el-table 的 default-sort、列 sortable / sort-method / sort-by 一致；
 // sortable="custom" 时不改行顺序，由父组件在 sort-change 中自行更新 :data。
+// 分页条右侧「…」菜单：临时渲染 sortedData 全量后从 DOM 读取，与界面展示一致。
+import type { TableInstance } from 'element-plus'
 import { orderBy } from 'element-plus/es/components/table/src/util.mjs'
-import { computed, ref, useAttrs, watch } from 'vue'
+import { computed, nextTick, ref, useAttrs, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+import {
+  copyTableHtml,
+  matrixToCsv,
+  matrixToHtml,
+  matrixToJson,
+  matrixToMarkdown,
+  readTableFromDom,
+  saveTableTextFile,
+  saveTableXlsxFile,
+} from '@/utils/table-export'
+import { meCopy, meErr } from '@/utils/util'
 
 defineOptions({ inheritAttrs: false })
+
+const { t } = useI18n()
 
 // #region 其他：props、attrs、分页状态（排序变更会重置页码，故放在排序之前）
 const props = withDefaults(
@@ -14,8 +32,18 @@ const props = withDefaults(
     layout?: string
     /** 仅一页时是否隐藏分页条；默认 false（始终显示） */
     hideOnSinglePage?: boolean
+    /** 导出文件名前缀 */
+    exportName?: string
+    /** 隐藏分页条右侧扩展菜单 */
+    hideExport?: boolean
   }>(),
-  { data: () => [], layout: 'total, sizes, prev, pager, next, jumper', hideOnSinglePage: false },
+  {
+    data: () => [],
+    layout: 'total, sizes, prev, pager, next, jumper',
+    hideOnSinglePage: false,
+    exportName: 'table',
+    hideExport: false,
+  },
 )
 
 const attrs = useAttrs()
@@ -134,6 +162,17 @@ const pageData = computed(() => {
   )
 })
 
+const showExportMenu = computed(() => !props.hideExport && sortedData.value.length > 0)
+
+const showPagination = computed(() => {
+  if (sortedData.value.length === 0) return false
+  if (!props.hideOnSinglePage) return true
+  return sortedData.value.length > pageSize.value
+})
+
+/** 无数据时不显示 footer；有数据时显示分页和/或 … */
+const showTableFooter = computed(() => showExportMenu.value || showPagination.value)
+
 function handleChange(page: number, size: number): void {
   currentPage.value = page
   pageSize.value = size
@@ -144,12 +183,96 @@ function updatePageSize(size: number): void {
   pageSize.value = size
 }
 // #endregion
+
+// #region 导出：临时渲染 sortedData 全量，从 DOM 读取与界面一致的文本
+const tableRef = ref<TableInstance>()
+
+function ensureExportRows(): boolean {
+  if (sortedData.value.length) return true
+  meErr(t('meTable.exportEmpty'))
+  return false
+}
+
+function exportFileName(ext: string): string {
+  return `RedisME_${props.exportName}_${dayjs().format('YYYYMMDDHHmmss')}.${ext}`
+}
+
+/** 导出前临时展示全部 sortedData，以便 DOM 含自定义 slot 列（如 Info 说明） */
+async function readFullTableMatrix(): Promise<{ headers: string[]; rows: string[][] } | null> {
+  const table = tableRef.value
+  if (!table) return null
+
+  const savedPage = currentPage.value
+  const savedSize = pageSize.value
+  currentPage.value = 1
+  pageSize.value = Math.max(sortedData.value.length, 1)
+
+  await nextTick()
+  await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+
+  try {
+    return readTableFromDom(table)
+  } finally {
+    currentPage.value = savedPage
+    pageSize.value = savedSize
+  }
+}
+
+async function handleExportCommand(command: string): Promise<void> {
+  if (!ensureExportRows()) return
+
+  const matrix = await readFullTableMatrix()
+  if (!matrix || matrix.rows.length === 0) {
+    meErr(t('meTable.exportEmpty'))
+    return
+  }
+
+  const { headers, rows } = matrix
+
+  switch (command) {
+    case 'copyJson':
+      meCopy(matrixToJson(headers, rows))
+      break
+    case 'copyCsv':
+      meCopy(matrixToCsv(headers, rows))
+      break
+    case 'copyHtml':
+      await copyTableHtml(headers, rows)
+      break
+    case 'copyMarkdown':
+      meCopy(matrixToMarkdown(headers, rows))
+      break
+    case 'exportJson':
+      await saveTableTextFile(matrixToJson(headers, rows), exportFileName('json'), ['json'])
+      break
+    case 'exportCsv':
+      await saveTableTextFile(matrixToCsv(headers, rows), exportFileName('csv'), ['csv'])
+      break
+    case 'exportExcel':
+      await saveTableXlsxFile(headers, rows, exportFileName('xlsx'))
+      break
+    case 'exportHtml':
+      await saveTableTextFile(matrixToHtml(headers, rows), exportFileName('html'), ['html'])
+      break
+    case 'exportMarkdown':
+      await saveTableTextFile(matrixToMarkdown(headers, rows), exportFileName('md'), ['md'])
+      break
+  }
+}
+
+defineExpose({
+  scrollTo(top: number, left?: number) {
+    tableRef.value?.scrollTo(top, left)
+  },
+})
+// #endregion
 </script>
 
 <template>
   <div class="me-table">
     <div class="me-table-main">
       <el-table
+        ref="tableRef"
         stripe
         border
         v-bind="elTableAttrs"
@@ -159,17 +282,49 @@ function updatePageSize(size: number): void {
         <slot></slot>
       </el-table>
     </div>
-    <el-pagination
-      :style="{ margin: '10px 0 0 0', marginLeft: layout.includes('total') ? '5px' : 0 }"
-      size="small"
-      background
-      :hide-on-single-page="hideOnSinglePage"
-      @change="handleChange"
-      :page-size="pageSize"
-      :page-sizes="[20, 50, 100]"
-      @update:page-size="updatePageSize"
-      :total="sortedData.length"
-      :layout />
+    <div v-if="showTableFooter" class="me-table-footer">
+      <el-pagination
+        v-if="showPagination"
+        class="me-table-pagination"
+        :style="{ marginLeft: layout.includes('total') ? '5px' : 0 }"
+        size="small"
+        background
+        :hide-on-single-page="hideOnSinglePage"
+        @change="handleChange"
+        :page-size="pageSize"
+        :page-sizes="[20, 50, 100]"
+        @update:page-size="updatePageSize"
+        :total="sortedData.length"
+        :layout />
+      <el-dropdown
+        v-if="showExportMenu"
+        class="me-table-more-wrap"
+        trigger="click"
+        @command="handleExportCommand">
+        <me-icon icon="el-icon-more-filled" class="icon-btn me-table-more" />
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="copyJson">{{ t('meTable.copyJson') }}</el-dropdown-item>
+            <el-dropdown-item command="copyCsv">{{ t('meTable.copyCsv') }}</el-dropdown-item>
+            <el-dropdown-item command="copyHtml">{{ t('meTable.copyHtml') }}</el-dropdown-item>
+            <el-dropdown-item command="copyMarkdown">{{
+              t('meTable.copyMarkdown')
+            }}</el-dropdown-item>
+            <el-dropdown-item command="exportJson" divided>{{
+              t('meTable.exportJson')
+            }}</el-dropdown-item>
+            <el-dropdown-item command="exportCsv">{{ t('meTable.exportCsv') }}</el-dropdown-item>
+            <el-dropdown-item command="exportHtml">{{ t('meTable.exportHtml') }}</el-dropdown-item>
+            <el-dropdown-item command="exportMarkdown">{{
+              t('meTable.exportMarkdown')
+            }}</el-dropdown-item>
+            <el-dropdown-item command="exportExcel">{{
+              t('meTable.exportExcel')
+            }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+    </div>
   </div>
 </template>
 
@@ -185,6 +340,24 @@ function updatePageSize(size: number): void {
   .me-table-main {
     flex: 1;
     height: 0;
+  }
+
+  .me-table-footer {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    gap: 4px;
+
+    .me-table-pagination {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .me-table-more-wrap {
+      flex-shrink: 0;
+      margin-left: auto;
+      margin-right: 5px;
+    }
   }
 }
 </style>

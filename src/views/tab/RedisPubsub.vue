@@ -140,10 +140,10 @@ onUnmounted(() => tauriUnlisten())
     </div>
     <div class="table">
       <me-table
-        hide-on-single-page
         :data="filterDataList"
         ref="table"
-        :default-sort="{ prop: 'datetime', order: 'descending' }">
+        :default-sort="{ prop: 'datetime', order: 'descending' }"
+        export-name="pubsub">
         <el-table-column :label="t('redisPubSub.datetime')" prop="datetime" sortable width="200" />
         <el-table-column :label="t('redisPubSub.channel')" prop="channel" show-overflow-tooltip />
         <el-table-column :label="t('redisPubSub.message')" prop="message" show-overflow-tooltip />

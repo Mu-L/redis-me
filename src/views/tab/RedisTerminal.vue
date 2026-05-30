@@ -3,9 +3,9 @@ import { computed, inject, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeIcon from '@/components/MeIcon.vue'
-import { commandHelp } from '@/locales/cmd'
+import { commandHelp, isReadonlyCommand } from '@/locales/cmd'
 import { shareProvideKey } from '@/types/me-interface'
-import { meCopy, meCommands } from '@/utils/util'
+import { meCopy, meCommands, isZh } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
 
@@ -13,6 +13,8 @@ const { t } = useI18n()
 // 共享数据
 const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
+/** 只读列表头：英文 Read-only 较宽，中文只读可窄一些 */
+const readonlyColWidth = computed(() => (isZh.value ? 88 : 120))
 
 // 待颜色的文本
 function colorText(color: string, text: string, bold = false): string {
@@ -30,8 +32,8 @@ const welcome = computed(() =>
 
 // 定制化执行命令
 async function execCommand(command: string): Promise<string> {
-  if (!canEdit.value) {
-    return colorText('var(--el-color-warning)', t('redisTerminal.readonlyHint'))
+  if (!canEdit.value && !isReadonlyCommand(command)) {
+    return colorText('var(--el-color-warning)', t('redisTerminal.readonlyWriteHint'))
   }
 
   try {
@@ -69,17 +71,42 @@ const visible = ref(false)
 const keyword = ref('')
 const group = ref('')
 const groupList = computed(() => new Set(commandHelp.value.map(row => row.group)))
+const tableKey = ref(0)
+/** 列头筛选（MeTable 分页前先过滤全量数据，列上 filter-method 仅保留 UI） */
+const activeFilters = ref<Record<string, unknown[]>>({})
+const sinceFilters = computed(() =>
+  [...new Set(commandHelp.value.map(row => row.since))]
+    .sort()
+    .map(value => ({ text: value, value })),
+)
+const readonlyFilters = computed(() => [
+  { text: t('redisTerminal.readonlyYes'), value: true },
+  { text: t('redisTerminal.readonlyNo'), value: false },
+])
 const filterDataList = computed(() => {
-  const key = keyword.value.toLowerCase()
-  return commandHelp.value.filter(
-    row =>
-      (!key || row.title.toLowerCase().indexOf(key) > -1) &&
-      (!group.value || row.group === group.value),
-  )
+  let rows = commandHelp.value
+  const key = keyword.value.toLowerCase().trim()
+  if (group.value) rows = rows.filter(row => row.group === group.value)
+  if (key) {
+    rows = rows.filter(
+      row => row.title.toLowerCase().includes(key) || row.summary.toLowerCase().includes(key),
+    )
+  }
+  const sinces = activeFilters.value.since as string[] | undefined
+  if (sinces?.length) rows = rows.filter(row => sinces.includes(row.since))
+  const readonlys = activeFilters.value.readonly as boolean[] | undefined
+  if (readonlys?.length) rows = rows.filter(row => readonlys.includes(!!row.readonly))
+  return rows
 })
+function onFilterChange(filters: Record<string, unknown[]>) {
+  // EP 每次只回传当前列，需合并保留其它列已选条件
+  activeFilters.value = { ...activeFilters.value, ...filters }
+}
 function openCommandDialog() {
   keyword.value = ''
   group.value = ''
+  activeFilters.value = {}
+  tableKey.value++
   visible.value = true
 }
 
@@ -169,14 +196,17 @@ function openKeyShortDialog() {
             clearable />
         </div>
 
-        <div style="margin-top: 10px; flex-grow: 1; height: 0">
+        <div class="cmd-table" style="margin-top: 10px; flex-grow: 1; height: 0">
           <me-table
+            :key="tableKey"
             ref="table"
             :data="filterDataList"
             border
             stripe
             height="100%"
-            :default-sort="{ prop: 'key', order: 'ascending' }">
+            export-name="command"
+            :default-sort="{ prop: 'key', order: 'ascending' }"
+            @filter-change="onFilterChange">
             <el-table-column
               :label="t('redisTerminal.group')"
               prop="group"
@@ -197,9 +227,23 @@ function openKeyShortDialog() {
             <el-table-column
               :label="t('redisTerminal.since')"
               prop="since"
-              width="100"
+              column-key="since"
+              width="108"
               show-overflow-tooltip
-              sortable />
+              :filters="sinceFilters"
+              :filter-method="() => true" />
+            <el-table-column
+              :label="t('redisTerminal.readonly')"
+              prop="readonly"
+              column-key="readonly"
+              :width="readonlyColWidth"
+              align="center"
+              :filters="readonlyFilters"
+              :filter-method="() => true">
+              <template #default="{ row }">
+                {{ row.readonly ? t('redisTerminal.readonlyYes') : t('redisTerminal.readonlyNo') }}
+              </template>
+            </el-table-column>
           </me-table>
         </div>
       </div>
@@ -233,6 +277,25 @@ function openKeyShortDialog() {
     right: 10px;
     bottom: 0;
     z-index: 10;
+  }
+}
+</style>
+
+<!-- 命令列表弹窗 append-to-body，表头样式不可 scoped -->
+<style lang="scss">
+.cmd-table {
+  .el-table__header .cell:has(.el-table__column-filter-trigger) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .el-table__header th.is-center .cell:has(.el-table__column-filter-trigger) {
+    justify-content: center;
+  }
+
+  .el-table__column-filter-trigger {
+    flex-shrink: 0;
   }
 }
 </style>

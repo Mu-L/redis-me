@@ -8,6 +8,8 @@ export const commands = {
 	appDir: () => typedError<string, string>(__TAURI_INVOKE("app_dir")),
 	// 是否通过应用商店类渠道安装（内置更新应关闭）。具体判断在 `utils/app_store.rs`。
 	isAppStore: () => __TAURI_INVOKE<boolean>("is_app_store"),
+	// 更新安装完成后重启。macOS 上延迟 `open` 再退出，避免 single-instance 与 `relaunch()` 竞态。
+	restartAfterUpdate: () => typedError<null, string>(__TAURI_INVOKE("restart_after_update")),
 	testConn: (conf: ConnConfig) => typedError<null, string>(__TAURI_INVOKE("test_conn", { conf })),
 	masters: (conf: ConnConfig) => typedError<{ [key in string]: string }[], string>(__TAURI_INVOKE("masters", { conf })),
 	connList: (connList: ConnConfig[]) => typedError<null, string>(__TAURI_INVOKE("conn_list", { connList })),
@@ -56,10 +58,8 @@ export const commands = {
 };
 
 /* Types */
-// 字节在界面中的表示/编解码方式（UTF-8 文本、Hex、Binary、Base64、MsgPack→JSON）
-export type BytesFormat = "utf8" | "hex" | "binary" | "base64" | 
-// MessagePack：仅 STRING 类型读写；展示为 JSON 文本，保存时自 JSON 编码为 MsgPack
-"msgpack";
+// 前后端 IPC 字节格式：utf8 文本或 base64 原始字节（hex/binary/msgpack 等视图格式在前端处理）
+export type BytesFormat = "utf8" | "base64";
 
 export type ConnConfig = {
 	id: string,
@@ -255,6 +255,7 @@ export type RedisFieldDel_Deserialize = {
 	fieldKey: string,
 	fieldValue: string,
 	streamId: string,
+	valFmt: BytesFormat | null,
 };
 
 export type RedisFieldDel_Serialize = {
@@ -263,6 +264,7 @@ export type RedisFieldDel_Serialize = {
 	fieldKey: string,
 	fieldValue: string,
 	streamId: string,
+	valFmt: BytesFormat | null,
 };
 
 export type RedisFieldSet = RedisFieldSet_Serialize | RedisFieldSet_Deserialize;

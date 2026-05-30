@@ -1,12 +1,20 @@
 fn main() {
-    let mut attributes = tauri_build::Attributes::new();
+    #[cfg(windows)]
+    add_manifest();
+
+    tauri_build::try_build(build_attributes()).unwrap();
+}
+
+fn build_attributes() -> tauri_build::Attributes {
     #[cfg(windows)]
     {
-        attributes = attributes
-            .windows_attributes(tauri_build::WindowsAttributes::new_without_app_manifest());
-        add_manifest();
+        tauri_build::Attributes::new()
+            .windows_attributes(tauri_build::WindowsAttributes::new_without_app_manifest())
     }
-    tauri_build::try_build(attributes).unwrap();
+    #[cfg(not(windows))]
+    {
+        tauri_build::Attributes::new()
+    }
 }
 
 #[cfg(windows)]

@@ -1,0 +1,41 @@
+---
+description: 用户说「发版 + 版本号」时自动打 tag 并推送 GitHub 触发 Release Actions
+alwaysApply: true
+---
+
+# 发版（打 tag 触发 Actions）
+
+当用户说 **发版**、**发版 v3.6.0**、**release v3.6.0** 等（带版本号）时，按以下流程执行，无需用户再逐步说明。
+
+## 前置检查
+
+1. 版本号格式：`vX.Y.Z`（如 `v3.6.0`）；用户只给 `3.6.0` 时补上 `v` 前缀。
+2. **对比 `package.json` 的 `version`**：读取当前值（如 `"3.6.0"`，无 `v` 前缀），与用户说的版本号对比（去掉 `v` 后比较）。**不一致时明确提示两者分别是什么，停止打 tag**，等用户确认或先改版本后再发版。
+3. `git status`：工作区应干净；有未提交改动时先告知用户，不要擅自打 tag。
+4. `git tag -l`：确认该 tag 尚不存在；已存在则停止并说明。
+5. 当前 HEAD 应为待发版提交（通常 changelog 已更新）。
+
+## 执行命令
+
+在本仓库 **remote 名为 `github`**（不是 `origin`）：
+
+```bash
+git tag vX.Y.Z
+git push github vX.Y.Z
+```
+
+- 使用 **轻量 tag**（与 `v3.5.0` 等历史 tag 一致），打在 **当前 HEAD**。
+- **不要** force 推送 tag，除非用户明确要求。
+
+## 触发说明
+
+推送 tag 后会触发 `.github/workflows/release.yml`（匹配 `v*.*.*`），构建各平台安装包。
+
+完成后告知用户：
+- tag 名与指向的 commit
+- Actions 查看地址：https://github.com/hepengju/redis-me/actions
+
+## 不在此流程内（除非用户另提）
+
+- 更新 changelog、提交代码、创建 PR、合并分支
+- 推送分支代码（仅推送 tag）

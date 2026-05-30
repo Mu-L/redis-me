@@ -4,6 +4,7 @@ export default {
   // 通用
   copy: '复制',
   edit: '编辑',
+  view: '查看',
   save: '保存',
   delete: '删除',
   action: '操作',
@@ -216,6 +217,66 @@ export default {
       'Redis Sentinel 哨兵模式<br/>• 多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置<br/>• 主节点用户密码为哨兵监听的Master节点的用户密码',
   },
 
+  customFormatter: {
+    title: '自定义编解码',
+    name: '名称',
+    namePlaceholder: '显示在「数据编码」下拉中',
+    command: '命令',
+    commandHelp: `需填写<b>含解释器的完整命令</b>，例如 python C:\\path\\codec.py<br/><br/>
+<b>程序会自动追加两个参数</b><br/>
+• 参数 1：decode（读）或 encode（写）<br/>
+• 参数 2：Base64 字符串<br/><br/>
+<b>解码</b>（读 Redis → 编辑器）<br/>
+• 参数 2 为 Redis 原始字节的 Base64<br/>
+• stdout：UTF-8 展示文本（写入编辑器）<br/><br/>
+<b>编码</b>（写 编辑器 → Redis）<br/>
+• 参数 2 为编辑区文本的 UTF-8 字节 Base64<br/>
+• stdout：单行 Redis 原始字节的 Base64（保存时写回 Redis）<br/><br/>
+<b>失败时</b>：优先展示 stderr；退出码非 0 则提示执行失败<br/>
+<b>适用范围</b>：目前仅 STRING 类型键可用`,
+    commandPlaceholder: 'python C:\\path\\codec.py',
+    add: '添加',
+    edit: '编辑',
+    testDecode: '测试解码',
+    testEncode: '测试编码',
+    testDecodeSample: '解码样例',
+    testDecodeSamplePh: 'wire Base64，默认 aGVsbG8=（hello）',
+    testEncodeSample: '编码样例',
+    testEncodeSamplePh: '编辑区 UTF-8 Base64，Hex 示例默认 Njg2NTZjNmM2Zg==（68656c6c6f）',
+    testOk: '执行成功',
+    testResult: '命令：{command}<br>输入：{input}<br>输出：{output}',
+    testErrorResult: '命令：{command}<br>输入：{input}<br>错误：{detail}',
+    execFailResult: '⚠️ 错误：{detail}\n🔔 命令：{command}',
+    execCommand: '执行命令：\n{command}',
+    execError: '错误提示：',
+    emptyCommand: '命令不能为空',
+    notFound: '未找到自定义编解码「{name}」',
+    shellUnavailable: '自定义编解码需在桌面应用中运行',
+    execFailed: '自定义编解码「{name}」执行失败（退出码 {code}）',
+    invalidOutput: '自定义编解码「{name}」输出无效',
+    decodeEmpty: '自定义编解码「{name}」解码结果为空',
+    encodeEmpty: '自定义编解码「{name}」编码结果为空',
+    encodeNotBase64: '自定义编解码「{name}」编码输出不是有效的 Base64',
+    timeout: '自定义编解码「{name}」执行超时（{sec}s）',
+    duplicateName: '名称已存在',
+    nameRequired: '请填写名称',
+  },
+
+  meTable: {
+    copyJson: '复制 JSON',
+    copyCsv: '复制 CSV',
+    copyHtml: '复制 HTML',
+    copyMarkdown: '复制 Markdown',
+    exportJson: '导出 JSON',
+    exportCsv: '导出 CSV',
+    exportExcel: '导出 Excel',
+    exportHtml: '导出 HTML',
+    exportMarkdown: '导出 Markdown',
+    exportOk: '导出成功',
+    exportErr: '导出失败',
+    exportEmpty: '暂无数据',
+  },
+
   util: {
     days: '天',
     deleteKey: '确定删除键【{key}】吗？',
@@ -230,8 +291,6 @@ export default {
     checkUpdateErr: '检查更新失败',
     invalidHexString: '无效的十六进制字符串：长度为奇数',
     invalidHexCharacter: '无效的十六进制字符',
-    invalidBinaryString: '无效的二进制字符串：长度不是 8 的倍数',
-    invalidBinaryCharacter: '无效的二进制字符',
   },
 
   tabMain: {
@@ -299,6 +358,7 @@ export default {
     fieldValueRequired: '值不能为空',
     fieldScoreRequired: '请输入分数',
     editField: '编辑字段',
+    viewField: '查看字段',
     hashKey: '哈希键',
     fieldTtl: '字段过期 (秒)',
     index: '索引',
@@ -523,15 +583,19 @@ export default {
     welcome: '欢迎使用 {RedisME} Terminal',
     autoBroadcast: '自动广播',
     readonlyHint: '只读模式下暂不支持执行命令',
+    readonlyWriteHint: '只读模式下不允许执行写入或非只读命令',
     autoCopyHint: '自动复制命令结果',
     commandHint: '查看命令列表',
     commandTitle: '命令列表',
-    keywordHint: '命令模糊筛选',
+    keywordHint: '命令或概述模糊筛选',
     group: '分组',
     command: '命令',
     usage: '使用',
     summary: '概述',
     since: '版本',
+    readonly: '只读',
+    readonlyYes: '是',
+    readonlyNo: '否',
     keyShortHint: '查看快捷键',
     keyShortMore: `
         <br> F11     : 全屏
@@ -582,6 +646,7 @@ export default {
     textMemory: '内存占用：',
     textLength: '字节长度：',
     textEntries: '条目：',
+    totalCount: '元素总数：',
     viewAs: '数据编码',
     keyShortHint: '查看快捷键',
     keyShortMore: `

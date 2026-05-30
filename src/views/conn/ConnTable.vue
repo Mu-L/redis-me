@@ -4,7 +4,7 @@ import { nextTick, onMounted, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { UiConn } from '@/types/me-interface'
-import { getConnIcon } from '@/utils/conn-group'
+import { getConnIcon } from '@/utils/conn'
 import { PREDEFINE_COLORS } from '@/utils/util'
 
 const props = defineProps<{
