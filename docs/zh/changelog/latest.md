@@ -1,6 +1,6 @@
 # 3.x 更新日志
 
-## [v3.6.0] (2026-05-30)
+## [v3.6.0](https://mp.weixin.qq.com/s/K99PFYCowxDmvSlaUzqR-g) (2026-05-30)
 
 ### ✨ 新增优化
 
