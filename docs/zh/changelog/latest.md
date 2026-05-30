@@ -2,8 +2,8 @@
 
 ## v3.7.0
 
-- 编码: 内容超过限制时写入临时文件
 - 配置: 新增Redis8.8的默认配置文件
+- 解码: Base64长度超过8000时走stdin
 
 ## [v3.6.0](https://mp.weixin.qq.com/s/K99PFYCowxDmvSlaUzqR-g) (2026-05-30)
 

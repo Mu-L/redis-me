@@ -22,16 +22,22 @@
 
 # 写：编辑器文本 → Redis 原始字节（wire base64）
 {command} encode {editor_text_utf8_base64}
+
+# Base64 超过 8000 字符时（避免 Windows 命令行过长）
+{command} decode --stdin    # Base64 从 stdin 读一行
+{command} encode --stdin
 ```
 
-| 方向       | 参数 1   | 参数 2                         | stdout                         |
-| ---------- | -------- | ------------------------------ | ------------------------------ |
-| **decode** | `decode` | Redis 原始字节的 Base64        | UTF-8 文本（写入编辑器）       |
-| **encode** | `encode` | 编辑区文本的 UTF-8 字节 Base64 | **单行** Redis 原始字节 Base64 |
+| 方向           | 参数 1   | 参数 2                              | stdout                         |
+| -------------- | -------- | ----------------------------------- | ------------------------------ |
+| **decode**     | `decode` | Redis 原始字节的 Base64             | UTF-8 文本（写入编辑器）       |
+| **encode**     | `encode` | 编辑区文本的 UTF-8 字节 Base64      | **单行** Redis 原始字节 Base64 |
+| **大 payload** | 同上     | `--stdin`（Base64 从 stdin 读一行） | 同上                           |
 
 约定：
 
-- 参数 2 为标准 Base64 单行字符串（无空格），脚本用 `sys.argv[2]`（Python）、`args[1]`（Java）或 `process.argv[3]`（Node，因 `argv[1]` 为脚本路径）读取即可
+- 参数 2 为标准 Base64 单行字符串（无空格）；**超过 8000 字符**时改为 `--stdin`，脚本从 stdin 读一行 Base64（`readline` / 等价 API）
+- 小数据仍用 `sys.argv[2]`（Python）、`args[1]`（Java）或 `process.argv[3]`（Node）
 - **decode** 成功：stdout 输出可编辑文本；**encode** 成功：stdout 仅一行 Base64
 - 失败：stderr 输出错误信息，非 0 退出码；应用会在错误提示中附上实际执行的完整命令
 - 参数 2 的 Base64 是应用与脚本之间的**传输格式**，不等于编辑器里要展示的格式（如下文 Hex 示例）
@@ -60,7 +66,7 @@ java C:\path\to\codec.java
 ## 适用范围与限制
 
 - 单次执行默认超时 5 秒
-- 超大值可能受命令行长度限制
+- Base64 参数 ≤ 8000 字符时走命令行；超过时自动改 `--stdin`（脚本需支持，见示例）
 
 ## 示例：Python（Hex 查看/编辑二进制）
 
@@ -76,7 +82,11 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
 
-mode, b64 = sys.argv[1], sys.argv[2]
+mode = sys.argv[1]
+if len(sys.argv) > 2 and sys.argv[2] == '--stdin':
+    b64 = sys.stdin.readline().strip()
+else:
+    b64 = sys.argv[2]
 try:
     if mode == 'decode':
         print(binascii.hexlify(base64.b64decode(b64)).decode('ascii'))
@@ -102,19 +112,53 @@ C:\path\to\python.exe C:\path\to\codec.py
 #!/usr/bin/env node
 /** wire base64 ↔ 十六进制文本（与 codec.py 协议一致） */
 const mode = process.argv[2]
-const b64 = process.argv[3]
+const arg = process.argv[3]
 
-try {
-  if (mode === 'decode') {
-    process.stdout.write(Buffer.from(b64, 'base64').toString('hex'))
-  } else if (mode === 'encode') {
-    const hex = Buffer.from(b64, 'base64').toString('utf8').trim()
-    process.stdout.write(Buffer.from(hex, 'hex').toString('base64'))
-  } else {
-    throw new Error(`unknown mode: ${mode}`)
+function run(b64) {
+  try {
+    if (mode === 'decode') {
+      process.stdout.write(Buffer.from(b64, 'base64').toString('hex'))
+    } else if (mode === 'encode') {
+      const hex = Buffer.from(b64, 'base64').toString('utf8').trim()
+      process.stdout.write(Buffer.from(hex, 'hex').toString('base64'))
+    } else {
+      throw new Error(`unknown mode: ${mode}`)
+    }
+    process.exit(0) // 应用 stdin 写完后不关闭管道，须主动退出
+  } catch (e) {
+    process.stderr.write(String(e) + '\n')
+    process.exit(1)
   }
-} catch (e) {
-  process.stderr.write(String(e) + '\n')
+}
+
+function readB64FromStdin() {
+  return new Promise((resolve, reject) => {
+    let buf = ''
+    process.stdin.setEncoding('utf8')
+    process.stdin.on('data', chunk => {
+      buf += chunk
+      const nl = buf.search(/\r?\n/)
+      if (nl >= 0) {
+        process.stdin.pause()
+        resolve(buf.slice(0, nl).trim())
+      }
+    })
+    process.stdin.on('error', reject)
+    process.stdin.resume()
+  })
+}
+
+if (arg === '--stdin') {
+  readB64FromStdin()
+    .then(run)
+    .catch(e => {
+      process.stderr.write(String(e) + '\n')
+      process.exit(1)
+    })
+} else if (arg) {
+  run(arg)
+} else {
+  process.stderr.write('usage: codec.js <decode|encode> <base64|--stdin>\n')
   process.exit(1)
 }
 ```
@@ -127,21 +171,24 @@ node C:\path\to\codec.js
 
 ## 示例：Java（Hex 查看/编辑二进制）
 
-需 **JDK 11+**，可直接运行单文件源码（无需先 `javac`）。`args[0]` 为模式，`args[1]` 为 Base64 参数。
+需 **JDK 11+**，可直接运行单文件源码（无需先 `javac`）。`args[0]` 为模式；`args[1]` 为 Base64 或 `--stdin`。
 
 ```java
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Scanner;
 
 /** wire base64 ↔ 十六进制文本（与 codec.py 协议一致） */
 public class codec {
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.err.println("usage: codec <decode|encode> <base64>");
+            System.err.println("usage: codec <decode|encode> <base64|--stdin>");
             System.exit(1);
         }
         String mode = args[0];
-        String b64 = args[1];
+        String b64 = "--stdin".equals(args[1])
+            ? new Scanner(System.in).nextLine().trim()
+            : args[1];
         try {
             if ("decode".equals(mode)) {
                 System.out.print(toHex(Base64.getDecoder().decode(b64)));

@@ -34,6 +34,14 @@
         { "name": "exec-sh", "cmd": "sh", "args": ["-c", { "validator": ".*" }] },
         { "name": "exec-cmd", "cmd": "cmd", "args": ["/C", { "validator": ".*" }] }
       ]
-    }
+    },
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        { "name": "exec-sh", "cmd": "sh", "args": ["-c", { "validator": ".*" }] },
+        { "name": "exec-cmd", "cmd": "cmd", "args": ["/C", { "validator": ".*" }] }
+      ]
+    },
+    "shell:allow-stdin-write"
   ]
 }

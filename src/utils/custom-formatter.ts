@@ -1,4 +1,4 @@
-/** 自定义编解码：通过 shell 调用外部脚本（decode/encode + base64 参数） */
+/** 自定义编解码：通过 shell 调用外部脚本（decode/encode + base64 参数；超长 payload 走 stdin） */
 import { isTauri } from '@tauri-apps/api/core'
 import { type } from '@tauri-apps/plugin-os'
 import { Command } from '@tauri-apps/plugin-shell'
@@ -6,6 +6,10 @@ import { Command } from '@tauri-apps/plugin-shell'
 import i18n from '@/locales'
 
 const t = i18n.global.t
+
+/** Base64 参数超过此长度时改走 stdin（Windows cmd 命令行约 8191 字符上限） */
+export const FORMATTER_STDIN_B64_THRESHOLD = 8000
+const STDIN_ARG = '--stdin'
 
 /** 持久化于 settings.customFormatters */
 export interface CustomFormatter {
@@ -47,7 +51,11 @@ function getExecTimeoutSec(): number {
   return typeof n === 'number' && n > 0 ? n : 5
 }
 
-/** 拼完整命令行：`{command} decode|encode {b64}`（标准 base64 无空格，无需 shell 引号） */
+export function needsStdinInput(b64: string): boolean {
+  return b64.length >= FORMATTER_STDIN_B64_THRESHOLD
+}
+
+/** 拼完整命令行；超长 Base64 时参数 2 为 `--stdin`，payload 由 stdin 单行传入 */
 export function buildFormatterCommand(
   formatter: CustomFormatter,
   mode: FormatterMode,
@@ -55,6 +63,7 @@ export function buildFormatterCommand(
 ): string {
   const cmd = formatter.command.trim()
   if (!cmd) throw new Error(t('customFormatter.emptyCommand'))
+  if (needsStdinInput(b64)) return `${cmd} ${mode} ${STDIN_ARG}`
   return `${cmd} ${mode} ${b64}`
 }
 
@@ -103,32 +112,82 @@ function createExecCommand(fullCommand: string) {
   return Command.create('exec-sh', ['-c', fullCommand])
 }
 
+function execTimeoutPromise(
+  formatterName: string,
+  timeoutSec: number,
+): { promise: Promise<never>; clear: () => void } {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const promise = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () =>
+        reject(new Error(t('customFormatter.timeout', { name: formatterName, sec: timeoutSec }))),
+      timeoutSec * 1000,
+    )
+  })
+  return {
+    promise,
+    clear: () => {
+      if (timer) clearTimeout(timer)
+    },
+  }
+}
+
 async function execShell(fullCommand: string, formatterName: string): Promise<ShellExecResult> {
   if (!isTauri()) {
     throw new Error(t('customFormatter.shellUnavailable'))
   }
   const timeoutSec = getExecTimeoutSec()
   const cmd = createExecCommand(fullCommand)
-
-  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = execTimeoutPromise(formatterName, timeoutSec)
   try {
-    const result = await Promise.race([
-      cmd.execute(),
-      new Promise<never>((_, reject) => {
-        timer = setTimeout(
-          () =>
-            reject(
-              new Error(t('customFormatter.timeout', { name: formatterName, sec: timeoutSec })),
-            ),
-          timeoutSec * 1000,
-        )
-      }),
-    ])
+    const result = await Promise.race([cmd.execute(), timeout.promise])
     return { code: result.code ?? 0, stdout: result.stdout ?? '', stderr: result.stderr ?? '' }
   } catch (e) {
     throw toExecError(fullCommand, e)
   } finally {
-    if (timer) clearTimeout(timer)
+    timeout.clear()
+  }
+}
+
+/** spawn + stdin 单行写入（末尾换行，脚本用 readline 读取；Tauri shell 不自动关闭 stdin） */
+async function execShellWithStdin(
+  fullCommand: string,
+  b64: string,
+  formatterName: string,
+): Promise<ShellExecResult> {
+  if (!isTauri()) {
+    throw new Error(t('customFormatter.shellUnavailable'))
+  }
+  const timeoutSec = getExecTimeoutSec()
+  const cmd = createExecCommand(fullCommand)
+  const stdoutChunks: string[] = []
+  const stderrChunks: string[] = []
+
+  const closePromise = new Promise<{ code: number | null }>((resolve, reject) => {
+    cmd.on('close', data => resolve({ code: data.code }))
+    cmd.on('error', err => reject(new Error(String(err))))
+    cmd.stdout.on('data', line => stdoutChunks.push(String(line)))
+    cmd.stderr.on('data', line => stderrChunks.push(String(line)))
+  })
+
+  const timeout = execTimeoutPromise(formatterName, timeoutSec)
+  let child: Awaited<ReturnType<typeof cmd.spawn>> | undefined
+  let finished = false
+  try {
+    child = await cmd.spawn()
+    await child.write(`${b64}\n`)
+    const closed = await Promise.race([closePromise, timeout.promise])
+    finished = true
+    return {
+      code: closed.code ?? 0,
+      stdout: stdoutChunks.join('\n'),
+      stderr: stderrChunks.join('\n'),
+    }
+  } catch (e) {
+    throw toExecError(fullCommand, e)
+  } finally {
+    timeout.clear()
+    if (!finished) await child?.kill().catch(() => undefined)
   }
 }
 
@@ -141,7 +200,9 @@ async function execFormatter(
 ): Promise<string> {
   if (kind === 'decode' && !b64) return ''
   const fullCommand = buildFormatterCommand(formatter, mode, b64)
-  const result = await execShell(fullCommand, formatter.name)
+  const result = needsStdinInput(b64)
+    ? await execShellWithStdin(fullCommand, b64, formatter.name)
+    : await execShell(fullCommand, formatter.name)
   const out = kind === 'encode' ? result.stdout.trim() : result.stdout.trimEnd()
   if (result.code !== 0) {
     throw new Error(formatExecError(formatter.name, result, fullCommand))

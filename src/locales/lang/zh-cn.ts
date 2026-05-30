@@ -225,15 +225,14 @@ export default {
     commandHelp: `需填写<b>含解释器的完整命令</b>，例如 python C:\\path\\codec.py<br/><br/>
 <b>程序会自动追加两个参数</b><br/>
 • 参数 1：decode（读）或 encode（写）<br/>
-• 参数 2：Base64 字符串<br/><br/>
+• 参数 2：Base64 字符串；<b>超过 8000 字符时为 <code>--stdin</code></b>，Base64 从 stdin 读一行<br/><br/>
 <b>解码</b>（读 Redis → 编辑器）<br/>
-• 参数 2 为 Redis 原始字节的 Base64<br/>
+• 参数 2 为 Redis 原始字节的 Base64（或 <code>--stdin</code>）<br/>
 • stdout：UTF-8 展示文本（写入编辑器）<br/><br/>
 <b>编码</b>（写 编辑器 → Redis）<br/>
-• 参数 2 为编辑区文本的 UTF-8 字节 Base64<br/>
+• 参数 2 为编辑区文本的 UTF-8 字节 Base64（或 <code>--stdin</code>）<br/>
 • stdout：单行 Redis 原始字节的 Base64（保存时写回 Redis）<br/><br/>
-<b>失败时</b>：优先展示 stderr；退出码非 0 则提示执行失败<br/>
-<b>适用范围</b>：目前仅 STRING 类型键可用`,
+<b>失败时</b>：优先展示 stderr；退出码非 0 则提示执行失败`,
     commandPlaceholder: 'python C:\\path\\codec.py',
     add: '添加',
     edit: '编辑',

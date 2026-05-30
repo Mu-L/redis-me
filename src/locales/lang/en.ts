@@ -231,15 +231,14 @@ export default {
     commandHelp: `Enter the <b>full command with interpreter</b>, e.g. python C:\\path\\codec.py<br/><br/>
 <b>The app appends two arguments</b><br/>
 • Arg 1: decode (read) or encode (write)<br/>
-• Arg 2: Base64 string<br/><br/>
+• Arg 2: Base64 string; <b>when over 8000 chars, <code>--stdin</code></b> and Base64 is read from stdin (one line)<br/><br/>
 <b>Decode</b> (Redis → editor)<br/>
-• Arg 2: Base64 of raw Redis bytes<br/>
+• Arg 2: Base64 of raw Redis bytes (or <code>--stdin</code>)<br/>
 • stdout: UTF-8 text for the editor<br/><br/>
 <b>Encode</b> (editor → Redis)<br/>
-• Arg 2: Base64 of editor text as UTF-8 bytes<br/>
+• Arg 2: Base64 of editor text as UTF-8 bytes (or <code>--stdin</code>)<br/>
 • stdout: one line of Base64 raw Redis bytes (written on save)<br/><br/>
-<b>On failure</b>: stderr is shown first; non-zero exit code shows an exec error<br/>
-<b>Scope</b>: STRING keys only for now`,
+<b>On failure</b>: stderr is shown first; non-zero exit code shows an exec error`,
     commandPlaceholder: 'python C:\\path\\codec.py',
     add: 'Add',
     edit: 'Edit',
