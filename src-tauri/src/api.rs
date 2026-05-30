@@ -6,6 +6,8 @@ use crate::{api_commands, api_commands2};
 use specta::specta;
 use std::collections::HashMap;
 use tauri::utils::platform::current_exe;
+#[cfg(target_os = "macos")]
+use tauri::Manager;
 use tauri::{AppHandle, command};
 
 // 默认示例

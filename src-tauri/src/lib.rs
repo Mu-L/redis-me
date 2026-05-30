@@ -6,6 +6,7 @@ use crate::utils::setup::{app_setup, init_logger};
 use api::*;
 use client::state::AppState;
 use rustls::crypto::ring::default_provider;
+#[cfg(any(debug_assertions, test))]
 use specta_typescript::Typescript;
 use std::path::PathBuf;
 use tauri::Manager;
