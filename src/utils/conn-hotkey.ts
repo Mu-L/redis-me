@@ -15,7 +15,7 @@ export function isConnHotkeyBlocked(e: KeyboardEvent): boolean {
 export function matchConnShortcutAction(e: KeyboardEvent): ConnShortcutAction | null {
   if (!(e.ctrlKey || e.metaKey) || e.altKey || isConnHotkeyBlocked(e)) return null
 
-  if (!e.shiftKey && (e.code === 'KeyN' || e.key === 'n' || e.key === 'N')) return 'add'
+  if (e.shiftKey && (e.code === 'KeyN' || e.key === 'n' || e.key === 'N')) return 'add'
   if (e.shiftKey && (e.code === 'KeyI' || e.key === 'i' || e.key === 'I')) return 'import'
   if (e.shiftKey && (e.code === 'KeyS' || e.key === 's' || e.key === 'S')) return 'setting'
   if (e.shiftKey && (e.code === 'KeyW' || e.key === 'w' || e.key === 'W')) return 'newWindow'

@@ -3,8 +3,10 @@ import { computed, inject, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeIcon from '@/components/MeIcon.vue'
+import MeShortcut from '@/components/MeShortcut.vue'
 import { commandHelp, isReadonlyCommand } from '@/locales/cmd'
 import { shareProvideKey } from '@/types/me-interface'
+import type { ShortcutItem } from '@/utils/shortcut-display'
 import { meCopy, meCommands, isZh } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
@@ -114,6 +116,20 @@ const keyShortVisible = ref(false)
 function openKeyShortDialog() {
   keyShortVisible.value = true
 }
+
+const keyShortcuts = computed((): ShortcutItem[] => [
+  { label: t('redisTerminal.keyShort.fullscreen'), keys: ['F11'] },
+  { label: t('redisTerminal.keyShort.execute'), keys: ['Enter'] },
+  { label: t('redisTerminal.keyShort.complete'), keys: ['Tab'] },
+  { label: t('redisTerminal.keyShort.history'), keys: ['↑', '↓'] },
+  { label: t('redisTerminal.keyShort.clearScreen'), keys: ['mod', 'L'], gapBefore: true },
+  { label: t('redisTerminal.keyShort.clearInput'), keys: ['mod', 'C'] },
+  { label: t('redisTerminal.keyShort.cursorStart'), keys: ['mod', 'A'] },
+  { label: t('redisTerminal.keyShort.cursorEnd'), keys: ['mod', 'E'] },
+  { label: t('redisTerminal.keyShort.cmdClear'), keys: ['clear'], gapBefore: true },
+  { label: t('redisTerminal.keyShort.cmdHelp'), keys: ['help'] },
+  { label: t('redisTerminal.keyShort.cmdOpen'), keys: ['open'] },
+])
 </script>
 
 <template>
@@ -167,7 +183,7 @@ function openKeyShortDialog() {
       draggable
       :show-close="false"
       style="--el-dialog-bg-color: unset; box-shadow: unset">
-      <el-text type="warning" size="large" v-html="t('redisTerminal.keyShortMore')"> </el-text>
+      <MeShortcut :items="keyShortcuts" />
     </el-dialog>
 
     <!-- 命令表格 -->

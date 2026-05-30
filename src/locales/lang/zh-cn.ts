@@ -599,21 +599,19 @@ export default {
     readonlyYes: '是',
     readonlyNo: '否',
     keyShortHint: '查看快捷键',
-    keyShortMore: `
-        <br> F11     : 全屏
-        <br> Enter   : 执行命令
-        <br> Tab     : 命令补全
-        <br> ↑  ↓    : 历史记录
-        <br>
-        <br> Ctrl + L : 清屏
-        <br> Ctrl + C : 清除输入
-        <br> Ctrl + A : 光标到行首
-        <br> Ctrl + E : 光标到行尾
-        <br>
-        <br> clear : 清屏
-        <br> help  : 帮助
-        <br> open  : 打开网址
-    `,
+    keyShort: {
+      fullscreen: '全屏',
+      execute: '执行命令',
+      complete: '命令补全',
+      history: '历史记录',
+      clearScreen: '清屏',
+      clearInput: '清除输入',
+      cursorStart: '光标到行首',
+      cursorEnd: '光标到行尾',
+      cmdClear: '清屏',
+      cmdHelp: '帮助',
+      cmdOpen: '打开网址',
+    },
   },
 
   redisValue: {
@@ -651,20 +649,18 @@ export default {
     totalCount: '元素总数：',
     viewAs: '数据编码',
     keyShortHint: '查看快捷键',
-    keyShortMore: `
-        <br> F11       : 全屏编辑器
-        <br> Ctrl + L  : 切换自动换行
-        <br> Ctrl + N  : 切换行号显示
-        <br>
-        <br> Ctrl + =  : 增大字号
-        <br> Ctrl + -  : 减小字号
-        <br> Ctrl + 0  : 恢复默认字号
-        <br>
-        <br> Ctrl + F  : 查找
-        <br> Ctrl + G  : 查找下一处
-        <br> Ctrl + Z  : 撤销
-        <br> Ctrl + Y  : 重做
-    `,
+    keyShort: {
+      fullscreen: '全屏编辑器',
+      toggleWrap: '切换自动换行',
+      toggleLineNumbers: '切换行号显示',
+      fontIncrease: '增大字号',
+      fontDecrease: '减小字号',
+      fontReset: '恢复默认字号',
+      find: '查找',
+      findNext: '查找下一处',
+      undo: '撤销',
+      redo: '重做',
+    },
   },
 
   redisChart: {

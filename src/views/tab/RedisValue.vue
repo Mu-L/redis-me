@@ -18,6 +18,7 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import MeShortcut from '@/components/MeShortcut.vue'
 import { shareProvideKey } from '@/types/me-interface'
 import type {
   FieldScanResult,
@@ -42,6 +43,7 @@ import {
   viewFmtForField,
   type ViewBytesFormat,
 } from '@/utils/bytes-format'
+import type { ShortcutItem } from '@/utils/shortcut-display'
 import {
   bus,
   KEY_DELETE,
@@ -720,6 +722,19 @@ const keyShortVisible = ref(false)
 function openKeyShortDialog() {
   keyShortVisible.value = true
 }
+
+const keyShortcuts = computed((): ShortcutItem[] => [
+  { label: t('redisValue.keyShort.fullscreen'), keys: ['F11'] },
+  { label: t('redisValue.keyShort.toggleWrap'), keys: ['mod', 'L'] },
+  { label: t('redisValue.keyShort.toggleLineNumbers'), keys: ['mod', 'N'] },
+  { label: t('redisValue.keyShort.fontIncrease'), keys: ['mod', '='], gapBefore: true },
+  { label: t('redisValue.keyShort.fontDecrease'), keys: ['mod', '-'] },
+  { label: t('redisValue.keyShort.fontReset'), keys: ['mod', '0'] },
+  { label: t('redisValue.keyShort.find'), keys: ['mod', 'F'], gapBefore: true },
+  { label: t('redisValue.keyShort.findNext'), keys: ['mod', 'G'] },
+  { label: t('redisValue.keyShort.undo'), keys: ['mod', 'Z'] },
+  { label: t('redisValue.keyShort.redo'), keys: ['mod', 'Y'] },
+])
 // #endregion
 
 // #region 事件总线与生命周期
@@ -1162,7 +1177,7 @@ onUnmounted(() => {
       draggable
       :show-close="false"
       style="--el-dialog-bg-color: unset; box-shadow: unset">
-      <el-text type="warning" size="large" v-html="t('redisValue.keyShortMore')"> </el-text>
+      <MeShortcut :items="keyShortcuts" />
     </el-dialog>
   </div>
 </template>

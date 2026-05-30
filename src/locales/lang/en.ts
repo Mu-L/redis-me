@@ -608,21 +608,19 @@ export default {
     readonlyYes: 'Yes',
     readonlyNo: 'No',
     keyShortHint: 'View KeyShort',
-    keyShortMore: `
-        <br> F11     : Full Screen
-        <br> Enter   : Execute Command
-        <br> Tab     : Command Completion
-        <br> ↑  ↓    : History 
-        <br>
-        <br> Ctrl + L : Clear Screen
-        <br> Ctrl + C : Clear Input
-        <br> Ctrl + A : Move Cursor to line start
-        <br> Ctrl + E : Move Cursor to line end
-        <br>
-        <br> clear : Clear Screen
-        <br> help  : Help
-        <br> open  : Open Website
-    `,
+    keyShort: {
+      fullscreen: 'Full Screen',
+      execute: 'Execute Command',
+      complete: 'Command Completion',
+      history: 'History',
+      clearScreen: 'Clear Screen',
+      clearInput: 'Clear Input',
+      cursorStart: 'Move Cursor to line start',
+      cursorEnd: 'Move Cursor to line end',
+      cmdClear: 'Clear Screen',
+      cmdHelp: 'Help',
+      cmdOpen: 'Open Website',
+    },
   },
 
   redisValue: {
@@ -661,20 +659,18 @@ export default {
     totalCount: 'Total Count: ',
     viewAs: 'Encoding',
     keyShortHint: 'View KeyShort',
-    keyShortMore: `
-        <br> F11       : Fullscreen Editor
-        <br> Ctrl + L  : Toggle Line Wrap
-        <br> Ctrl + N  : Toggle Line Numbers
-        <br>
-        <br> Ctrl + =  : Increase Font Size
-        <br> Ctrl + -  : Decrease Font Size
-        <br> Ctrl + 0  : Reset Font Size
-        <br>
-        <br> Ctrl + F  : Find
-        <br> Ctrl + G  : Find Next
-        <br> Ctrl + Z  : Undo
-        <br> Ctrl + Y  : Redo
-    `,
+    keyShort: {
+      fullscreen: 'Fullscreen Editor',
+      toggleWrap: 'Toggle Line Wrap',
+      toggleLineNumbers: 'Toggle Line Numbers',
+      fontIncrease: 'Increase Font Size',
+      fontDecrease: 'Decrease Font Size',
+      fontReset: 'Reset Font Size',
+      find: 'Find',
+      findNext: 'Find Next',
+      undo: 'Undo',
+      redo: 'Redo',
+    },
   },
 
   redisChart: {
