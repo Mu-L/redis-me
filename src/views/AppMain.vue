@@ -175,8 +175,8 @@ function changeReadonly(): void {
 
       <!-- 右侧值 -->
       <el-splitter-panel :min="250">
-        <TabConn v-if="!share.conn" />
-        <template v-else-if="connPrepared">
+        <TabConn v-if="!share.conn || !connPrepared" />
+        <template v-else>
           <TabMain />
 
           <!-- 只读/可写 -->
@@ -219,6 +219,7 @@ function changeReadonly(): void {
     display: flex;
     flex-direction: column;
   }
+
   /* 中间分隔面板的样式调整 */
   :deep(.el-splitter-bar) {
     width: 5px !important;

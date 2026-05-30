@@ -486,8 +486,6 @@ export default {
     persistence: 'Persistence',
     memory: 'Memory',
     peak: 'Peak',
-    rss: 'RSS',
-    os: 'OS',
     system: 'System',
     executable: 'Executable',
     config: 'Config',

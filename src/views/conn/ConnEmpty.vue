@@ -1,24 +1,37 @@
 <script setup lang="ts">
-/** 连接列表为空时的占位：仿 Cursor 欢迎页（快捷键列表，Logo 由左侧 KeyEmpty 展示） */
+/** 连接空状态/占位：快捷键列表（Logo 由左侧 KeyEmpty 展示）；与 TabConn 全局热键一致 */
 import { type as getOsType } from '@tauri-apps/plugin-os'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-export type ConnEmptyShortcut = {
+type ConnEmptyShortcut = {
   action: string
   label: string
   /** mod=Ctrl/⌘，shift=Shift/⇧，alt=Alt/⌥，其余为单键展示 */
   keys: ('mod' | 'shift' | 'alt' | string)[]
-  disabled?: boolean
 }
 
-defineProps<{
-  shortcuts: ConnEmptyShortcut[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    /** 是否展示快捷键列表（连接 loading 占位时可关闭） */
+    showShortcuts?: boolean
+  }>(),
+  { showShortcuts: true },
+)
 
 const emit = defineEmits<{
   action: [action: string]
 }>()
 
+const { t } = useI18n()
 const isMacOS = getOsType() === 'macos'
+
+const shortcuts = computed((): ConnEmptyShortcut[] => [
+  { action: 'add', label: t('conn.add'), keys: ['mod', 'N'] },
+  { action: 'import', label: t('conn.import'), keys: ['mod', 'I'] },
+  { action: 'newWindow', label: t('conn.emptyNewWindow'), keys: ['mod', 'shift', 'W'] },
+  { action: 'setting', label: t('conn.emptyAppSetting'), keys: ['mod', 'shift', 'S'] },
+])
 
 function displayKey(key: ConnEmptyShortcut['keys'][number]): string {
   if (key === 'mod') return isMacOS ? '⌘' : 'Ctrl'
@@ -37,13 +50,9 @@ function kbdClass(key: ConnEmptyShortcut['keys'][number], index: number, total: 
 
 <template>
   <div class="conn-empty">
-    <ul class="shortcut-list">
+    <ul v-if="props.showShortcuts" class="shortcut-list">
       <li v-for="item in shortcuts" :key="item.action">
-        <button
-          type="button"
-          class="shortcut-row"
-          :disabled="item.disabled"
-          @click="!item.disabled && emit('action', item.action)">
+        <button type="button" class="shortcut-row" @click="emit('action', item.action)">
           <span class="shortcut-label">{{ item.label }}</span>
           <span class="shortcut-keys" aria-hidden="true">
             <template v-for="(key, i) in item.keys" :key="i">
@@ -94,14 +103,9 @@ function kbdClass(key: ConnEmptyShortcut['keys'][number], index: number, total: 
     cursor: pointer;
     text-align: left;
 
-    &:hover:not(:disabled) {
+    &:hover {
       background: color-mix(in srgb, var(--el-fill-color-light) 55%, transparent);
       color: var(--el-text-color-regular);
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 0.45;
     }
   }
 

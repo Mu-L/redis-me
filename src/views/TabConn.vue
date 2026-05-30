@@ -36,7 +36,7 @@ import {
   meWarn,
   openNewWindow,
 } from '@/utils/util'
-import ConnEmpty, { type ConnEmptyShortcut } from '@/views/conn/ConnEmpty.vue'
+import ConnEmpty from '@/views/conn/ConnEmpty.vue'
 import ConnGroup from '@/views/conn/ConnGroup.vue'
 import ConnImport from '@/views/conn/ConnImport.vue'
 import ConnSave from '@/views/conn/ConnSave.vue'
@@ -86,14 +86,6 @@ const flatTableRef = useTemplateRef<InstanceType<typeof ConnTable>>('flatTableRe
 const dialog = reactive({ conn: false, import: false, setting: false })
 
 const connListEmpty = computed(() => share.connList.length === 0)
-
-/** 空状态快捷键列表（展示与 TabConn 全局热键一致） */
-const emptyShortcuts = computed((): ConnEmptyShortcut[] => [
-  { action: 'add', label: t('conn.add'), keys: ['mod', 'N'] },
-  { action: 'import', label: t('conn.import'), keys: ['mod', 'I'] },
-  { action: 'newWindow', label: t('conn.emptyNewWindow'), keys: ['mod', 'shift', 'W'] },
-  { action: 'setting', label: t('conn.emptyAppSetting'), keys: ['mod', 'shift', 'S'] },
-])
 
 function addConn(): void {
   dialog.conn = true
@@ -327,79 +319,80 @@ function clickNew(): void {
 
 <template>
   <div class="redis-conn">
-    <div class="me-flex header">
-      <div class="me-flex">
-        <el-button icon="el-icon-plus" type="primary" @click="addConn">{{
-          t('conn.add')
-        }}</el-button>
-        <el-button v-if="connShowGroup" icon="el-icon-folder-add" @click="addFolder">{{
-          t('conn.newFolder')
-        }}</el-button>
-      </div>
-      <div class="me-flex">
-        <me-icon icon="me-icon-new" class="icon-new" @click="clickNew" v-if="app.update?.version" />
-        <el-dropdown placement="bottom-start" @command="handleCommand" style="margin-right: 10px">
-          <el-button>...</el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item v-if="connShowGroup" command="connShowFlat">
-                <me-icon :name="t('conn.showFlat')" icon="me-icon-list" />
-              </el-dropdown-item>
-              <el-dropdown-item v-if="!connShowGroup" command="connShowGroup">
-                <me-icon :name="t('conn.showGroup')" icon="el-icon-folder" />
-              </el-dropdown-item>
-              <el-dropdown-item command="export" divided :disabled="share.connList.length === 0">
-                <me-icon :name="t('conn.export')" icon="me-icon-export" />
-              </el-dropdown-item>
-              <el-dropdown-item command="import">
-                <me-icon :name="t('conn.import')" icon="me-icon-import" />
-              </el-dropdown-item>
-              <el-dropdown-item
-                v-if="isDev"
-                command="clear"
-                divided
-                :disabled="share.connList.length === 0">
-                <me-icon :name="t('conn.clearConnections')" icon="el-icon-delete" />
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-input
-          v-model="keyword"
-          :placeholder="t('conn.keyword')"
-          style="width: 300px"
-          clearable />
-      </div>
-    </div>
-
     <ConnEmpty
-      v-if="connListEmpty"
+      v-if="connListEmpty || share.loading"
       class="conn-empty-wrap"
-      :shortcuts="emptyShortcuts"
       @action="onEmptyAction" />
 
-    <ConnTable
-      v-else-if="!connShowGroup"
-      ref="flatTableRef"
-      class="conn-table-wrap"
-      :data="filterDataList"
-      @select="selectConn"
-      @copy="copyConn"
-      @edit="editConn"
-      @delete="deleteConn" />
+    <template v-else>
+      <div class="me-flex header">
+        <div class="me-flex">
+          <el-button icon="el-icon-plus" type="primary" @click="addConn">{{
+            t('conn.add')
+          }}</el-button>
+          <el-button v-if="connShowGroup" icon="el-icon-folder-add" @click="addFolder">{{
+            t('conn.newFolder')
+          }}</el-button>
+        </div>
+        <div class="me-flex">
+          <me-icon
+            icon="me-icon-new"
+            class="icon-new"
+            @click="clickNew"
+            v-if="app.update?.version" />
+          <el-dropdown placement="bottom-start" @command="handleCommand" style="margin-right: 10px">
+            <el-button>...</el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item v-if="connShowGroup" command="connShowFlat">
+                  <me-icon :name="t('conn.showFlat')" icon="me-icon-list" />
+                </el-dropdown-item>
+                <el-dropdown-item v-if="!connShowGroup" command="connShowGroup">
+                  <me-icon :name="t('conn.showGroup')" icon="el-icon-folder" />
+                </el-dropdown-item>
+                <el-dropdown-item command="export" divided>
+                  <me-icon :name="t('conn.export')" icon="me-icon-export" />
+                </el-dropdown-item>
+                <el-dropdown-item command="import">
+                  <me-icon :name="t('conn.import')" icon="me-icon-import" />
+                </el-dropdown-item>
+                <el-dropdown-item v-if="isDev" command="clear" divided>
+                  <me-icon :name="t('conn.clearConnections')" icon="el-icon-delete" />
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <el-input
+            v-model="keyword"
+            :placeholder="t('conn.keyword')"
+            style="width: 300px"
+            clearable />
+        </div>
+      </div>
 
-    <ConnGroup
-      v-else
-      class="group-list"
-      :sections="groupSections"
-      :conn-groups="connGroups"
-      :conn-list="share.connList"
-      @select="selectConn"
-      @copy="copyConn"
-      @edit="editConn"
-      @delete="deleteConn"
-      @rename-folder="renameFolder"
-      @delete-folder="deleteFolder" />
+      <ConnTable
+        v-if="!connShowGroup"
+        ref="flatTableRef"
+        class="conn-table-wrap"
+        :data="filterDataList"
+        @select="selectConn"
+        @copy="copyConn"
+        @edit="editConn"
+        @delete="deleteConn" />
+
+      <ConnGroup
+        v-else
+        class="group-list"
+        :sections="groupSections"
+        :conn-groups="connGroups"
+        :conn-list="share.connList"
+        @select="selectConn"
+        @copy="copyConn"
+        @edit="editConn"
+        @delete="deleteConn"
+        @rename-folder="renameFolder"
+        @delete-folder="deleteFolder" />
+    </template>
 
     <ConnSave ref="conn" v-if="dialog.conn" @closed="dialog.conn = false" />
     <ConnImport
