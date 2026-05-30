@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { inject, reactive } from 'vue'
+import { inject, onMounted, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { shareProvideKey } from '@/types/me-interface'
+import { shareProvideKey, connUiProvideKey } from '@/types/me-interface'
 import { getConnIcon } from '@/utils/conn'
 import { bus, CONN_REFRESH, meCommands, meOk, openNewWindow } from '@/utils/util'
 import About from '@/views/ext/About.vue'
@@ -10,12 +10,21 @@ import Official from '@/views/ext/Official.vue'
 import Setting from '@/views/ext/Setting.vue'
 
 const share = inject(shareProvideKey)!
+const connUi = inject(connUiProvideKey)!
 const { t } = useI18n()
 
 const dialog = reactive({
   setting: false,
   info: false,
   social: false,
+})
+
+function openSetting(): void {
+  dialog.setting = true
+}
+
+onMounted(() => {
+  connUi.openSetting = openSetting
 })
 
 async function handleCommand(command: string): Promise<void> {
@@ -26,7 +35,7 @@ async function handleCommand(command: string): Promise<void> {
   } else if ('closeConn' === command) {
     share.conn = null
   } else if ('setting' === command) {
-    dialog.setting = true
+    openSetting()
   } else if ('window' === command) {
     await openNewWindow()
   } else if ('info' === command) {

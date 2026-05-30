@@ -67,6 +67,19 @@ export const shareProvideKey: InjectionKey<AppMainShare> = Symbol('redis-me.shar
 /** 与 `AppMain` 中 `provide(appProvideKey, app)` 配对，子组件使用 `inject(appProvideKey)!` */
 export const appProvideKey: InjectionKey<AppMainInject> = Symbol('redis-me.app')
 
+/** ConnEmpty / 全局快捷键：新增连接、导入、设置等（由 AppMain provide） */
+export type ConnShortcutAction = 'add' | 'import' | 'newWindow' | 'setting'
+
+export interface ConnUiInject {
+  openConnSave: (mode: 'add' | 'edit', conn?: UiConn) => void
+  openConnImport: () => void
+  /** 由 KeyHeader 挂载时赋值，打开左侧菜单同款设置弹窗 */
+  openSetting: () => void
+  runConnAction: (action: ConnShortcutAction) => void
+}
+
+export const connUiProvideKey: InjectionKey<ConnUiInject> = Symbol('redis-me.connUi')
+
 /** 多窗口连接列表同步（与 `CONN_LIST_WINDOWS_SYNC` 事件对应） */
 export interface ConnListWindowsSyncPayload {
   connList: UiConn[]

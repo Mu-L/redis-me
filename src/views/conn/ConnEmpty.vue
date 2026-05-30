@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** 连接空状态/占位：快捷键列表（Logo 由左侧 KeyEmpty 展示）；与 TabConn 全局热键一致 */
+/** 连接空状态/占位：快捷键列表（Logo 由左侧 KeyEmpty 展示）；键盘由 AppMain 全局监听 */
 import { type as getOsType } from '@tauri-apps/plugin-os'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -28,7 +28,7 @@ const isMacOS = getOsType() === 'macos'
 
 const shortcuts = computed((): ConnEmptyShortcut[] => [
   { action: 'add', label: t('conn.add'), keys: ['mod', 'N'] },
-  { action: 'import', label: t('conn.import'), keys: ['mod', 'I'] },
+  { action: 'import', label: t('conn.import'), keys: ['mod', 'shift', 'I'] },
   { action: 'newWindow', label: t('conn.emptyNewWindow'), keys: ['mod', 'shift', 'W'] },
   { action: 'setting', label: t('conn.emptyAppSetting'), keys: ['mod', 'shift', 'S'] },
 ])
