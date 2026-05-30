@@ -1,5 +1,29 @@
 # 3.x Changelog
 
+## [v3.6.0] (2026-05-30)
+
+### ✨ New Features
+
+- Encoding: **Complete redesign and improvements**
+  - **Custom encode/decode** via external scripts
+  - New practical codec: **StrJson**
+  - Removed the rarely useful **Binary** codec
+- Paginated tables: **Copy and export**
+  - Applies to **Slow Log**, Config, Info, and similar tables
+  - Formats: JSON, CSV, HTML, Markdown, Excel
+- Terminal:
+  - Help table shows whether each command is **read-only**; improved fuzzy search; filterable column headers
+  - **Read-only commands can run in read-only mode**
+- Value area:
+  - Hash/List and similar types show **total element count**
+  - Read-only mode now supports **viewing fields**
+- Downloads: **Quick download table** added to releases
+- Website: Installer downloads **auto-detect the OS**; improved naming
+
+### 🐞 Bug Fixes
+
+- Updates: Attempted fix for the app not auto-restarting after an upgrade on macOS
+
 ## [v3.5.0](https://mp.weixin.qq.com/s/l7AcVFTI1bamWU3mfZqF5A) (2026-05-23)
 
 ### ✨ New Features
