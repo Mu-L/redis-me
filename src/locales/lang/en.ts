@@ -91,9 +91,11 @@ export default {
     fieldShowTable: 'Table',
 
     dir: 'Directory',
-    configDir: 'ConfigDir',
-    appDir: 'AppDir',
-    logDir: 'LogDir',
+    configDir: 'Config Dir',
+    appDir: 'App Dir',
+    logDir: 'Log Dir',
+    openDir: 'Open',
+    shortcuts: 'Shortcuts',
   },
 
   conn: {

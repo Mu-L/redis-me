@@ -6,7 +6,9 @@ import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import MeShortcut from '@/components/MeShortcut.vue'
 import { appProvideKey, type AppMainInject } from '@/types/me-interface'
+import { getConnGlobalShortcuts } from '@/utils/conn-shortcuts'
 import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util'
 
 const { t } = useI18n()
@@ -148,6 +150,15 @@ function toDefault(name: 'baseSetting' | 'moreSetting') {
 }
 
 // 打开目录
+const dirType = ref<'config' | 'app' | 'log'>('config')
+const dirList = computed(() => [
+  { value: 'config' as const, label: t('setting.configDir') },
+  { value: 'app' as const, label: t('setting.appDir') },
+  { value: 'log' as const, label: t('setting.logDir') },
+])
+const globalShortcuts = computed(() => getConnGlobalShortcuts(t))
+const keyShortVisible = ref(false)
+
 async function openDir(dirType: 'config' | 'app' | 'log') {
   let dir = ''
   if (dirType === 'config') {
@@ -221,21 +232,25 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
         </el-form-item>
       </el-row>
 
-      <!-- 打开目录 -->
-      <el-row>
-        <el-form-item :label="t('setting.dir')" style="width: 100%">
-          <div class="me-flex" style="width: 100%">
-            <el-button icon="el-icon-document" @click="openDir('config')">
-              {{ t('setting.configDir') }}</el-button
-            >
-            <el-button icon="el-icon-place" @click="openDir('app')">{{
-              t('setting.appDir')
-            }}</el-button>
-            <el-button icon="el-icon-memo" @click="openDir('log')">{{
-              t('setting.logDir')
+      <!-- 目录、快捷键 -->
+      <el-row class="me-flex">
+        <el-form-item :label="t('setting.dir')">
+          <div class="me-flex">
+            <el-select v-model="dirType" style="width: 140px">
+              <el-option
+                v-for="item in dirList"
+                :label="item.label"
+                :value="item.value"
+                :key="item.value" />
+            </el-select>
+            <el-button style="margin-left: 8px" @click="openDir(dirType)">{{
+              t('setting.openDir')
             }}</el-button>
           </div>
         </el-form-item>
+        <me-button plain icon="me-icon-keyshort" @click="keyShortVisible = true">{{
+          t('setting.shortcuts')
+        }}</me-button>
       </el-row>
 
       <!-- 更新设置 -->
@@ -263,6 +278,16 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
       </el-row>
     </el-form>
   </el-card>
+
+  <el-dialog
+    v-model="keyShortVisible"
+    width="400"
+    align-center
+    draggable
+    :show-close="false"
+    style="--el-dialog-bg-color: unset; box-shadow: unset">
+    <MeShortcut :items="globalShortcuts" />
+  </el-dialog>
 
   <!-- 更多设置 -->
   <el-card style="margin-top: 20px">

@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeShortcut from '@/components/MeShortcut.vue'
-import type { ShortcutItem } from '@/utils/shortcut-display'
+import { getConnGlobalShortcuts } from '@/utils/conn-shortcuts'
 
 const props = withDefaults(
   defineProps<{
@@ -20,12 +20,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const shortcuts = computed((): ShortcutItem[] => [
-  { id: 'add', label: t('conn.add'), keys: ['mod', 'shift', 'N'] },
-  { id: 'import', label: t('conn.import'), keys: ['mod', 'shift', 'I'] },
-  { id: 'newWindow', label: t('conn.emptyNewWindow'), keys: ['mod', 'shift', 'W'] },
-  { id: 'setting', label: t('conn.emptyAppSetting'), keys: ['mod', 'shift', 'S'] },
-])
+const shortcuts = computed(() => getConnGlobalShortcuts(t))
 </script>
 
 <template>

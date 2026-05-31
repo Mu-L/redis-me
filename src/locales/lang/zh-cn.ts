@@ -89,6 +89,8 @@ export default {
     configDir: '配置目录',
     appDir: '应用目录',
     logDir: '日志目录',
+    openDir: '打开',
+    shortcuts: '快捷键',
   },
 
   conn: {
