@@ -680,7 +680,7 @@ const textMemory = computed(() => {
   return sz != null && sz > 0 ? t('redisValue.textMemory') + meHumanSize(sz) : ''
 })
 
-/** 与 textLength 同一位置：String/单字段为字节长度，集合类型为元素总数 */
+/** 与 textLength 同一位置：String/单字段为字节长度，集合类型为总数 */
 const textLength = computed(() => {
   const rv = redisValue.value
   if (!rv || jsonType.value || (streamType.value && withHashKey.value)) return ''
@@ -1056,12 +1056,12 @@ onUnmounted(() => {
 
           <el-divider direction="vertical" v-if="textLength" />
 
-          <!-- 字节长度 / 元素总数（同一位置，按类型切换标签） -->
+          <!-- 字节长度 / 总数（同一位置，按类型切换标签） -->
           <el-text> {{ textLength }} </el-text>
 
           <el-divider direction="vertical" v-if="textEntries" />
 
-          <!-- 条目：筛选 / 已加载 -->
+          <!-- 已扫描：筛选 / 已加载 -->
           <el-text> {{ textEntries }} </el-text>
         </div>
 

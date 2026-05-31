@@ -657,8 +657,8 @@ export default {
 
     textMemory: 'Memory Usage: ',
     textLength: 'Bytes Length: ',
-    textEntries: 'Entries: ',
-    totalCount: 'Total Count: ',
+    textEntries: 'Scanned: ',
+    totalCount: 'Total: ',
     viewAs: 'Encoding',
     keyShortHint: 'View KeyShort',
     keyShort: {
