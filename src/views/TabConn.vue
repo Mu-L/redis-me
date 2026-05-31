@@ -216,7 +216,7 @@ function clearAllConnections(): void {
 }
 
 async function exportConn(): Promise<void> {
-  const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss') + '.mec'
+  const fileName = 'RedisME_connections_' + dayjs().format('YYYYMMDDHHmmss') + '.mec'
   const path = await save({ filters, defaultPath: fileName })
   if (path) {
     try {

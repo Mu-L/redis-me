@@ -138,7 +138,7 @@ const exportBtnEnabled = computed(() => (isExport.value ? !!form.value.file : tr
 
 // 导出文件名称添加服务器及版本（不同版本的redisdump命令可能不兼容，便于分析问题）
 const exportFilePrefix = computed(
-  () => 'redis-me-export_' + (share.isValkey ? 'Valkey' : 'Redis') + share.serverVersion,
+  () => 'RedisME_export_' + (share.isValkey ? 'Valkey' : 'Redis') + share.serverVersion,
 )
 </script>
 
