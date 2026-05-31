@@ -14,6 +14,11 @@ mod tests {
     use crate::utils::util::AnyResult;
     use redis::TlsMode;
     use redis::cluster::{ClusterClient, ClusterPipeline};
+    use std::time::Duration;
+
+    fn default_command_timeout() -> Duration {
+        AppSettings::default().command_timeout()
+    }
 
     fn client() -> Box<dyn MeClient> {
         // default_provider().install_default()
@@ -56,13 +61,13 @@ mod tests {
     #[allow(unused)]
     fn client_single() -> Box<dyn MeClient> {
         let conf = conf_single();
-        MeSingle::init(&conf).unwrap()
+        MeSingle::init(&conf, default_command_timeout()).unwrap()
     }
 
     #[allow(unused)]
     fn client_cluster() -> Box<dyn MeClient> {
         let conf = conf_cluster();
-        MeCluster::init(&conf).unwrap()
+        MeCluster::init(&conf, default_command_timeout()).unwrap()
     }
 
     #[allow(unused)]
@@ -74,7 +79,7 @@ mod tests {
         //conf.ssl_option.cert= r"C:\Users\he_pe\redis\redis.crt".into();
         conf.ssl_option.key = r"~/redis/redis.key".into();
         conf.ssl_option.cert = r"~\redis\redis.crt".into();
-        MeSingle::init(&conf).unwrap()
+        MeSingle::init(&conf, default_command_timeout()).unwrap()
     }
 
     #[allow(unused)]
@@ -96,7 +101,7 @@ mod tests {
         conf.ssh_option.pkfile = "~/.ssh/id_rsa".into();
         conf.ssh_option.pkfile = "~/.ssh/id_ed25519".into();
         conf.ssh_option.passphrase = "".into();
-        MeSingle::init(&conf).unwrap()
+        MeSingle::init(&conf, default_command_timeout()).unwrap()
     }
 
     #[test]

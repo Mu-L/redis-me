@@ -13,6 +13,7 @@ use specta::Type;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16};
+use std::time::Duration;
 
 /// 前后端 IPC 字节格式：utf8 文本或 base64 原始字节（hex/binary/msgpack 等视图格式在前端处理）
 #[derive(Debug, Clone, Default, Serialize, Deserialize, Type)]
@@ -85,6 +86,33 @@ api_model!(
     }
 );
 
+// 全局应用设置：由前端 settings 同步，新连接/重连时快照 command_timeout
+api_model!(
+    AppSettings {
+        command_timeout_secs: u64,
+    }
+);
+
+impl Default for AppSettings {
+    fn default() -> Self {
+        Self {
+            command_timeout_secs: crate::utils::util::CONNECTION_NORMAL_TIMEOUT.as_secs(),
+        }
+    }
+}
+
+impl AppSettings {
+    pub fn normalized(self) -> Self {
+        Self {
+            command_timeout_secs: self.command_timeout_secs.clamp(5, 300),
+        }
+    }
+
+    pub fn command_timeout(&self) -> Duration {
+        Duration::from_secs(self.command_timeout_secs)
+    }
+}
+
 impl ConnConfig {
     pub fn test(&self) -> AnyResult<()> {
         if self.cluster {
@@ -120,6 +148,8 @@ pub struct MeBase {
     pub last_check_time: Arc<AtomicI64>,
     pub server_version: String,
     pub capabilities: Arc<ServerCapabilities>,
+    /// 已建立连接上的单次命令读写超时（init 时从 AppSettings 快照）
+    pub command_timeout: Duration,
 }
 
 impl From<&ConnConfig> for MeBase {
@@ -136,6 +166,7 @@ impl From<&ConnConfig> for MeBase {
             // 默认值，实际在创建客户端时更新
             server_version: String::new(),
             capabilities: Arc::new(ServerCapabilities::default()),
+            command_timeout: crate::utils::util::CONNECTION_NORMAL_TIMEOUT,
         }
     }
 }

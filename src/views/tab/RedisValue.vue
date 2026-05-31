@@ -152,8 +152,8 @@ function applyDefaultViewType() {
     viewType.value = 'table'
     return
   }
-  // auto：首次 json，之后沿用 settings.fieldShowView（持久化，切换连接可复用）
-  viewType.value = meTauri.settings.fieldShowView === 'table' ? 'table' : 'json'
+  // auto：默认表格，手动切换后沿用 fieldShowView（跨连接/键）
+  viewType.value = meTauri.settings.fieldShowView === 'json' ? 'json' : 'table'
 }
 
 /** 自动模式下记录 segmented 手动切换，写入 settings 持久化 */

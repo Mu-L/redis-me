@@ -96,6 +96,13 @@ pub fn conn_list(app_handle: AppHandle, conn_list: Vec<ConnConfig>) -> ApiResult
     to_api_result(app_handle.conn_list(conn_list))
 }
 
+// 全局应用设置同步到后端（命令超时等）
+#[command]
+#[specta]
+pub fn app_settings(app_handle: AppHandle, app_settings: AppSettings) -> ApiResult<()> {
+    to_api_result(app_handle.app_settings(app_settings))
+}
+
 // 连接
 #[command]
 #[specta]

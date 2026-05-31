@@ -441,14 +441,15 @@ impl MeClient for MeSingle {
 
 // 个性化方法
 impl MeSingle {
-    pub fn init(redis_conn: &ConnConfig) -> AnyResult<Box<dyn MeClient>> {
+    pub fn init(redis_conn: &ConnConfig, command_timeout: Duration) -> AnyResult<Box<dyn MeClient>> {
         let (client, ssh_tunnel) = get_client_single(redis_conn)?;
-        let mut conn = Self::new_conn(&client, redis_conn.db)?;
+        let mut conn = Self::new_conn(&client, redis_conn.db, command_timeout)?;
         info!("Redis单机连接初始化成功: {}", redis_conn.name);
 
         // 获取版本信息并检测能力
         let info: String = redis::cmd("INFO").arg("SERVER").query(&mut conn)?;
         let mut base = MeBase::from(redis_conn);
+        base.command_timeout = command_timeout;
         base.update_server_info(&info, &mut conn);
 
         Ok(Box::new(MeSingle {
@@ -459,11 +460,11 @@ impl MeSingle {
         }))
     }
 
-    fn new_conn(client: &Client, db: u16) -> AnyResult<Connection> {
+    fn new_conn(client: &Client, db: u16, command_timeout: Duration) -> AnyResult<Connection> {
         let mut conn = client.get_connection()?;
         set_client_name(&mut conn)?;
-        conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
-        conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
+        conn.set_read_timeout(Some(command_timeout))?;
+        conn.set_write_timeout(Some(command_timeout))?;
 
         // 切换到当前的数据库(切换失败时忽略)
         if db != 0 {
@@ -478,7 +479,7 @@ impl MeSingle {
 
     // 重新连接
     fn reconnect(&self) -> AnyResult<()> {
-        let new_conn = Self::new_conn(&self.client, self.db.load(Relaxed))?;
+        let new_conn = Self::new_conn(&self.client, self.db.load(Relaxed), self.command_timeout)?;
         let mut conn_guard = self.conn.lock(); // 使用阻塞锁来替换连接
         *conn_guard = new_conn;
         self.last_check_time.store(Utc::now().timestamp(), Relaxed);
@@ -521,8 +522,8 @@ impl MeSingle {
         conn.set_read_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
         conn.set_write_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
         if conn.check_connection() {
-            conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
-            conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
+            conn.set_read_timeout(Some(self.command_timeout))?;
+            conn.set_write_timeout(Some(self.command_timeout))?;
             debug!("检查Redis单机连接正常: {}", self.conf.name);
             Ok(true)
         } else {
@@ -533,6 +534,6 @@ impl MeSingle {
 
     // 获取一个新的连接
     fn get_new_conn(&self) -> AnyResult<Connection> {
-        Self::new_conn(&self.client, self.db.load(Relaxed))
+        Self::new_conn(&self.client, self.db.load(Relaxed), self.command_timeout)
     }
 }

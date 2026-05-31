@@ -70,13 +70,21 @@ export default {
 
     baseSetting: 'Base Setting',
     moreSetting: 'More Setting',
-    extLabelWidth: '120px',
+    extLabelWidth: '140px',
     keyScanCount: 'Key Scan',
     fieldScanCount: 'Field Scan',
     keyScanCountTip:
-      'The number of keys loaded per scan. Setting it too large may affect performance',
-    fieldScanCountTip: 'The number of fields loaded by each scan for types such as Hash',
-    keyShow: 'Key Show',
+      'Keys loaded per SCAN; larger values may affect performance. Range {min}–{max}',
+    fieldScanCountTip: 'Fields loaded per page for Hash, Set, and similar types. Range {min}–{max}',
+    commandTimeout: 'Cmd Timeout',
+    commandTimeoutTip:
+      'Max wait for one Redis command on an open connection; takes effect after reconnect. Range {min}–{max} s',
+    scriptTimeout: 'Script Timeout',
+    scriptTimeoutTip: 'Max runtime for custom encode/decode scripts. Range {min}–{max} s',
+    secUnit: 's',
+    countUnit: '',
+    pxUnit: 'px',
+    keyShow: 'Key Display',
     keyShowTree: 'Tree',
     keyShowList: 'List',
     keySort: 'Tree Sort',
@@ -84,9 +92,11 @@ export default {
     sortByAlphabet: 'Alphabet',
 
     keyHeight: 'Key Height',
+    keyHeightTip:
+      'Row height in tree and list key views; tune for your UI font. Range {min}–{max} px',
     fieldShow: 'Field Display',
     fieldShowTip:
-      'Default view for Hash, List, etc.; auto starts with JSON and remembers your last manual choice across connections and keys; table mode prefers table view, still switchable manually',
+      'Default view for Hash, List, and similar types. Table: always table. Auto: table by default and remembers manual switches across connections and keys. Always switchable in the UI',
     fieldShowAuto: 'Auto',
     fieldShowTable: 'Table',
 

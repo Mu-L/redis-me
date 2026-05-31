@@ -2,7 +2,7 @@ use crate::client::client_trait::MeClient;
 use crate::client::impl_cluster::MeCluster;
 use crate::client::impl_single::MeSingle;
 use crate::utils::error::AppError;
-use crate::utils::model::ConnConfig;
+use crate::utils::model::{AppSettings, ConnConfig};
 use crate::utils::util::AnyResult;
 use log::{debug, info};
 use std::collections::HashMap;
@@ -16,10 +16,14 @@ pub struct AppState {
 
     // 缓存连接客户端
     pub clients: RwLock<HashMap<String, Arc<Box<dyn MeClient>>>>,
+
+    /// 全局设置（命令超时等），由前端 app_settings 同步
+    pub app_settings: RwLock<AppSettings>,
 }
 
 pub trait ClientAccess {
     fn conn_list(&self, conn_list: Vec<ConnConfig>) -> AnyResult<()>;
+    fn app_settings(&self, app_settings: AppSettings) -> AnyResult<()>;
     fn get_client(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>>;
     fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>>;
     fn disconnect(&self, id: &str) -> AnyResult<()>;
@@ -34,6 +38,16 @@ impl ClientAccess for AppHandle {
             map.insert(conn.id.clone(), conn);
         }
         debug!("同步连接列表完成: {}", map.len());
+        Ok(())
+    }
+
+    fn app_settings(&self, app_settings: AppSettings) -> AnyResult<()> {
+        let state: State<AppState> = self.state();
+        *state.app_settings.write().unwrap() = app_settings.normalized();
+        debug!(
+            "同步应用设置: command_timeout_secs={}",
+            state.app_settings.read().unwrap().command_timeout_secs
+        );
         Ok(())
     }
 
@@ -57,11 +71,12 @@ impl ClientAccess for AppHandle {
             .get(id)
             .ok_or(AppError::ConnectionNotFound { id: id.into() })?;
 
+        let command_timeout = state.app_settings.read().unwrap().command_timeout();
         let mut clients = state.clients.write().unwrap();
         let client = Arc::new(if conn.cluster {
-            MeCluster::init(conn)?
+            MeCluster::init(conn, command_timeout)?
         } else {
-            MeSingle::init(conn)?
+            MeSingle::init(conn, command_timeout)?
         });
 
         clients.insert(id.to_string(), Arc::clone(&client));

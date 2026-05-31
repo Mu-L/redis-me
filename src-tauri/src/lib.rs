@@ -21,6 +21,7 @@ fn tauri_specta_commands() -> Commands<tauri::Wry> {
         test_conn,
         masters,
         conn_list,
+        app_settings,
         connect,
         disconnect,
         db_list,

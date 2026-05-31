@@ -13,6 +13,7 @@ export const commands = {
 	testConn: (conf: ConnConfig) => typedError<null, string>(__TAURI_INVOKE("test_conn", { conf })),
 	masters: (conf: ConnConfig) => typedError<{ [key in string]: string }[], string>(__TAURI_INVOKE("masters", { conf })),
 	connList: (connList: ConnConfig[]) => typedError<null, string>(__TAURI_INVOKE("conn_list", { connList })),
+	appSettings: (appSettings: AppSettings) => typedError<null, string>(__TAURI_INVOKE("app_settings", { appSettings })),
 	connect: (id: string) => typedError<ServerCapabilities, string>(__TAURI_INVOKE("connect", { id })),
 	disconnect: (id: string) => typedError<null, string>(__TAURI_INVOKE("disconnect", { id })),
 	dbList: (id: string) => typedError<RedisDB[], string>(__TAURI_INVOKE("db_list", { id })),
@@ -58,6 +59,10 @@ export const commands = {
 };
 
 /* Types */
+export type AppSettings = {
+	commandTimeoutSecs: number,
+};
+
 // 前后端 IPC 字节格式：utf8 文本或 base64 原始字节（hex/binary/msgpack 等视图格式在前端处理）
 export type BytesFormat = "utf8" | "base64";
 

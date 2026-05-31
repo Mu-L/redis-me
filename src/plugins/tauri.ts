@@ -46,12 +46,12 @@ const initSettings = {
 
   // 扩展设置
   keyScanCount: 1000,
-  fieldScanCount: 20,
+  fieldScanCount: 10,
   keyShow: 'tree',
   keySort: 'count',
   keyHeight: 20,
-  fieldShow: 'table', // 'auto' 初始 JSON、手动切换后沿用 | 'table' 优先表格
-  fieldShowView: 'table', // auto 模式下上次手动选择的 json/table，持久化供切换连接沿用
+  fieldShow: 'auto', // 'table' 始终表格 | 'auto' 默认表格、记住手动切换
+  fieldShowView: 'table', // auto 模式下上次手动选择的 json/table，持久化供切换连接/键沿用
   // 首页连接分组（见 src/utils/conn.ts）
   connShow: 'flat', // 'flat' | 'group'
   connGroups: [] as string[], // 分组名有序列表
@@ -59,11 +59,13 @@ const initSettings = {
   // 自定义 Formatter（STRING 值编解码，见 plans/custom-formatter.md）
   customFormatters: [] as { name: string; command: string }[],
   formatterExecTimeoutSec: 5,
+  // Redis 命令读写超时（秒），同步至 Rust AppSettings
+  commandTimeout: 30,
 }
 const settings = { ...initSettings, ...storeSettings }
 if (settings.fieldShow !== 'auto' && settings.fieldShow !== 'table') settings.fieldShow = 'auto'
 if (settings.fieldShowView !== 'json' && settings.fieldShowView !== 'table')
-  settings.fieldShowView = 'json'
+  settings.fieldShowView = 'table'
 // delete settings.keyLabel // v3.5+ 移除键名称全称/简称，统一简称
 if (!Array.isArray(settings.connGroups)) settings.connGroups = []
 if (settings.connShow !== 'flat' && settings.connShow !== 'group') settings.connShow = 'flat'
@@ -78,6 +80,15 @@ if (!Array.isArray(settings.customFormatters)) settings.customFormatters = []
 if (typeof settings.formatterExecTimeoutSec !== 'number' || settings.formatterExecTimeoutSec <= 0) {
   settings.formatterExecTimeoutSec = 5
 }
+if (typeof settings.commandTimeout !== 'number' || settings.commandTimeout <= 0) {
+  settings.commandTimeout = 30
+}
+
+/** 全局设置同步 Rust AppState（命令超时等） */
+async function syncAppSettings(): Promise<void> {
+  await commands.appSettings({ commandTimeoutSecs: settings.commandTimeout })
+}
+void syncAppSettings()
 const meTauri = reactive({
   // 响应式，自动保存
   connList,
@@ -101,6 +112,7 @@ watch(meTauri, async newValue => {
   meLog('持久化连接和设置')
   await store.set('connList', newValue.connList)
   await store.set('settings', newValue.settings)
+  await syncAppSettings()
 })
 
 export function checkConnList(connList: ConnFromStore[]): void {

@@ -68,8 +68,15 @@ export default {
     extLabelWidth: '100',
     keyScanCount: '键扫描',
     fieldScanCount: '字段扫描',
-    keyScanCountTip: '每次扫描加载的key数量，设置过大可能会影响性能',
-    fieldScanCountTip: 'Hash等类型每次扫描加载的field数量',
+    keyScanCountTip: '键列表每次 SCAN 加载的数量；过大可能影响性能。范围 {min}–{max} 个',
+    fieldScanCountTip: 'Hash、Set 等类型字段分页加载的数量。范围 {min}–{max} 个',
+    commandTimeout: '命令超时',
+    commandTimeoutTip: '单次 Redis 命令读写的最长等待时间；修改后需重连生效。范围 {min}–{max} 秒',
+    scriptTimeout: '脚本超时',
+    scriptTimeoutTip: '自定义编解码脚本的最长执行时间。范围 {min}–{max} 秒',
+    secUnit: '秒',
+    countUnit: '个',
+    pxUnit: 'px',
 
     keyShow: '键展示',
     keyShowTree: '树形',
@@ -79,9 +86,10 @@ export default {
     sortByAlphabet: '字母',
 
     keyHeight: '键高度',
+    keyHeightTip: '键列表在树形/平铺模式下每行高度；可按界面字体微调。范围 {min}–{max} px',
     fieldShow: '字段展示',
     fieldShowTip:
-      'Hash、List 等类型的值默认展示方式；自动模式初始 JSON，手动切换后会记住并在切换连接/键时沿用；表格模式优先表格，仍可手动切换',
+      'Hash、List 等复合类型的默认展示方式。表格：每次均为表格；自动：默认表格，手动切换后会记住（跨连接/键）。均可随时手动切换',
     fieldShowAuto: '自动',
     fieldShowTable: '表格',
 

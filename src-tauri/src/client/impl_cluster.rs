@@ -609,9 +609,9 @@ impl MeClient for MeCluster {
 
 // 个性化方法
 impl MeCluster {
-    pub fn init(redis_conn: &ConnConfig) -> AnyResult<Box<dyn MeClient>> {
+    pub fn init(redis_conn: &ConnConfig, command_timeout: Duration) -> AnyResult<Box<dyn MeClient>> {
         let client = get_client_cluster(redis_conn)?;
-        let mut conn = Self::new_conn(&client)?;
+        let mut conn = Self::new_conn(&client, command_timeout)?;
 
         // 获取版本信息并检测能力（从任意节点获取，通常集群版本一致）
         let value: Value = conn.route_command(
@@ -620,6 +620,7 @@ impl MeCluster {
         )?;
         let info = redis_value_to_string(value, "\n");
         let mut base = MeBase::from(redis_conn);
+        base.command_timeout = command_timeout;
         base.update_server_info(&info, &mut conn);
 
         // 获取节点信息并保存起来
@@ -635,19 +636,19 @@ impl MeCluster {
         }))
     }
 
-    fn new_conn(client: &ClusterClient) -> AnyResult<ClusterConnection> {
+    fn new_conn(client: &ClusterClient, command_timeout: Duration) -> AnyResult<ClusterConnection> {
         let mut conn = client.get_connection()?;
         // 设置客户端名称
         set_client_name(&mut conn)?;
 
-        conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
-        conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
+        conn.set_read_timeout(Some(command_timeout))?;
+        conn.set_write_timeout(Some(command_timeout))?;
         Ok(conn)
     }
 
     // 重新连接
     fn reconnect(&self) -> AnyResult<()> {
-        let new_conn = Self::new_conn(&self.client)?;
+        let new_conn = Self::new_conn(&self.client, self.command_timeout)?;
         let mut conn_guard = self.conn.lock(); // 使用阻塞锁来替换连接
         *conn_guard = new_conn;
         self.last_check_time.store(Utc::now().timestamp(), Relaxed);
@@ -682,8 +683,8 @@ impl MeCluster {
         conn.set_read_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
         conn.set_write_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
         if conn.check_connection() {
-            conn.set_read_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
-            conn.set_write_timeout(Some(CONNECTION_NORMAL_TIMEOUT))?;
+            conn.set_read_timeout(Some(self.command_timeout))?;
+            conn.set_write_timeout(Some(self.command_timeout))?;
             debug!("检查Redis集群连接正常: {}", self.conf.name);
             Ok(true)
         } else {
@@ -694,7 +695,7 @@ impl MeCluster {
 
     // 获取一个新的连接
     fn get_new_conn(&self) -> AnyResult<ClusterConnection> {
-        Self::new_conn(&self.client)
+        Self::new_conn(&self.client, self.command_timeout)
     }
 
     // 获取节点路由
