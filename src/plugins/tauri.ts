@@ -5,6 +5,7 @@ import { LazyStore } from '@tauri-apps/plugin-store'
 import { reactive, watch } from 'vue'
 import type { App } from 'vue'
 
+import { normalizeAppLocale } from '@/locales'
 import { commands, type ConnConfig } from '@/types/tauri-specta'
 import { meLog } from '@/utils/util'
 
@@ -18,8 +19,9 @@ if (import.meta.env.PROD) {
 
 // 系统主题、语言、存储等
 const systemTheme = (await new Window('main').theme()) ?? 'light'
-const systemLanguage = (await locale())?.replace('-', '') || 'en' // // zh-CN ==> zhCN
-meLog('系统主题:', systemTheme, '系统语言:', systemLanguage)
+const rawSystemLocale = await locale()
+const systemLanguage = normalizeAppLocale(rawSystemLocale)
+meLog('系统主题:', systemTheme, '系统语言:', systemLanguage, 'raw:', rawSystemLocale)
 
 // 应用商店安装时禁用内置升级，改由各商店 / 系统更新管道负责
 const isAppStore = await commands.isAppStore()
