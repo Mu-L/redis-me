@@ -331,6 +331,7 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
               :name="t('setting.keyScanCount')"
               icon="el-icon-question-filled"
               :info="t('setting.keyScanCountTip', MORE_SETTING_LIMITS.keyScanCount)"
+              :icon-left="false"
               placement="top" />
           </template>
           <el-input-number
@@ -349,6 +350,7 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
               :name="t('setting.fieldScanCount')"
               icon="el-icon-question-filled"
               :info="t('setting.fieldScanCountTip', MORE_SETTING_LIMITS.fieldScanCount)"
+              :icon-left="false"
               placement="top" />
           </template>
           <el-input-number
@@ -371,6 +373,7 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
               :name="t('setting.commandTimeout')"
               icon="el-icon-question-filled"
               :info="t('setting.commandTimeoutTip', MORE_SETTING_LIMITS.commandTimeout)"
+              :icon-left="false"
               placement="top" />
           </template>
           <el-input-number
@@ -389,6 +392,7 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
               :name="t('setting.scriptTimeout')"
               icon="el-icon-question-filled"
               :info="t('setting.scriptTimeoutTip', MORE_SETTING_LIMITS.codecExecTimeoutSec)"
+              :icon-left="false"
               placement="top" />
           </template>
           <el-input-number
@@ -405,7 +409,15 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
 
       <!-- 键展示、键高度 -->
       <el-row class="me-flex">
-        <el-form-item :label="t('setting.keyShow')">
+        <el-form-item>
+          <template #label>
+            <me-icon
+              :name="t('setting.keyShow')"
+              icon="el-icon-question-filled"
+              :info="t('setting.keyShowTip')"
+              :icon-left="false"
+              placement="top" />
+          </template>
           <el-segmented v-model="settings.keyShow" :options="keyShowList" />
         </el-form-item>
 
@@ -415,6 +427,7 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
               :name="t('setting.keyHeight')"
               icon="el-icon-question-filled"
               :info="t('setting.keyHeightTip', MORE_SETTING_LIMITS.keyHeight)"
+              :icon-left="false"
               placement="top" />
           </template>
           <el-input-number
@@ -438,11 +451,20 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
               :name="t('setting.fieldShow')"
               icon="el-icon-question-filled"
               :info="t('setting.fieldShowTip')"
+              :icon-left="false"
               placement="top" />
           </template>
           <el-segmented v-model="settings.fieldShow" :options="fieldShowList" />
         </el-form-item>
-        <el-form-item :label="t('setting.keySort')">
+        <el-form-item>
+          <template #label>
+            <me-icon
+              :name="t('setting.keySort')"
+              icon="el-icon-question-filled"
+              :info="t('setting.keySortTip')"
+              :icon-left="false"
+              placement="top" />
+          </template>
           <el-segmented
             v-model="settings.keySort"
             :options="keySortList"

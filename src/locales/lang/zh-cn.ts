@@ -79,9 +79,11 @@ export default {
     pxUnit: 'px',
 
     keyShow: '键展示',
+    keyShowTip: '树形：按命名空间分隔符分组展示键；平铺：键名列表不分组',
     keyShowTree: '树形',
     keyShowList: '平铺',
     keySort: '树形排序',
+    keySortTip: '仅树形模式下生效；可按子键数量或字母顺序排序',
     sortByCount: '数量',
     sortByAlphabet: '字母',
 

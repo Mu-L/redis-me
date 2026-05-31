@@ -85,9 +85,11 @@ export default {
     countUnit: '',
     pxUnit: 'px',
     keyShow: 'Key Display',
+    keyShowTip: 'Tree: group keys by namespace separator. List: flat key list',
     keyShowTree: 'Tree',
     keyShowList: 'List',
     keySort: 'Tree Sort',
+    keySortTip: 'Sort order for tree view only; disabled in list mode',
     sortByCount: 'Count',
     sortByAlphabet: 'Alphabet',
 
