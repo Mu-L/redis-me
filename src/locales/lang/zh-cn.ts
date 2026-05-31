@@ -229,6 +229,9 @@ export default {
 
   customFormatter: {
     title: '自定义编解码',
+    docUrl: 'https://www.hepengju.com/zh/guide/usage/codec.html',
+    docHelp: '帮助',
+    docHelpTip: '查看官网自定义编解码示例',
     name: '名称',
     namePlaceholder: '显示在「数据编码」下拉中',
     command: '命令',

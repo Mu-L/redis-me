@@ -1,5 +1,6 @@
 <script setup lang="ts">
 /** 自定义编解码 CRUD：由 RedisValue 数据编码下拉头部编辑入口打开；列表顺序即下拉展示顺序 */
+import { openUrl } from '@tauri-apps/plugin-opener'
 import type { TableInstance } from 'element-plus'
 import { Sortable, type SortableEvent } from 'sortablejs'
 import { computed, nextTick, onBeforeUnmount, reactive, ref, useTemplateRef, watch } from 'vue'
@@ -149,6 +150,10 @@ async function runTest(mode: 'decode' | 'encode') {
     loading.value = false
   }
 }
+
+function openCodecDoc() {
+  void openUrl(t('customFormatter.docUrl'))
+}
 </script>
 
 <template>
@@ -159,10 +164,13 @@ async function runTest(mode: 'decode' | 'encode') {
     append-to-body
     destroy-on-close
     draggable>
-    <div class="me-flex" style="justify-content: flex-end; margin-bottom: 12px">
-      <el-button size="small" icon="el-icon-plus" @click="openAdd">{{
-        t('customFormatter.add')
-      }}</el-button>
+    <div class="toolbar me-flex">
+      <el-button link type="primary" icon="el-icon-question-filled" @click="openCodecDoc">
+        {{ t('customFormatter.docHelp') }}
+      </el-button>
+      <el-button size="small" icon="el-icon-plus" @click="openAdd">
+        {{ t('customFormatter.add') }}
+      </el-button>
     </div>
 
     <el-table ref="table" :data="list" row-key="name" empty-text="—" size="small">
@@ -238,6 +246,12 @@ async function runTest(mode: 'decode' | 'encode') {
 </template>
 
 <style scoped lang="scss">
+.toolbar {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 /* 命令标签与必填星号、? 保持同一行 */
 .custom-format-field :deep(.el-form-item__label) {
   display: inline-flex;

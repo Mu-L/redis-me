@@ -237,6 +237,9 @@ export default {
 
   customFormatter: {
     title: 'Custom Codec',
+    docUrl: 'https://www.hepengju.com/guide/usage/codec.html',
+    docHelp: 'Help',
+    docHelpTip: 'View custom codec examples on the official site',
     name: 'Name',
     namePlaceholder: 'Shown in the encoding dropdown',
     command: 'Command',
