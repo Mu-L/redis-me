@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { save, type DialogFilter } from '@tauri-apps/plugin-dialog'
-import { writeTextFile } from '@tauri-apps/plugin-fs'
-import dayjs from 'dayjs'
 import { debounce } from 'lodash'
 import { Sortable, type SortableEvent } from 'sortablejs'
 import {
@@ -30,6 +27,7 @@ import {
   removeConnGroup,
   renameConnGroup,
 } from '@/utils/conn'
+import { buildExportFileName, saveTextExport } from '@/utils/export'
 import { encodeRedisMeConnectionsToMec } from '@/utils/rdm'
 import { meConfirm, meDownloadUpdate, meErr, meOk, mePrompt, meWarn } from '@/utils/util'
 import ConnEmpty from '@/views/conn/ConnEmpty.vue'
@@ -132,7 +130,6 @@ onMounted(refreshFlatSortable)
 onBeforeUnmount(destroySortables)
 watch([connShowGroup, filterDataList], () => refreshFlatSortable())
 
-const filters: DialogFilter[] = [{ name: '', extensions: ['mec'] }]
 const isDev = import.meta.env.DEV
 
 function handleCommand(command: string): void {
@@ -216,16 +213,12 @@ function clearAllConnections(): void {
 }
 
 async function exportConn(): Promise<void> {
-  const fileName = 'RedisME_connections_' + dayjs().format('YYYYMMDDHHmmss') + '.mec'
-  const path = await save({ filters, defaultPath: fileName })
-  if (path) {
-    try {
-      await writeTextFile(path, encodeRedisMeConnectionsToMec(share.connList))
-      meOk(t('conn.exportOk'))
-    } catch (e: unknown) {
-      meErr(e instanceof Error ? e : String(e), t('conn.exportErr'))
-    }
-  }
+  await saveTextExport(
+    encodeRedisMeConnectionsToMec(share.connList),
+    buildExportFileName('connections', 'mec'),
+    ['mec'],
+    { ok: t('conn.exportOk'), err: t('conn.exportErr') },
+  )
 }
 
 const app = inject(appProvideKey)!
