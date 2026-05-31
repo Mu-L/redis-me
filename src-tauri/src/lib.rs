@@ -78,7 +78,9 @@ pub fn run() {
         .install_default()
         .expect("Failed to install rustls crypto provider");
 
-    let specta_builder = Builder::<tauri::Wry>::new().commands(tauri_specta_commands());
+    let specta_builder = Builder::<tauri::Wry>::new()
+        .dangerously_cast_bigints_to_number()
+        .commands(tauri_specta_commands());
 
     #[cfg(debug_assertions)]
     specta_builder
@@ -125,6 +127,7 @@ mod specta_export_tests {
     #[test]
     fn export_tauri_specta_typescript_bindings() {
         Builder::<tauri::Wry>::new()
+            .dangerously_cast_bigints_to_number()
             .commands(tauri_specta_commands())
             .export(Typescript::default(), tauri_specta_typescript_path())
             .expect("Failed to export TypeScript bindings");

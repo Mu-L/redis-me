@@ -5,7 +5,7 @@ use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
 use chrono::DateTime;
 use log::error;
-use rand::Rng;
+use rand::RngExt;
 use rand::distr::{Alphanumeric, SampleString};
 use rand::prelude::IteratorRandom;
 use redis::streams::{StreamId, StreamInfoConsumer, StreamInfoGroup, StreamRangeReply};

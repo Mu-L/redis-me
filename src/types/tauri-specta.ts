@@ -6,9 +6,9 @@ import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
 export const commands = {
 	greet: (name: string) => __TAURI_INVOKE<string>("greet", { name }),
 	appDir: () => typedError<string, string>(__TAURI_INVOKE("app_dir")),
-	// 是否通过应用商店类渠道安装（内置更新应关闭）。具体判断在 `utils/app_store.rs`。
+	/**  是否通过应用商店类渠道安装（内置更新应关闭）。具体判断在 `utils/app_store.rs`。 */
 	isAppStore: () => __TAURI_INVOKE<boolean>("is_app_store"),
-	// 更新安装完成后重启。macOS 上延迟 `open` 再退出，避免 single-instance 与 `relaunch()` 竞态。
+	/**  更新安装完成后重启。macOS 上延迟 `open` 再退出，避免 single-instance 与 `relaunch()` 竞态。 */
 	restartAfterUpdate: () => typedError<null, string>(__TAURI_INVOKE("restart_after_update")),
 	testConn: (conf: ConnConfig) => typedError<null, string>(__TAURI_INVOKE("test_conn", { conf })),
 	masters: (conf: ConnConfig) => typedError<{ [key in string]: string }[], string>(__TAURI_INVOKE("masters", { conf })),
@@ -63,7 +63,7 @@ export type AppSettings = {
 	commandTimeoutSecs: number,
 };
 
-// 前后端 IPC 字节格式：utf8 文本或 base64 原始字节（hex/binary/msgpack 等视图格式在前端处理）
+/**  前后端 IPC 字节格式：utf8 文本或 base64 原始字节（hex/binary/msgpack 等视图格式在前端处理） */
 export type BytesFormat = "utf8" | "base64";
 
 export type ConnConfig = {
@@ -109,7 +109,7 @@ export type FieldScanResult = {
 	type: string,
 	ttl: number,
 	size: number,
-	value: "Null" | ({ Bool: boolean }) & { Array?: never; Number?: never; Object?: never; String?: never } | ({ Number: ({ f64: number }) & { i64?: never; u64?: never } | ({ i64: number }) & { f64?: never; u64?: never } | ({ u64: number }) & { f64?: never; i64?: never } }) & { Array?: never; Bool?: never; Object?: never; String?: never } | ({ String: string }) & { Array?: never; Bool?: never; Number?: never; Object?: never } | ({ Array: Value[] }) & { Bool?: never; Number?: never; Object?: never; String?: never } | ({ Object: { [key in string]: Value } }) & { Array?: never; Bool?: never; Number?: never; String?: never },
+	value: any,
 	cursor: ScanCursor,
 	length: number,
 };
@@ -147,15 +147,15 @@ export type RedisChart = {
 	node: string,
 	keyTotal: number,
 	connectedClients: number,
-	instantaneousOpsPerSec: number,
+	instantaneousOpsPerSec: number | null,
 	usedMemory: number,
-	instantaneousInputKbps: number,
-	instantaneousOutputKbps: number,
+	instantaneousInputKbps: number | null,
+	instantaneousOutputKbps: number | null,
 	totalConnectionsReceived: number,
 	totalCommandsProcessed: number,
 	keyspaceHits: number,
 	keyspaceMisses: number,
-	cacheHitRatio: number,
+	cacheHitRatio: number | null,
 };
 
 export type RedisClientInfo = {
@@ -221,7 +221,7 @@ export type RedisExportCsv_Serialize = {
 export type RedisFieldAdd = RedisFieldAdd_Serialize | RedisFieldAdd_Deserialize;
 
 export type RedisFieldAdd_Deserialize = {
-	// 目标 Redis 键（与 `RedisFieldSet` / `RedisFieldDel` 一致）；`bytes` 为空时由 `key` 文本 + `key_fmt` 解析
+	/**  目标 Redis 键（与 `RedisFieldSet` / `RedisFieldDel` 一致）；`bytes` 为空时由 `key` 文本 + `key_fmt` 解析 */
 	key: RedisKey_Deserialize,
 	mode: string,
 	type: string,
@@ -230,14 +230,14 @@ export type RedisFieldAdd_Deserialize = {
 	listPushMethod: string,
 	fieldValueList: RedisFieldValue[],
 	streamId: string,
-	// 仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名
+	/**  仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名 */
 	keyFmt: BytesFormat | null,
-	// 除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等
+	/**  除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等 */
 	valFmt: BytesFormat | null,
 };
 
 export type RedisFieldAdd_Serialize = {
-	// 目标 Redis 键（与 `RedisFieldSet` / `RedisFieldDel` 一致）；`bytes` 为空时由 `key` 文本 + `key_fmt` 解析
+	/**  目标 Redis 键（与 `RedisFieldSet` / `RedisFieldDel` 一致）；`bytes` 为空时由 `key` 文本 + `key_fmt` 解析 */
 	key: RedisKey_Serialize,
 	mode: string,
 	type: string,
@@ -246,9 +246,9 @@ export type RedisFieldAdd_Serialize = {
 	listPushMethod: string,
 	fieldValueList: RedisFieldValue[],
 	streamId: string,
-	// 仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名
+	/**  仅 Redis 顶层键名（`key`）如何解码为字节；不含 Hash/Stream 的字段名 */
 	keyFmt: BytesFormat | null,
-	// 除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等
+	/**  除 Redis 键名外的输入：String 值、Hash 字段名与值、List/Set/ZSet 成员、Stream 字段名与值等 */
 	valFmt: BytesFormat | null,
 };
 
@@ -280,9 +280,9 @@ export type RedisFieldSet_Deserialize = {
 	fieldIndex: number,
 	fieldKey: string,
 	fieldValue: string,
-	fieldScore: number,
+	fieldScore: number | null,
 	fieldTtl: number,
-	// 编辑字段时解析用户输入（含 Hash 字段名）；Redis 键由 `key` 承载，不再经此格式解析
+	/**  编辑字段时解析用户输入（含 Hash 字段名）；Redis 键由 `key` 承载，不再经此格式解析 */
 	valFmt: BytesFormat | null,
 };
 
@@ -292,16 +292,16 @@ export type RedisFieldSet_Serialize = {
 	fieldIndex: number,
 	fieldKey: string,
 	fieldValue: string,
-	fieldScore: number,
+	fieldScore: number | null,
 	fieldTtl: number,
-	// 编辑字段时解析用户输入（含 Hash 字段名）；Redis 键由 `key` 承载，不再经此格式解析
+	/**  编辑字段时解析用户输入（含 Hash 字段名）；Redis 键由 `key` 承载，不再经此格式解析 */
 	valFmt: BytesFormat | null,
 };
 
 export type RedisFieldValue = {
 	fieldKey: string,
 	fieldValue: string,
-	fieldScore: number,
+	fieldScore: number | null,
 	fieldTtl: number,
 };
 
@@ -387,7 +387,7 @@ export type RedisSlowLog = {
 	time: string,
 	client: string,
 	command: string,
-	cost: number,
+	cost: number | null,
 	clientName: string,
 };
 

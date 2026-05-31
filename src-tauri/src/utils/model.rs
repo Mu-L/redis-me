@@ -341,6 +341,7 @@ api_model!(FieldScanResult {
     key_type: String,
     ttl: i64,
     size: u64,
+    #[specta(type = specta_typescript::Any)]
     value: serde_json::Value,
     cursor: ScanCursor,
     length: usize, // String/Hash字段：原始 bytes 长度；集合类型：元素总数(HLEN/LLEN/SCARD/ZCARD/XLEN)
