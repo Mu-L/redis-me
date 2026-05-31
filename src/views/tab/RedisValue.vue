@@ -43,7 +43,7 @@ import {
   viewFmtForField,
   type ViewBytesFormat,
 } from '@/utils/bytes-format'
-import type { ShortcutItem } from '@/utils/shortcut-display'
+import { getValueShortcuts } from '@/utils/shortcut'
 import {
   bus,
   KEY_DELETE,
@@ -723,18 +723,7 @@ function openKeyShortDialog() {
   keyShortVisible.value = true
 }
 
-const keyShortcuts = computed((): ShortcutItem[] => [
-  { label: t('redisValue.keyShort.fullscreen'), keys: ['F11'] },
-  { label: t('redisValue.keyShort.toggleWrap'), keys: ['mod', 'L'] },
-  { label: t('redisValue.keyShort.toggleLineNumbers'), keys: ['mod', 'N'] },
-  { label: t('redisValue.keyShort.fontIncrease'), keys: ['mod', '='], gapBefore: true },
-  { label: t('redisValue.keyShort.fontDecrease'), keys: ['mod', '-'] },
-  { label: t('redisValue.keyShort.fontReset'), keys: ['mod', '0'] },
-  { label: t('redisValue.keyShort.find'), keys: ['mod', 'F'], gapBefore: true },
-  { label: t('redisValue.keyShort.findNext'), keys: ['mod', 'G'] },
-  { label: t('redisValue.keyShort.undo'), keys: ['mod', 'Z'] },
-  { label: t('redisValue.keyShort.redo'), keys: ['mod', 'Y'] },
-])
+const keyShortcuts = computed(() => getValueShortcuts(t))
 // #endregion
 
 // #region 事件总线与生命周期
@@ -1176,7 +1165,7 @@ onUnmounted(() => {
       align-center
       draggable
       :show-close="false"
-      style="--el-dialog-bg-color: unset; box-shadow: unset">
+      header-class="me-shortcut-dialog__header">
       <MeShortcut :items="keyShortcuts" />
     </el-dialog>
   </div>

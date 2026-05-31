@@ -8,7 +8,7 @@ import { useI18n } from 'vue-i18n'
 
 import MeShortcut from '@/components/MeShortcut.vue'
 import { appProvideKey, type AppMainInject } from '@/types/me-interface'
-import { getConnGlobalShortcuts } from '@/utils/conn-shortcuts'
+import { getConnGlobalShortcuts } from '@/utils/shortcut'
 import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util'
 
 const { t } = useI18n()
@@ -285,7 +285,7 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
     align-center
     draggable
     :show-close="false"
-    style="--el-dialog-bg-color: unset; box-shadow: unset">
+    header-class="me-shortcut-dialog__header">
     <MeShortcut :items="globalShortcuts" />
   </el-dialog>
 

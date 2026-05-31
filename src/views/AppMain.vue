@@ -27,8 +27,8 @@ import {
 } from '@/types/me-interface'
 import type { ConnConfig } from '@/types/tauri-specta'
 import { mergeConnGroupsFromList } from '@/utils/conn'
-import { matchConnShortcutAction } from '@/utils/conn-hotkey'
 import { mergeImportedConnList } from '@/utils/rdm'
+import { matchConnShortcutAction } from '@/utils/shortcut'
 import {
   bus,
   CONN_LIST_WINDOWS_SYNC,

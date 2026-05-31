@@ -6,7 +6,7 @@ import MeIcon from '@/components/MeIcon.vue'
 import MeShortcut from '@/components/MeShortcut.vue'
 import { commandHelp, isReadonlyCommand } from '@/locales/cmd'
 import { shareProvideKey } from '@/types/me-interface'
-import type { ShortcutItem } from '@/utils/shortcut-display'
+import { getTerminalShortcuts } from '@/utils/shortcut'
 import { meCopy, meCommands, isZh } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
@@ -117,19 +117,7 @@ function openKeyShortDialog() {
   keyShortVisible.value = true
 }
 
-const keyShortcuts = computed((): ShortcutItem[] => [
-  { label: t('redisTerminal.keyShort.fullscreen'), keys: ['F11'] },
-  { label: t('redisTerminal.keyShort.execute'), keys: ['Enter'] },
-  { label: t('redisTerminal.keyShort.complete'), keys: ['Tab'] },
-  { label: t('redisTerminal.keyShort.history'), keys: ['↑', '↓'] },
-  { label: t('redisTerminal.keyShort.clearScreen'), keys: ['mod', 'L'], gapBefore: true },
-  { label: t('redisTerminal.keyShort.clearInput'), keys: ['mod', 'C'] },
-  { label: t('redisTerminal.keyShort.cursorStart'), keys: ['mod', 'A'] },
-  { label: t('redisTerminal.keyShort.cursorEnd'), keys: ['mod', 'E'] },
-  { label: t('redisTerminal.keyShort.cmdClear'), keys: ['clear'], gapBefore: true },
-  { label: t('redisTerminal.keyShort.cmdHelp'), keys: ['help'] },
-  { label: t('redisTerminal.keyShort.cmdOpen'), keys: ['open'] },
-])
+const keyShortcuts = computed(() => getTerminalShortcuts(t))
 </script>
 
 <template>
@@ -182,7 +170,7 @@ const keyShortcuts = computed((): ShortcutItem[] => [
       align-center
       draggable
       :show-close="false"
-      style="--el-dialog-bg-color: unset; box-shadow: unset">
+      header-class="me-shortcut-dialog__header">
       <MeShortcut :items="keyShortcuts" />
     </el-dialog>
 

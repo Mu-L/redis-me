@@ -2,7 +2,7 @@
 /** 快捷键列表展示 */
 import { type as getOsType } from '@tauri-apps/plugin-os'
 
-import { displayShortcutKey, shortcutKbdClass, type ShortcutItem } from '@/utils/shortcut-display'
+import { displayShortcutKey, shortcutKbdClass, type ShortcutItem } from '@/utils/shortcut'
 
 const props = withDefaults(
   defineProps<{
@@ -59,6 +59,13 @@ function onRowClick(item: ShortcutItem): void {
     </li>
   </ul>
 </template>
+
+<style lang="scss">
+/* MeShortcut 弹框：无标题时隐藏空 header；间距由 .el-dialog 统一 padding 控制，与底部一致 */
+.el-dialog__header.me-shortcut-dialog__header {
+  display: none;
+}
+</style>
 
 <style scoped lang="scss">
 .shortcut-list {

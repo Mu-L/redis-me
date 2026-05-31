@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeShortcut from '@/components/MeShortcut.vue'
-import { getConnGlobalShortcuts } from '@/utils/conn-shortcuts'
+import { getConnGlobalShortcuts } from '@/utils/shortcut'
 
 const props = withDefaults(
   defineProps<{
