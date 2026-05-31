@@ -1,5 +1,33 @@
 # 3.x Changelog
 
+## v3.7.0
+
+### ✨ New Features
+
+- Custom codec
+  - Base64 over **8000 chars uses stdin** (avoids Windows command-line limits)
+  - Dialog adds a **Help** button linking to official codec docs
+- Info: Overview adds **users/commands/network/memory limits**; **total system memory** shown on the system row after PID; cluster defaults to **master**
+- Cluster: Improved **master/replica ordering** and **selection display** in the node list
+- Config: Added default **Redis 8.8** configuration file
+- Value area: Status bar text changed to **total vs scanned**
+- Settings
+  - More settings: **Command timeout** and **script timeout** (reconnect required after change)
+  - Improved defaults and layout for field display/scan; **? hints** aligned to the right with tips for key display and tree sort
+  - **Global shortcuts** entry; config/app/log **directories** as a dropdown (labels: Config / App / Log)
+  - English codec-related UI unified under **Codec**
+- Shortcuts
+  - Global shortcuts for connection actions; **Ctrl+Shift+N** to add a connection
+  - Shortcut display unified with **MeShortcut** (settings and key area)
+- Details
+  - Export filenames use the **RedisME** prefix
+  - Fixed blank area on the right while a connection is loading
+- Toolchain: Updated frontend/backend dependencies; adapted to specta/rand upgrades
+
+### 🐞 Bug Fixes
+
+- Language: On **macOS**, UI stayed English when the system was Chinese and language was set to **Follow system** (`zh-Hans-CN` was not mapped correctly)
+
 ## [v3.6.0](https://mp.weixin.qq.com/s/K99PFYCowxDmvSlaUzqR-g) (2026-05-30)
 
 ### ✨ New Features

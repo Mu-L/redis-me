@@ -78,20 +78,10 @@ if (
 ) {
   settings.connGroupExpanded = {}
 }
-// v3.6.x：customFormatters / formatterExecTimeoutSec → customCodecs / codecExecTimeoutSec
-const legacySettings = settings as Record<string, unknown>
-if (!Array.isArray(settings.customCodecs)) {
-  settings.customCodecs = Array.isArray(legacySettings.customFormatters)
-    ? (legacySettings.customFormatters as { name: string; command: string }[])
-    : []
-}
-if ('customFormatters' in legacySettings) delete legacySettings.customFormatters
+if (!Array.isArray(settings.customCodecs)) settings.customCodecs = []
 if (typeof settings.codecExecTimeoutSec !== 'number' || settings.codecExecTimeoutSec <= 0) {
-  const legacyTimeout = legacySettings.formatterExecTimeoutSec
-  settings.codecExecTimeoutSec =
-    typeof legacyTimeout === 'number' && legacyTimeout > 0 ? legacyTimeout : 5
+  settings.codecExecTimeoutSec = 5
 }
-if ('formatterExecTimeoutSec' in legacySettings) delete legacySettings.formatterExecTimeoutSec
 if (typeof settings.commandTimeout !== 'number' || settings.commandTimeout <= 0) {
   settings.commandTimeout = 30
 }
