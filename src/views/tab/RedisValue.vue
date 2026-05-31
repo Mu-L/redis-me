@@ -18,6 +18,7 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import MeShortcut from '@/components/MeShortcut.vue'
 import { shareProvideKey } from '@/types/me-interface'
 import type {
   FieldScanResult,
@@ -41,7 +42,8 @@ import {
   toWireFormat,
   viewFmtForField,
   type ViewBytesFormat,
-} from '@/utils/bytes-format'
+} from '@/utils/format'
+import { getValueShortcuts } from '@/utils/shortcut'
 import {
   bus,
   KEY_DELETE,
@@ -61,7 +63,7 @@ import TableGroup from '@/views/ext/TableGroup.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
 import KeyRename from '@/views/key/KeyRename.vue'
 
-import CustomFormatter from '../ext/CustomFormatter.vue'
+import CustomCodec from '../ext/CustomCodec.vue'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 // #endregion
@@ -150,8 +152,8 @@ function applyDefaultViewType() {
     viewType.value = 'table'
     return
   }
-  // auto：首次 json，之后沿用 settings.fieldShowView（持久化，切换连接可复用）
-  viewType.value = meTauri.settings.fieldShowView === 'table' ? 'table' : 'json'
+  // auto：默认表格，手动切换后沿用 fieldShowView（跨连接/键）
+  viewType.value = meTauri.settings.fieldShowView === 'json' ? 'json' : 'table'
 }
 
 /** 自动模式下记录 segmented 手动切换，写入 settings 持久化 */
@@ -180,7 +182,7 @@ const bytesFormat = ref<ViewBytesFormat>('utf8')
  */
 const displayBytesFormat = ref<ViewBytesFormat>('utf8')
 const displayWire = ref('')
-const customFormatterVisible = ref(false)
+const customCodecVisible = ref(false)
 /** STRING 单键：wire → 当前视图文本（custom 异步解码） */
 const resolvedWireView = ref('')
 /** custom 编解码失败时为 true，编辑器展示 resolvedWireView 中的错误信息 */
@@ -199,7 +201,7 @@ const formatOptions = computed(() => {
       disabled: !stringType.value,
     })),
   ]
-  const custom = (window.meTauri.settings.customFormatters ?? []).map(f => ({
+  const custom = (window.meTauri.settings.customCodecs ?? []).map(f => ({
     label: f.name,
     value: customFormatValue(f.name),
     disabled: !stringType.value,
@@ -219,7 +221,7 @@ const viewDecodeFailed = computed(() => {
 
 /** 自定义编解码被删或改名后，当前选中项失效则回退 utf8 */
 watch(
-  () => window.meTauri.settings.customFormatters,
+  () => window.meTauri.settings.customCodecs,
   list => {
     if (!isCustomView(bytesFormat.value)) return
     const name = customFormatName(bytesFormat.value)
@@ -678,7 +680,7 @@ const textMemory = computed(() => {
   return sz != null && sz > 0 ? t('redisValue.textMemory') + meHumanSize(sz) : ''
 })
 
-/** 与 textLength 同一位置：String/单字段为字节长度，集合类型为元素总数 */
+/** 与 textLength 同一位置：String/单字段为字节长度，集合类型为总数 */
 const textLength = computed(() => {
   const rv = redisValue.value
   if (!rv || jsonType.value || (streamType.value && withHashKey.value)) return ''
@@ -720,6 +722,8 @@ const keyShortVisible = ref(false)
 function openKeyShortDialog() {
   keyShortVisible.value = true
 }
+
+const keyShortcuts = computed(() => getValueShortcuts(t))
 // #endregion
 
 // #region 事件总线与生命周期
@@ -1041,12 +1045,12 @@ onUnmounted(() => {
 
           <el-divider direction="vertical" v-if="textLength" />
 
-          <!-- 字节长度 / 元素总数（同一位置，按类型切换标签） -->
+          <!-- 字节长度 / 总数（同一位置，按类型切换标签） -->
           <el-text> {{ textLength }} </el-text>
 
           <el-divider direction="vertical" v-if="textEntries" />
 
-          <!-- 条目：筛选 / 已加载 -->
+          <!-- 已扫描：筛选 / 已加载 -->
           <el-text> {{ textEntries }} </el-text>
         </div>
 
@@ -1061,15 +1065,15 @@ onUnmounted(() => {
               <div
                 class="me-flex"
                 style="align-items: center; justify-content: space-evenly; width: 100%">
-                <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
+                <el-text style="font-weight: bold">{{ t('redisValue.viewCodec') }}</el-text>
                 <me-icon
                   v-if="canEdit"
                   icon="el-icon-edit"
-                  :name="t('customFormatter.title')"
+                  :name="t('customCodec.title')"
                   hint
                   class="icon-btn"
                   style="margin-left: 5px"
-                  @click.stop="customFormatterVisible = true" />
+                  @click.stop="customCodecVisible = true" />
               </div>
             </template>
             <el-option
@@ -1147,7 +1151,7 @@ onUnmounted(() => {
     <TTLSet ref="ttlSetRef" @success="setTimer" />
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
     <KeyRename ref="keyRenameRef" />
-    <CustomFormatter v-model="customFormatterVisible" />
+    <CustomCodec v-model="customCodecVisible" />
 
     <!-- Stream消费者组 -->
     <me-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900">
@@ -1161,8 +1165,8 @@ onUnmounted(() => {
       align-center
       draggable
       :show-close="false"
-      style="--el-dialog-bg-color: unset; box-shadow: unset">
-      <el-text type="warning" size="large" v-html="t('redisValue.keyShortMore')"> </el-text>
+      header-class="me-shortcut-dialog__header">
+      <MeShortcut :items="keyShortcuts" />
     </el-dialog>
   </div>
 </template>

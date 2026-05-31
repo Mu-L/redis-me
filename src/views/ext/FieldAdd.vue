@@ -6,12 +6,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisFieldAdd_Deserialize, RedisKey_Deserialize } from '@/types/tauri-specta'
-import {
-  BYTES_FORMAT,
-  meViewToWire,
-  toWireFormat,
-  type ViewBytesFormat,
-} from '@/utils/bytes-format'
+import { BYTES_FORMAT, meViewToWire, toWireFormat, type ViewBytesFormat } from '@/utils/format'
 import {
   KEY_TYPE_LIST,
   meCommands,
@@ -56,14 +51,7 @@ const initForm = computed(() => ({
     { label: t('fieldAdd.append'), value: 'rpush' },
     { label: t('fieldAdd.prepend'), value: 'lpush' },
   ],
-  fieldValueList: [
-    {
-      fieldKey: '',
-      fieldValue: '',
-      fieldScore: 0,
-      fieldTtl: -1,
-    },
-  ],
+  fieldValueList: [{ fieldKey: '', fieldValue: '', fieldScore: 0, fieldTtl: -1 }],
   keyFmt: 'utf8' as ViewBytesFormat,
   valFmt: 'utf8' as ViewBytesFormat,
 }))
@@ -161,12 +149,7 @@ function deleteElement(index: number) {
 }
 
 function newElement(index: number) {
-  const newValue = {
-    fieldKey: '',
-    fieldValue: '',
-    fieldScore: 0,
-    fieldTtl: -1,
-  }
+  const newValue = { fieldKey: '', fieldValue: '', fieldScore: 0, fieldTtl: -1 }
   form.value.fieldValueList.splice(index + 1, 0, newValue)
 }
 
@@ -371,9 +354,7 @@ function handleKeyTypeChange() {
       <div class="me-flex">
         <div>
           <!-- 键编码：仅新建键时显示 -->
-          <el-text v-show="form.mode === 'key'" type="info">
-            {{ t('fieldAdd.keyEncoding') }}</el-text
-          >
+          <el-text v-show="form.mode === 'key'" type="info"> {{ t('fieldAdd.keyCodec') }}</el-text>
           <el-select
             v-show="form.mode === 'key'"
             v-model="form.keyFmt"
@@ -383,7 +364,7 @@ function handleKeyTypeChange() {
           </el-select>
 
           <!-- 值编码：新建键和新增字段时显示 -->
-          <el-text type="info">{{ t('fieldAdd.valueEncoding') }}</el-text>
+          <el-text type="info">{{ t('fieldAdd.valueCodec') }}</el-text>
           <el-select
             v-model="form.valFmt"
             style="width: 100px; margin: 0 20px 0 10px"
@@ -405,7 +386,7 @@ function handleKeyTypeChange() {
 </template>
 
 <style scoped lang="scss">
-.field-add-footer-encoding {
+.field-add-footer-codec {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -413,7 +394,7 @@ function handleKeyTypeChange() {
   min-width: 0;
 }
 
-.field-add-footer-enc-label {
+.field-add-footer-codec-label {
   flex-shrink: 0;
   font-size: var(--el-font-size-extra-small);
 }

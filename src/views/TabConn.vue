@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { save, type DialogFilter } from '@tauri-apps/plugin-dialog'
-import { writeTextFile } from '@tauri-apps/plugin-fs'
-import dayjs from 'dayjs'
 import { debounce } from 'lodash'
 import { Sortable, type SortableEvent } from 'sortablejs'
 import {
@@ -10,7 +7,6 @@ import {
   nextTick,
   onBeforeUnmount,
   onMounted,
-  reactive,
   ref,
   toRaw,
   useTemplateRef,
@@ -18,33 +14,29 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { appProvideKey, shareProvideKey, type UiConn } from '@/types/me-interface'
+import {
+  appProvideKey,
+  connUiProvideKey,
+  shareProvideKey,
+  type ConnShortcutAction,
+  type UiConn,
+} from '@/types/me-interface'
 import {
   buildConnGroupSections,
-  mergeConnGroupsFromList,
   normalizeGroupName,
   removeConnGroup,
   renameConnGroup,
 } from '@/utils/conn'
-import { encodeRedisMeConnectionsToMec, mergeImportedConnList } from '@/utils/rdm'
-import {
-  meConfirm,
-  meDownloadUpdate,
-  meErr,
-  meOk,
-  mePrompt,
-  meWarn,
-  openNewWindow,
-} from '@/utils/util'
-import ConnEmpty, { type ConnEmptyShortcut } from '@/views/conn/ConnEmpty.vue'
+import { buildExportFileName, saveTextExport } from '@/utils/export'
+import { encodeRedisMeConnectionsToMec } from '@/utils/rdm'
+import { meConfirm, meDownloadUpdate, meErr, meOk, mePrompt, meWarn } from '@/utils/util'
+import ConnEmpty from '@/views/conn/ConnEmpty.vue'
 import ConnGroup from '@/views/conn/ConnGroup.vue'
-import ConnImport from '@/views/conn/ConnImport.vue'
-import ConnSave from '@/views/conn/ConnSave.vue'
 import ConnTable from '@/views/conn/ConnTable.vue'
-import Setting from '@/views/ext/Setting.vue'
 
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
+const connUi = inject(connUiProvideKey)!
 
 /** 分组名有序列表（持久化）；空数组时自动初始化 */
 const connGroups = computed(() => {
@@ -80,82 +72,12 @@ const groupSections = computed(() =>
   buildConnGroupSections(share.connList, connGroups.value, keyword.value),
 )
 
-const connRef = useTemplateRef<InstanceType<typeof ConnSave>>('conn')
-const importRef = useTemplateRef<InstanceType<typeof ConnImport>>('import')
 const flatTableRef = useTemplateRef<InstanceType<typeof ConnTable>>('flatTableRef')
-const dialog = reactive({ conn: false, import: false, setting: false })
 
 const connListEmpty = computed(() => share.connList.length === 0)
 
-/** 空状态快捷键列表（展示与 TabConn 全局热键一致） */
-const emptyShortcuts = computed((): ConnEmptyShortcut[] => [
-  { action: 'add', label: t('conn.add'), keys: ['mod', 'N'] },
-  { action: 'import', label: t('conn.import'), keys: ['mod', 'I'] },
-  { action: 'newWindow', label: t('conn.emptyNewWindow'), keys: ['mod', 'shift', 'W'] },
-  { action: 'setting', label: t('conn.emptyAppSetting'), keys: ['mod', 'shift', 'S'] },
-])
-
-function addConn(): void {
-  dialog.conn = true
-  void nextTick(() => connRef.value?.open('add'))
-}
-
-function openImport(): void {
-  dialog.import = true
-  void nextTick(() => importRef.value?.open())
-}
-
-function openSetting(): void {
-  dialog.setting = true
-}
-
 function onEmptyAction(action: string): void {
-  if (action === 'add') addConn()
-  else if (action === 'import') openImport()
-  else if (action === 'newWindow') void openNewWindow()
-  else if (action === 'setting') openSetting()
-}
-
-function isConnHotkeyBlocked(e: KeyboardEvent): boolean {
-  const target = e.target
-  return (
-    target instanceof HTMLElement && !!target.closest('input, textarea, [contenteditable="true"]')
-  )
-}
-
-/** 连接页全局快捷键（输入框内不触发；标点键用 e.code，避免 Ctrl 按下后 e.key 异常） */
-function onConnHotkey(e: KeyboardEvent): void {
-  if (!(e.ctrlKey || e.metaKey) || e.altKey || isConnHotkeyBlocked(e)) return
-
-  if (!e.shiftKey && (e.code === 'KeyN' || e.key === 'n' || e.key === 'N')) {
-    e.preventDefault()
-    addConn()
-    return
-  }
-  if (!e.shiftKey && (e.code === 'KeyI' || e.key === 'i' || e.key === 'I')) {
-    e.preventDefault()
-    openImport()
-    return
-  }
-  if (e.shiftKey && (e.code === 'KeyS' || e.key === 's' || e.key === 'S')) {
-    e.preventDefault()
-    openSetting()
-    return
-  }
-  if (e.shiftKey && (e.code === 'KeyW' || e.key === 'w' || e.key === 'W')) {
-    e.preventDefault()
-    void openNewWindow()
-  }
-}
-
-function copyConn(conn: UiConn): void {
-  dialog.conn = true
-  void nextTick(() => connRef.value?.open('add', conn))
-}
-
-function editConn(conn: UiConn): void {
-  dialog.conn = true
-  void nextTick(() => connRef.value?.open('edit', conn))
+  connUi.runConnAction(action as ConnShortcutAction)
 }
 
 function deleteConn(conn: UiConn): void {
@@ -204,22 +126,15 @@ function refreshFlatSortable(): void {
   void nextTick(() => setupFlatDrag())
 }
 
-onMounted(() => {
-  window.addEventListener('keydown', onConnHotkey, true)
-  refreshFlatSortable()
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onConnHotkey, true)
-  destroySortables()
-})
+onMounted(refreshFlatSortable)
+onBeforeUnmount(destroySortables)
 watch([connShowGroup, filterDataList], () => refreshFlatSortable())
 
-const filters: DialogFilter[] = [{ name: '', extensions: ['mec'] }]
 const isDev = import.meta.env.DEV
 
 function handleCommand(command: string): void {
   if (command === 'export') void exportConn()
-  else if (command === 'import') openImport()
+  else if (command === 'import') connUi.openConnImport()
   else if (command === 'connShowFlat') connShowGroup.value = false
   else if (command === 'connShowGroup') connShowGroup.value = true
   else if (command === 'clear' && isDev) clearAllConnections()
@@ -298,23 +213,12 @@ function clearAllConnections(): void {
 }
 
 async function exportConn(): Promise<void> {
-  const fileName = 'redis-me-connections_' + dayjs().format('YYYYMMDDHHmmss') + '.mec'
-  const path = await save({ filters, defaultPath: fileName })
-  if (path) {
-    try {
-      await writeTextFile(path, encodeRedisMeConnectionsToMec(share.connList))
-      meOk(t('conn.exportOk'))
-    } catch (e: unknown) {
-      meErr(e instanceof Error ? e : String(e), t('conn.exportErr'))
-    }
-  }
-}
-
-function onConnImported(impConnList: UiConn[]): void {
-  share.connList = mergeImportedConnList(share.connList, impConnList)
-  // 导入文件中的分组名写入 connGroups，避免分组视图缺块
-  mergeConnGroupsFromList(share.connList, connGroups.value)
-  meOk(t('conn.importOk'))
+  await saveTextExport(
+    encodeRedisMeConnectionsToMec(share.connList),
+    buildExportFileName('connections', 'mec'),
+    ['mec'],
+    { ok: t('conn.exportOk'), err: t('conn.exportErr') },
+  )
 }
 
 const app = inject(appProvideKey)!
@@ -327,99 +231,80 @@ function clickNew(): void {
 
 <template>
   <div class="redis-conn">
-    <div class="me-flex header">
-      <div class="me-flex">
-        <el-button icon="el-icon-plus" type="primary" @click="addConn">{{
-          t('conn.add')
-        }}</el-button>
-        <el-button v-if="connShowGroup" icon="el-icon-folder-add" @click="addFolder">{{
-          t('conn.newFolder')
-        }}</el-button>
-      </div>
-      <div class="me-flex">
-        <me-icon icon="me-icon-new" class="icon-new" @click="clickNew" v-if="app.update?.version" />
-        <el-dropdown placement="bottom-start" @command="handleCommand" style="margin-right: 10px">
-          <el-button>...</el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item v-if="connShowGroup" command="connShowFlat">
-                <me-icon :name="t('conn.showFlat')" icon="me-icon-list" />
-              </el-dropdown-item>
-              <el-dropdown-item v-if="!connShowGroup" command="connShowGroup">
-                <me-icon :name="t('conn.showGroup')" icon="el-icon-folder" />
-              </el-dropdown-item>
-              <el-dropdown-item command="export" divided :disabled="share.connList.length === 0">
-                <me-icon :name="t('conn.export')" icon="me-icon-export" />
-              </el-dropdown-item>
-              <el-dropdown-item command="import">
-                <me-icon :name="t('conn.import')" icon="me-icon-import" />
-              </el-dropdown-item>
-              <el-dropdown-item
-                v-if="isDev"
-                command="clear"
-                divided
-                :disabled="share.connList.length === 0">
-                <me-icon :name="t('conn.clearConnections')" icon="el-icon-delete" />
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-input
-          v-model="keyword"
-          :placeholder="t('conn.keyword')"
-          style="width: 300px"
-          clearable />
-      </div>
-    </div>
-
     <ConnEmpty
-      v-if="connListEmpty"
+      v-if="connListEmpty || share.loading"
       class="conn-empty-wrap"
-      :shortcuts="emptyShortcuts"
       @action="onEmptyAction" />
 
-    <ConnTable
-      v-else-if="!connShowGroup"
-      ref="flatTableRef"
-      class="conn-table-wrap"
-      :data="filterDataList"
-      @select="selectConn"
-      @copy="copyConn"
-      @edit="editConn"
-      @delete="deleteConn" />
+    <template v-else>
+      <div class="me-flex header">
+        <div class="me-flex">
+          <el-button icon="el-icon-plus" type="primary" @click="connUi.openConnSave('add')">{{
+            t('conn.add')
+          }}</el-button>
+          <el-button v-if="connShowGroup" icon="el-icon-folder-add" @click="addFolder">{{
+            t('conn.newFolder')
+          }}</el-button>
+        </div>
+        <div class="me-flex">
+          <me-icon
+            icon="me-icon-new"
+            class="icon-new"
+            @click="clickNew"
+            v-if="app.update?.version" />
+          <el-dropdown placement="bottom-start" @command="handleCommand" style="margin-right: 10px">
+            <el-button>...</el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item v-if="connShowGroup" command="connShowFlat">
+                  <me-icon :name="t('conn.showFlat')" icon="me-icon-list" />
+                </el-dropdown-item>
+                <el-dropdown-item v-if="!connShowGroup" command="connShowGroup">
+                  <me-icon :name="t('conn.showGroup')" icon="el-icon-folder" />
+                </el-dropdown-item>
+                <el-dropdown-item command="export" divided>
+                  <me-icon :name="t('conn.export')" icon="me-icon-export" />
+                </el-dropdown-item>
+                <el-dropdown-item command="import">
+                  <me-icon :name="t('conn.import')" icon="me-icon-import" />
+                </el-dropdown-item>
+                <el-dropdown-item v-if="isDev" command="clear" divided>
+                  <me-icon :name="t('conn.clearConnections')" icon="el-icon-delete" />
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <el-input
+            v-model="keyword"
+            :placeholder="t('conn.keyword')"
+            style="width: 300px"
+            clearable />
+        </div>
+      </div>
 
-    <ConnGroup
-      v-else
-      class="group-list"
-      :sections="groupSections"
-      :conn-groups="connGroups"
-      :conn-list="share.connList"
-      @select="selectConn"
-      @copy="copyConn"
-      @edit="editConn"
-      @delete="deleteConn"
-      @rename-folder="renameFolder"
-      @delete-folder="deleteFolder" />
+      <ConnTable
+        v-if="!connShowGroup"
+        ref="flatTableRef"
+        class="conn-table-wrap"
+        :data="filterDataList"
+        @select="selectConn"
+        @copy="(c: UiConn) => connUi.openConnSave('add', c)"
+        @edit="(c: UiConn) => connUi.openConnSave('edit', c)"
+        @delete="deleteConn" />
 
-    <ConnSave ref="conn" v-if="dialog.conn" @closed="dialog.conn = false" />
-    <ConnImport
-      ref="import"
-      v-if="dialog.import"
-      @import="onConnImported"
-      @closed="dialog.import = false" />
-
-    <el-dialog
-      v-model="dialog.setting"
-      width="600"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      align-center
-      draggable>
-      <template #header>
-        <me-icon icon="el-icon-setting" :name="t('setting.title')" />
-      </template>
-      <Setting />
-    </el-dialog>
+      <ConnGroup
+        v-else
+        class="group-list"
+        :sections="groupSections"
+        :conn-groups="connGroups"
+        :conn-list="share.connList"
+        @select="selectConn"
+        @copy="(c: UiConn) => connUi.openConnSave('add', c)"
+        @edit="(c: UiConn) => connUi.openConnSave('edit', c)"
+        @delete="deleteConn"
+        @rename-folder="renameFolder"
+        @delete-folder="deleteFolder" />
+    </template>
 
     <el-progress
       class="downloading"

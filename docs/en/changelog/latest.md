@@ -1,10 +1,32 @@
 # 3.x Changelog
 
+## [v3.7.0](https://mp.weixin.qq.com/s/mhlhujX5zpbi1XadHTa60A) (2026-06-01)
+
+### ✨ New Features
+
+- Custom codec
+  - Base64 over **8000 chars uses stdin** (avoids Windows command-line limits)
+  - Dialog adds a **Help** button linking to official examples
+- Settings: **Command timeout** and **script timeout**
+- Info: Overview adds **users/commands/network/memory limits**
+- Shortcuts: Global shortcuts; improved shortcut display in the value area and terminal
+- Details
+  - Export filenames use the **RedisME** prefix
+  - More settings: improved defaults for field display, scan counts, etc.
+  - Value area status bar shows **total vs scanned**
+  - Config: default **Redis 8.8** configuration file
+  - Cluster: improved **master/replica ordering** and **selection display** in the node list
+- Toolchain: Updated frontend/backend dependencies to latest versions
+
+### 🐞 Bug Fixes
+
+- Language: On **macOS**, UI stayed English when the system was Chinese and language was set to **Follow system** (`zh-Hans-CN` was not mapped correctly)
+
 ## [v3.6.0](https://mp.weixin.qq.com/s/K99PFYCowxDmvSlaUzqR-g) (2026-05-30)
 
 ### ✨ New Features
 
-- Encoding: **Complete redesign and improvements**
+- Codec: **Complete redesign and improvements**
   - **Custom encode/decode** via external scripts
   - New practical codec: **StrJson**
   - Removed the rarely useful **Binary** codec
@@ -70,16 +92,16 @@
 - Keys panel: Improved empty-state UI when no connection is selected
   - **Colorful brand icon**; click to open the official website
   - **Source repository** and **bug report** entry points
-- Encoding: **Separate byte encodings for keys and values**
+- Codec: **Separate byte codecs for keys and values**
   - Applies to **New Key**, **Edit Key**, and **Rename Key**
-  - **Rename Key** uses a dedicated dialog; encoding can be set inside it
+  - **Rename Key** uses a dedicated dialog; codec can be set inside it
 - MsgPack: **String** values support **MsgPack encode/decode (shown as JSON)**
 - Performance: Faster insert path when adding fields to Hash/List/Set/ZSet, etc.
 - Details: Reordered checkboxes in the save-connection dialog for typical workflows, etc.
 
 ### 🐞 Bug Fixes
 
-- New Key: Fixed **partial writes** on Hash/List and similar multi-field types when **some values had encoding errors**
+- New Key: Fixed **partial writes** on Hash/List and similar multi-field types when **some values had codec errors**
 - Add field: Fixed failures adding fields to Hash and similar types when **key names are non–UTF-8 bytes** (e.g. JDK serialization)
 
 ## [v3.2.0](https://mp.weixin.qq.com/s/8c39tELlwtjrkbvD8kWB6A) (2026-05-05)
@@ -121,7 +143,7 @@
 
 ### ✨ New Features
 
-- **Data Encoding**: Added support for UTF8, Hex, Binary, and Base64 formats
+- **Data Codec**: Added support for UTF8, Hex, Binary, and Base64 formats
   - New Key, Rename Key
   - Value Display: key shown on top, main value area supports display/save, insert field, edit field
 - Package: **Added Linux ARM architecture support**

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import dayjs from 'dayjs'
 // 说明: 前端分页表，用于数据量比较大的场景（比如内存分析等），进行前端分页，避免卡顿。
 // 在分页前对整表排序：与 el-table 的 default-sort、列 sortable / sort-method / sort-by 一致；
 // sortable="custom" 时不改行顺序，由父组件在 sort-change 中自行更新 :data。
@@ -10,6 +9,7 @@ import { computed, nextTick, ref, useAttrs, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
+  buildExportFileName,
   copyTableHtml,
   matrixToCsv,
   matrixToHtml,
@@ -18,7 +18,7 @@ import {
   readTableFromDom,
   saveTableTextFile,
   saveTableXlsxFile,
-} from '@/utils/table-export'
+} from '@/utils/export'
 import { meCopy, meErr } from '@/utils/util'
 
 defineOptions({ inheritAttrs: false })
@@ -194,7 +194,7 @@ function ensureExportRows(): boolean {
 }
 
 function exportFileName(ext: string): string {
-  return `RedisME_${props.exportName}_${dayjs().format('YYYYMMDDHHmmss')}.${ext}`
+  return buildExportFileName(props.exportName, ext)
 }
 
 /** 导出前临时展示全部 sortedData，以便 DOM 含自定义 slot 列（如 Info 说明） */

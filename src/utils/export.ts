@@ -1,6 +1,8 @@
-/** MeTable 导出：从 el-table DOM 读取与界面一致的表头/单元格文本 */
-import { save } from '@tauri-apps/plugin-dialog'
+/** 文件导出：保存对话框、MeTable 矩阵格式转换、连接/表单等文本导出 */
+
+import { save, type DialogFilter } from '@tauri-apps/plugin-dialog'
 import { writeFile, writeTextFile } from '@tauri-apps/plugin-fs'
+import dayjs from 'dayjs'
 import type { TableInstance } from 'element-plus'
 import * as XLSX from 'xlsx'
 
@@ -8,6 +10,72 @@ import i18n from '@/locales'
 import { meCopy, meErr, meOk } from '@/utils/util'
 
 const { t } = i18n.global
+
+// #region 文件名与保存对话框
+
+/** `prefix_YYYYMMDDHHmmss.ext`；MeFileInput、KeyBatch 导出路径 */
+export function buildTimestampedFileName(prefix: string, ext: string, sep = '_'): string {
+  return `${prefix}${sep}${dayjs().format('YYYYMMDDHHmmss')}.${ext}`
+}
+
+/** `RedisME_{name}_YYYYMMDDHHmmss.ext`；MeTable、TabConn 导出连接 */
+export function buildExportFileName(namePart: string, ext: string): string {
+  return buildTimestampedFileName(`RedisME_${namePart}`, ext)
+}
+
+/** 打开保存对话框；saveTextExport / saveBinaryExport 内部 */
+export async function pickSavePath(
+  defaultPath: string,
+  extensions: string[],
+  filterName?: string,
+): Promise<string | null> {
+  const filters: DialogFilter[] = [
+    { name: filterName ?? extensions[0]?.toUpperCase() ?? 'File', extensions },
+  ]
+  return save({ defaultPath, filters })
+}
+
+type ExportMessages = { ok: string; err: string }
+
+/** 选路径并写入文本；TabConn 导出 .mec */
+export async function saveTextExport(
+  content: string,
+  defaultPath: string,
+  extensions: string[],
+  messages: ExportMessages = { ok: t('meTable.exportOk'), err: t('meTable.exportErr') },
+  filterName?: string,
+): Promise<void> {
+  const path = await pickSavePath(defaultPath, extensions, filterName)
+  if (!path) return
+  try {
+    await writeTextFile(path, content)
+    meOk(messages.ok)
+  } catch (e: unknown) {
+    meErr(e instanceof Error ? e : String(e), messages.err)
+  }
+}
+
+/** 选路径并写入二进制；MeTable 导出 xlsx */
+export async function saveBinaryExport(
+  bytes: Uint8Array,
+  defaultPath: string,
+  extensions: string[],
+  messages: ExportMessages = { ok: t('meTable.exportOk'), err: t('meTable.exportErr') },
+  filterName?: string,
+): Promise<void> {
+  const path = await pickSavePath(defaultPath, extensions, filterName)
+  if (!path) return
+  try {
+    await writeFile(path, bytes)
+    meOk(messages.ok)
+  } catch (e: unknown) {
+    meErr(e instanceof Error ? e : String(e), messages.err)
+  }
+}
+
+// #endregion
+
+// #region MeTable：DOM 读取与矩阵格式
 
 const SKIP_COLUMN_CLASSES = ['el-table-column--selection', 'el-table__expand-column']
 
@@ -19,7 +87,7 @@ function isSkippedColumn(cell: Element): boolean {
   return SKIP_COLUMN_CLASSES.some(cls => cell.classList.contains(cls))
 }
 
-/** 读取当前 el-table DOM 中的表头与行（需先渲染要导出的全部行） */
+/** 从 el-table DOM 读表头/行；MeTable 导出前需渲染全量数据 */
 export function readTableFromDom(table: TableInstance): { headers: string[]; rows: string[][] } {
   const root = table.$el as HTMLElement | undefined
   if (!root) return { headers: [], rows: [] }
@@ -103,7 +171,7 @@ export function matrixToMarkdown(headers: string[], rows: string[][]): string {
   return [headerRow, separator, ...bodyRows].join('\n')
 }
 
-/** 复制 HTML 表格片段（富文本 + Markdown 纯文本回退） */
+/** 复制 HTML 表格（富文本 + Markdown 回退）；MeTable */
 export async function copyTableHtml(headers: string[], rows: string[][]): Promise<void> {
   const html = buildTableHtml(headers, rows)
   const plain = matrixToMarkdown(headers, rows)
@@ -120,7 +188,6 @@ export async function copyTableHtml(headers: string[], rows: string[][]): Promis
   }
 }
 
-/** 导出可在浏览器直接打开的 HTML 表格 */
 export function matrixToHtml(headers: string[], rows: string[][]): string {
   const table = buildTableHtml(headers, rows)
   return `<!DOCTYPE html>
@@ -150,35 +217,22 @@ export function matrixToXlsxBytes(headers: string[], rows: string[][]): Uint8Arr
   return new Uint8Array(buf)
 }
 
+/** MeTable 导出 json/csv/html/md */
 export async function saveTableTextFile(
   content: string,
   defaultPath: string,
   extensions: string[],
 ): Promise<void> {
-  const path = await save({
-    defaultPath,
-    filters: [{ name: extensions[0]?.toUpperCase() ?? 'File', extensions }],
-  })
-  if (!path) return
-  try {
-    await writeTextFile(path, content)
-    meOk(t('meTable.exportOk'))
-  } catch (e: unknown) {
-    meErr(e instanceof Error ? e : String(e), t('meTable.exportErr'))
-  }
+  await saveTextExport(content, defaultPath, extensions)
 }
 
+/** MeTable 导出 xlsx */
 export async function saveTableXlsxFile(
   headers: string[],
   rows: string[][],
   defaultPath: string,
 ): Promise<void> {
-  const path = await save({ defaultPath, filters: [{ name: 'XLSX', extensions: ['xlsx'] }] })
-  if (!path) return
-  try {
-    await writeFile(path, matrixToXlsxBytes(headers, rows))
-    meOk(t('meTable.exportOk'))
-  } catch (e: unknown) {
-    meErr(e instanceof Error ? e : String(e), t('meTable.exportErr'))
-  }
+  await saveBinaryExport(matrixToXlsxBytes(headers, rows), defaultPath, ['xlsx'], undefined, 'XLSX')
 }
+
+// #endregion

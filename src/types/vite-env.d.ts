@@ -12,9 +12,9 @@ declare global {
       keyShow?: string
       keySort?: string
       keyHeight?: number
-      /** Hash/List 等值区默认展示：auto 代码 | table 表格优先 */
+      /** Hash/List 等值区默认展示：auto 默认表格、记住手动切换 | table 始终表格 */
       fieldShow?: 'auto' | 'table'
-      /** auto 模式下上次手动选择的 json/table，切换连接时沿用 */
+      /** auto 模式下上次手动选择的 json/table，切换连接/键时沿用 */
       fieldShowView?: 'json' | 'table'
       /** 首页连接列表：平铺 / 分组 */
       connShow?: 'flat' | 'group'
@@ -26,8 +26,11 @@ declare global {
       codeFont?: string[]
       autoUpdate?: boolean
       /** 自定义 STRING 值编解码脚本配置 */
-      customFormatters?: { name: string; command: string }[]
-      formatterExecTimeoutSec?: number
+      customCodecs?: { name: string; command: string }[]
+      /** 自定义编解码脚本执行超时（秒） */
+      codecExecTimeoutSec?: number
+      /** Redis 命令读写超时（秒），同步至 Rust */
+      commandTimeout?: number
     }
     systemTheme: string
     systemLanguage: string

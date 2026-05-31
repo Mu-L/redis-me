@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // 说明: 支持文件选择，SSL证书相关文件
 import { open, save } from '@tauri-apps/plugin-dialog'
-import dayjs from 'dayjs'
+
+import { buildTimestampedFileName } from '@/utils/export'
 
 const props = withDefaults(
   defineProps<{
@@ -19,7 +20,7 @@ async function openDialog(): Promise<void> {
   const filters = props.fileSuffix ? [{ name: '', extensions: [props.fileSuffix] }] : []
   let file: string | null = null
   if (props.filePrefix) {
-    const fileName = `${props.filePrefix}_${dayjs().format('YYYYMMDDHHmmss')}.${props.fileSuffix}`
+    const fileName = buildTimestampedFileName(props.filePrefix, props.fileSuffix)
     file = await save({ filters, defaultPath: fileName })
   } else {
     file = await open({ multiple: false, directory: false, filters })

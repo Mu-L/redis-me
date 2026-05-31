@@ -58,6 +58,48 @@ const cacheRatio = computed(() => {
   }
 })
 
+/** 连接配置中的 ACL 用户名，空串显示 default */
+const displayUsername = computed(() => {
+  const name = share.conn?.username?.trim()
+  return name || 'default'
+})
+
+/** INFO instantaneous_ops_per_sec */
+const opsPerSec = computed(() => {
+  const v = dic.value['instantaneous_ops_per_sec']
+  if (v == null || v === '') return '--'
+  const n = parseFloat(v)
+  return Number.isNaN(n) ? '--' : `${n}/s`
+})
+
+/** INFO instantaneous_*_kbps */
+const networkInKbps = computed(() => {
+  const v = dic.value['instantaneous_input_kbps']
+  if (v == null || v === '') return '--'
+  const n = parseFloat(v)
+  return Number.isNaN(n) ? '--' : n.toFixed(2)
+})
+const networkOutKbps = computed(() => {
+  const v = dic.value['instantaneous_output_kbps']
+  if (v == null || v === '') return '--'
+  const n = parseFloat(v)
+  return Number.isNaN(n) ? '--' : n.toFixed(2)
+})
+const networkUnavailable = computed(
+  () => networkInKbps.value === '--' || networkOutKbps.value === '--',
+)
+
+/** maxmemory 为 0 时显示未限制，否则 human · policy */
+const maxmemorySummary = computed(() => {
+  const bytes = parseInt(dic.value['maxmemory'] ?? '0', 10)
+  if (!bytes) return t('redisInfo.maxmemoryUnlimited')
+  const human = dic.value['maxmemory_human'] || `${bytes}B`
+  const policy = dic.value['maxmemory_policy'] || '--'
+  return `${human} · ${policy}`
+})
+
+const infoNode = ref('')
+
 /** 已用内存占系统总内存比例（展示用，非 Redis maxmemory） */
 // const memoryUsagePercent = computed(() => {
 //   const used = parseInt(dic.value['used_memory'] ?? '', 10)
@@ -137,14 +179,13 @@ function tagChange() {
   tableRef.value?.scrollTo(0, 0) // 滚动条归零
 }
 
-const infoNode = ref('')
-
 // 新增键/删除键等操作可以调用进行自动刷新，以便保证db下拉框中的数量显示正确
 function onInfoRefreshBus(payload?: boolean | undefined) {
   void refresh(payload === true)
 }
 onMounted(() => bus.on(INFO_REFRESH, onInfoRefreshBus))
 onUnmounted(() => bus.off(INFO_REFRESH, onInfoRefreshBus))
+
 async function refresh(withConfigGet: boolean = false) {
   loading.value = true
   try {
@@ -161,7 +202,19 @@ async function refresh(withConfigGet: boolean = false) {
     loading.value = false
   }
 }
-refresh(true)
+
+/** 集群先拉 nodeList 并选定 master，再首次 INFO，避免随机节点 */
+async function initPage() {
+  const nodeList = await meCommands.nodeList(share.conn!.id)
+  share.nodeList = enrichNodeList(nodeList || [])
+  if (share.conn?.cluster) {
+    const firstMaster = share.nodeList.find(n => n.isMaster)
+    if (firstMaster?.node) node.value = firstMaster.node
+  }
+  await refresh(true)
+}
+
+void initPage()
 
 // 客户端、配置、内存
 function goClient() {
@@ -174,12 +227,6 @@ function goMemory() {
   // dialog.memory = true
   share.tabName = 'memory'
 }
-
-// 节点列表在此组件中设置（刷新连接时自动重新获取）
-onMounted(async () => {
-  const nodeList = await meCommands.nodeList(share.conn!.id)
-  share.nodeList = enrichNodeList(nodeList || [])
-})
 
 // 新增功能：Redis 集群拓扑弹框
 const nodeGroups = computed(() => {
@@ -227,7 +274,7 @@ const nodeGroups = computed(() => {
               placement="left"
               hint
               @click="refresh(true)" />
-            <node-list v-model="node" style="margin-left: 10px" @change="refresh(true)" clearable />
+            <node-list v-model="node" init-node style="margin-left: 10px" @change="refresh(true)" />
           </div>
         </div>
       </template>
@@ -258,7 +305,33 @@ const nodeGroups = computed(() => {
         </div>
       </el-descriptions-item>
 
-      <el-descriptions-item :span="1">
+      <el-descriptions-item>
+        <template #label><me-icon :name="t('redisInfo.user')" icon="el-icon-user" /></template>
+        {{ displayUsername }}
+      </el-descriptions-item>
+
+      <el-descriptions-item>
+        <template #label>
+          <span class="network-label">
+            <me-icon :name="t('redisInfo.network')" icon="el-icon-connection" />
+            <span class="network-unit">kb/s</span>
+          </span>
+        </template>
+        <span v-if="networkUnavailable">--</span>
+        <span v-else class="network-throughput">
+          <span>↑ {{ networkInKbps }}</span>
+          <span class="network-throughput-gap">↓ {{ networkOutKbps }}</span>
+        </span>
+      </el-descriptions-item>
+
+      <el-descriptions-item>
+        <template #label
+          ><me-icon :name="t('redisInfo.command')" icon="el-icon-odometer"
+        /></template>
+        {{ opsPerSec }}
+      </el-descriptions-item>
+
+      <el-descriptions-item>
         <template #label
           ><me-icon :name="t('redisInfo.persistence')" icon="me-icon-save"
         /></template>
@@ -277,16 +350,9 @@ const nodeGroups = computed(() => {
           </el-link>
           <el-text type="info" style="margin-left: 10px">
             [
-            <span style="margin-left: 0px"
-              >{{ t('redisInfo.peak') }}: {{ dic['used_memory_peak_human'] }}</span
-            >
-
+            <span>{{ t('redisInfo.peak') }}: {{ dic['used_memory_peak_human'] }}</span>
             <span style="margin-left: 20px"
-              >{{ t('redisInfo.rss') }}: {{ dic['used_memory_rss_human'] }}</span
-            >
-
-            <span style="margin-left: 20px"
-              >{{ t('redisInfo.os') }}: {{ dic['total_system_memory_human'] }}</span
+              >{{ t('redisInfo.maxmemoryLimit') }}: {{ maxmemorySummary }}</span
             >
             ]
           </el-text>
@@ -318,6 +384,9 @@ const nodeGroups = computed(() => {
           <el-text type="info" style="margin-left: 10px">
             [
             <span>PID: {{ dic['process_id'] }}</span>
+            <span style="margin-left: 20px"
+              >{{ t('redisInfo.memory') }}: {{ dic['total_system_memory_human'] }}</span
+            >
             <span style="margin-left: 20px" v-if="cacheRatio !== 'error'"
               >{{ t('redisInfo.cacheRatio') }}: {{ cacheRatio }}</span
             >
@@ -496,6 +565,22 @@ const nodeGroups = computed(() => {
     &:hover {
       color: var(--el-color-primary);
     }
+  }
+
+  .network-throughput-gap {
+    margin-left: 16px;
+  }
+
+  .network-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    vertical-align: middle;
+  }
+
+  .network-unit {
+    font-size: 10px;
+    color: var(--el-text-color-secondary);
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

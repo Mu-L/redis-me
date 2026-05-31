@@ -6,7 +6,9 @@ import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import MeShortcut from '@/components/MeShortcut.vue'
 import { appProvideKey, type AppMainInject } from '@/types/me-interface'
+import { getConnGlobalShortcuts } from '@/utils/shortcut'
 import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util'
 
 const { t } = useI18n()
@@ -104,13 +106,24 @@ const baseDefaultSettings = {
 
 const moreDefaultSettings = {
   keyScanCount: 1000,
-  fieldScanCount: 20,
+  fieldScanCount: 10,
   keyShow: 'tree',
   keySort: 'count',
   keyHeight: 20,
   fieldShow: 'auto',
-  fieldShowView: 'json',
+  fieldShowView: 'table',
+  commandTimeout: 30,
+  codecExecTimeoutSec: 5,
 }
+
+/** 更多设置数字项 min/max，与表单项及 ? 提示共用 */
+const MORE_SETTING_LIMITS = {
+  keyScanCount: { min: 1000, max: 10000 },
+  fieldScanCount: { min: 10, max: 100 },
+  commandTimeout: { min: 5, max: 300 },
+  codecExecTimeoutSec: { min: 1, max: 120 },
+  keyHeight: { min: 16, max: 28 },
+} as const
 
 type BaseSettingKey = keyof typeof baseDefaultSettings
 type MoreSettingKey = keyof typeof moreDefaultSettings
@@ -147,7 +160,24 @@ function toDefault(name: 'baseSetting' | 'moreSetting') {
   })
 }
 
+/** 键高度：失焦时纠正非法输入（方向键/步进由 el-input-number 处理） */
+function normalizeKeyHeight() {
+  const { min, max } = MORE_SETTING_LIMITS.keyHeight
+  let n = Number(settings.keyHeight)
+  if (!Number.isFinite(n)) n = moreDefaultSettings.keyHeight
+  settings.keyHeight = Math.min(max, Math.max(min, Math.round(n)))
+}
+
 // 打开目录
+const dirType = ref<'config' | 'app' | 'log'>('config')
+const dirList = computed(() => [
+  { value: 'config' as const, label: t('setting.configDir') },
+  { value: 'app' as const, label: t('setting.appDir') },
+  { value: 'log' as const, label: t('setting.logDir') },
+])
+const globalShortcuts = computed(() => getConnGlobalShortcuts(t))
+const keyShortVisible = ref(false)
+
 async function openDir(dirType: 'config' | 'app' | 'log') {
   let dir = ''
   if (dirType === 'config') {
@@ -221,21 +251,25 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
         </el-form-item>
       </el-row>
 
-      <!-- 打开目录 -->
-      <el-row>
-        <el-form-item :label="t('setting.dir')" style="width: 100%">
-          <div class="me-flex" style="width: 100%">
-            <el-button icon="el-icon-document" @click="openDir('config')">
-              {{ t('setting.configDir') }}</el-button
-            >
-            <el-button icon="el-icon-place" @click="openDir('app')">{{
-              t('setting.appDir')
-            }}</el-button>
-            <el-button icon="el-icon-memo" @click="openDir('log')">{{
-              t('setting.logDir')
+      <!-- 目录、快捷键 -->
+      <el-row class="me-flex">
+        <el-form-item :label="t('setting.dir')">
+          <div class="me-flex">
+            <el-select v-model="dirType" style="width: 100px">
+              <el-option
+                v-for="item in dirList"
+                :label="item.label"
+                :value="item.value"
+                :key="item.value" />
+            </el-select>
+            <el-button style="margin-left: 8px" @click="openDir(dirType)">{{
+              t('setting.openDir')
             }}</el-button>
           </div>
         </el-form-item>
+        <me-button plain icon="me-icon-keyshort" @click="keyShortVisible = true">{{
+          t('setting.shortcuts')
+        }}</me-button>
       </el-row>
 
       <!-- 更新设置 -->
@@ -264,6 +298,16 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
     </el-form>
   </el-card>
 
+  <el-dialog
+    v-model="keyShortVisible"
+    width="400"
+    align-center
+    draggable
+    :show-close="false"
+    header-class="me-shortcut-dialog__header">
+    <MeShortcut :items="globalShortcuts" />
+  </el-dialog>
+
   <!-- 更多设置 -->
   <el-card style="margin-top: 20px">
     <template #header>
@@ -274,7 +318,11 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
         }}</el-text>
       </div>
     </template>
-    <el-form inline label-position="right" :label-width="t('setting.extLabelWidth')">
+    <el-form
+      inline
+      label-position="right"
+      class="setting-more-form"
+      :label-width="t('setting.extLabelWidth')">
       <!-- 扫描数量 -->
       <el-row class="me-flex">
         <el-form-item>
@@ -282,64 +330,141 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
             <me-icon
               :name="t('setting.keyScanCount')"
               icon="el-icon-question-filled"
-              :info="t('setting.keyScanCountTip')"
+              :info="t('setting.keyScanCountTip', MORE_SETTING_LIMITS.keyScanCount)"
+              :icon-left="false"
               placement="top" />
           </template>
           <el-input-number
             v-model="settings.keyScanCount"
-            :min="1000"
-            :max="10000"
+            :min="MORE_SETTING_LIMITS.keyScanCount.min"
+            :max="MORE_SETTING_LIMITS.keyScanCount.max"
             :controls="false"
             style="width: 100px"
-            align="left" />
+            align="left">
+            <template #suffix>{{ t('setting.countUnit') }}</template>
+          </el-input-number>
         </el-form-item>
         <el-form-item>
           <template #label>
             <me-icon
               :name="t('setting.fieldScanCount')"
               icon="el-icon-question-filled"
-              :info="t('setting.fieldScanCountTip')"
+              :info="t('setting.fieldScanCountTip', MORE_SETTING_LIMITS.fieldScanCount)"
+              :icon-left="false"
               placement="top" />
           </template>
           <el-input-number
             v-model.number="settings.fieldScanCount"
-            :min="10"
-            :max="100"
+            :min="MORE_SETTING_LIMITS.fieldScanCount.min"
+            :max="MORE_SETTING_LIMITS.fieldScanCount.max"
             :controls="false"
             style="width: 100px"
-            align="left" />
+            align="left">
+            <template #suffix>{{ t('setting.countUnit') }}</template>
+          </el-input-number>
         </el-form-item>
       </el-row>
 
-      <!-- 键展示方式1 -->
+      <!-- 超时 -->
       <el-row class="me-flex">
-        <el-form-item :label="t('setting.keyShow')">
+        <el-form-item>
+          <template #label>
+            <me-icon
+              :name="t('setting.commandTimeout')"
+              icon="el-icon-question-filled"
+              :info="t('setting.commandTimeoutTip', MORE_SETTING_LIMITS.commandTimeout)"
+              :icon-left="false"
+              placement="top" />
+          </template>
+          <el-input-number
+            v-model="settings.commandTimeout"
+            :min="MORE_SETTING_LIMITS.commandTimeout.min"
+            :max="MORE_SETTING_LIMITS.commandTimeout.max"
+            :controls="false"
+            style="width: 100px"
+            align="left">
+            <template #suffix>{{ t('setting.secUnit') }}</template>
+          </el-input-number>
+        </el-form-item>
+        <el-form-item>
+          <template #label>
+            <me-icon
+              :name="t('setting.scriptTimeout')"
+              icon="el-icon-question-filled"
+              :info="t('setting.scriptTimeoutTip', MORE_SETTING_LIMITS.codecExecTimeoutSec)"
+              :icon-left="false"
+              placement="top" />
+          </template>
+          <el-input-number
+            v-model="settings.codecExecTimeoutSec"
+            :min="MORE_SETTING_LIMITS.codecExecTimeoutSec.min"
+            :max="MORE_SETTING_LIMITS.codecExecTimeoutSec.max"
+            :controls="false"
+            style="width: 100px"
+            align="left">
+            <template #suffix>{{ t('setting.secUnit') }}</template>
+          </el-input-number>
+        </el-form-item>
+      </el-row>
+
+      <!-- 键展示、键高度 -->
+      <el-row class="me-flex">
+        <el-form-item>
+          <template #label>
+            <me-icon
+              :name="t('setting.keyShow')"
+              icon="el-icon-question-filled"
+              :info="t('setting.keyShowTip')"
+              :icon-left="false"
+              placement="top" />
+          </template>
           <el-segmented v-model="settings.keyShow" :options="keyShowList" />
         </el-form-item>
 
         <el-form-item>
           <template #label>
             <me-icon
+              :name="t('setting.keyHeight')"
+              icon="el-icon-question-filled"
+              :info="t('setting.keyHeightTip', MORE_SETTING_LIMITS.keyHeight)"
+              :icon-left="false"
+              placement="top" />
+          </template>
+          <el-input-number
+            v-model="settings.keyHeight"
+            :min="MORE_SETTING_LIMITS.keyHeight.min"
+            :max="MORE_SETTING_LIMITS.keyHeight.max"
+            :controls="false"
+            style="width: 100px"
+            align="left"
+            @blur="normalizeKeyHeight">
+            <template #suffix>{{ t('setting.pxUnit') }}</template>
+          </el-input-number>
+        </el-form-item>
+      </el-row>
+
+      <!-- 字段展示、树形排序 -->
+      <el-row class="me-flex">
+        <el-form-item>
+          <template #label>
+            <me-icon
               :name="t('setting.fieldShow')"
               icon="el-icon-question-filled"
               :info="t('setting.fieldShowTip')"
+              :icon-left="false"
               placement="top" />
           </template>
           <el-segmented v-model="settings.fieldShow" :options="fieldShowList" />
         </el-form-item>
-      </el-row>
-
-      <!-- 键展示方式2 -->
-      <el-row class="me-flex">
-        <el-form-item :label="t('setting.keyHeight')">
-          <el-input-number
-            v-model="settings.keyHeight"
-            :min="16"
-            :max="28"
-            style="width: 100px"
-            align="center" />
-        </el-form-item>
-        <el-form-item :label="t('setting.keySort')">
+        <el-form-item>
+          <template #label>
+            <me-icon
+              :name="t('setting.keySort')"
+              icon="el-icon-question-filled"
+              :info="t('setting.keySortTip')"
+              :icon-left="false"
+              placement="top" />
+          </template>
           <el-segmented
             v-model="settings.keySort"
             :options="keySortList"
@@ -360,6 +485,21 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
 
   &:hover {
     color: var(--el-color-primary);
+  }
+}
+
+.setting-more-form {
+  :deep(.me-flex) {
+    flex-wrap: nowrap;
+  }
+
+  :deep(.el-form-item) {
+    align-items: center;
+    margin-right: 0;
+  }
+
+  :deep(.el-form-item__label) {
+    white-space: nowrap;
   }
 }
 </style>

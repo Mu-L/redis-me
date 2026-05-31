@@ -42,19 +42,19 @@ rustls = { version = "0.23", default-features = false, features = [
 ] }
 parking_lot = "0.12"
 log = "0.4"
-rand = "0.9"
+rand = "0.10"
 anyhow = { version = "1" }
 shell-words = "1"
 base64 = "0.22"
 chrono = "0.4"
-chrono-tz = "0.8"
+chrono-tz = "0.10"
 fern = { version = "0.7", features = ["colored"] }
 
 # 目录支持~和环境变量
 shellexpand = "3"
 
 # SSH 隧道支持（使用 russh 支持现代密钥格式）
-russh = { version = "0.60", default-features = false, features = ["flate2", "ring", "rsa"] }
+russh = { version = "0.61", default-features = false, features = ["flate2", "ring", "rsa"] }
 # russh → pkcs8 0.11-rc 与 pkcs5 0.8.0 稳定版 API 不兼容，勿升到 stable
 # pkcs5 = "=0.8.0-rc.13"
 tokio = { version = "1", features = ["full"] }
@@ -68,9 +68,9 @@ tauri-plugin-os = "2"
 tauri-plugin-system-fonts = "2"
 
 # 支持TS类型
-specta = { version = "2.0.0-rc.24", features = ["derive", "chrono", "serde_json"] }
-specta-typescript = "0.0.11"
-tauri-specta = { version = "2.0.0-rc.24", features = ["typescript"] }
+specta = { version = "2.0.0-rc.25", features = ["derive", "chrono", "serde_json"] }
+specta-typescript = "0.0.12"
+tauri-specta = { version = "2.0.0-rc.25", features = ["typescript"] }
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-updater = "2"

@@ -3,8 +3,10 @@ import { computed, inject, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeIcon from '@/components/MeIcon.vue'
+import MeShortcut from '@/components/MeShortcut.vue'
 import { commandHelp, isReadonlyCommand } from '@/locales/cmd'
 import { shareProvideKey } from '@/types/me-interface'
+import { getTerminalShortcuts } from '@/utils/shortcut'
 import { meCopy, meCommands, isZh } from '@/utils/util'
 
 import NodeList from '../ext/NodeList.vue'
@@ -114,6 +116,8 @@ const keyShortVisible = ref(false)
 function openKeyShortDialog() {
   keyShortVisible.value = true
 }
+
+const keyShortcuts = computed(() => getTerminalShortcuts(t))
 </script>
 
 <template>
@@ -166,8 +170,8 @@ function openKeyShortDialog() {
       align-center
       draggable
       :show-close="false"
-      style="--el-dialog-bg-color: unset; box-shadow: unset">
-      <el-text type="warning" size="large" v-html="t('redisTerminal.keyShortMore')"> </el-text>
+      header-class="me-shortcut-dialog__header">
+      <MeShortcut :items="keyShortcuts" />
     </el-dialog>
 
     <!-- 命令表格 -->

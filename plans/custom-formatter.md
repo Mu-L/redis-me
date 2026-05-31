@@ -137,8 +137,8 @@ python3 /path/codec.py decode 'SGVsbG8+World/Foo=='
 function formatExecError(name: string, result: { code; stderr; stdout }): string {
   const err = result.stderr?.trim()
   if (err) return err
-  if (result.code !== 0) return t('customFormatter.execFailed', { name, code: result.code })
-  return t('customFormatter.invalidOutput', { name })
+  if (result.code !== 0) return t('customCodec.execFailed', { name, code: result.code })
+  return t('customCodec.invalidOutput', { name })
 }
 ```
 
@@ -186,7 +186,7 @@ sequenceDiagram
 
 - Redis 读写仍只认识 utf8 / base64 wire，custom 不进入 Rust
 - custom 视图时 `toWireFormat('custom:x')` → **`base64`**（与 hex/msgpack 一致）
-- 配置存前端 `settings.customFormatters`，**无需** `sync` 到 Rust
+- 配置存前端 `settings.customCodecs`，**无需** `sync` 到 Rust
 
 ---
 
@@ -222,8 +222,8 @@ Windows: `Command.create('exec-cmd', ['/C', fullCommand])`
 ## 配置结构
 
 ```ts
-/** 持久化于 settings.customFormatters */
-interface CustomFormatter {
+/** 持久化于 settings.customCodecs */
+interface CustomCodec {
   name: string // 下拉显示名，value 为 custom:{name}
   command: string // 可执行入口，如 python3 /path/to/codec.py 或 /path/to/codec.sh
 }
@@ -254,8 +254,8 @@ interface CustomFormatter {
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | **新建** `src/utils/custom-formatter.ts` | `runDecode` / `runEncode`、拼 shell 命令、引号转义、超时（默认 30s）                                       |
 | `src/utils/bytes-format.ts`              | `isCustomView`、`isStringOnlyView`、扩展 `viewFmtForField`；`meFormatViewValueAsync` / `meViewToWireAsync` |
-| `src/plugins/tauri.ts`                   | `customFormatters: []` 默认值 + 持久化                                                                     |
-| `src/views/ext/CustomFormatter.vue`      | 自定义编解码 CRUD + 测试 decode/encode（数据编码下拉入口）                                                 |
+| `src/plugins/tauri.ts`                   | `customCodecs: []` 默认值 + 持久化 + 旧键迁移                                                              |
+| `src/views/ext/CustomCodec.vue`          | 自定义编解码 CRUD + 测试 decode/encode（编解码下拉入口）                                                   |
 | `src/views/tab/RedisValue.vue`           | `formatOptions` 追加 custom；`displayValue` async；`setValue` encode                                       |
 
 ### bytes-format.ts 辅助逻辑
@@ -278,7 +278,7 @@ export function viewFmtForField(view: ViewBytesFormat): ViewBytesFormat {
 
 ### RedisValue.vue 要点
 
-- `formatOptions`：EXT 区 = MsgPack + `settings.customFormatters`（`disabled: !stringType`）
+- `formatOptions`：EXT 区 = MsgPack + `settings.customCodecs`（`disabled: !stringType`）
 - 切换至非 String 键：若当前为 msgpack/custom，重置 `bytesFormat = 'utf8'`
 - `displayValue` ref + `watch` → custom 时 `runDecode(wire, formatter)`
 - `setValue`：custom 时 `wire = await runEncode(editorText, formatter)`，再 `set({ inputFormat: 'base64' })`
@@ -314,14 +314,14 @@ export function viewFmtForField(view: ViewBytesFormat): ViewBytesFormat {
 
 ## 改动清单（Phase 1）
 
-| 区域     | 文件                                | 约行数 |
-| -------- | ----------------------------------- | ------ |
-| 后端配置 | Cargo.toml, lib.rs, capabilities    | ~15    |
-| 前端新建 | custom-formatter.ts                 | ~80    |
-| 前端扩展 | bytes-format.ts                     | ~30    |
-| 前端 UI  | CustomFormatter.vue, RedisValue.vue | ~120   |
-| 前端配置 | plugins/tauri.ts, locales           | ~20    |
-| **合计** | ~8 文件                             | ~225   |
+| 区域     | 文件                             | 约行数 |
+| -------- | -------------------------------- | ------ |
+| 后端配置 | Cargo.toml, lib.rs, capabilities | ~15    |
+| 前端新建 | custom-formatter.ts              | ~80    |
+| 前端扩展 | bytes-format.ts                  | ~30    |
+| 前端 UI  | CustomCodec.vue, RedisValue.vue  | ~120   |
+| 前端配置 | plugins/tauri.ts, locales        | ~20    |
+| **合计** | ~8 文件                          | ~225   |
 
 ---
 

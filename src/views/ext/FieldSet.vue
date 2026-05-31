@@ -18,14 +18,11 @@ import {
   needsJsonNormalize,
   toWireFormat,
   type ViewBytesFormat,
-} from '@/utils/bytes-format'
+} from '@/utils/format'
 import { meCommands, meCopy, meErr, meFormatDisplayValue, meJsonNormal, meOk } from '@/utils/util'
 
 /** 含 UI 用 type / wireFieldKey，提交时剔除 */
-type FieldSetForm = RedisFieldSet_Deserialize & {
-  type: string
-  wireFieldKey?: string
-}
+type FieldSetForm = RedisFieldSet_Deserialize & { type: string; wireFieldKey?: string }
 
 type FieldSetOpen = Partial<FieldSetForm> & {
   /** fieldScan 返回的 wire 形态 */
@@ -75,9 +72,7 @@ const editorLoading = ref(false)
 const decodeFailed = ref(false)
 const codeRemountKey = ref(0)
 
-const customNames = computed(() =>
-  (window.meTauri.settings.customFormatters ?? []).map(f => f.name),
-)
+const customNames = computed(() => (window.meTauri.settings.customCodecs ?? []).map(f => f.name))
 const fieldViewOptionList = computed(() => fieldViewOptions(keyWireFmt.value, customNames.value))
 const prettyEnabled = computed(
   () => fieldViewFmt.value === 'utf8' || fieldViewFmt.value === 'strjson',

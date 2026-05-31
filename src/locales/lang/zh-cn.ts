@@ -68,27 +68,39 @@ export default {
     extLabelWidth: '100',
     keyScanCount: '键扫描',
     fieldScanCount: '字段扫描',
-    keyScanCountTip: '每次扫描加载的key数量，设置过大可能会影响性能',
-    fieldScanCountTip: 'Hash等类型每次扫描加载的field数量',
+    keyScanCountTip: '键列表每次 SCAN 加载的数量；过大可能影响性能。范围 {min}–{max} 个',
+    fieldScanCountTip: 'Hash、Set 等类型字段分页加载的数量。范围 {min}–{max} 个',
+    commandTimeout: '命令超时',
+    commandTimeoutTip: '单次 Redis 命令读写的最长等待时间；修改后需重连生效。范围 {min}–{max} 秒',
+    scriptTimeout: '脚本超时',
+    scriptTimeoutTip: '自定义编解码脚本的最长执行时间。范围 {min}–{max} 秒',
+    secUnit: '秒',
+    countUnit: '个',
+    pxUnit: 'px',
 
     keyShow: '键展示',
+    keyShowTip: '树形：按命名空间分隔符分组展示键；平铺：键名列表不分组',
     keyShowTree: '树形',
     keyShowList: '平铺',
     keySort: '树形排序',
+    keySortTip: '仅树形模式下生效；可按子键数量或字母顺序排序',
     sortByCount: '数量',
     sortByAlphabet: '字母',
 
     keyHeight: '键高度',
+    keyHeightTip: '键列表在树形/平铺模式下每行高度；可按界面字体微调。范围 {min}–{max} px',
     fieldShow: '字段展示',
     fieldShowTip:
-      'Hash、List 等类型的值默认展示方式；自动模式初始 JSON，手动切换后会记住并在切换连接/键时沿用；表格模式优先表格，仍可手动切换',
+      'Hash、List 等复合类型的默认展示方式。表格：每次均为表格；自动：默认表格，手动切换后会记住（跨连接/键）。均可随时手动切换',
     fieldShowAuto: '自动',
     fieldShowTable: '表格',
 
     dir: '目录',
-    configDir: '配置目录',
-    appDir: '应用目录',
-    logDir: '日志目录',
+    configDir: '配置',
+    appDir: '应用',
+    logDir: '日志',
+    openDir: '打开',
+    shortcuts: '快捷键',
   },
 
   conn: {
@@ -217,23 +229,25 @@ export default {
       'Redis Sentinel 哨兵模式<br/>• 多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置<br/>• 主节点用户密码为哨兵监听的Master节点的用户密码',
   },
 
-  customFormatter: {
+  customCodec: {
     title: '自定义编解码',
+    docUrl: 'https://www.hepengju.com/zh/guide/usage/codec.html',
+    docHelp: '帮助',
+    docHelpTip: '查看官网自定义编解码示例',
     name: '名称',
-    namePlaceholder: '显示在「数据编码」下拉中',
+    namePlaceholder: '显示在「编解码」下拉中',
     command: '命令',
     commandHelp: `需填写<b>含解释器的完整命令</b>，例如 python C:\\path\\codec.py<br/><br/>
 <b>程序会自动追加两个参数</b><br/>
 • 参数 1：decode（读）或 encode（写）<br/>
-• 参数 2：Base64 字符串<br/><br/>
+• 参数 2：Base64 字符串；<b>超过 8000 字符时为 <code>--stdin</code></b>，Base64 从 stdin 读一行<br/><br/>
 <b>解码</b>（读 Redis → 编辑器）<br/>
-• 参数 2 为 Redis 原始字节的 Base64<br/>
+• 参数 2 为 Redis 原始字节的 Base64（或 <code>--stdin</code>）<br/>
 • stdout：UTF-8 展示文本（写入编辑器）<br/><br/>
 <b>编码</b>（写 编辑器 → Redis）<br/>
-• 参数 2 为编辑区文本的 UTF-8 字节 Base64<br/>
+• 参数 2 为编辑区文本的 UTF-8 字节 Base64（或 <code>--stdin</code>）<br/>
 • stdout：单行 Redis 原始字节的 Base64（保存时写回 Redis）<br/><br/>
-<b>失败时</b>：优先展示 stderr；退出码非 0 则提示执行失败<br/>
-<b>适用范围</b>：目前仅 STRING 类型键可用`,
+<b>失败时</b>：优先展示 stderr；退出码非 0 则提示执行失败`,
     commandPlaceholder: 'python C:\\path\\codec.py',
     add: '添加',
     edit: '编辑',
@@ -343,8 +357,8 @@ export default {
     key: '键',
     field: '字段',
     type: '类型',
-    keyEncoding: '键编码',
-    valueEncoding: '值编码',
+    keyCodec: '键编码',
+    valueCodec: '值编码',
     ttl: 'TTL超时时长 (-1代表永久)',
     value: '值',
     element: '元素',
@@ -472,11 +486,14 @@ export default {
     keyTotal: '键总数',
     connectedClients: '连接数',
     maxClients: '限制',
+    user: '用户',
+    command: '命令',
+    network: '网络',
+    maxmemoryLimit: '限制',
+    maxmemoryUnlimited: '未限制',
     persistence: '持久化',
     memory: '内存',
     peak: '峰值',
-    rss: 'RSS',
-    os: '系统',
     system: '系统',
     executable: '执行程序',
     config: '配置',
@@ -597,21 +614,19 @@ export default {
     readonlyYes: '是',
     readonlyNo: '否',
     keyShortHint: '查看快捷键',
-    keyShortMore: `
-        <br> F11     : 全屏
-        <br> Enter   : 执行命令
-        <br> Tab     : 命令补全
-        <br> ↑  ↓    : 历史记录
-        <br>
-        <br> Ctrl + L : 清屏
-        <br> Ctrl + C : 清除输入
-        <br> Ctrl + A : 光标到行首
-        <br> Ctrl + E : 光标到行尾
-        <br>
-        <br> clear : 清屏
-        <br> help  : 帮助
-        <br> open  : 打开网址
-    `,
+    keyShort: {
+      fullscreen: '全屏',
+      execute: '执行命令',
+      complete: '命令补全',
+      history: '历史记录',
+      clearScreen: '清屏',
+      clearInput: '清除输入',
+      cursorStart: '光标到行首',
+      cursorEnd: '光标到行尾',
+      cmdClear: '清屏',
+      cmdHelp: '帮助',
+      cmdOpen: '打开网址',
+    },
   },
 
   redisValue: {
@@ -645,24 +660,22 @@ export default {
 
     textMemory: '内存占用：',
     textLength: '字节长度：',
-    textEntries: '条目：',
-    totalCount: '元素总数：',
-    viewAs: '数据编码',
+    textEntries: '已扫描：',
+    totalCount: '总数：',
+    viewCodec: '数据编码',
     keyShortHint: '查看快捷键',
-    keyShortMore: `
-        <br> F11       : 全屏编辑器
-        <br> Ctrl + L  : 切换自动换行
-        <br> Ctrl + N  : 切换行号显示
-        <br>
-        <br> Ctrl + =  : 增大字号
-        <br> Ctrl + -  : 减小字号
-        <br> Ctrl + 0  : 恢复默认字号
-        <br>
-        <br> Ctrl + F  : 查找
-        <br> Ctrl + G  : 查找下一处
-        <br> Ctrl + Z  : 撤销
-        <br> Ctrl + Y  : 重做
-    `,
+    keyShort: {
+      fullscreen: '全屏编辑器',
+      toggleWrap: '切换自动换行',
+      toggleLineNumbers: '切换行号显示',
+      fontIncrease: '增大字号',
+      fontDecrease: '减小字号',
+      fontReset: '恢复默认字号',
+      find: '查找',
+      findNext: '查找下一处',
+      undo: '撤销',
+      redo: '重做',
+    },
   },
 
   redisChart: {

@@ -70,30 +70,44 @@ export default {
 
     baseSetting: 'Base Setting',
     moreSetting: 'More Setting',
-    extLabelWidth: '120px',
+    extLabelWidth: '140px',
     keyScanCount: 'Key Scan',
     fieldScanCount: 'Field Scan',
     keyScanCountTip:
-      'The number of keys loaded per scan. Setting it too large may affect performance',
-    fieldScanCountTip: 'The number of fields loaded by each scan for types such as Hash',
-    keyShow: 'Key Show',
+      'Keys loaded per SCAN; larger values may affect performance. Range {min}–{max}',
+    fieldScanCountTip: 'Fields loaded per page for Hash, Set, and similar types. Range {min}–{max}',
+    commandTimeout: 'Cmd Timeout',
+    commandTimeoutTip:
+      'Max wait for one Redis command on an open connection; takes effect after reconnect. Range {min}–{max} s',
+    scriptTimeout: 'Script Timeout',
+    scriptTimeoutTip: 'Max runtime for custom codec scripts. Range {min}–{max} s',
+    secUnit: 's',
+    countUnit: '',
+    pxUnit: 'px',
+    keyShow: 'Key Display',
+    keyShowTip: 'Tree: group keys by namespace separator. List: flat key list',
     keyShowTree: 'Tree',
     keyShowList: 'List',
     keySort: 'Tree Sort',
+    keySortTip: 'Sort order for tree view only; disabled in list mode',
     sortByCount: 'Count',
     sortByAlphabet: 'Alphabet',
 
     keyHeight: 'Key Height',
+    keyHeightTip:
+      'Row height in tree and list key views; tune for your UI font. Range {min}–{max} px',
     fieldShow: 'Field Display',
     fieldShowTip:
-      'Default view for Hash, List, etc.; auto starts with JSON and remembers your last manual choice across connections and keys; table mode prefers table view, still switchable manually',
+      'Default view for Hash, List, and similar types. Table: always table. Auto: table by default and remembers manual switches across connections and keys. Always switchable in the UI',
     fieldShowAuto: 'Auto',
     fieldShowTable: 'Table',
 
     dir: 'Directory',
-    configDir: 'ConfigDir',
-    appDir: 'AppDir',
-    logDir: 'LogDir',
+    configDir: 'Config',
+    appDir: 'App',
+    logDir: 'Log',
+    openDir: 'Open',
+    shortcuts: 'Shortcuts',
   },
 
   conn: {
@@ -223,23 +237,25 @@ export default {
       'Redis Cluster Mode<br/>• Choose any one of multiple sentinels, please fill in sentinel configuration for address, port, and password<br/>• Master node username and password are for the Master node monitored by the sentinel',
   },
 
-  customFormatter: {
+  customCodec: {
     title: 'Custom Codec',
+    docUrl: 'https://www.hepengju.com/guide/usage/codec.html',
+    docHelp: 'Help',
+    docHelpTip: 'View custom codec examples on the official site',
     name: 'Name',
-    namePlaceholder: 'Shown in the encoding dropdown',
+    namePlaceholder: 'Shown in the codec dropdown',
     command: 'Command',
     commandHelp: `Enter the <b>full command with interpreter</b>, e.g. python C:\\path\\codec.py<br/><br/>
 <b>The app appends two arguments</b><br/>
 • Arg 1: decode (read) or encode (write)<br/>
-• Arg 2: Base64 string<br/><br/>
+• Arg 2: Base64 string; <b>when over 8000 chars, <code>--stdin</code></b> and Base64 is read from stdin (one line)<br/><br/>
 <b>Decode</b> (Redis → editor)<br/>
-• Arg 2: Base64 of raw Redis bytes<br/>
+• Arg 2: Base64 of raw Redis bytes (or <code>--stdin</code>)<br/>
 • stdout: UTF-8 text for the editor<br/><br/>
 <b>Encode</b> (editor → Redis)<br/>
-• Arg 2: Base64 of editor text as UTF-8 bytes<br/>
+• Arg 2: Base64 of editor text as UTF-8 bytes (or <code>--stdin</code>)<br/>
 • stdout: one line of Base64 raw Redis bytes (written on save)<br/><br/>
-<b>On failure</b>: stderr is shown first; non-zero exit code shows an exec error<br/>
-<b>Scope</b>: STRING keys only for now`,
+<b>On failure</b>: stderr is shown first; non-zero exit code shows an exec error`,
     commandPlaceholder: 'python C:\\path\\codec.py',
     add: 'Add',
     edit: 'Edit',
@@ -349,8 +365,8 @@ export default {
     key: 'Key',
     field: 'Field',
     type: 'Type',
-    keyEncoding: 'Key Encoding',
-    valueEncoding: 'Value Encoding',
+    keyCodec: 'Key Codec',
+    valueCodec: 'Value Codec',
     ttl: 'TTL (-1 means Forever)',
     value: 'Value',
     element: 'Element',
@@ -479,11 +495,14 @@ export default {
     keyTotal: 'Keys',
     connectedClients: 'Clients',
     maxClients: 'Max',
+    user: 'User',
+    command: 'Commands',
+    network: 'Network',
+    maxmemoryLimit: 'Limit',
+    maxmemoryUnlimited: 'No limit',
     persistence: 'Persistence',
     memory: 'Memory',
     peak: 'Peak',
-    rss: 'RSS',
-    os: 'OS',
     system: 'System',
     executable: 'Executable',
     config: 'Config',
@@ -606,21 +625,19 @@ export default {
     readonlyYes: 'Yes',
     readonlyNo: 'No',
     keyShortHint: 'View KeyShort',
-    keyShortMore: `
-        <br> F11     : Full Screen
-        <br> Enter   : Execute Command
-        <br> Tab     : Command Completion
-        <br> ↑  ↓    : History 
-        <br>
-        <br> Ctrl + L : Clear Screen
-        <br> Ctrl + C : Clear Input
-        <br> Ctrl + A : Move Cursor to line start
-        <br> Ctrl + E : Move Cursor to line end
-        <br>
-        <br> clear : Clear Screen
-        <br> help  : Help
-        <br> open  : Open Website
-    `,
+    keyShort: {
+      fullscreen: 'Full Screen',
+      execute: 'Execute Command',
+      complete: 'Command Completion',
+      history: 'History',
+      clearScreen: 'Clear Screen',
+      clearInput: 'Clear Input',
+      cursorStart: 'Move Cursor to line start',
+      cursorEnd: 'Move Cursor to line end',
+      cmdClear: 'Clear Screen',
+      cmdHelp: 'Help',
+      cmdOpen: 'Open Website',
+    },
   },
 
   redisValue: {
@@ -655,24 +672,22 @@ export default {
 
     textMemory: 'Memory Usage: ',
     textLength: 'Bytes Length: ',
-    textEntries: 'Entries: ',
-    totalCount: 'Total Count: ',
-    viewAs: 'Encoding',
+    textEntries: 'Scanned: ',
+    totalCount: 'Total: ',
+    viewCodec: 'Codec',
     keyShortHint: 'View KeyShort',
-    keyShortMore: `
-        <br> F11       : Fullscreen Editor
-        <br> Ctrl + L  : Toggle Line Wrap
-        <br> Ctrl + N  : Toggle Line Numbers
-        <br>
-        <br> Ctrl + =  : Increase Font Size
-        <br> Ctrl + -  : Decrease Font Size
-        <br> Ctrl + 0  : Reset Font Size
-        <br>
-        <br> Ctrl + F  : Find
-        <br> Ctrl + G  : Find Next
-        <br> Ctrl + Z  : Undo
-        <br> Ctrl + Y  : Redo
-    `,
+    keyShort: {
+      fullscreen: 'Fullscreen Editor',
+      toggleWrap: 'Toggle Line Wrap',
+      toggleLineNumbers: 'Toggle Line Numbers',
+      fontIncrease: 'Increase Font Size',
+      fontDecrease: 'Decrease Font Size',
+      fontReset: 'Reset Font Size',
+      find: 'Find',
+      findNext: 'Find Next',
+      undo: 'Undo',
+      redo: 'Redo',
+    },
   },
 
   redisChart: {

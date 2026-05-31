@@ -10,19 +10,25 @@ import {
   reactive,
   ref,
   shallowReactive,
+  useTemplateRef,
   watch,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
   appProvideKey,
+  connUiProvideKey,
   shareProvideKey,
   type AppMainInject,
   type AppMainShare,
   type ConnListWindowsSyncPayload,
+  type ConnShortcutAction,
   type UiConn,
 } from '@/types/me-interface'
 import type { ConnConfig } from '@/types/tauri-specta'
+import { mergeConnGroupsFromList } from '@/utils/conn'
+import { mergeImportedConnList } from '@/utils/rdm'
+import { matchConnShortcutAction } from '@/utils/shortcut'
 import {
   bus,
   CONN_LIST_WINDOWS_SYNC,
@@ -30,7 +36,10 @@ import {
   meCommands,
   meJsonParse,
   meOk,
+  openNewWindow,
 } from '@/utils/util'
+import ConnImport from '@/views/conn/ConnImport.vue'
+import ConnSave from '@/views/conn/ConnSave.vue'
 import KeyEmpty from '@/views/key/KeyEmpty.vue'
 import KeyHeader from '@/views/KeyHeader.vue'
 import KeyMain from '@/views/KeyMain.vue'
@@ -66,8 +75,14 @@ const share = reactive<AppMainShare>({
 provide(shareProvideKey, share)
 
 // 当环境发生变化时，销毁整个key和tag组件（避免状态保留）
-onMounted(() => bus.on(CONN_REFRESH, toggleKeyTag))
-onUnmounted(() => bus.off(CONN_REFRESH, toggleKeyTag))
+onMounted(() => {
+  bus.on(CONN_REFRESH, toggleKeyTag)
+  window.addEventListener('keydown', onGlobalConnHotkey, true)
+})
+onUnmounted(() => {
+  bus.off(CONN_REFRESH, toggleKeyTag)
+  window.removeEventListener('keydown', onGlobalConnHotkey, true)
+})
 
 // 切换连接时销毁key/tag组件
 const connPrepared = ref(false)
@@ -159,6 +174,46 @@ function changeReadonly(): void {
   share.readonly = !share.readonly
   meOk(share.readonly ? t('appMain.readonlyTip') : t('appMain.writableTip'))
 }
+
+/** 连接相关弹窗：ConnSave/Import 挂 AppMain；设置弹窗在 KeyHeader（始终挂载） */
+const connSaveRef = useTemplateRef<InstanceType<typeof ConnSave>>('connSave')
+const connImportRef = useTemplateRef<InstanceType<typeof ConnImport>>('connImport')
+const dialog = reactive({ conn: false, import: false })
+
+const connUi = reactive({
+  openConnSave(mode: 'add' | 'edit', conn?: UiConn): void {
+    dialog.conn = true
+    void nextTick(() => connSaveRef.value?.open(mode, conn))
+  },
+  openConnImport(): void {
+    dialog.import = true
+    void nextTick(() => connImportRef.value?.open())
+  },
+  /** KeyHeader onMounted 时注入，供菜单与全局快捷键共用 */
+  openSetting(): void {},
+  runConnAction(action: ConnShortcutAction): void {
+    if (action === 'add') connUi.openConnSave('add')
+    else if (action === 'import') connUi.openConnImport()
+    else if (action === 'setting') connUi.openSetting()
+    else if (action === 'newWindow') void openNewWindow()
+  },
+})
+
+function onGlobalConnHotkey(e: KeyboardEvent): void {
+  const action = matchConnShortcutAction(e)
+  if (!action) return
+  e.preventDefault()
+  connUi.runConnAction(action)
+}
+
+function onConnImported(impConnList: UiConn[]): void {
+  share.connList = mergeImportedConnList(share.connList, impConnList)
+  if (!Array.isArray(meTauri.settings.connGroups)) meTauri.settings.connGroups = []
+  mergeConnGroupsFromList(share.connList, meTauri.settings.connGroups)
+  meOk(t('conn.importOk'))
+}
+
+provide(connUiProvideKey, connUi)
 </script>
 
 <template>
@@ -175,8 +230,8 @@ function changeReadonly(): void {
 
       <!-- 右侧值 -->
       <el-splitter-panel :min="250">
-        <TabConn v-if="!share.conn" />
-        <template v-else-if="connPrepared">
+        <TabConn v-if="!share.conn || !connPrepared" />
+        <template v-else>
           <TabMain />
 
           <!-- 只读/可写 -->
@@ -203,6 +258,14 @@ function changeReadonly(): void {
         </template>
       </el-splitter-panel>
     </el-splitter>
+
+    <!-- 支持全局快捷键 -->
+    <ConnSave ref="connSave" v-if="dialog.conn" @closed="dialog.conn = false" />
+    <ConnImport
+      ref="connImport"
+      v-if="dialog.import"
+      @import="onConnImported"
+      @closed="dialog.import = false" />
   </div>
 </template>
 
@@ -219,6 +282,7 @@ function changeReadonly(): void {
     display: flex;
     flex-direction: column;
   }
+
   /* 中间分隔面板的样式调整 */
   :deep(.el-splitter-bar) {
     width: 5px !important;
