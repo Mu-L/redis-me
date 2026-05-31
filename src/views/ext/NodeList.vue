@@ -21,6 +21,11 @@ function tryInitNode() {
   if (master?.node) emit('update:modelValue', master.node)
 }
 
+/** 选中态与下拉项文案一致：host:port | M1 */
+function nodeOptionLabel(item: (typeof share.nodeList)[number]): string {
+  return `${item.node} | ${item.shortLabel}`
+}
+
 watch(() => share.nodeList, tryInitNode, { immediate: true })
 </script>
 
@@ -30,7 +35,11 @@ watch(() => share.nodeList, tryInitNode, { immediate: true })
     style="width: 220px"
     :placeholder="t('nodeList.placeholder')"
     v-if="share.conn?.cluster">
-    <el-option v-for="item in share.nodeList" :key="item.node" :value="item.node">
+    <el-option
+      v-for="item in share.nodeList"
+      :key="item.node"
+      :value="item.node"
+      :label="nodeOptionLabel(item)">
       <el-text effect="dark" :type="item.isMaster ? 'primary' : 'info'">
         {{ item.node }} |
         <el-tooltip :content="item.slotsTooltip" placement="top" :disabled="!item.slotsTooltip">

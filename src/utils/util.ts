@@ -107,6 +107,7 @@ export function meKeyShort(keyType: string | undefined | null, defaultValue = '?
 
 /**
  * 将 node_list 接口数据排序并补充与 UI 一致的字段。
+ * 展示顺序：M1/M2/… 在上，同编号的 S1/S2/… 在下。
  */
 export function enrichNodeList(rawList: RedisNode[] | null | undefined): EnrichedRedisNode[] {
   if (!rawList?.length) return []
@@ -144,7 +145,17 @@ export function enrichNodeList(rawList: RedisNode[] | null | undefined): Enriche
       item.shortLabel = item.flags?.slice(0, 1).toUpperCase() || 'F'
     }
   })
-  return sorted
+
+  return sorted.sort((a, b) => {
+    const rank = (item: EnrichedRedisNode) => (item.isMaster ? 0 : item.isSlave ? 1 : 2)
+    const num = (label: string) => {
+      const m = /^[MS](\d+)$/.exec(label)
+      return m ? Number(m[1]) : 999
+    }
+    return (
+      rank(a) - rank(b) || num(a.shortLabel) - num(b.shortLabel) || a.node.localeCompare(b.node)
+    )
+  })
 }
 // #endregion
 
