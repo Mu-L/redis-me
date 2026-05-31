@@ -1,28 +1,22 @@
 # 3.x Changelog
 
-## v3.7.0
+## [v3.7.0](https://mp.weixin.qq.com/s/mhlhujX5zpbi1XadHTa60A) (2026-06-01)
 
 ### ✨ New Features
 
 - Custom codec
   - Base64 over **8000 chars uses stdin** (avoids Windows command-line limits)
-  - Dialog adds a **Help** button linking to official codec docs
-- Info: Overview adds **users/commands/network/memory limits**; **total system memory** shown on the system row after PID; cluster defaults to **master**
-- Cluster: Improved **master/replica ordering** and **selection display** in the node list
-- Config: Added default **Redis 8.8** configuration file
-- Value area: Status bar text changed to **total vs scanned**
-- Settings
-  - More settings: **Command timeout** and **script timeout** (reconnect required after change)
-  - Improved defaults and layout for field display/scan; **? hints** aligned to the right with tips for key display and tree sort
-  - **Global shortcuts** entry; config/app/log **directories** as a dropdown (labels: Config / App / Log)
-  - English codec-related UI unified under **Codec**
-- Shortcuts
-  - Global shortcuts for connection actions; **Ctrl+Shift+N** to add a connection
-  - Shortcut display unified with **MeShortcut** (settings and key area)
+  - Dialog adds a **Help** button linking to official examples
+- Settings: **Command timeout** and **script timeout**
+- Info: Overview adds **users/commands/network/memory limits**
+- Shortcuts: Global shortcuts; improved shortcut display in the value area and terminal
 - Details
   - Export filenames use the **RedisME** prefix
-  - Fixed blank area on the right while a connection is loading
-- Toolchain: Updated frontend/backend dependencies; adapted to specta/rand upgrades
+  - More settings: improved defaults for field display, scan counts, etc.
+  - Value area status bar shows **total vs scanned**
+  - Config: default **Redis 8.8** configuration file
+  - Cluster: improved **master/replica ordering** and **selection display** in the node list
+- Toolchain: Updated frontend/backend dependencies to latest versions
 
 ### 🐞 Bug Fixes
 
