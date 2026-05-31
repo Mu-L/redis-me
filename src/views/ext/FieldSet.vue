@@ -18,7 +18,7 @@ import {
   needsJsonNormalize,
   toWireFormat,
   type ViewBytesFormat,
-} from '@/utils/bytes-format'
+} from '@/utils/format'
 import { meCommands, meCopy, meErr, meFormatDisplayValue, meJsonNormal, meOk } from '@/utils/util'
 
 /** 含 UI 用 type / wireFieldKey，提交时剔除 */

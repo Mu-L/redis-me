@@ -6,12 +6,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisFieldAdd_Deserialize, RedisKey_Deserialize } from '@/types/tauri-specta'
-import {
-  BYTES_FORMAT,
-  meViewToWire,
-  toWireFormat,
-  type ViewBytesFormat,
-} from '@/utils/bytes-format'
+import { BYTES_FORMAT, meViewToWire, toWireFormat, type ViewBytesFormat } from '@/utils/format'
 import {
   KEY_TYPE_LIST,
   meCommands,

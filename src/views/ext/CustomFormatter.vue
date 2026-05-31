@@ -10,7 +10,7 @@ import {
   parseFormatterErrorDetail,
   testFormatter,
   type CustomFormatter,
-} from '@/utils/custom-formatter'
+} from '@/utils/format'
 import { meErr, meErrHtml, meOk } from '@/utils/util'
 
 const visible = defineModel<boolean>({ default: false })

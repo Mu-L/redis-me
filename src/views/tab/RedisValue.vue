@@ -42,7 +42,7 @@ import {
   toWireFormat,
   viewFmtForField,
   type ViewBytesFormat,
-} from '@/utils/bytes-format'
+} from '@/utils/format'
 import { getValueShortcuts } from '@/utils/shortcut'
 import {
   bus,
