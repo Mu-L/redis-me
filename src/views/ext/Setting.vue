@@ -255,7 +255,7 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
       <el-row class="me-flex">
         <el-form-item :label="t('setting.dir')">
           <div class="me-flex">
-            <el-select v-model="dirType" style="width: 140px">
+            <el-select v-model="dirType" style="width: 100px">
               <el-option
                 v-for="item in dirList"
                 :label="item.label"
