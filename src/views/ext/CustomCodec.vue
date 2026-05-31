@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** 自定义编解码 CRUD：由 RedisValue 数据编码下拉头部编辑入口打开；列表顺序即下拉展示顺序 */
+/** 自定义编解码 CRUD：由 RedisValue 编解码下拉头部编辑入口打开；列表顺序即下拉展示顺序 */
 import { openUrl } from '@tauri-apps/plugin-opener'
 import type { TableInstance } from 'element-plus'
 import { Sortable, type SortableEvent } from 'sortablejs'
@@ -7,10 +7,10 @@ import { computed, nextTick, onBeforeUnmount, reactive, ref, useTemplateRef, wat
 import { useI18n } from 'vue-i18n'
 
 import {
-  buildFormatterCommand,
-  parseFormatterErrorDetail,
-  testFormatter,
-  type CustomFormatter,
+  buildCodecCommand,
+  parseCodecErrorDetail,
+  testCodec,
+  type CustomCodec,
 } from '@/utils/format'
 import { meErr, meErrHtml, meOk } from '@/utils/util'
 
@@ -19,7 +19,7 @@ const visible = defineModel<boolean>({ default: false })
 const { t } = useI18n()
 
 const tableRef = useTemplateRef<TableInstance>('table')
-const list = computed(() => window.meTauri.settings.customFormatters ?? [])
+const list = computed(() => window.meTauri.settings.customCodecs ?? [])
 
 let sortable: Sortable | null = null
 
@@ -28,7 +28,7 @@ function destroySortable() {
   sortable = null
 }
 
-/** 绑定 el-table tbody；顺序写入 settings.customFormatters */
+/** 绑定 el-table tbody；顺序写入 settings.customCodecs */
 function setupSortable() {
   destroySortable()
   const tbody = tableRef.value?.$el.querySelector(
@@ -42,7 +42,7 @@ function setupSortable() {
     animation: 150,
     onEnd({ oldIndex, newIndex }: SortableEvent) {
       if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return
-      const arr = window.meTauri.settings.customFormatters
+      const arr = window.meTauri.settings.customCodecs
       if (!Array.isArray(arr)) return
       const [item] = arr.splice(oldIndex, 1)
       if (item) arr.splice(newIndex, 0, item)
@@ -67,14 +67,14 @@ const formVisible = ref(false)
 const editIndex = ref(-1)
 const testingDecode = ref(false)
 const testingEncode = ref(false)
-const form = reactive<CustomFormatter>({ name: '', command: '' })
+const form = reactive<CustomCodec>({ name: '', command: '' })
 // 解码：wire Base64（hello）；编码：编辑区 Hex 文本 68656c6c6f 的 UTF-8 Base64
 const testDecodeSample = ref('aGVsbG8=')
 const testEncodeSample = ref('Njg2NTZjNmM2Zg==')
 
 const formValid = computed(() => form.name.trim() !== '' && form.command.trim() !== '')
 
-function readForm(): CustomFormatter | null {
+function readForm(): CustomCodec | null {
   const name = form.name.trim()
   const command = form.command.trim()
   if (!name || !command) return null
@@ -88,7 +88,7 @@ function openAdd() {
   formVisible.value = true
 }
 
-function openEdit(row: CustomFormatter, index: number) {
+function openEdit(row: CustomCodec, index: number) {
   editIndex.value = index
   form.name = row.name
   form.command = row.command
@@ -103,16 +103,16 @@ function saveForm() {
   const name = form.name.trim()
   const command = form.command.trim()
   if (!name) {
-    meErr(t('customFormatter.nameRequired'))
+    meErr(t('customCodec.nameRequired'))
     return
   }
   if (!command) {
-    meErr(t('customFormatter.emptyCommand'))
+    meErr(t('customCodec.emptyCommand'))
     return
   }
   const dup = list.value.findIndex((f, i) => f.name === name && i !== editIndex.value)
   if (dup >= 0) {
-    meErr(t('customFormatter.duplicateName'))
+    meErr(t('customCodec.duplicateName'))
     return
   }
   const item = { name, command }
@@ -125,62 +125,62 @@ function saveForm() {
 }
 
 async function runTest(mode: 'decode' | 'encode') {
-  const formatter = readForm()
-  if (!formatter) {
-    meErr(t('customFormatter.emptyCommand'))
+  const codec = readForm()
+  if (!codec) {
+    meErr(t('customCodec.emptyCommand'))
     return
   }
   const sample = (mode === 'decode' ? testDecodeSample : testEncodeSample).value.trim()
   const loading = mode === 'decode' ? testingDecode : testingEncode
   loading.value = true
   try {
-    const out = await testFormatter(formatter, mode, sample)
-    const preview = buildFormatterCommand(formatter, mode, sample)
+    const out = await testCodec(codec, mode, sample)
+    const preview = buildCodecCommand(codec, mode, sample)
     meOk(
-      t('customFormatter.testResult', { command: preview, input: sample, output: out }),
+      t('customCodec.testResult', { command: preview, input: sample, output: out }),
       true,
-      t('customFormatter.testOk'),
+      t('customCodec.testOk'),
       { dangerouslyUseHTMLString: true },
     )
   } catch (e) {
-    const preview = buildFormatterCommand(formatter, mode, sample)
-    const detail = parseFormatterErrorDetail(e instanceof Error ? e.message : String(e))
-    meErrHtml(t('customFormatter.testErrorResult', { command: preview, input: sample, detail }))
+    const preview = buildCodecCommand(codec, mode, sample)
+    const detail = parseCodecErrorDetail(e instanceof Error ? e.message : String(e))
+    meErrHtml(t('customCodec.testErrorResult', { command: preview, input: sample, detail }))
   } finally {
     loading.value = false
   }
 }
 
 function openCodecDoc() {
-  void openUrl(t('customFormatter.docUrl'))
+  void openUrl(t('customCodec.docUrl'))
 }
 </script>
 
 <template>
   <el-dialog
     v-model="visible"
-    :title="t('customFormatter.title')"
+    :title="t('customCodec.title')"
     width="560px"
     append-to-body
     destroy-on-close
     draggable>
     <div class="toolbar me-flex">
       <el-button link type="primary" icon="el-icon-question-filled" @click="openCodecDoc">
-        {{ t('customFormatter.docHelp') }}
+        {{ t('customCodec.docHelp') }}
       </el-button>
       <el-button size="small" icon="el-icon-plus" @click="openAdd">
-        {{ t('customFormatter.add') }}
+        {{ t('customCodec.add') }}
       </el-button>
     </div>
 
     <el-table ref="table" :data="list" row-key="name" empty-text="—" size="small">
       <el-table-column label="#" type="index" width="44" align="center" class-name="drag-handle" />
       <el-table-column
-        :label="t('customFormatter.name')"
+        :label="t('customCodec.name')"
         prop="name"
         width="100"
         show-overflow-tooltip />
-      <el-table-column :label="t('customFormatter.command')" prop="command" show-overflow-tooltip />
+      <el-table-column :label="t('customCodec.command')" prop="command" show-overflow-tooltip />
       <el-table-column width="100" align="center">
         <template #default="{ row, $index }">
           <div class="row-actions">
@@ -194,46 +194,42 @@ function openCodecDoc() {
 
   <el-dialog
     v-model="formVisible"
-    :title="editIndex >= 0 ? t('customFormatter.edit') : t('customFormatter.add')"
+    :title="editIndex >= 0 ? t('customCodec.edit') : t('customCodec.add')"
     width="560px"
     append-to-body
     destroy-on-close
     draggable>
     <el-form label-position="top">
-      <el-form-item :label="t('customFormatter.name')" required>
-        <el-input v-model="form.name" :placeholder="t('customFormatter.namePlaceholder')" />
+      <el-form-item :label="t('customCodec.name')" required>
+        <el-input v-model="form.name" :placeholder="t('customCodec.namePlaceholder')" />
       </el-form-item>
-      <el-form-item required class="custom-format-field">
+      <el-form-item required class="custom-codec-field">
         <template #label>
           <span class="field-label">
-            {{ t('customFormatter.command') }}
+            {{ t('customCodec.command') }}
             <me-icon
               icon="el-icon-question-filled"
-              :info="t('customFormatter.commandHelp')"
+              :info="t('customCodec.commandHelp')"
               placement="top-start"
               raw-content
               :show-after="200" />
           </span>
         </template>
-        <el-input v-model="form.command" :placeholder="t('customFormatter.commandPlaceholder')" />
+        <el-input v-model="form.command" :placeholder="t('customCodec.commandPlaceholder')" />
       </el-form-item>
-      <el-form-item :label="t('customFormatter.testDecodeSample')">
+      <el-form-item :label="t('customCodec.testDecodeSample')">
         <div class="test-row">
-          <el-input
-            v-model="testDecodeSample"
-            :placeholder="t('customFormatter.testDecodeSamplePh')" />
+          <el-input v-model="testDecodeSample" :placeholder="t('customCodec.testDecodeSamplePh')" />
           <el-button :loading="testingDecode" @click="runTest('decode')">{{
-            t('customFormatter.testDecode')
+            t('customCodec.testDecode')
           }}</el-button>
         </div>
       </el-form-item>
-      <el-form-item :label="t('customFormatter.testEncodeSample')">
+      <el-form-item :label="t('customCodec.testEncodeSample')">
         <div class="test-row">
-          <el-input
-            v-model="testEncodeSample"
-            :placeholder="t('customFormatter.testEncodeSamplePh')" />
+          <el-input v-model="testEncodeSample" :placeholder="t('customCodec.testEncodeSamplePh')" />
           <el-button :loading="testingEncode" @click="runTest('encode')">{{
-            t('customFormatter.testEncode')
+            t('customCodec.testEncode')
           }}</el-button>
         </div>
       </el-form-item>
@@ -253,7 +249,7 @@ function openCodecDoc() {
 }
 
 /* 命令标签与必填星号、? 保持同一行 */
-.custom-format-field :deep(.el-form-item__label) {
+.custom-codec-field :deep(.el-form-item__label) {
   display: inline-flex;
   align-items: center;
 }

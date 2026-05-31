@@ -56,9 +56,9 @@ const initSettings = {
   connShow: 'flat', // 'flat' | 'group'
   connGroups: [] as string[], // 分组名有序列表
   connGroupExpanded: {} as Record<string, boolean>, // 分组折叠状态，键为分组名（''=默认分组）
-  // 自定义 Formatter（STRING 值编解码，见 plans/custom-formatter.md）
-  customFormatters: [] as { name: string; command: string }[],
-  formatterExecTimeoutSec: 5,
+  // 自定义 Codec（STRING 值编解码，见 plans/custom-formatter.md）
+  customCodecs: [] as { name: string; command: string }[],
+  codecExecTimeoutSec: 5,
   // Redis 命令读写超时（秒），同步至 Rust AppSettings
   commandTimeout: 30,
 }
@@ -76,10 +76,20 @@ if (
 ) {
   settings.connGroupExpanded = {}
 }
-if (!Array.isArray(settings.customFormatters)) settings.customFormatters = []
-if (typeof settings.formatterExecTimeoutSec !== 'number' || settings.formatterExecTimeoutSec <= 0) {
-  settings.formatterExecTimeoutSec = 5
+// v3.6.x：customFormatters / formatterExecTimeoutSec → customCodecs / codecExecTimeoutSec
+const legacySettings = settings as Record<string, unknown>
+if (!Array.isArray(settings.customCodecs)) {
+  settings.customCodecs = Array.isArray(legacySettings.customFormatters)
+    ? (legacySettings.customFormatters as { name: string; command: string }[])
+    : []
 }
+if ('customFormatters' in legacySettings) delete legacySettings.customFormatters
+if (typeof settings.codecExecTimeoutSec !== 'number' || settings.codecExecTimeoutSec <= 0) {
+  const legacyTimeout = legacySettings.formatterExecTimeoutSec
+  settings.codecExecTimeoutSec =
+    typeof legacyTimeout === 'number' && legacyTimeout > 0 ? legacyTimeout : 5
+}
+if ('formatterExecTimeoutSec' in legacySettings) delete legacySettings.formatterExecTimeoutSec
 if (typeof settings.commandTimeout !== 'number' || settings.commandTimeout <= 0) {
   settings.commandTimeout = 30
 }

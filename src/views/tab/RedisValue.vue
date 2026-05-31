@@ -63,7 +63,7 @@ import TableGroup from '@/views/ext/TableGroup.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
 import KeyRename from '@/views/key/KeyRename.vue'
 
-import CustomFormatter from '../ext/CustomFormatter.vue'
+import CustomCodec from '../ext/CustomCodec.vue'
 import FieldAdd from '../ext/FieldAdd.vue'
 import FieldSet from '../ext/FieldSet.vue'
 // #endregion
@@ -182,7 +182,7 @@ const bytesFormat = ref<ViewBytesFormat>('utf8')
  */
 const displayBytesFormat = ref<ViewBytesFormat>('utf8')
 const displayWire = ref('')
-const customFormatterVisible = ref(false)
+const customCodecVisible = ref(false)
 /** STRING 单键：wire → 当前视图文本（custom 异步解码） */
 const resolvedWireView = ref('')
 /** custom 编解码失败时为 true，编辑器展示 resolvedWireView 中的错误信息 */
@@ -201,7 +201,7 @@ const formatOptions = computed(() => {
       disabled: !stringType.value,
     })),
   ]
-  const custom = (window.meTauri.settings.customFormatters ?? []).map(f => ({
+  const custom = (window.meTauri.settings.customCodecs ?? []).map(f => ({
     label: f.name,
     value: customFormatValue(f.name),
     disabled: !stringType.value,
@@ -221,7 +221,7 @@ const viewDecodeFailed = computed(() => {
 
 /** 自定义编解码被删或改名后，当前选中项失效则回退 utf8 */
 watch(
-  () => window.meTauri.settings.customFormatters,
+  () => window.meTauri.settings.customCodecs,
   list => {
     if (!isCustomView(bytesFormat.value)) return
     const name = customFormatName(bytesFormat.value)
@@ -1065,15 +1065,15 @@ onUnmounted(() => {
               <div
                 class="me-flex"
                 style="align-items: center; justify-content: space-evenly; width: 100%">
-                <el-text style="font-weight: bold">{{ t('redisValue.viewAs') }}</el-text>
+                <el-text style="font-weight: bold">{{ t('redisValue.viewCodec') }}</el-text>
                 <me-icon
                   v-if="canEdit"
                   icon="el-icon-edit"
-                  :name="t('customFormatter.title')"
+                  :name="t('customCodec.title')"
                   hint
                   class="icon-btn"
                   style="margin-left: 5px"
-                  @click.stop="customFormatterVisible = true" />
+                  @click.stop="customCodecVisible = true" />
               </div>
             </template>
             <el-option
@@ -1151,7 +1151,7 @@ onUnmounted(() => {
     <TTLSet ref="ttlSetRef" @success="setTimer" />
     <FieldAdd ref="fieldAddRef" @success="refreshKey" />
     <KeyRename ref="keyRenameRef" />
-    <CustomFormatter v-model="customFormatterVisible" />
+    <CustomCodec v-model="customCodecVisible" />
 
     <!-- Stream消费者组 -->
     <me-dialog title="Groups" icon="el-icon-coin" v-model="tableGroupVisible" width="900">

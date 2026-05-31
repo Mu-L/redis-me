@@ -5,7 +5,7 @@
 ## Entry and setup
 
 1. Open the value detail view
-2. Click the **edit** icon next to the **encoding** dropdown to open the **Custom Codec** dialog
+2. Click the **edit** icon next to the **codec** dropdown to open the **Custom Codec** dialog
 3. Add an entry:
    - **Name** — shown in the dropdown
    - **Command** — full executable command including the interpreter (see below)
@@ -57,7 +57,7 @@ The app reads stdout as **UTF-8**. On Windows, Python scripts should call `sys.s
 ## Workflow
 
 1. Configure and save your custom codec entry
-2. Select it from the **encoding** dropdown
+2. Select it from the **codec** dropdown
 3. The value area shows decoded text; edit and click **Save**
 4. Use **Test Decode / Test Encode** in the dialog to verify your script:
    - Default wire Base64 sample is `aGVsbG8=` (bytes `hello`)

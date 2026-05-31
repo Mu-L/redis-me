@@ -26,9 +26,9 @@ declare global {
       codeFont?: string[]
       autoUpdate?: boolean
       /** 自定义 STRING 值编解码脚本配置 */
-      customFormatters?: { name: string; command: string }[]
+      customCodecs?: { name: string; command: string }[]
       /** 自定义编解码脚本执行超时（秒） */
-      formatterExecTimeoutSec?: number
+      codecExecTimeoutSec?: number
       /** Redis 命令读写超时（秒），同步至 Rust */
       commandTimeout?: number
     }

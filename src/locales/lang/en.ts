@@ -80,7 +80,7 @@ export default {
     commandTimeoutTip:
       'Max wait for one Redis command on an open connection; takes effect after reconnect. Range {min}–{max} s',
     scriptTimeout: 'Script Timeout',
-    scriptTimeoutTip: 'Max runtime for custom encode/decode scripts. Range {min}–{max} s',
+    scriptTimeoutTip: 'Max runtime for custom codec scripts. Range {min}–{max} s',
     secUnit: 's',
     countUnit: '',
     pxUnit: 'px',
@@ -235,13 +235,13 @@ export default {
       'Redis Cluster Mode<br/>• Choose any one of multiple sentinels, please fill in sentinel configuration for address, port, and password<br/>• Master node username and password are for the Master node monitored by the sentinel',
   },
 
-  customFormatter: {
+  customCodec: {
     title: 'Custom Codec',
     docUrl: 'https://www.hepengju.com/guide/usage/codec.html',
     docHelp: 'Help',
     docHelpTip: 'View custom codec examples on the official site',
     name: 'Name',
-    namePlaceholder: 'Shown in the encoding dropdown',
+    namePlaceholder: 'Shown in the codec dropdown',
     command: 'Command',
     commandHelp: `Enter the <b>full command with interpreter</b>, e.g. python C:\\path\\codec.py<br/><br/>
 <b>The app appends two arguments</b><br/>
@@ -363,8 +363,8 @@ export default {
     key: 'Key',
     field: 'Field',
     type: 'Type',
-    keyEncoding: 'Key Encoding',
-    valueEncoding: 'Value Encoding',
+    keyCodec: 'Key Codec',
+    valueCodec: 'Value Codec',
     ttl: 'TTL (-1 means Forever)',
     value: 'Value',
     element: 'Element',
@@ -672,7 +672,7 @@ export default {
     textLength: 'Bytes Length: ',
     textEntries: 'Scanned: ',
     totalCount: 'Total: ',
-    viewAs: 'Encoding',
+    viewCodec: 'Codec',
     keyShortHint: 'View KeyShort',
     keyShort: {
       fullscreen: 'Fullscreen Editor',

@@ -227,13 +227,13 @@ export default {
       'Redis Sentinel 哨兵模式<br/>• 多个哨兵任选其一即可，地址、端口、密码请填写哨兵配置<br/>• 主节点用户密码为哨兵监听的Master节点的用户密码',
   },
 
-  customFormatter: {
+  customCodec: {
     title: '自定义编解码',
     docUrl: 'https://www.hepengju.com/zh/guide/usage/codec.html',
     docHelp: '帮助',
     docHelpTip: '查看官网自定义编解码示例',
     name: '名称',
-    namePlaceholder: '显示在「数据编码」下拉中',
+    namePlaceholder: '显示在「编解码」下拉中',
     command: '命令',
     commandHelp: `需填写<b>含解释器的完整命令</b>，例如 python C:\\path\\codec.py<br/><br/>
 <b>程序会自动追加两个参数</b><br/>
@@ -355,8 +355,8 @@ export default {
     key: '键',
     field: '字段',
     type: '类型',
-    keyEncoding: '键编码',
-    valueEncoding: '值编码',
+    keyCodec: '键编码',
+    valueCodec: '值编码',
     ttl: 'TTL超时时长 (-1代表永久)',
     value: '值',
     element: '元素',
@@ -660,7 +660,7 @@ export default {
     textLength: '字节长度：',
     textEntries: '已扫描：',
     totalCount: '总数：',
-    viewAs: '数据编码',
+    viewCodec: '数据编码',
     keyShortHint: '查看快捷键',
     keyShort: {
       fullscreen: '全屏编辑器',

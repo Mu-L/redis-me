@@ -4,7 +4,7 @@
 
 ### ✨ New Features
 
-- Encoding: **Complete redesign and improvements**
+- Codec: **Complete redesign and improvements**
   - **Custom encode/decode** via external scripts
   - New practical codec: **StrJson**
   - Removed the rarely useful **Binary** codec
@@ -70,16 +70,16 @@
 - Keys panel: Improved empty-state UI when no connection is selected
   - **Colorful brand icon**; click to open the official website
   - **Source repository** and **bug report** entry points
-- Encoding: **Separate byte encodings for keys and values**
+- Codec: **Separate byte codecs for keys and values**
   - Applies to **New Key**, **Edit Key**, and **Rename Key**
-  - **Rename Key** uses a dedicated dialog; encoding can be set inside it
+  - **Rename Key** uses a dedicated dialog; codec can be set inside it
 - MsgPack: **String** values support **MsgPack encode/decode (shown as JSON)**
 - Performance: Faster insert path when adding fields to Hash/List/Set/ZSet, etc.
 - Details: Reordered checkboxes in the save-connection dialog for typical workflows, etc.
 
 ### 🐞 Bug Fixes
 
-- New Key: Fixed **partial writes** on Hash/List and similar multi-field types when **some values had encoding errors**
+- New Key: Fixed **partial writes** on Hash/List and similar multi-field types when **some values had codec errors**
 - Add field: Fixed failures adding fields to Hash and similar types when **key names are non–UTF-8 bytes** (e.g. JDK serialization)
 
 ## [v3.2.0](https://mp.weixin.qq.com/s/8c39tELlwtjrkbvD8kWB6A) (2026-05-05)
@@ -121,7 +121,7 @@
 
 ### ✨ New Features
 
-- **Data Encoding**: Added support for UTF8, Hex, Binary, and Base64 formats
+- **Data Codec**: Added support for UTF8, Hex, Binary, and Base64 formats
   - New Key, Rename Key
   - Value Display: key shown on top, main value area supports display/save, insert field, edit field
 - Package: **Added Linux ARM architecture support**

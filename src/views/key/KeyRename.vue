@@ -14,20 +14,20 @@ defineExpose({ open })
 const visible = ref(false)
 const loading = ref(false)
 const targetKey = ref<RedisKey_Deserialize | null>(null)
-const encoding = ref('utf8')
+const codec = ref('utf8')
 const inputValue = ref('')
 
 function open(data: { redisKey: RedisKey_Deserialize }) {
-  encoding.value = 'utf8'
+  codec.value = 'utf8'
   targetKey.value = data.redisKey
   inputValue.value = data.redisKey.key
   visible.value = true
 }
 
-watch(encoding, () => {
+watch(codec, () => {
   const k = targetKey.value
   if (!k || !visible.value) return
-  inputValue.value = encoding.value === 'utf8' ? k.key : meFormatBytes(k.bytes, encoding.value)
+  inputValue.value = codec.value === 'utf8' ? k.key : meFormatBytes(k.bytes, codec.value)
 })
 
 async function submit() {
@@ -36,7 +36,7 @@ async function submit() {
   if (!k || !id) return
 
   const value = inputValue.value.trim()
-  const enc = encoding.value
+  const enc = codec.value
   if (enc !== 'utf8') {
     try {
       meToBase64(value, enc)
@@ -77,7 +77,7 @@ async function submit() {
     <el-input v-model="inputValue" :placeholder="t('keyRename.newKeyName')" />
     <template #footer>
       <div class="me-flex">
-        <el-select v-model="encoding" style="width: 100px">
+        <el-select v-model="codec" style="width: 100px">
           <el-option
             v-for="item in BYTES_FORMAT"
             :key="item"

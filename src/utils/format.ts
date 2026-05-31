@@ -11,20 +11,20 @@ import type { BytesFormat } from '@/types/tauri-specta'
 
 const t = i18n.global.t
 
-// #region 自定义 Formatter（shell 脚本 decode/encode）
+// #region 自定义 Codec（shell 脚本 decode/encode）
 
 /** Base64 参数超过此长度时改走 stdin（Windows cmd 命令行约 8191 字符上限） */
-export const FORMATTER_STDIN_B64_THRESHOLD = 8000
+export const CODEC_STDIN_B64_THRESHOLD = 8000
 const STDIN_ARG = '--stdin'
 
-/** 持久化于 settings.customFormatters；CustomFormatter.vue CRUD */
-export interface CustomFormatter {
+/** 持久化于 settings.customCodecs；CustomCodec.vue CRUD */
+export interface CustomCodec {
   name: string
   /** 可执行入口，如 `python3 /path/codec.py` */
   command: string
 }
 
-export type FormatterMode = 'decode' | 'encode'
+export type CodecMode = 'decode' | 'encode'
 
 interface ShellExecResult {
   code: number
@@ -45,30 +45,26 @@ function textUtf8ToBase64(text: string): string {
   return btoa(binary)
 }
 
-/** 按名称查 settings.customFormatters；meFormatViewValueAsync / meViewToWireAsync 内部 */
-export function findCustomFormatter(name: string): CustomFormatter | undefined {
-  const list = window.meTauri.settings.customFormatters
+/** 按名称查 settings.customCodecs；meFormatViewValueAsync / meViewToWireAsync 内部 */
+export function findCustomCodec(name: string): CustomCodec | undefined {
+  const list = window.meTauri.settings.customCodecs
   if (!Array.isArray(list)) return undefined
   return list.find(f => f.name === name)
 }
 
 function getExecTimeoutSec(): number {
-  const n = window.meTauri.settings.formatterExecTimeoutSec
+  const n = window.meTauri.settings.codecExecTimeoutSec
   return typeof n === 'number' && n > 0 ? n : 5
 }
 
 export function needsStdinInput(b64: string): boolean {
-  return b64.length >= FORMATTER_STDIN_B64_THRESHOLD
+  return b64.length >= CODEC_STDIN_B64_THRESHOLD
 }
 
-/** 拼完整命令行；CustomFormatter.vue 测试弹窗展示用 */
-export function buildFormatterCommand(
-  formatter: CustomFormatter,
-  mode: FormatterMode,
-  b64: string,
-): string {
-  const cmd = formatter.command.trim()
-  if (!cmd) throw new Error(t('customFormatter.emptyCommand'))
+/** 拼完整命令行；CustomCodec.vue 测试弹窗展示用 */
+export function buildCodecCommand(codec: CustomCodec, mode: CodecMode, b64: string): string {
+  const cmd = codec.command.trim()
+  if (!cmd) throw new Error(t('customCodec.emptyCommand'))
   if (needsStdinInput(b64)) return `${cmd} ${mode} ${STDIN_ARG}`
   return `${cmd} ${mode} ${b64}`
 }
@@ -79,19 +75,19 @@ function formatExecError(name: string, result: ShellExecResult, fullCommand: str
   if (err) {
     detail = err
   } else if (result.code !== 0) {
-    detail = t('customFormatter.execFailed', { name, code: result.code })
+    detail = t('customCodec.execFailed', { name, code: result.code })
   } else {
-    detail = t('customFormatter.invalidOutput', { name })
+    detail = t('customCodec.invalidOutput', { name })
   }
   return withExecCommand(fullCommand, detail)
 }
 
 function withExecCommand(fullCommand: string, message: string): string {
-  return t('customFormatter.execFailResult', { command: fullCommand, detail: message })
+  return t('customCodec.execFailResult', { command: fullCommand, detail: message })
 }
 
-/** 从 execFailResult 错误里取 detail；CustomFormatter.vue 展示 */
-export function parseFormatterErrorDetail(message: string): string {
+/** 从 execFailResult 错误里取 detail；CustomCodec.vue 展示 */
+export function parseCodecErrorDetail(message: string): string {
   const headPrefixes = ['⚠️ 错误：', '⚠️ Error: ']
   for (const prefix of headPrefixes) {
     if (!message.startsWith(prefix)) continue
@@ -118,14 +114,13 @@ function createExecCommand(fullCommand: string) {
 }
 
 function execTimeoutPromise(
-  formatterName: string,
+  codecName: string,
   timeoutSec: number,
 ): { promise: Promise<never>; clear: () => void } {
   let timer: ReturnType<typeof setTimeout> | undefined
   const promise = new Promise<never>((_, reject) => {
     timer = setTimeout(
-      () =>
-        reject(new Error(t('customFormatter.timeout', { name: formatterName, sec: timeoutSec }))),
+      () => reject(new Error(t('customCodec.timeout', { name: codecName, sec: timeoutSec }))),
       timeoutSec * 1000,
     )
   })
@@ -137,13 +132,13 @@ function execTimeoutPromise(
   }
 }
 
-async function execShell(fullCommand: string, formatterName: string): Promise<ShellExecResult> {
+async function execShell(fullCommand: string, codecName: string): Promise<ShellExecResult> {
   if (!isTauri()) {
-    throw new Error(t('customFormatter.shellUnavailable'))
+    throw new Error(t('customCodec.shellUnavailable'))
   }
   const timeoutSec = getExecTimeoutSec()
   const cmd = createExecCommand(fullCommand)
-  const timeout = execTimeoutPromise(formatterName, timeoutSec)
+  const timeout = execTimeoutPromise(codecName, timeoutSec)
   try {
     const result = await Promise.race([cmd.execute(), timeout.promise])
     return { code: result.code ?? 0, stdout: result.stdout ?? '', stderr: result.stderr ?? '' }
@@ -157,10 +152,10 @@ async function execShell(fullCommand: string, formatterName: string): Promise<Sh
 async function execShellWithStdin(
   fullCommand: string,
   b64: string,
-  formatterName: string,
+  codecName: string,
 ): Promise<ShellExecResult> {
   if (!isTauri()) {
-    throw new Error(t('customFormatter.shellUnavailable'))
+    throw new Error(t('customCodec.shellUnavailable'))
   }
   const timeoutSec = getExecTimeoutSec()
   const cmd = createExecCommand(fullCommand)
@@ -174,7 +169,7 @@ async function execShellWithStdin(
     cmd.stderr.on('data', line => stderrChunks.push(String(line)))
   })
 
-  const timeout = execTimeoutPromise(formatterName, timeoutSec)
+  const timeout = execTimeoutPromise(codecName, timeoutSec)
   let child: Awaited<ReturnType<typeof cmd.spawn>> | undefined
   let finished = false
   try {
@@ -195,53 +190,53 @@ async function execShellWithStdin(
   }
 }
 
-async function execFormatter(
-  formatter: CustomFormatter,
-  mode: FormatterMode,
+async function execCodec(
+  codec: CustomCodec,
+  mode: CodecMode,
   b64: string,
   kind: 'decode' | 'encode' | 'test',
 ): Promise<string> {
   if (kind === 'decode' && !b64) return ''
-  const fullCommand = buildFormatterCommand(formatter, mode, b64)
+  const fullCommand = buildCodecCommand(codec, mode, b64)
   const result = needsStdinInput(b64)
-    ? await execShellWithStdin(fullCommand, b64, formatter.name)
-    : await execShell(fullCommand, formatter.name)
+    ? await execShellWithStdin(fullCommand, b64, codec.name)
+    : await execShell(fullCommand, codec.name)
   const out = kind === 'encode' ? result.stdout.trim() : result.stdout.trimEnd()
   if (result.code !== 0) {
-    throw new Error(formatExecError(formatter.name, result, fullCommand))
+    throw new Error(formatExecError(codec.name, result, fullCommand))
   }
   if (kind !== 'test' && !out) {
     const msg =
       mode === 'decode'
-        ? t('customFormatter.decodeEmpty', { name: formatter.name })
-        : t('customFormatter.encodeEmpty', { name: formatter.name })
+        ? t('customCodec.decodeEmpty', { name: codec.name })
+        : t('customCodec.encodeEmpty', { name: codec.name })
     throw new Error(withExecCommand(fullCommand, msg))
   }
   if (kind === 'encode' && out && !isValidBase64(out)) {
     throw new Error(
-      withExecCommand(fullCommand, t('customFormatter.encodeNotBase64', { name: formatter.name })),
+      withExecCommand(fullCommand, t('customCodec.encodeNotBase64', { name: codec.name })),
     )
   }
   return out
 }
 
 /** wire base64 → 展示文本；meFormatViewValueAsync 调用 */
-export async function runDecode(wireBase64: string, formatter: CustomFormatter): Promise<string> {
-  return execFormatter(formatter, 'decode', wireBase64, 'decode')
+export async function runDecode(wireBase64: string, codec: CustomCodec): Promise<string> {
+  return execCodec(codec, 'decode', wireBase64, 'decode')
 }
 
 /** 编辑区文本 → wire base64；meViewToWireAsync 调用 */
-export async function runEncode(editorText: string, formatter: CustomFormatter): Promise<string> {
-  return execFormatter(formatter, 'encode', textUtf8ToBase64(editorText), 'encode')
+export async function runEncode(editorText: string, codec: CustomCodec): Promise<string> {
+  return execCodec(codec, 'encode', textUtf8ToBase64(editorText), 'encode')
 }
 
-/** 弹窗内测试 decode / encode；CustomFormatter.vue */
-export async function testFormatter(
-  formatter: CustomFormatter,
-  mode: FormatterMode,
+/** 弹窗内测试 decode / encode；CustomCodec.vue */
+export async function testCodec(
+  codec: CustomCodec,
+  mode: CodecMode,
   sampleBase64: string,
 ): Promise<string> {
-  return execFormatter(formatter, mode, sampleBase64, 'test')
+  return execCodec(codec, mode, sampleBase64, 'test')
 }
 
 // #endregion
@@ -275,12 +270,12 @@ export function isStringOnlyView(view: ViewBytesFormat): boolean {
   return view === 'msgpack' || view === 'strjson' || isCustomView(view)
 }
 
-function resolveCustomFormatter(view: ViewBytesFormat): CustomFormatter {
+function resolveCustomCodec(view: ViewBytesFormat): CustomCodec {
   const name = customFormatName(view)
-  if (!name) throw new Error(t('customFormatter.notFound', { name: view }))
-  const formatter = findCustomFormatter(name)
-  if (!formatter) throw new Error(t('customFormatter.notFound', { name }))
-  return formatter
+  if (!name) throw new Error(t('customCodec.notFound', { name: view }))
+  const codec = findCustomCodec(name)
+  if (!codec) throw new Error(t('customCodec.notFound', { name }))
+  return codec
 }
 
 /** STRING 值详情下拉扩展项；RedisValue */
@@ -360,7 +355,7 @@ export function meFormatViewValue(wire: string, view: ViewBytesFormat): string {
 export async function meFormatViewValueAsync(wire: string, view: ViewBytesFormat): Promise<string> {
   if (!wire || view === 'utf8') return wire
   if (isCustomView(view)) {
-    return runDecode(wire, resolveCustomFormatter(view))
+    return runDecode(wire, resolveCustomCodec(view))
   }
   return meFormatViewValue(wire, view)
 }
@@ -382,7 +377,7 @@ export function meViewToWire(text: string, view: ViewBytesFormat): string {
 export async function meViewToWireAsync(text: string, view: ViewBytesFormat): Promise<string> {
   if (!text || view === 'utf8') return text
   if (isCustomView(view)) {
-    return runEncode(text, resolveCustomFormatter(view))
+    return runEncode(text, resolveCustomCodec(view))
   }
   return meViewToWire(text, view)
 }

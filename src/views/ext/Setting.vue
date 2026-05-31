@@ -113,7 +113,7 @@ const moreDefaultSettings = {
   fieldShow: 'auto',
   fieldShowView: 'table',
   commandTimeout: 30,
-  formatterExecTimeoutSec: 5,
+  codecExecTimeoutSec: 5,
 }
 
 /** 更多设置数字项 min/max，与表单项及 ? 提示共用 */
@@ -121,7 +121,7 @@ const MORE_SETTING_LIMITS = {
   keyScanCount: { min: 1000, max: 10000 },
   fieldScanCount: { min: 10, max: 100 },
   commandTimeout: { min: 5, max: 300 },
-  formatterExecTimeoutSec: { min: 1, max: 120 },
+  codecExecTimeoutSec: { min: 1, max: 120 },
   keyHeight: { min: 16, max: 28 },
 } as const
 
@@ -388,13 +388,13 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
             <me-icon
               :name="t('setting.scriptTimeout')"
               icon="el-icon-question-filled"
-              :info="t('setting.scriptTimeoutTip', MORE_SETTING_LIMITS.formatterExecTimeoutSec)"
+              :info="t('setting.scriptTimeoutTip', MORE_SETTING_LIMITS.codecExecTimeoutSec)"
               placement="top" />
           </template>
           <el-input-number
-            v-model="settings.formatterExecTimeoutSec"
-            :min="MORE_SETTING_LIMITS.formatterExecTimeoutSec.min"
-            :max="MORE_SETTING_LIMITS.formatterExecTimeoutSec.max"
+            v-model="settings.codecExecTimeoutSec"
+            :min="MORE_SETTING_LIMITS.codecExecTimeoutSec.min"
+            :max="MORE_SETTING_LIMITS.codecExecTimeoutSec.max"
             :controls="false"
             style="width: 100px"
             align="left">
