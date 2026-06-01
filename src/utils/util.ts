@@ -493,11 +493,9 @@ export async function meDownloadUpdate(
       h(
         'a',
         {
-          href: changelogUrl,
-          target: '_blank',
-          style: 'color: var(--el-color-primary); text-decoration: none; margin-left: 5px; ',
-          onClick: (e: MouseEvent) => {
-            e.preventDefault()
+          style:
+            'color: var(--el-color-primary); text-decoration: none; margin-left: 5px; cursor: pointer; ',
+          onClick: () => {
             void openUrl(changelogUrl)
           },
         },
