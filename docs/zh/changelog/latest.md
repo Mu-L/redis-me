@@ -1,5 +1,9 @@
 # 3.x 更新日志
 
+## v3.8.0
+
+- RedisACL管理
+
 ## [v3.7.0](https://mp.weixin.qq.com/s/mhlhujX5zpbi1XadHTa60A) (2026-06-01)
 
 ### ✨ 新增优化

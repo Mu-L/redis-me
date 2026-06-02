@@ -241,6 +241,134 @@ impl MeClient for MeCluster {
         Ok(redis_value_to_string(value, "\n"))
     }
 
+    fn acl_users(&self, _node: Option<String>) -> AnyResult<Vec<String>> {
+        let mut conn = self.get_conn()?;
+        if let Some(target) = _node.filter(|x| !x.is_empty()) {
+            let (route, _) = self.get_node_route(Some(target))?;
+            let value = conn.route_command(redis::cmd("ACL").arg("USERS"), route)?;
+            Ok(FromRedisValue::from_redis_value(value)?)
+        } else {
+            // 未指定节点时优先使用 redis-rs 提供的 acl_xxx
+            Ok(conn.acl_users()?)
+        }
+    }
+
+    fn acl_getuser(&self, username: &str, _node: Option<String>) -> AnyResult<AclUserDetail> {
+        let mut conn = self.get_conn()?;
+        if let Some(target) = _node.filter(|x| !x.is_empty()) {
+            let (route, _) = self.get_node_route(Some(target))?;
+            let value = conn.route_command(redis::cmd("ACL").arg("GETUSER").arg(username), route)?;
+            let info: Option<redis::acl::AclInfo> = FromRedisValue::from_redis_value(value)?;
+            let info = info.ok_or_else(|| anyhow::anyhow!("ACL user not found: {username}"))?;
+            Ok(acl_user_detail_from_info(username, info))
+        } else {
+            acl_getuser0(conn, username)
+        }
+    }
+
+    fn acl_setuser(
+        &self,
+        username: &str,
+        enabled: bool,
+        password_hashes: Vec<String>,
+        command_rules: Vec<String>,
+        key_patterns: Vec<String>,
+        channel_patterns: Vec<String>,
+        _node: Option<String>,
+    ) -> AnyResult<()> {
+        let mut conn = self.get_conn()?;
+        let rules = acl_build_rules(
+            enabled,
+            password_hashes,
+            command_rules,
+            key_patterns,
+            channel_patterns,
+        );
+
+        // 集群下 ACL 写操作默认广播到所有 master，避免出现分片权限不一致。
+        let route = RoutingInfo::MultiNode((
+            MultipleNodeRoutingInfo::AllMasters,
+            Some(ResponsePolicy::AllSucceeded),
+        ));
+        let mut cmd = redis::cmd("ACL");
+        cmd.arg("SETUSER").arg(username).arg(rules);
+        let _ = conn.route_command(&cmd, route)?;
+        Ok(())
+    }
+
+    fn acl_deluser(&self, usernames: Vec<String>, _node: Option<String>) -> AnyResult<usize> {
+        let mut conn = self.get_conn()?;
+        let mut deleted_max = 0usize;
+        let mut cmd = redis::cmd("ACL");
+        cmd.arg("DELUSER").arg(usernames);
+
+        // 集群下固定对所有 master 执行，返回最大删除数量（按用户名语义而非节点求和）。
+        for node in self.get_node_list_master() {
+            let (route, _) = self.get_node_route(Some(node))?;
+            let deleted: usize = FromRedisValue::from_redis_value(conn.route_command(&cmd, route)?)?;
+            deleted_max = deleted_max.max(deleted);
+        }
+        Ok(deleted_max)
+    }
+
+    fn acl_whoami(&self, _node: Option<String>) -> AnyResult<String> {
+        let mut conn = self.get_conn()?;
+        if let Some(target) = _node.filter(|x| !x.is_empty()) {
+            let (route, _) = self.get_node_route(Some(target))?;
+            Ok(FromRedisValue::from_redis_value(
+                conn.route_command(redis::cmd("ACL").arg("WHOAMI"), route)?,
+            )?)
+        } else {
+            Ok(conn.acl_whoami()?)
+        }
+    }
+
+    fn acl_cat(&self, category: Option<String>, _node: Option<String>) -> AnyResult<Vec<String>> {
+        let mut conn = self.get_conn()?;
+        let mut list: Vec<String> = if let Some(target) = _node.filter(|x| !x.is_empty()) {
+            let mut cmd = redis::cmd("ACL");
+            cmd.arg("CAT");
+            if let Some(cat) = category.filter(|x| !x.is_empty()) {
+                cmd.arg(cat);
+            }
+            let (route, _) = self.get_node_route(Some(target))?;
+            let set: std::collections::HashSet<String> =
+                FromRedisValue::from_redis_value(conn.route_command(&cmd, route)?)?;
+            set.into_iter().collect()
+        } else {
+            if let Some(cat) = category.filter(|x| !x.is_empty()) {
+                let set: std::collections::HashSet<String> = conn.acl_cat_categoryname(cat)?;
+                set.into_iter().collect()
+            } else {
+                let set: std::collections::HashSet<String> = conn.acl_cat()?;
+                set.into_iter().collect()
+            }
+        };
+        list.sort();
+        Ok(list)
+    }
+
+    fn acl_genpass(&self, bits: Option<i64>, _node: Option<String>) -> AnyResult<String> {
+        let mut conn = self.get_conn()?;
+        if let Some(target) = _node.filter(|x| !x.is_empty()) {
+            let mut cmd = redis::cmd("ACL");
+            cmd.arg("GENPASS");
+            if let Some(v) = bits {
+                cmd.arg(v);
+            }
+            let (route, _) = self.get_node_route(Some(target))?;
+            Ok(FromRedisValue::from_redis_value(
+                conn.route_command(&cmd, route)?,
+            )?)
+        } else {
+            if let Some(v) = bits {
+                Ok(conn.acl_genpass_bits(v as isize)?)
+            } else {
+                Ok(conn.acl_genpass()?)
+            }
+        }
+    }
+
     fn config_get(
         &self,
         pattern: &str,

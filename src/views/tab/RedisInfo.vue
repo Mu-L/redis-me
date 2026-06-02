@@ -15,6 +15,7 @@ import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/locales/info'
 import { shareProvideKey } from '@/types/me-interface'
 import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util'
+import RedisACL from '@/views/tab/RedisACL.vue'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 
@@ -39,6 +40,7 @@ const dialog = reactive({
   raw: false,
   client: false,
   config: false,
+  acl: false,
   memory: false,
   topology: false,
 })
@@ -223,6 +225,9 @@ function goClient() {
 function goConfig() {
   dialog.config = true
 }
+function goAcl() {
+  dialog.acl = true
+}
 function goMemory() {
   // dialog.memory = true
   share.tabName = 'memory'
@@ -307,7 +312,7 @@ const nodeGroups = computed(() => {
 
       <el-descriptions-item>
         <template #label><me-icon :name="t('redisInfo.user')" icon="el-icon-user" /></template>
-        {{ displayUsername }}
+        <el-link underline="never" type="primary" @click="goAcl">{{ displayUsername }}</el-link>
       </el-descriptions-item>
 
       <el-descriptions-item>
@@ -460,6 +465,16 @@ const nodeGroups = computed(() => {
     <RedisMemory/>
   </me-dialog>
   -->
+
+  <me-dialog
+    v-model="dialog.acl"
+    icon="el-icon-user"
+    :title="t('redisACL.title')"
+    width="88vw"
+    :close-on-press-escape="false"
+    :close-on-click-modal="false">
+    <RedisACL :init-node="node || infoNode" />
+  </me-dialog>
 
   <me-dialog
     v-model="dialog.config"
