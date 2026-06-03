@@ -71,29 +71,6 @@ pub trait MeClient: Send + Sync {
 
     fn execute_command(&self, param: RedisCommand) -> AnyResult<String>;
 
-    fn acl_users(&self, node: Option<String>) -> AnyResult<Vec<String>>;
-
-    fn acl_getuser(&self, username: &str, node: Option<String>) -> AnyResult<AclUserDetail>;
-
-    fn acl_setuser(
-        &self,
-        username: &str,
-        enabled: bool,
-        password_hashes: Vec<String>,
-        command_rules: Vec<String>,
-        key_patterns: Vec<String>,
-        channel_patterns: Vec<String>,
-        node: Option<String>,
-    ) -> AnyResult<()>;
-
-    fn acl_deluser(&self, usernames: Vec<String>, node: Option<String>) -> AnyResult<usize>;
-
-    fn acl_whoami(&self, node: Option<String>) -> AnyResult<String>;
-
-    fn acl_cat(&self, category: Option<String>, node: Option<String>) -> AnyResult<Vec<String>>;
-
-    fn acl_genpass(&self, bits: Option<i64>, node: Option<String>) -> AnyResult<String>;
-
     fn config_get(&self, pattern: &str, node: Option<String>)
     -> AnyResult<HashMap<String, String>>;
 
@@ -131,6 +108,14 @@ pub trait MeClient: Send + Sync {
     fn key_node(&self, key: RedisKey) -> AnyResult<Vec<RedisNode>>;
     fn flush_db(&self) -> AnyResult<()>;
     fn flush_all(&self) -> AnyResult<()>;
+
+    fn acl_users(&self) -> AnyResult<Vec<String>>;
+    fn acl_getuser(&self, username: &str) -> AnyResult<AclUserDetail>;
+    fn acl_setuser(&self, param: AclSetuserParam) -> AnyResult<()>;
+    fn acl_deluser(&self, usernames: Vec<String>) -> AnyResult<usize>;
+    fn acl_whoami(&self) -> AnyResult<String>;
+    fn acl_cat(&self, category: Option<String>) -> AnyResult<Vec<String>>;
+    fn acl_genpass(&self, bits: Option<i64>) -> AnyResult<String>;
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -773,158 +758,6 @@ pub fn publish0(
     Ok(())
 }
 
-pub(crate) fn acl_rule_to_string(rule: Rule) -> String {
-    match rule {
-        Rule::On => "on".into(),
-        Rule::Off => "off".into(),
-        Rule::AllCommands => "allcommands".into(),
-        Rule::NoCommands => "nocommands".into(),
-        Rule::NoPass => "nopass".into(),
-        Rule::AllKeys => "allkeys".into(),
-        Rule::ResetKeys => "resetkeys".into(),
-        Rule::ResetChannels => "resetchannels".into(),
-        Rule::ResetPass => "resetpass".into(),
-        Rule::Reset => "reset".into(),
-        Rule::AddCommand(cmd) => format!("+{cmd}"),
-        Rule::RemoveCommand(cmd) => format!("-{cmd}"),
-        Rule::AddCategory(cat) => format!("+@{cat}"),
-        Rule::RemoveCategory(cat) => format!("-@{cat}"),
-        Rule::AddPass(pass) => format!(">{pass}"),
-        Rule::RemovePass(pass) => format!("<{pass}"),
-        Rule::AddHashedPass(hash) => hash,
-        Rule::RemoveHashedPass(hash) => format!("!{hash}"),
-        Rule::Pattern(pattern) => pattern,
-        Rule::Channel(pattern) => pattern,
-        Rule::Selector(selector) => selector
-            .into_iter()
-            .map(acl_rule_to_string)
-            .collect::<Vec<_>>()
-            .join(" "),
-        Rule::Other(raw) => raw,
-        _ => "unknown".into(),
-    }
-}
-
-fn acl_rule_from_text(text: &str) -> Rule {
-    let v = text.trim();
-    if let Some(cmd) = v.strip_prefix("+@") {
-        return Rule::AddCategory(cmd.into());
-    }
-    if let Some(cmd) = v.strip_prefix("-@") {
-        return Rule::RemoveCategory(cmd.into());
-    }
-    if let Some(cmd) = v.strip_prefix('+') {
-        return Rule::AddCommand(cmd.into());
-    }
-    if let Some(cmd) = v.strip_prefix('-') {
-        return Rule::RemoveCommand(cmd.into());
-    }
-    Rule::Other(v.into())
-}
-
-pub(crate) fn acl_build_rules(
-    enabled: bool,
-    password_hashes: Vec<String>,
-    command_rules: Vec<String>,
-    key_patterns: Vec<String>,
-    channel_patterns: Vec<String>,
-) -> Vec<Rule> {
-    let mut rules = vec![Rule::Reset];
-    rules.push(if enabled { Rule::On } else { Rule::Off });
-
-    // 密码保持规则：
-    // - 新密码由前端转换为 hash 回传（若无变更会回传原 hashes）
-    // - 全部为空时显式 nopass，避免 reset 后无密码且无法登录
-    if password_hashes.is_empty() {
-        rules.push(Rule::NoPass);
-    } else {
-        rules.extend(password_hashes.into_iter().map(Rule::AddHashedPass));
-    }
-
-    // 命令规则未配置时，默认拒绝所有命令（reset 已含 -@all，这里显式写入增强可读性）
-    if command_rules.is_empty() {
-        rules.push(Rule::NoCommands);
-    } else {
-        rules.extend(command_rules.into_iter().map(|x| acl_rule_from_text(&x)));
-    }
-
-    if key_patterns.is_empty() {
-        rules.push(Rule::AllKeys);
-    } else {
-        rules.extend(key_patterns.into_iter().map(Rule::Pattern));
-    }
-
-    if channel_patterns.is_empty() {
-        rules.push(Rule::ResetChannels);
-    } else {
-        rules.extend(channel_patterns.into_iter().map(Rule::Channel));
-    }
-    rules
-}
-
-pub(crate) fn acl_user_detail_from_info(username: &str, info: redis::acl::AclInfo) -> AclUserDetail {
-    let mut enabled = false;
-    let mut nopass = false;
-    let mut flags = Vec::with_capacity(info.flags.len());
-    for flag in info.flags {
-        match &flag {
-            Rule::On => enabled = true,
-            Rule::NoPass => nopass = true,
-            _ => {}
-        }
-        flags.push(acl_rule_to_string(flag));
-    }
-
-    let password_hashes = info.passwords.into_iter().map(acl_rule_to_string).collect();
-    let command_rules = info.commands.into_iter().map(acl_rule_to_string).collect();
-    let key_patterns = info.keys.into_iter().map(acl_rule_to_string).collect();
-    let channel_patterns = info.channels.into_iter().map(acl_rule_to_string).collect();
-    let selectors = info.selectors.into_iter().map(acl_rule_to_string).collect();
-
-    AclUserDetail {
-        username: username.into(),
-        enabled,
-        nopass,
-        flags,
-        password_hashes,
-        command_rules,
-        key_patterns,
-        channel_patterns,
-        selectors,
-    }
-}
-
-pub fn acl_getuser0(
-    mut conn: MutexGuard<impl Commands>,
-    username: &str,
-) -> AnyResult<AclUserDetail> {
-    let info: redis::acl::AclInfo = conn
-        .acl_getuser::<_, Option<redis::acl::AclInfo>>(username)?
-        .ok_or_else(|| anyhow::anyhow!("ACL user not found: {username}"))?;
-
-    Ok(acl_user_detail_from_info(username, info))
-}
-
-pub fn acl_setuser0(
-    mut conn: MutexGuard<impl Commands>,
-    username: &str,
-    enabled: bool,
-    password_hashes: Vec<String>,
-    command_rules: Vec<String>,
-    key_patterns: Vec<String>,
-    channel_patterns: Vec<String>,
-) -> AnyResult<()> {
-    let rules = acl_build_rules(
-        enabled,
-        password_hashes,
-        command_rules,
-        key_patterns,
-        channel_patterns,
-    );
-    let _: () = conn.acl_setuser_rules(username, &rules)?;
-    Ok(())
-}
-
 /// 将订阅框内容拆成多个 `PSUBSCRIBE` 模式（空白分隔，与 RedisInsight 一致）；无有效模式时等价于 `*`。
 fn psubscribe_patterns(channel: Option<String>) -> Vec<String> {
     let Some(raw) = channel.filter(|c| !c.is_empty()) else {
@@ -1403,6 +1236,203 @@ pub fn flush_db0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
 pub fn flush_all0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
     let _: () = conn.flushall()?;
     Ok(())
+}
+
+pub(crate) fn acl_rule_to_string(rule: Rule) -> String {
+    match rule {
+        Rule::On => "on".into(),
+        Rule::Off => "off".into(),
+        Rule::AllCommands => "allcommands".into(),
+        Rule::NoCommands => "nocommands".into(),
+        Rule::NoPass => "nopass".into(),
+        Rule::AllKeys => "allkeys".into(),
+        Rule::ResetKeys => "resetkeys".into(),
+        Rule::ResetChannels => "resetchannels".into(),
+        Rule::ResetPass => "resetpass".into(),
+        Rule::Reset => "reset".into(),
+        Rule::AddCommand(cmd) => format!("+{cmd}"),
+        Rule::RemoveCommand(cmd) => format!("-{cmd}"),
+        Rule::AddCategory(cat) => format!("+@{cat}"),
+        Rule::RemoveCategory(cat) => format!("-@{cat}"),
+        Rule::AddPass(pass) => format!(">{pass}"),
+        Rule::RemovePass(pass) => format!("<{pass}"),
+        Rule::AddHashedPass(hash) => hash,
+        Rule::RemoveHashedPass(hash) => format!("!{hash}"),
+        Rule::Pattern(pattern) => pattern,
+        Rule::Channel(pattern) => pattern,
+        Rule::Selector(selector) => selector
+            .into_iter()
+            .map(acl_rule_to_string)
+            .collect::<Vec<_>>()
+            .join(" "),
+        Rule::Other(raw) => raw,
+        _ => "unknown".into(),
+    }
+}
+
+fn acl_rule_from_text(text: &str) -> Rule {
+    let v = text.trim();
+    if let Some(cmd) = v.strip_prefix("+@") {
+        return Rule::AddCategory(cmd.into());
+    }
+    if let Some(cmd) = v.strip_prefix("-@") {
+        return Rule::RemoveCategory(cmd.into());
+    }
+    if let Some(cmd) = v.strip_prefix('+') {
+        return Rule::AddCommand(cmd.into());
+    }
+    if let Some(cmd) = v.strip_prefix('-') {
+        return Rule::RemoveCommand(cmd.into());
+    }
+    Rule::Other(v.into())
+}
+
+pub(crate) fn acl_build_rules(param: &AclSetuserParam) -> Vec<Rule> {
+    let mut rules = vec![Rule::Reset];
+    rules.push(if param.enabled { Rule::On } else { Rule::Off });
+
+    // 密码保持规则：
+    // - 新密码由前端转换为 hash 回传（若无变更会回传原 hashes）
+    // - 全部为空时显式 nopass，避免 reset 后无密码且无法登录
+    if param.password_hashes.is_empty() {
+        rules.push(Rule::NoPass);
+    } else {
+        rules.extend(
+            param
+                .password_hashes
+                .iter()
+                .cloned()
+                .map(Rule::AddHashedPass),
+        );
+    }
+
+    // 命令规则未配置时，默认拒绝所有命令（reset 已含 -@all，这里显式写入增强可读性）
+    if param.command_rules.is_empty() {
+        rules.push(Rule::NoCommands);
+    } else {
+        rules.extend(
+            param
+                .command_rules
+                .iter()
+                .map(|x| acl_rule_from_text(x)),
+        );
+    }
+
+    if param.key_patterns.is_empty() {
+        rules.push(Rule::AllKeys);
+    } else {
+        rules.extend(
+            param
+                .key_patterns
+                .iter()
+                .cloned()
+                .map(Rule::Pattern),
+        );
+    }
+
+    if param.channel_patterns.is_empty() {
+        rules.push(Rule::ResetChannels);
+    } else {
+        rules.extend(
+            param
+                .channel_patterns
+                .iter()
+                .cloned()
+                .map(Rule::Channel),
+        );
+    }
+    rules
+}
+
+pub(crate) fn acl_user_detail_from_info(username: &str, info: redis::acl::AclInfo) -> AclUserDetail {
+    let mut enabled = false;
+    let mut nopass = false;
+    let mut flags = Vec::with_capacity(info.flags.len());
+    for flag in info.flags {
+        match &flag {
+            Rule::On => enabled = true,
+            Rule::NoPass => nopass = true,
+            _ => {}
+        }
+        flags.push(acl_rule_to_string(flag));
+    }
+
+    let password_hashes = info.passwords.into_iter().map(acl_rule_to_string).collect();
+    let command_rules = info.commands.into_iter().map(acl_rule_to_string).collect();
+    let key_patterns = info.keys.into_iter().map(acl_rule_to_string).collect();
+    let channel_patterns = info.channels.into_iter().map(acl_rule_to_string).collect();
+    let selectors = info.selectors.into_iter().map(acl_rule_to_string).collect();
+
+    AclUserDetail {
+        username: username.into(),
+        enabled,
+        nopass,
+        flags,
+        password_hashes,
+        command_rules,
+        key_patterns,
+        channel_patterns,
+        selectors,
+    }
+}
+
+pub fn acl_getuser0(
+    mut conn: MutexGuard<impl Commands>,
+    username: &str,
+) -> AnyResult<AclUserDetail> {
+    let info: redis::acl::AclInfo = conn
+        .acl_getuser::<_, Option<redis::acl::AclInfo>>(username)?
+        .ok_or_else(|| anyhow::anyhow!("ACL user not found: {username}"))?;
+
+    Ok(acl_user_detail_from_info(username, info))
+}
+
+pub fn acl_setuser0(
+    mut conn: MutexGuard<impl Commands>,
+    param: &AclSetuserParam,
+) -> AnyResult<()> {
+    let rules = acl_build_rules(param);
+    let _: () = conn.acl_setuser_rules(&param.username, &rules)?;
+    Ok(())
+}
+
+pub fn acl_users0(mut conn: MutexGuard<impl Commands>) -> AnyResult<Vec<String>> {
+    Ok(conn.acl_users()?)
+}
+
+pub fn acl_deluser0(
+    mut conn: MutexGuard<impl Commands>,
+    usernames: &[String],
+) -> AnyResult<usize> {
+    Ok(conn.acl_deluser(usernames)?)
+}
+
+pub fn acl_whoami0(mut conn: MutexGuard<impl Commands>) -> AnyResult<String> {
+    Ok(conn.acl_whoami()?)
+}
+
+pub fn acl_cat0(
+    mut conn: MutexGuard<impl Commands>,
+    category: Option<String>,
+) -> AnyResult<Vec<String>> {
+    let set: HashSet<String> = match category.filter(|x| !x.is_empty()) {
+        Some(cat) => conn.acl_cat_categoryname(cat)?,
+        None => conn.acl_cat()?,
+    };
+    let mut list: Vec<String> = set.into_iter().collect();
+    list.sort();
+    Ok(list)
+}
+
+pub fn acl_genpass0(
+    mut conn: MutexGuard<impl Commands>,
+    bits: Option<i64>,
+) -> AnyResult<String> {
+    if let Some(v) = bits {
+        Ok(conn.acl_genpass_bits(v as isize)?)
+    } else {
+        Ok(conn.acl_genpass()?)
+    }
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

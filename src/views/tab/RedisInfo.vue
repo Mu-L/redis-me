@@ -480,7 +480,7 @@ const nodeGroups = computed(() => {
     width="88vw"
     :close-on-press-escape="false"
     :close-on-click-modal="false">
-    <RedisACL :init-node="node || infoNode" />
+    <RedisACL />
   </me-dialog>
 
   <me-dialog

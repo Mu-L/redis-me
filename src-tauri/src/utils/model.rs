@@ -553,21 +553,6 @@ api_model!(RedisCommand {
     auto_broadcast: Option<bool>,
 });
 
-// ACL 用户详情（由 ACL GETUSER 结构化转换而来）
-api_model!(
-#[derive(Default)]
-AclUserDetail {
-    username: String,
-    enabled: bool,
-    nopass: bool,
-    flags: Vec<String>,
-    password_hashes: Vec<String>,
-    command_rules: Vec<String>,
-    key_patterns: Vec<String>,
-    channel_patterns: Vec<String>,
-    selectors: Vec<String>
-});
-
 // 慢日志
 api_model!(RedisSlowLog {
     node: String,
@@ -675,6 +660,32 @@ api_model!(ExportImportEvent {
     total_count: u64,
     ignore_count: u64,
     finished: bool
+});
+
+// ACL 用户详情（由 ACL GETUSER 结构化转换而来）
+api_model!(
+    #[derive(Default)]
+    AclUserDetail {
+        username: String,
+        enabled: bool,
+        nopass: bool,
+        flags: Vec<String>,
+        password_hashes: Vec<String>,
+        command_rules: Vec<String>,
+        key_patterns: Vec<String>,
+        channel_patterns: Vec<String>,
+        selectors: Vec<String>
+    }
+);
+
+// ACL SETUSER 参数（新建/更新用户）
+api_model!(AclSetuserParam {
+    username: String,
+    enabled: bool,
+    password_hashes: Vec<String>,
+    command_rules: Vec<String>,
+    key_patterns: Vec<String>,
+    channel_patterns: Vec<String>,
 });
 
 //~~~~~ 自定义Vec<u8>序列化为Base64字符串

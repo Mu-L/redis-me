@@ -177,68 +177,6 @@ impl MeClient for MeSingle {
         Ok(redis_value_to_string(value, "\n"))
     }
 
-    fn acl_users(&self, _node: Option<String>) -> AnyResult<Vec<String>> {
-        let mut conn = self.get_conn()?;
-        Ok(conn.acl_users()?)
-    }
-
-    fn acl_getuser(&self, username: &str, _node: Option<String>) -> AnyResult<AclUserDetail> {
-        acl_getuser0(self.get_conn()?, username)
-    }
-
-    fn acl_setuser(
-        &self,
-        username: &str,
-        enabled: bool,
-        password_hashes: Vec<String>,
-        command_rules: Vec<String>,
-        key_patterns: Vec<String>,
-        channel_patterns: Vec<String>,
-        _node: Option<String>,
-    ) -> AnyResult<()> {
-        acl_setuser0(
-            self.get_conn()?,
-            username,
-            enabled,
-            password_hashes,
-            command_rules,
-            key_patterns,
-            channel_patterns,
-        )
-    }
-
-    fn acl_deluser(&self, usernames: Vec<String>, _node: Option<String>) -> AnyResult<usize> {
-        let mut conn = self.get_conn()?;
-        Ok(conn.acl_deluser(&usernames)?)
-    }
-
-    fn acl_whoami(&self, _node: Option<String>) -> AnyResult<String> {
-        let mut conn = self.get_conn()?;
-        Ok(conn.acl_whoami()?)
-    }
-
-    fn acl_cat(&self, category: Option<String>, _node: Option<String>) -> AnyResult<Vec<String>> {
-        let mut conn = self.get_conn()?;
-        let mut list: Vec<String> = if let Some(cat) = category.filter(|x| !x.is_empty()) {
-            let set: std::collections::HashSet<String> = conn.acl_cat_categoryname(cat)?;
-            set.into_iter().collect()
-        } else {
-            let set: std::collections::HashSet<String> = conn.acl_cat()?;
-            set.into_iter().collect()
-        };
-        list.sort();
-        Ok(list)
-    }
-
-    fn acl_genpass(&self, bits: Option<i64>, _node: Option<String>) -> AnyResult<String> {
-        let mut conn = self.get_conn()?;
-        if let Some(v) = bits {
-            Ok(conn.acl_genpass_bits(v as isize)?)
-        } else {
-            Ok(conn.acl_genpass()?)
-        }
-    }
-
     fn config_get(
         &self,
         pattern: &str,
@@ -496,6 +434,34 @@ impl MeClient for MeSingle {
 
     fn flush_all(&self) -> AnyResult<()> {
         flush_all0(self.get_conn()?)
+    }
+
+    fn acl_users(&self) -> AnyResult<Vec<String>> {
+        acl_users0(self.get_conn()?)
+    }
+
+    fn acl_getuser(&self, username: &str) -> AnyResult<AclUserDetail> {
+        acl_getuser0(self.get_conn()?, username)
+    }
+
+    fn acl_setuser(&self, param: AclSetuserParam) -> AnyResult<()> {
+        acl_setuser0(self.get_conn()?, &param)
+    }
+
+    fn acl_deluser(&self, usernames: Vec<String>) -> AnyResult<usize> {
+        acl_deluser0(self.get_conn()?, &usernames)
+    }
+
+    fn acl_whoami(&self) -> AnyResult<String> {
+        acl_whoami0(self.get_conn()?)
+    }
+
+    fn acl_cat(&self, category: Option<String>) -> AnyResult<Vec<String>> {
+        acl_cat0(self.get_conn()?, category)
+    }
+
+    fn acl_genpass(&self, bits: Option<i64>) -> AnyResult<String> {
+        acl_genpass0(self.get_conn()?, bits)
     }
 
     implement_pipeline_commands!(Pipeline);

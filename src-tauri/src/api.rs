@@ -138,21 +138,6 @@ api_commands!(
     field_set(param: RedisFieldSet) -> ();              // 编辑字段
     field_del(param: RedisFieldDel) -> ();              // 删除字段
     execute_command(param: RedisCommand) -> String;     // 执行命令
-    acl_users(node: Option<String>) -> Vec<String>;     // ACL 用户列表
-    acl_getuser(username: &str, node: Option<String>) -> AclUserDetail; // ACL 用户详情
-    acl_setuser(
-        username: &str,
-        enabled: bool,
-        password_hashes: Vec<String>,
-        command_rules: Vec<String>,
-        key_patterns: Vec<String>,
-        channel_patterns: Vec<String>,
-        node: Option<String>
-    ) -> (); // ACL 新建/更新用户
-    acl_deluser(usernames: Vec<String>, node: Option<String>) -> usize; // ACL 删除用户
-    acl_whoami(node: Option<String>) -> String;       // ACL 当前用户
-    acl_cat(category: Option<String>, node: Option<String>) -> Vec<String>; // ACL 命令分类
-    acl_genpass(bits: Option<i64>, node: Option<String>) -> String; // ACL 生成密码
     config_get(pattern: &str, node: Option<String>) -> HashMap<String, String>; // 获取配置
     config_set(key: &str, value: &str, node: Option<String>) -> ();             // 设置配置
     slow_log(count: Option<u64>, node: Option<String>) -> Vec<RedisSlowLog>;    // 慢日志
@@ -171,6 +156,13 @@ api_commands!(
     key_node(key: RedisKey) -> Vec<RedisNode>;   // 获取键所在节点ID
     flush_db() -> ();                            // 清空当前数据库
     flush_all() -> ();                           // 清空所有数据库
+    acl_users() -> Vec<String>;                  // ACL 用户列表
+    acl_getuser(username: &str) -> AclUserDetail; // ACL 用户详情
+    acl_setuser(param: AclSetuserParam) -> ();   // ACL 新建/更新用户
+    acl_deluser(usernames: Vec<String>) -> usize; // ACL 删除用户
+    acl_whoami() -> String;                      // ACL 当前用户
+    acl_cat(category: Option<String>) -> Vec<String>; // ACL 命令分类
+    acl_genpass(bits: Option<i64>) -> String;    // ACL 生成密码
 );
 
 // 需要将app_handle传递过去的命令

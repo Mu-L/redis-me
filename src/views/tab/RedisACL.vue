@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** ACL 用户管理主界面：列表展示 + 编辑态 form 由本组件持有，对话框 UI 在 UserAdd.vue */
-import { computed, inject, reactive, ref, watch } from 'vue'
+import { computed, inject, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
@@ -19,16 +19,6 @@ import UserAdd from '@/views/ext/UserAdd.vue'
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
-/** 来自 Info 弹窗的节点；集群下 targetNode 恒为 null，由后端广播 */
-const props = defineProps({ initNode: { type: String, default: '' } })
-
-const node = ref(props.initNode)
-watch(
-  () => props.initNode,
-  v => {
-    node.value = v
-  },
-)
 
 const keyword = ref('')
 const loading = ref(false)
@@ -40,11 +30,6 @@ const editVisible = ref(false)
 const editLoading = ref(false)
 const editMode = ref<'add' | 'edit'>('add')
 const form = reactive<AclEditModel>(createDefaultAclModel())
-
-const targetNode = computed(() => {
-  // 集群模式下不让用户选节点，后端会固定广播到所有 master。
-  return share.conn?.cluster ? null : node.value || null
-})
 
 const filterUsers = computed(() => {
   const key = keyword.value.trim().toLowerCase()
@@ -81,12 +66,12 @@ function resetForm() {
 async function refresh() {
   loading.value = true
   try {
-    const names = await meCommands.aclUsers(share.conn!.id, targetNode.value)
+    const names = await meCommands.aclUsers(share.conn!.id)
     const details = await Promise.all(
-      names.map(name => meCommands.aclGetuser(share.conn!.id, name, targetNode.value)),
+      names.map(name => meCommands.aclGetuser(share.conn!.id, name)),
     )
     users.value = details.sort((a, b) => a.username.localeCompare(b.username))
-    whoami.value = await meCommands.aclWhoami(share.conn!.id, targetNode.value)
+    whoami.value = await meCommands.aclWhoami(share.conn!.id)
   } finally {
     loading.value = false
   }
@@ -105,7 +90,7 @@ function openEdit(row: AclUserDetail) {
 }
 
 async function genPassword() {
-  form.password = await meCommands.aclGenpass(share.conn!.id, 128, targetNode.value)
+  form.password = await meCommands.aclGenpass(share.conn!.id, 128)
   meOk(t('redisACL.passwordGenerated'))
 }
 
@@ -137,16 +122,7 @@ async function saveUser() {
       meWarn(t('redisACL.passwordRequired'))
       return
     }
-    await meCommands.aclSetuser(
-      share.conn!.id,
-      payload.username,
-      payload.enabled,
-      payload.passwordHashes,
-      payload.commandRules,
-      payload.keyPatterns,
-      payload.channelPatterns,
-      targetNode.value,
-    )
+    await meCommands.aclSetuser(share.conn!.id, payload)
     meOk(editMode.value === 'add' ? t('addOk') : t('editOk'))
     editVisible.value = false
     await refresh()
@@ -161,7 +137,7 @@ function deleteUser(row: AclUserDetail) {
     return
   }
   meConfirm(t('redisACL.deleteConfirm', { user: row.username }), async () => {
-    await meCommands.aclDeluser(share.conn!.id, [row.username], targetNode.value)
+    await meCommands.aclDeluser(share.conn!.id, [row.username])
     meOk(t('deleteOk'))
     await refresh()
   })
