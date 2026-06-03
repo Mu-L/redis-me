@@ -184,22 +184,20 @@ void refresh()
 <template>
   <div class="redis-acl" v-loading="loading">
     <div class="me-flex header">
-      <el-text type="info">{{ t('redisACL.currentUser') }}: {{ whoami || '--' }}</el-text>
+      <div class="me-flex header-left">
+        <el-button v-if="canEdit" type="primary" icon="el-icon-plus" @click="openAdd">
+          {{ t('redisACL.addUser') }}
+        </el-button>
+        <el-text type="info">{{ t('redisACL.currentUser') }}: {{ whoami || '--' }}</el-text>
+        <me-website to="acl" margin-left="0" />
+      </div>
       <div class="me-flex">
         <el-input
           v-model="keyword"
           :placeholder="t('redisACL.keyword')"
           style="width: 260px; margin-right: 10px"
           clearable />
-        <el-button
-          type="primary"
-          icon="el-icon-plus"
-          style="margin-right: 10px"
-          @click="openAdd"
-          v-if="canEdit">
-          {{ t('redisACL.addUser') }}
-        </el-button>
-        <el-button icon="el-icon-refresh" @click="refresh">{{ t('refresh') }}</el-button>
+        <el-button icon="el-icon-search" @click="refresh" type="primary" :loading="loading" />
       </div>
     </div>
 
@@ -277,6 +275,10 @@ void refresh()
     margin-bottom: 10px;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .header-left {
+    gap: 8px;
   }
 
   .table {
