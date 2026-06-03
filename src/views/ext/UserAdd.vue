@@ -177,7 +177,7 @@ watch(visible, open => {
             <el-input
               v-model="ruleInput"
               :placeholder="t('redisACL.rulePlaceholder')"
-              class="pattern-input" />
+              class="command-rule-input" />
             <el-button class="add-item-btn" @click="addRule">{{ t('redisACL.addRule') }}</el-button>
           </div>
         </div>
@@ -361,9 +361,14 @@ watch(visible, open => {
 .command-input-row {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
+  width: 100%;
+}
+
+.command-rule-input {
+  flex: 1;
+  min-width: 0;
 }
 
 .preview-text {
