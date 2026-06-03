@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/** ACL 新增/编辑对话框：只负责表单 UI，form 数据与保存逻辑在 RedisACL.vue */
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -22,6 +23,7 @@ const emit = defineEmits<{
   (e: 'generatePassword'): void
 }>()
 
+/** 规则/模式输入框草稿，未点「添加」前不入 form；打开对话框时清空 */
 const ruleInput = ref('')
 const keyPatternInput = ref('')
 const channelPatternInput = ref('')
@@ -32,6 +34,7 @@ function pushUnique(target: string[], value: string) {
   if (!target.includes(text)) target.push(text)
 }
 
+/** 快捷模板：覆盖 commandRules；新增时顺带重置键/频道为 * */
 function applyPreset(preset: AclPreset) {
   props.form.commandRules = [...ACL_PRESET_COMMAND_RULES[preset]]
   // 编辑已有用户时只换命令规则，避免覆盖键/频道模式
@@ -46,12 +49,14 @@ function addRule() {
   ruleInput.value = ''
 }
 
+/** 键模式存不含 ~ 前缀的纯 pattern，展示/保存时由 acl.ts 统一加 ~ */
 function addKeyPattern() {
   const v = keyPatternInput.value.trim().replace(/^~/, '')
   pushUnique(props.form.keyPatterns, v)
   keyPatternInput.value = ''
 }
 
+/** 频道模式同理，不含 & 前缀 */
 function addChannelPattern() {
   const v = channelPatternInput.value.trim().replace(/^&/, '')
   pushUnique(props.form.channelPatterns, v)
@@ -64,6 +69,7 @@ function resetDraftInputs() {
   channelPatternInput.value = ''
 }
 
+/** 至少保留一条，避免保存时后端 empty → allkeys / resetchannels */
 function removeKeyPattern(item: string) {
   if (props.form.keyPatterns.length <= 1) {
     meWarn(t('redisACL.keyPatternsRequired'))
@@ -96,6 +102,7 @@ watch(visible, open => {
     :close-on-press-escape="false"
     draggable>
     <el-form label-position="right" label-width="auto" class="acl-form">
+      <!-- 用户行：左输入 + 右启用开关；field-inline-trail 固定宽保证与密码行对齐 -->
       <el-form-item :label="t('redisACL.username')">
         <div class="field-inline-row">
           <el-input
@@ -142,6 +149,7 @@ watch(visible, open => {
           </el-form-item>
         </el-col>
         <el-col :span="8">
+          <!-- dangerousBlocked 实际读写 RedisACL 里 form.commandRules 的 -@dangerous -->
           <el-form-item class="no-label-right">
             <div class="danger-row">
               <span>{{ t('redisACL.dangerousBlacklist') }}</span>
@@ -151,6 +159,7 @@ watch(visible, open => {
         </el-col>
       </el-row>
 
+      <!-- 命令规则可删至空（后端 nocommands）；键/频道至少保留一条 -->
       <el-form-item :label="t('redisACL.commandRules')">
         <div class="rule-box command-rule-box">
           <div class="pattern-tags command-tags">
@@ -225,6 +234,7 @@ watch(visible, open => {
       </el-form-item>
 
       <el-form-item :label="t('redisACL.preview')">
+        <!-- 点击复制完整 ACL SETUSER 预览，保存前可核对 -->
         <el-text class="preview-text" @click="meCopy(props.previewCommand)">{{
           props.previewCommand
         }}</el-text>

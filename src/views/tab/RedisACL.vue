@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/** ACL 用户管理主界面：列表展示 + 编辑态 form 由本组件持有，对话框 UI 在 UserAdd.vue */
 import { computed, inject, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -18,6 +19,7 @@ import UserAdd from '@/views/ext/UserAdd.vue'
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
+/** 来自 Info 弹窗的节点；集群下 targetNode 恒为 null，由后端广播 */
 const props = defineProps({ initNode: { type: String, default: '' } })
 
 const node = ref(props.initNode)
@@ -33,16 +35,12 @@ const loading = ref(false)
 const users = ref<AclUserDetail[]>([])
 const whoami = ref('')
 
+/** 编辑对话框：form 与 UserAdd 共享同一 reactive 对象 */
 const editVisible = ref(false)
 const editLoading = ref(false)
 const editMode = ref<'add' | 'edit'>('add')
 const form = reactive<AclEditModel>(createDefaultAclModel())
 
-/** ACL 从 Redis 6.0 开始支持，低版本直接给出说明，避免用户误以为是 bug。 */
-const aclSupported = computed(() => {
-  const major = parseInt((share.serverVersion || '0').split('.')[0] || '0', 10)
-  return Number.isFinite(major) && major >= 6
-})
 const targetNode = computed(() => {
   // 集群模式下不让用户选节点，后端会固定广播到所有 master。
   return share.conn?.cluster ? null : node.value || null
@@ -64,10 +62,7 @@ const filterUsers = computed(() => {
 
 const previewCommand = computed(() => buildAclPreviewCommand(form))
 
-function resetForm() {
-  Object.assign(form, createDefaultAclModel())
-}
-
+/** 危险命令黑名单 ↔ form.commandRules 中的 -@dangerous，由 UserAdd 双向绑定 */
 const dangerousBlocked = computed({
   get: () => form.commandRules.includes('-@dangerous'),
   set: (blocked: boolean) => {
@@ -78,8 +73,12 @@ const dangerousBlocked = computed({
   },
 })
 
+function resetForm() {
+  Object.assign(form, createDefaultAclModel())
+}
+
+/** ACL USERS + 并行 GETUSER 拉详情；用户很多时可能偏慢 */
 async function refresh() {
-  if (!aclSupported.value) return
   loading.value = true
   try {
     const names = await meCommands.aclUsers(share.conn!.id, targetNode.value)
@@ -110,6 +109,7 @@ async function genPassword() {
   meOk(t('redisACL.passwordGenerated'))
 }
 
+/** 校验 → buildAclSavePayload（密码 SHA256）→ aclSetuser；键/频道空列表在后端会放宽权限，故前端拦截 */
 async function saveUser() {
   const username = form.username.trim()
   if (!username) {
@@ -183,95 +183,78 @@ void refresh()
 
 <template>
   <div class="redis-acl" v-loading="loading">
-    <el-alert
-      v-if="!aclSupported"
-      :title="t('redisACL.notSupportedTitle')"
-      type="warning"
-      show-icon>
-      <template #default>
-        {{ t('redisACL.notSupportedDesc') }} ({{ share.isValkey ? 'Valkey' : 'Redis' }}
-        {{ share.serverVersion || '--' }})
-      </template>
-    </el-alert>
-
-    <template v-else>
-      <div class="me-flex header">
-        <el-text type="info">{{ t('redisACL.currentUser') }}: {{ whoami || '--' }}</el-text>
-        <div class="me-flex">
-          <el-input
-            v-model="keyword"
-            :placeholder="t('redisACL.keyword')"
-            style="width: 260px; margin-right: 10px"
-            clearable />
-          <el-button
-            type="primary"
-            icon="el-icon-plus"
-            style="margin-right: 10px"
-            @click="openAdd"
-            v-if="canEdit">
-            {{ t('redisACL.addUser') }}
-          </el-button>
-          <el-button icon="el-icon-refresh" @click="refresh">{{ t('refresh') }}</el-button>
-        </div>
+    <div class="me-flex header">
+      <el-text type="info">{{ t('redisACL.currentUser') }}: {{ whoami || '--' }}</el-text>
+      <div class="me-flex">
+        <el-input
+          v-model="keyword"
+          :placeholder="t('redisACL.keyword')"
+          style="width: 260px; margin-right: 10px"
+          clearable />
+        <el-button
+          type="primary"
+          icon="el-icon-plus"
+          style="margin-right: 10px"
+          @click="openAdd"
+          v-if="canEdit">
+          {{ t('redisACL.addUser') }}
+        </el-button>
+        <el-button icon="el-icon-refresh" @click="refresh">{{ t('refresh') }}</el-button>
       </div>
+    </div>
 
-      <div class="table">
-        <me-table :data="filterUsers" export-name="acl-users">
-          <el-table-column
-            prop="username"
-            :label="t('redisACL.username')"
-            width="120"
-            show-overflow-tooltip />
-          <el-table-column :label="t('redisACL.status')" width="92" align="center">
-            <template #default="{ row }">
-              <el-tag :type="row.enabled ? 'success' : 'info'">
-                {{ row.enabled ? t('redisACL.enabled') : t('redisACL.disabled') }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column
-            :label="t('redisACL.commandRules')"
-            min-width="120"
-            show-overflow-tooltip>
-            <template #default="{ row }">{{
-              row.commandRules.length ? row.commandRules.join(' ') : '--'
-            }}</template>
-          </el-table-column>
-          <el-table-column :label="t('redisACL.keyPatternsCol')" width="96" show-overflow-tooltip>
-            <template #default="{ row }">{{ summarizeRules(row.keyPatterns, 2) }}</template>
-          </el-table-column>
-          <el-table-column
-            :label="t('redisACL.channelPatternsCol')"
-            width="88"
-            show-overflow-tooltip>
-            <template #default="{ row }">{{ summarizeRules(row.channelPatterns, 2) }}</template>
-          </el-table-column>
-          <el-table-column v-if="canEdit" :label="t('action')" width="100" align="center">
-            <template #default="{ row }">
-              <div class="action-icons">
-                <me-icon
-                  icon="el-icon-document-copy"
-                  class="icon-btn"
-                  :info="t('copy')"
-                  @click="openCopy(row)" />
-                <me-icon
-                  icon="el-icon-edit"
-                  class="icon-btn"
-                  :info="t('edit')"
-                  @click="openEdit(row)" />
-                <me-icon
-                  icon="el-icon-delete"
-                  class="icon-btn"
-                  :info="t('delete')"
-                  @click="deleteUser(row)" />
-              </div>
-            </template>
-          </el-table-column>
-        </me-table>
-      </div>
-    </template>
+    <div class="table">
+      <me-table :data="filterUsers" export-name="acl-users">
+        <el-table-column
+          prop="username"
+          :label="t('redisACL.username')"
+          width="120"
+          show-overflow-tooltip />
+        <el-table-column :label="t('redisACL.status')" width="92" align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.enabled ? 'success' : 'info'">
+              {{ row.enabled ? t('redisACL.enabled') : t('redisACL.disabled') }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('redisACL.commandRules')" min-width="120" show-overflow-tooltip>
+          <!-- 命令规则列占满剩余宽度，展示完整规则串 -->
+          <template #default="{ row }">{{
+            row.commandRules.length ? row.commandRules.join(' ') : '--'
+          }}</template>
+        </el-table-column>
+        <el-table-column :label="t('redisACL.keyPatternsCol')" width="96" show-overflow-tooltip>
+          <template #default="{ row }">{{ summarizeRules(row.keyPatterns, 2) }}</template>
+        </el-table-column>
+        <el-table-column :label="t('redisACL.channelPatternsCol')" width="88" show-overflow-tooltip>
+          <template #default="{ row }">{{ summarizeRules(row.channelPatterns, 2) }}</template>
+        </el-table-column>
+        <el-table-column v-if="canEdit" :label="t('action')" width="100" align="center">
+          <template #default="{ row }">
+            <div class="action-icons">
+              <me-icon
+                icon="el-icon-document-copy"
+                class="icon-btn"
+                :info="t('copy')"
+                @click="openCopy(row)" />
+              <me-icon
+                icon="el-icon-edit"
+                class="icon-btn"
+                :info="t('edit')"
+                @click="openEdit(row)" />
+              <me-icon
+                icon="el-icon-delete"
+                class="icon-btn"
+                :info="t('delete')"
+                @click="deleteUser(row)" />
+            </div>
+          </template>
+        </el-table-column>
+      </me-table>
+    </div>
   </div>
 
+  <!-- form / previewCommand / dangerousBlocked 均由父组件维护 -->
   <UserAdd
     v-model="editVisible"
     v-model:dangerous-blocked="dangerousBlocked"

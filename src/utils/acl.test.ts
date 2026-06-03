@@ -6,6 +6,7 @@ import {
   buildAclSavePayload,
   createAclModelFromDetail,
   createDefaultAclModel,
+  isAclSupported,
   sha256Hex,
 } from '@/utils/acl'
 
@@ -23,6 +24,18 @@ function sampleDetail(overrides: Partial<AclUserDetail> = {}): AclUserDetail {
     ...overrides,
   }
 }
+
+describe('isAclSupported', () => {
+  it('6.0 及以上为 true', () => {
+    expect(isAclSupported('6.2.0')).toBe(true)
+    expect(isAclSupported('7.4.1')).toBe(true)
+  })
+
+  it('5.x 及以下为 false', () => {
+    expect(isAclSupported('5.0.14')).toBe(false)
+    expect(isAclSupported(undefined)).toBe(false)
+  })
+})
 
 describe('buildAclSavePayload', () => {
   it('编辑未改密码时沿用原 passwordHashes', async () => {

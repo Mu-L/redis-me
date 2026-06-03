@@ -14,6 +14,7 @@ import { useI18n } from 'vue-i18n'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/locales/info'
 import { shareProvideKey } from '@/types/me-interface'
+import { isAclSupported } from '@/utils/acl'
 import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util'
 import RedisACL from '@/views/tab/RedisACL.vue'
 import RedisClient from '@/views/tab/RedisClient.vue'
@@ -65,6 +66,9 @@ const displayUsername = computed(() => {
   const name = share.conn?.username?.trim()
   return name || 'default'
 })
+
+/** ACL 6.0+ 才在 Info 展示可点击入口 */
+const aclSupported = computed(() => isAclSupported(share.serverVersion))
 
 /** INFO instantaneous_ops_per_sec */
 const opsPerSec = computed(() => {
@@ -312,7 +316,10 @@ const nodeGroups = computed(() => {
 
       <el-descriptions-item>
         <template #label><me-icon :name="t('redisInfo.user')" icon="el-icon-user" /></template>
-        <el-link underline="never" type="primary" @click="goAcl">{{ displayUsername }}</el-link>
+        <el-link v-if="aclSupported" underline="never" type="primary" @click="goAcl">{{
+          displayUsername
+        }}</el-link>
+        <span v-else>{{ displayUsername }}</span>
       </el-descriptions-item>
 
       <el-descriptions-item>

@@ -12,6 +12,12 @@ export interface AclEditModel {
 
 export type AclPreset = 'normal' | 'readonly' | 'admin'
 
+/** ACL 自 Redis/Valkey 6.0 起支持；用于 Info 入口与 ACL 页 */
+export function isAclSupported(version: string | undefined): boolean {
+  const major = parseInt((version || '0').split('.')[0] || '0', 10)
+  return Number.isFinite(major) && major >= 6
+}
+
 /** 高频场景快捷模板：普通用户、只读用户、管理员 */
 export const ACL_PRESET_COMMAND_RULES: Record<AclPreset, string[]> = {
   normal: ['+@read', '+@write', '+@keyspace', '+@pubsub', '-@admin', '-@dangerous'],
