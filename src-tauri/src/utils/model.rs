@@ -688,6 +688,22 @@ api_model!(AclSetuserParam {
     channel_patterns: Vec<String>,
 });
 
+// ACL LOG 条目结构
+api_model!(
+    #[derive(Default)]
+    AclLogEntry {
+        count: u64,
+        reason: String,
+        context: String,
+        object: String,
+        username: String,
+        age_seconds: u64,
+        client_info: String,
+        timestamp_created: u64,
+        timestamp_last: u64,
+    }
+);
+
 //~~~~~ 自定义Vec<u8>序列化为Base64字符串
 mod v8_base64 {
     use base64::Engine;

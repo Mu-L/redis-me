@@ -116,6 +116,10 @@ pub trait MeClient: Send + Sync {
     fn acl_whoami(&self) -> AnyResult<String>;
     fn acl_cat(&self, category: Option<String>) -> AnyResult<Vec<String>>;
     fn acl_genpass(&self, bits: Option<i64>) -> AnyResult<String>;
+    fn acl_save(&self) -> AnyResult<()>;
+    fn acl_load(&self) -> AnyResult<()>;
+    fn acl_log(&self, count: Option<u64>) -> AnyResult<Vec<AclLogEntry>>;
+    fn acl_dryrun(&self, username: String, command: String) -> AnyResult<String>;
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
@@ -1433,6 +1437,108 @@ pub fn acl_genpass0(
     } else {
         Ok(conn.acl_genpass()?)
     }
+}
+
+/// ACL SAVE: 将当前的 ACL 规则保存到配置文件
+pub fn acl_save0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
+    let _: () = conn.acl_save()?;
+    Ok(())
+}
+
+/// ACL LOAD: 从配置文件重新加载 ACL 规则
+pub fn acl_load0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
+    let _: () = conn.acl_load()?;
+    Ok(())
+}
+
+/// ACL LOG: 获取 ACL 安全日志
+pub fn acl_log0(
+    mut conn: MutexGuard<impl Commands>,
+    count: Option<u64>,
+) -> AnyResult<Vec<AclLogEntry>> {
+    // 使用 redis-rs 内置的 acl_log 方法
+    let count = count.unwrap_or(10) as isize;
+    let entries: Vec<HashMap<String, Value>> = conn.acl_log(count)?;
+
+    let mut result = Vec::new();
+    for entry in entries {
+        let mut log_entry = AclLogEntry::default();
+
+        // 解析 HashMap 中的字段
+        for (key, value) in entry {
+            match key.as_str() {
+                "count" => {
+                    if let Value::Int(c) = value {
+                        log_entry.count = c as u64;
+                    }
+                }
+                "reason" => {
+                    if let Value::BulkString(r) = value {
+                        log_entry.reason = String::from_utf8_lossy(&r).to_string();
+                    }
+                }
+                "context" => {
+                    if let Value::BulkString(c) = value {
+                        log_entry.context = String::from_utf8_lossy(&c).to_string();
+                    }
+                }
+                "object" => {
+                    if let Value::BulkString(o) = value {
+                        log_entry.object = String::from_utf8_lossy(&o).to_string();
+                    }
+                }
+                "username" => {
+                    if let Value::BulkString(u) = value {
+                        log_entry.username = String::from_utf8_lossy(&u).to_string();
+                    }
+                }
+                "age-seconds" => {
+                    if let Value::Double(a) = value {
+                        log_entry.age_seconds = a as u64;
+                    } else if let Value::Int(a) = value {
+                        log_entry.age_seconds = a as u64;
+                    }
+                }
+                "client-info" => {
+                    if let Value::BulkString(c) = value {
+                        log_entry.client_info = String::from_utf8_lossy(&c).to_string();
+                    }
+                }
+                "timestamp-created" => {
+                    if let Value::Int(t) = value {
+                        log_entry.timestamp_created = t as u64;
+                    }
+                }
+                "timestamp-last" => {
+                    if let Value::Int(t) = value {
+                        log_entry.timestamp_last = t as u64;
+                    }
+                }
+                _ => {}
+            }
+        }
+        result.push(log_entry);
+    }
+
+    Ok(result)
+}
+
+/// ACL DRYRUN: 模拟执行命令，检查用户权限
+pub fn acl_dryrun0(
+    mut conn: MutexGuard<impl Commands>,
+    username: String,
+    command: String,
+) -> AnyResult<String> {
+    // 解析命令字符串为命令名和参数
+    let (cmd_name, cmd_args) = parse_command(&command)?;
+    
+    if cmd_name.is_empty() {
+        return Err(anyhow::anyhow!("Command cannot be empty"));
+    }
+    
+    // 使用 redis-rs 内置的 acl_dryrun 方法
+    let result: String = conn.acl_dryrun(&username, &cmd_name, &cmd_args)?;
+    Ok(result)
 }
 
 // 集群和单机共享的方法, 由于Commands不是dyn 兼容的, 无法直接写在父类中(也许有其他办法?)

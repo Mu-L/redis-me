@@ -464,6 +464,22 @@ impl MeClient for MeSingle {
         acl_genpass0(self.get_conn()?, bits)
     }
 
+    fn acl_save(&self) -> AnyResult<()> {
+        acl_save0(self.get_conn()?)
+    }
+
+    fn acl_load(&self) -> AnyResult<()> {
+        acl_load0(self.get_conn()?)
+    }
+
+    fn acl_log(&self, count: Option<u64>) -> AnyResult<Vec<AclLogEntry>> {
+        acl_log0(self.get_conn()?, count)
+    }
+
+    fn acl_dryrun(&self, username: String, command: String) -> AnyResult<String> {
+        acl_dryrun0(self.get_conn()?, username, command)
+    }
+
     implement_pipeline_commands!(Pipeline);
 }
 

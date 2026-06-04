@@ -163,6 +163,10 @@ api_commands!(
     acl_whoami() -> String;                      // ACL 当前用户
     acl_cat(category: Option<String>) -> Vec<String>; // ACL 命令分类
     acl_genpass(bits: Option<i64>) -> String;    // ACL 生成密码
+    acl_save() -> ();                            // ACL 保存规则
+    acl_load() -> ();                            // ACL 加载规则
+    acl_log(count: Option<u64>) -> Vec<AclLogEntry>; // ACL 安全日志
+    acl_dryrun(username: String, command: String) -> String; // ACL 模拟测试
 );
 
 // 需要将app_handle传递过去的命令
