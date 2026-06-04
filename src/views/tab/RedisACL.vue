@@ -217,6 +217,7 @@ void refresh()
                 :info="t('edit')"
                 @click="openEdit(row)" />
               <me-icon
+                v-if="row.username !== 'default'"
                 icon="el-icon-delete"
                 class="icon-btn"
                 :info="t('delete')"
