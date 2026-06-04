@@ -1,12 +1,14 @@
 <script setup lang="ts">
 /** ACL 新增/编辑对话框：只负责表单 UI，form 数据与保存逻辑在 RedisACL.vue */
-import { ref, watch } from 'vue'
+import { inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { shareProvideKey } from '@/types/me-interface'
 import { ACL_PRESET_COMMAND_RULES, type AclEditModel, type AclPreset } from '@/utils/acl'
-import { meCopy, meWarn } from '@/utils/util'
+import { meCommands, meCopy, meWarn } from '@/utils/util'
 
 const { t } = useI18n()
+const share = inject(shareProvideKey)!
 
 const visible = defineModel<boolean>({ default: false })
 const dangerousBlocked = defineModel<boolean>('dangerousBlocked', { required: true })
@@ -27,6 +29,77 @@ const emit = defineEmits<{
 const ruleInput = ref('')
 const keyPatternInput = ref('')
 const channelPatternInput = ref('')
+
+/** ACL 命令类别列表 */
+const aclCategories = ref<string[]>([])
+const categoriesLoading = ref(false)
+const selectedCategory = ref('')
+
+/** 当前选中类别的命令详情 */
+const categoryCommands = ref<string[]>([])
+const categoryCommandsLoading = ref(false)
+
+/** 加载 ACL 命令类别 */
+async function loadAclCategories() {
+  if (!share.conn?.id || aclCategories.value.length > 0) return
+
+  categoriesLoading.value = true
+  try {
+    const categories = await meCommands.aclCat(share.conn.id, null)
+    aclCategories.value = categories.sort()
+  } catch (error) {
+    console.error('Failed to load ACL categories:', error)
+    // 静默失败，不影响用户体验
+  } finally {
+    categoriesLoading.value = false
+  }
+}
+
+/** 加载选中类别的命令列表 */
+async function loadCategoryCommands(category: string) {
+  if (!category || !share.conn?.id) {
+    categoryCommands.value = []
+    return
+  }
+
+  categoryCommandsLoading.value = true
+  try {
+    const commands = await meCommands.aclCat(share.conn.id, category)
+    categoryCommands.value = commands.sort()
+  } catch (error) {
+    console.error(`Failed to load commands for category ${category}:`, error)
+    categoryCommands.value = []
+  } finally {
+    categoryCommandsLoading.value = false
+  }
+}
+
+/** 类别选择变化时加载命令详情 */
+watch(selectedCategory, async newCategory => {
+  if (newCategory) {
+    await loadCategoryCommands(newCategory)
+  } else {
+    categoryCommands.value = []
+  }
+})
+
+/** 复制类别命令列表 */
+function copyCategoryCommands() {
+  if (categoryCommands.value.length === 0) return
+  const text = categoryCommands.value.join(', ')
+  meCopy(text, t('redisACL.commandsCopied'))
+}
+
+/** 添加选中的类别规则 */
+function addCategoryRule() {
+  if (!selectedCategory.value) return
+
+  const rule = `+@${selectedCategory.value}`
+  pushUnique(props.form.commandRules, rule)
+  selectedCategory.value = ''
+  // 清空命令详情，避免显示旧数据
+  categoryCommands.value = []
+}
 
 function pushUnique(target: string[], value: string) {
   const text = value.trim()
@@ -67,6 +140,8 @@ function resetDraftInputs() {
   ruleInput.value = ''
   keyPatternInput.value = ''
   channelPatternInput.value = ''
+  selectedCategory.value = ''
+  categoryCommands.value = []
 }
 
 /** 至少保留一条，避免保存时后端 empty → allkeys / resetchannels */
@@ -87,7 +162,10 @@ function removeChannelPattern(item: string) {
 }
 
 watch(visible, open => {
-  if (open) resetDraftInputs()
+  if (open) {
+    resetDraftInputs()
+    void loadAclCategories()
+  }
 })
 </script>
 
@@ -173,7 +251,68 @@ watch(visible, open => {
               {{ item }}
             </el-tag>
           </div>
-          <div class="command-input-row">
+
+          <!-- ACL 类别选择器和规则输入 -->
+          <div class="command-rules-row">
+            <el-popover
+              :width="500"
+              trigger="manual"
+              :visible="!!selectedCategory"
+              placement="bottom-start"
+              popper-class="category-commands-popper">
+              <template #reference>
+                <el-select
+                  v-model="selectedCategory"
+                  :placeholder="t('redisACL.selectCategory')"
+                  :loading="categoriesLoading"
+                  clearable
+                  filterable
+                  class="category-select">
+                  <el-option v-for="cat in aclCategories" :key="cat" :label="cat" :value="cat" />
+                </el-select>
+              </template>
+              <div v-if="selectedCategory" class="category-commands-popover">
+                <div v-if="categoryCommandsLoading" class="loading-text">
+                  {{ t('loading') }}
+                </div>
+                <template v-else-if="categoryCommands.length > 0">
+                  <div class="popover-header">
+                    <span class="category-name">@{{ selectedCategory }}</span>
+                    <span class="command-count"
+                      >({{ categoryCommands.length }} {{ t('redisACL.commands') }})</span
+                    >
+                    <el-button
+                      link
+                      type="primary"
+                      size="small"
+                      class="copy-commands-btn"
+                      @click="copyCategoryCommands">
+                      {{ t('redisACL.copyCommands') }}
+                    </el-button>
+                  </div>
+                  <div class="commands-list">
+                    <el-tag
+                      v-for="cmd in categoryCommands"
+                      :key="cmd"
+                      size="small"
+                      type="warning"
+                      disable-transitions
+                      class="command-tag">
+                      {{ cmd }}
+                    </el-tag>
+                  </div>
+                </template>
+                <div v-else class="empty-text">
+                  {{ t('redisACL.noCommands') }}
+                </div>
+              </div>
+            </el-popover>
+            <el-button
+              class="add-category-btn"
+              :disabled="!selectedCategory"
+              @click="addCategoryRule">
+              {{ t('redisACL.addCategory') }}
+            </el-button>
             <el-input
               v-model="ruleInput"
               :placeholder="t('redisACL.rulePlaceholder')"
@@ -358,12 +497,70 @@ watch(visible, open => {
   white-space: normal;
 }
 
-.command-input-row {
+.command-rules-row {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 8px;
   width: 100%;
+}
+
+.category-select {
+  width: 200px;
+}
+
+.category-commands-popover {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.loading-text,
+.empty-text {
+  text-align: center;
+  padding: 20px;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.popover-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--el-border-color);
+}
+
+.category-name {
+  font-weight: 600;
+  color: var(--el-color-primary);
+  font-size: 14px;
+}
+
+.command-count {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+.copy-commands-btn {
+  margin-left: auto;
+  padding: 0;
+}
+
+.commands-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.command-tag {
+  margin: 0;
+  font-family: var(--code-font);
+}
+
+.add-category-btn {
+  flex-shrink: 0;
+  width: 108px;
 }
 
 .command-rule-input {
