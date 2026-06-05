@@ -34,12 +34,18 @@ export const commands = {
 	fieldDel: (id: string, param: RedisFieldDel_Deserialize) => typedError<null, string>(__TAURI_INVOKE("field_del", { id, param })),
 	executeCommand: (id: string, param: RedisCommand) => typedError<string, string>(__TAURI_INVOKE("execute_command", { id, param })),
 	aclUsers: (id: string) => typedError<string[], string>(__TAURI_INVOKE("acl_users", { id })),
+	aclListUsers: (id: string) => typedError<AclUserDetail[], string>(__TAURI_INVOKE("acl_list_users", { id })),
 	aclGetuser: (id: string, username: string) => typedError<AclUserDetail, string>(__TAURI_INVOKE("acl_getuser", { id, username })),
 	aclSetuser: (id: string, param: AclSetuserParam) => typedError<null, string>(__TAURI_INVOKE("acl_setuser", { id, param })),
 	aclDeluser: (id: string, usernames: string[]) => typedError<number, string>(__TAURI_INVOKE("acl_deluser", { id, usernames })),
 	aclWhoami: (id: string) => typedError<string, string>(__TAURI_INVOKE("acl_whoami", { id })),
 	aclCat: (id: string, category: string | null) => typedError<string[], string>(__TAURI_INVOKE("acl_cat", { id, category })),
 	aclGenpass: (id: string, bits: number | null) => typedError<string, string>(__TAURI_INVOKE("acl_genpass", { id, bits })),
+	aclSave: (id: string) => typedError<null, string>(__TAURI_INVOKE("acl_save", { id })),
+	aclLoad: (id: string) => typedError<null, string>(__TAURI_INVOKE("acl_load", { id })),
+	aclLog: (id: string, count: number | null) => typedError<AclLogEntry[], string>(__TAURI_INVOKE("acl_log", { id, count })),
+	aclLogReset: (id: string) => typedError<null, string>(__TAURI_INVOKE("acl_log_reset", { id })),
+	aclDryrun: (id: string, username: string, command: string) => typedError<string, string>(__TAURI_INVOKE("acl_dryrun", { id, username, command })),
 	slowLog: (id: string, count: number | null, node: string | null) => typedError<RedisSlowLog[], string>(__TAURI_INVOKE("slow_log", { id, count, node })),
 	memoryUsage: (id: string, param: RedisMemoryParam) => typedError<RedisKeySize_Serialize[], string>(__TAURI_INVOKE("memory_usage", { id, param })),
 	configGet: (id: string, pattern: string, node: string | null) => typedError<{ [key in string]: string }, string>(__TAURI_INVOKE("config_get", { id, pattern, node })),
@@ -66,6 +72,19 @@ export const commands = {
 };
 
 /* Types */
+export type AclLogEntry = {
+	count: number,
+	reason: string,
+	context: string,
+	object: string,
+	username: string,
+	ageSeconds: number | null,
+	clientInfo: string,
+	entryId: number,
+	timestampCreated: number,
+	timestampLastUpdated: number,
+};
+
 export type AclSetuserParam = {
 	username: string,
 	enabled: boolean,
@@ -73,6 +92,8 @@ export type AclSetuserParam = {
 	commandRules: string[],
 	keyPatterns: string[],
 	channelPatterns: string[],
+	/**  Redis 7.2+ selector，每条为 SETUSER 括号内规则串（如 `-@all +set ~key2`） */
+	selectors: string[],
 };
 
 export type AclUserDetail = {

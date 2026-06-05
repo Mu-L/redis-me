@@ -110,6 +110,7 @@ pub trait MeClient: Send + Sync {
     fn flush_all(&self) -> AnyResult<()>;
 
     fn acl_users(&self) -> AnyResult<Vec<String>>;
+    fn acl_list_users(&self) -> AnyResult<Vec<AclUserDetail>>;
     fn acl_getuser(&self, username: &str) -> AnyResult<AclUserDetail>;
     fn acl_setuser(&self, param: AclSetuserParam) -> AnyResult<()>;
     fn acl_deluser(&self, usernames: Vec<String>) -> AnyResult<usize>;
@@ -119,6 +120,7 @@ pub trait MeClient: Send + Sync {
     fn acl_save(&self) -> AnyResult<()>;
     fn acl_load(&self) -> AnyResult<()>;
     fn acl_log(&self, count: Option<u64>) -> AnyResult<Vec<AclLogEntry>>;
+    fn acl_log_reset(&self) -> AnyResult<()>;
     fn acl_dryrun(&self, username: String, command: String) -> AnyResult<String>;
 }
 
@@ -1274,6 +1276,143 @@ pub(crate) fn acl_rule_to_string(rule: Rule) -> String {
     }
 }
 
+/// SETUSER  wire 格式（含 ~ / & 前缀），用于 selector 文本往返
+fn acl_rule_to_setuser_text(rule: &Rule) -> String {
+    match rule {
+        Rule::On => "on".into(),
+        Rule::Off => "off".into(),
+        Rule::AllCommands => "allcommands".into(),
+        Rule::NoCommands => "nocommands".into(),
+        Rule::AllKeys => "allkeys".into(),
+        Rule::ResetKeys => "resetkeys".into(),
+        Rule::ResetChannels => "resetchannels".into(),
+        Rule::AddCommand(cmd) => format!("+{cmd}"),
+        Rule::RemoveCommand(cmd) => format!("-{cmd}"),
+        Rule::AddCategory(cat) => format!("+@{cat}"),
+        Rule::RemoveCategory(cat) => format!("-@{cat}"),
+        Rule::Pattern(pat) => format!("~{pat}"),
+        Rule::Channel(pat) if pat == "*" => "allchannels".into(),
+        Rule::Channel(pat) => format!("&{pat}"),
+        Rule::Other(raw) => raw.clone(),
+        Rule::Selector(inner) => format!("({})", acl_rules_to_selector_text(inner)),
+        _ => "unknown".into(),
+    }
+}
+
+fn acl_rules_to_selector_text(rules: &[Rule]) -> String {
+    rules
+        .iter()
+        .map(acl_rule_to_setuser_text)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn get_getuser_field<'a>(value: &'a Value, key: &str) -> Option<&'a Value> {
+    if let Some(map_iter) = value.as_map_iter() {
+        for (name, val) in map_iter {
+            if getuser_key_name(name).as_deref() == Some(key) {
+                return Some(val);
+            }
+        }
+    } else if let Some(seq) = value.as_sequence() {
+        if seq.len().is_multiple_of(2) {
+            for chunk in seq.chunks(2) {
+                if getuser_key_name(&chunk[0]).as_deref() == Some(key) {
+                    return Some(&chunk[1]);
+                }
+            }
+        }
+    }
+    None
+}
+
+fn getuser_key_name(value: &Value) -> Option<String> {
+    match value {
+        Value::BulkString(b) => {
+            let mut s = String::from_utf8_lossy(b).trim().to_string();
+            if s.len() >= 2 && s.starts_with('"') && s.ends_with('"') {
+                s = s[1..s.len() - 1].to_string();
+            }
+            Some(s)
+        }
+        Value::SimpleString(s) => Some(s.trim().to_string()),
+        _ => None,
+    }
+}
+
+/// 从 ACL GETUSER 原始响应解析 selectors（按条分组，避免 redis-rs flatten 丢结构）
+fn parse_acl_selectors_from_getuser(value: &Value) -> AnyResult<Vec<String>> {
+    let Some(selectors_value) = get_getuser_field(value, "selectors") else {
+        return Ok(vec![]);
+    };
+    let arr = match selectors_value {
+        Value::Array(arr) | Value::Set(arr) => arr,
+        _ => return Ok(vec![]),
+    };
+    Ok(arr
+        .iter()
+        .map(selector_item_to_text)
+        .filter(|text| !text.is_empty())
+        .collect())
+}
+
+fn selector_item_to_text(item: &Value) -> String {
+    let info = match redis::acl::AclInfo::from_redis_value_ref(item) {
+        Ok(info) => info,
+        Err(_) => return String::new(),
+    };
+    let rules: Vec<Rule> = info
+        .flags
+        .into_iter()
+        .chain(info.commands)
+        .chain(info.keys)
+        .chain(info.channels)
+        .collect();
+    acl_rules_to_selector_text(&rules)
+}
+
+fn acl_selector_token_to_rule(token: &str) -> Rule {
+    let v = token.trim();
+    if v.is_empty() {
+        return Rule::Other(String::new());
+    }
+    match v.to_ascii_lowercase().as_str() {
+        "allkeys" => Rule::AllKeys,
+        "resetkeys" => Rule::ResetKeys,
+        "allchannels" => Rule::Other("allchannels".into()),
+        "resetchannels" => Rule::ResetChannels,
+        "allcommands" => Rule::AllCommands,
+        "nocommands" => Rule::NoCommands,
+        "on" => Rule::On,
+        "off" => Rule::Off,
+        _ if v.starts_with("+@")
+            || v.starts_with("-@")
+            || v.starts_with('+')
+            || v.starts_with('-') =>
+        {
+            acl_rule_from_text(v)
+        }
+        _ if v.starts_with('~') => acl_key_rule_from_text(v),
+        _ if v.starts_with('&') => acl_channel_rule_from_text(v),
+        _ => Rule::Other(v.into()),
+    }
+}
+
+fn acl_selector_from_text(text: &str) -> AnyResult<Rule> {
+    let trimmed = text.trim();
+    let inner = trimmed
+        .strip_prefix('(')
+        .and_then(|s| s.strip_suffix(')'))
+        .unwrap_or(trimmed)
+        .trim();
+    if inner.is_empty() {
+        bail!("empty ACL selector");
+    }
+    let tokens = shell_words::split(inner)?;
+    let rules: Vec<Rule> = tokens.iter().map(|t| acl_selector_token_to_rule(t)).collect();
+    Ok(Rule::Selector(rules))
+}
+
 fn acl_rule_from_text(text: &str) -> Rule {
     let v = text.trim();
     if let Some(cmd) = v.strip_prefix("+@") {
@@ -1291,7 +1430,25 @@ fn acl_rule_from_text(text: &str) -> Rule {
     Rule::Other(v.into())
 }
 
-pub(crate) fn acl_build_rules(param: &AclSetuserParam) -> Vec<Rule> {
+fn acl_key_rule_from_text(text: &str) -> Rule {
+    let v = text.trim().trim_start_matches('~');
+    match v.to_ascii_lowercase().as_str() {
+        "allkeys" | "*" => Rule::AllKeys,
+        "resetkeys" => Rule::ResetKeys,
+        _ => Rule::Pattern(v.into()),
+    }
+}
+
+fn acl_channel_rule_from_text(text: &str) -> Rule {
+    let v = text.trim().trim_start_matches('&');
+    match v.to_ascii_lowercase().as_str() {
+        "allchannels" | "*" => Rule::Other("allchannels".into()),
+        "resetchannels" => Rule::ResetChannels,
+        _ => Rule::Channel(v.into()),
+    }
+}
+
+pub(crate) fn acl_build_rules(param: &AclSetuserParam) -> AnyResult<Vec<Rule>> {
     let mut rules = vec![Rule::Reset];
     rules.push(if param.enabled { Rule::On } else { Rule::Off });
 
@@ -1329,8 +1486,7 @@ pub(crate) fn acl_build_rules(param: &AclSetuserParam) -> Vec<Rule> {
             param
                 .key_patterns
                 .iter()
-                .cloned()
-                .map(Rule::Pattern),
+                .map(|x| acl_key_rule_from_text(x)),
         );
     }
 
@@ -1341,14 +1497,26 @@ pub(crate) fn acl_build_rules(param: &AclSetuserParam) -> Vec<Rule> {
             param
                 .channel_patterns
                 .iter()
-                .cloned()
-                .map(Rule::Channel),
+                .map(|x| acl_channel_rule_from_text(x)),
         );
     }
-    rules
+
+    // 编辑保存时回写 selectors（与表单 selectors 字段一致）
+    for selector in &param.selectors {
+        let text = selector.trim();
+        if text.is_empty() {
+            continue;
+        }
+        rules.push(acl_selector_from_text(text)?);
+    }
+    Ok(rules)
 }
 
-pub(crate) fn acl_user_detail_from_info(username: &str, info: redis::acl::AclInfo) -> AclUserDetail {
+pub(crate) fn acl_user_detail_from_info(
+    username: &str,
+    info: redis::acl::AclInfo,
+    selectors: Vec<String>,
+) -> AclUserDetail {
     let mut enabled = false;
     let mut nopass = false;
     let mut flags = Vec::with_capacity(info.flags.len());
@@ -1365,7 +1533,6 @@ pub(crate) fn acl_user_detail_from_info(username: &str, info: redis::acl::AclInf
     let command_rules = info.commands.into_iter().map(acl_rule_to_string).collect();
     let key_patterns = info.keys.into_iter().map(acl_rule_to_string).collect();
     let channel_patterns = info.channels.into_iter().map(acl_rule_to_string).collect();
-    let selectors = info.selectors.into_iter().map(acl_rule_to_string).collect();
 
     AclUserDetail {
         username: username.into(),
@@ -1380,22 +1547,196 @@ pub(crate) fn acl_user_detail_from_info(username: &str, info: redis::acl::AclInf
     }
 }
 
+/// ACL LIST 行内规则分词：保留 `(+set ~key)` 等 selector 整段
+fn tokenize_acl_list_rule_tokens(text: &str) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut i = 0;
+    let bytes = text.as_bytes();
+    while i < bytes.len() {
+        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+            i += 1;
+        }
+        if i >= bytes.len() {
+            break;
+        }
+        if bytes[i] == b'(' {
+            let start = i;
+            let mut depth = 0;
+            while i < bytes.len() {
+                if bytes[i] == b'(' {
+                    depth += 1;
+                }
+                if bytes[i] == b')' {
+                    depth -= 1;
+                    if depth == 0 {
+                        i += 1;
+                        break;
+                    }
+                }
+                i += 1;
+            }
+            tokens.push(text[start..i].to_string());
+        } else {
+            let start = i;
+            while i < bytes.len() && !bytes[i].is_ascii_whitespace() {
+                i += 1;
+            }
+            tokens.push(text[start..i].to_string());
+        }
+    }
+    tokens
+}
+
+fn list_key_to_pattern(token: &str) -> String {
+    let v = token.trim().trim_start_matches('~');
+    match v.to_ascii_lowercase().as_str() {
+        "allkeys" => "allkeys".into(),
+        "*" => "*".into(),
+        _ => v.into(),
+    }
+}
+
+fn list_channel_to_pattern(token: &str) -> String {
+    let v = token.trim().trim_start_matches('&');
+    match v.to_ascii_lowercase().as_str() {
+        "allchannels" => "allchannels".into(),
+        "*" => "*".into(),
+        _ => v.into(),
+    }
+}
+
+fn selector_token_to_text(token: &str) -> String {
+    let trimmed = token.trim();
+    trimmed
+        .strip_prefix('(')
+        .and_then(|s| s.strip_suffix(')'))
+        .unwrap_or(trimmed)
+        .trim()
+        .to_string()
+}
+
+fn is_acl_list_command_rule(token: &str) -> bool {
+    token.starts_with("+@")
+        || token.starts_with("-@")
+        || (token.starts_with('+') && token.len() > 1)
+        || (token.starts_with('-') && token.len() > 1)
+}
+
+fn is_acl_list_key_rule(token: &str) -> bool {
+    token.starts_with('~')
+        || matches!(
+            token.to_ascii_lowercase().as_str(),
+            "allkeys" | "resetkeys" | "*"
+        )
+}
+
+fn is_acl_list_channel_rule(token: &str) -> bool {
+    token.starts_with('&')
+        || matches!(
+            token.to_ascii_lowercase().as_str(),
+            "allchannels" | "resetchannels"
+        )
+}
+
+/// 解析 ACL LIST 单行 `user <name> <rules...>` 为 AclUserDetail
+pub(crate) fn parse_acl_list_line(line: &str) -> AnyResult<AclUserDetail> {
+    let line = line.trim();
+    let rest = line
+        .strip_prefix("user ")
+        .ok_or_else(|| anyhow::anyhow!("invalid ACL LIST line: {line}"))?;
+    let tokens = tokenize_acl_list_rule_tokens(rest);
+    let username = tokens
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("ACL LIST line missing username: {line}"))?
+        .clone();
+
+    let mut enabled = false;
+    let mut nopass = false;
+    let mut flags = Vec::new();
+    let mut password_hashes = Vec::new();
+    let mut command_rules = Vec::new();
+    let mut key_patterns = Vec::new();
+    let mut channel_patterns = Vec::new();
+    let mut selectors = Vec::new();
+
+    for token in tokens.iter().skip(1) {
+        if token == "on" {
+            enabled = true;
+            flags.push("on".into());
+        } else if token == "off" {
+            enabled = false;
+            flags.push("off".into());
+        } else if token == "nopass" {
+            nopass = true;
+            flags.push("nopass".into());
+        } else if let Some(hash) = token.strip_prefix('#') {
+            password_hashes.push(hash.to_string());
+        } else if token.starts_with('(') {
+            let text = selector_token_to_text(token);
+            if !text.is_empty() {
+                selectors.push(text);
+            }
+        } else if is_acl_list_command_rule(token) {
+            command_rules.push(token.clone());
+        } else if is_acl_list_key_rule(token) {
+            key_patterns.push(list_key_to_pattern(token));
+        } else if is_acl_list_channel_rule(token) {
+            channel_patterns.push(list_channel_to_pattern(token));
+        } else {
+            flags.push(token.clone());
+            if token == "nopass" {
+                nopass = true;
+            }
+        }
+    }
+
+    Ok(AclUserDetail {
+        username,
+        enabled,
+        nopass,
+        flags,
+        password_hashes,
+        command_rules,
+        key_patterns,
+        channel_patterns,
+        selectors,
+    })
+}
+
+pub fn acl_list_users0(mut conn: MutexGuard<impl Commands>) -> AnyResult<Vec<AclUserDetail>> {
+    let lines: Vec<String> = conn.acl_list()?;
+    let mut users = Vec::with_capacity(lines.len());
+    for line in lines {
+        let line = line.trim();
+        if line.is_empty() || !line.starts_with("user ") {
+            continue;
+        }
+        users.push(parse_acl_list_line(line)?);
+    }
+    users.sort_by(|a, b| a.username.cmp(&b.username));
+    Ok(users)
+}
+
 pub fn acl_getuser0(
     mut conn: MutexGuard<impl Commands>,
     username: &str,
 ) -> AnyResult<AclUserDetail> {
-    let info: redis::acl::AclInfo = conn
-        .acl_getuser::<_, Option<redis::acl::AclInfo>>(username)?
-        .ok_or_else(|| anyhow::anyhow!("ACL user not found: {username}"))?;
+    let raw: Value = redis::cmd("ACL")
+        .arg("GETUSER")
+        .arg(username)
+        .query(&mut *conn)?;
+    let info: Option<redis::acl::AclInfo> = FromRedisValue::from_redis_value(raw.clone())?;
+    let info = info.ok_or_else(|| anyhow::anyhow!("ACL user not found: {username}"))?;
+    let selectors = parse_acl_selectors_from_getuser(&raw)?;
 
-    Ok(acl_user_detail_from_info(username, info))
+    Ok(acl_user_detail_from_info(username, info, selectors))
 }
 
 pub fn acl_setuser0(
     mut conn: MutexGuard<impl Commands>,
     param: &AclSetuserParam,
 ) -> AnyResult<()> {
-    let rules = acl_build_rules(param);
+    let rules = acl_build_rules(param)?;
     let _: () = conn.acl_setuser_rules(&param.username, &rules)?;
     Ok(())
 }
@@ -1451,76 +1792,86 @@ pub fn acl_load0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
     Ok(())
 }
 
+/// ACL LOG 单条：Redis 返回扁平 key/value 数组
+fn parse_acl_log_entry(value: Value) -> AnyResult<AclLogEntry> {
+    let pairs = match value {
+        Value::Array(arr) => arr,
+        _ => bail!("ACL log entry should be an array"),
+    };
+
+    let mut log_entry = AclLogEntry::default();
+    let mut i = 0;
+    while i + 1 < pairs.len() {
+        let key = redis_value_to_string(pairs[i].clone(), "");
+        let val = pairs[i + 1].clone();
+        match key.as_str() {
+            "count" => {
+                if let Value::Int(c) = val {
+                    log_entry.count = c as u64;
+                }
+            }
+            "reason" => log_entry.reason = acl_log_value_to_string(val),
+            "context" => log_entry.context = acl_log_value_to_string(val),
+            "object" => log_entry.object = acl_log_value_to_string(val),
+            "username" => log_entry.username = acl_log_value_to_string(val),
+            "age-seconds" => {
+                if let Ok(a) = acl_log_value_to_string(val).parse::<f64>() {
+                    log_entry.age_seconds = a;
+                }
+            }
+            "client-info" => log_entry.client_info = acl_log_value_to_string(val),
+            "entry-id" => {
+                if let Value::Int(id) = val {
+                    log_entry.entry_id = id as u64;
+                }
+            }
+            "timestamp-created" => {
+                if let Value::Int(t) = val {
+                    log_entry.timestamp_created = t as u64;
+                }
+            }
+            "timestamp-last-updated" | "timestamp-last" => {
+                if let Value::Int(t) = val {
+                    log_entry.timestamp_last_updated = t as u64;
+                }
+            }
+            _ => {}
+        }
+        i += 2;
+    }
+    Ok(log_entry)
+}
+
+fn acl_log_value_to_string(value: Value) -> String {
+    match value {
+        Value::BulkString(b) => String::from_utf8_lossy(&b).to_string(),
+        Value::SimpleString(s) => s,
+        Value::Int(i) => i.to_string(),
+        other => redis_value_to_string(other, " "),
+    }
+}
+
 /// ACL LOG: 获取 ACL 安全日志
 pub fn acl_log0(
     mut conn: MutexGuard<impl Commands>,
     count: Option<u64>,
 ) -> AnyResult<Vec<AclLogEntry>> {
-    // 使用 redis-rs 内置的 acl_log 方法
     let count = count.unwrap_or(10) as isize;
-    let entries: Vec<HashMap<String, Value>> = conn.acl_log(count)?;
+    let value: Value = redis::cmd("ACL")
+        .arg("LOG")
+        .arg(count)
+        .query(&mut *conn)?;
 
-    let mut result = Vec::new();
-    for entry in entries {
-        let mut log_entry = AclLogEntry::default();
-
-        // 解析 HashMap 中的字段
-        for (key, value) in entry {
-            match key.as_str() {
-                "count" => {
-                    if let Value::Int(c) = value {
-                        log_entry.count = c as u64;
-                    }
-                }
-                "reason" => {
-                    if let Value::BulkString(r) = value {
-                        log_entry.reason = String::from_utf8_lossy(&r).to_string();
-                    }
-                }
-                "context" => {
-                    if let Value::BulkString(c) = value {
-                        log_entry.context = String::from_utf8_lossy(&c).to_string();
-                    }
-                }
-                "object" => {
-                    if let Value::BulkString(o) = value {
-                        log_entry.object = String::from_utf8_lossy(&o).to_string();
-                    }
-                }
-                "username" => {
-                    if let Value::BulkString(u) = value {
-                        log_entry.username = String::from_utf8_lossy(&u).to_string();
-                    }
-                }
-                "age-seconds" => {
-                    if let Value::Double(a) = value {
-                        log_entry.age_seconds = a as u64;
-                    } else if let Value::Int(a) = value {
-                        log_entry.age_seconds = a as u64;
-                    }
-                }
-                "client-info" => {
-                    if let Value::BulkString(c) = value {
-                        log_entry.client_info = String::from_utf8_lossy(&c).to_string();
-                    }
-                }
-                "timestamp-created" => {
-                    if let Value::Int(t) = value {
-                        log_entry.timestamp_created = t as u64;
-                    }
-                }
-                "timestamp-last" => {
-                    if let Value::Int(t) = value {
-                        log_entry.timestamp_last = t as u64;
-                    }
-                }
-                _ => {}
-            }
-        }
-        result.push(log_entry);
+    match value {
+        Value::Array(entries) => entries.into_iter().map(parse_acl_log_entry).collect(),
+        _ => bail!("ACL LOG response should be an array"),
     }
+}
 
-    Ok(result)
+/// ACL LOG RESET: 清空 ACL 安全日志
+pub fn acl_log_reset0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
+    let _: () = conn.acl_log_reset()?;
+    Ok(())
 }
 
 /// ACL DRYRUN: 模拟执行命令，检查用户权限
@@ -1585,4 +1936,70 @@ macro_rules! implement_pipeline_commands {
             Ok(())
         }
     };
+}
+
+#[cfg(test)]
+mod acl_selector_tests {
+    use super::*;
+    use redis::acl::Rule;
+
+    #[test]
+    fn selector_text_roundtrip() {
+        let rules = vec![
+            Rule::RemoveCategory("all".into()),
+            Rule::AddCommand("set".into()),
+            Rule::Pattern("key2".into()),
+        ];
+        let text = acl_rules_to_selector_text(&rules);
+        assert_eq!(text, "-@all +set ~key2");
+
+        let Rule::Selector(parsed) = acl_selector_from_text(&text).expect("parse selector") else {
+            panic!("expected Rule::Selector");
+        };
+        assert_eq!(parsed.len(), 3);
+        assert!(matches!(parsed[0], Rule::RemoveCategory(_)));
+        assert!(matches!(parsed[1], Rule::AddCommand(_)));
+        assert!(matches!(parsed[2], Rule::Pattern(_)));
+    }
+
+    #[test]
+    fn acl_build_rules_keeps_selectors() {
+        let param = AclSetuserParam {
+            username: "u1".into(),
+            enabled: true,
+            password_hashes: vec![],
+            command_rules: vec!["+@read".into()],
+            key_patterns: vec!["*".into()],
+            channel_patterns: vec!["*".into()],
+            selectors: vec!["-@all +set ~key2".into()],
+        };
+        let rules = acl_build_rules(&param).expect("build acl rules");
+        assert!(
+            rules
+                .iter()
+                .any(|r| matches!(r, Rule::Selector(_))),
+            "expected Rule::Selector in built rules"
+        );
+    }
+
+    #[test]
+    fn parse_acl_list_default_user() {
+        let detail = parse_acl_list_line("user default on nopass ~* +@all").expect("parse");
+        assert_eq!(detail.username, "default");
+        assert!(detail.enabled);
+        assert!(detail.nopass);
+        assert_eq!(detail.key_patterns, vec!["*"]);
+        assert!(detail.command_rules.contains(&"+@all".to_string()));
+    }
+
+    #[test]
+    fn parse_acl_list_with_hash_and_selector() {
+        let line = "user bob on #abc123 ~redis:* -@all +set (-@all +get ~key1)";
+        let detail = parse_acl_list_line(line).expect("parse");
+        assert_eq!(detail.username, "bob");
+        assert_eq!(detail.password_hashes, vec!["abc123".to_string()]);
+        assert_eq!(detail.key_patterns, vec!["redis:*"]);
+        assert_eq!(detail.command_rules, vec!["-@all".to_string(), "+set".to_string()]);
+        assert_eq!(detail.selectors, vec!["-@all +get ~key1".to_string()]);
+    }
 }

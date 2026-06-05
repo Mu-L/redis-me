@@ -2,11 +2,19 @@ import { describe, expect, it } from 'vitest'
 
 import type { AclUserDetail } from '@/types/tauri-specta'
 import {
+  buildAclExecutableCommand,
   buildAclPreviewCommand,
   buildAclSavePayload,
   createAclModelFromDetail,
   createDefaultAclModel,
+  formatChannelPatternLabel,
+  formatKeyPatternLabel,
   isAclSupported,
+  isAclSelectorSupported,
+  normalizeSelectorInput,
+  normalizeSelectorList,
+  formatSelectorLabel,
+  summarizeSelectors,
   sha256Hex,
 } from '@/utils/acl'
 
@@ -34,6 +42,25 @@ describe('isAclSupported', () => {
   it('5.x 及以下为 false', () => {
     expect(isAclSupported('5.0.14')).toBe(false)
     expect(isAclSupported(undefined)).toBe(false)
+  })
+})
+
+describe('isAclSelectorSupported', () => {
+  it('7.2 及以上为 true', () => {
+    expect(isAclSelectorSupported('7.2.0')).toBe(true)
+    expect(isAclSelectorSupported('8.0.0')).toBe(true)
+  })
+
+  it('7.1 及以下为 false', () => {
+    expect(isAclSelectorSupported('7.1.0')).toBe(false)
+    expect(isAclSelectorSupported('6.2.0')).toBe(false)
+  })
+})
+
+describe('normalizeSelectorInput', () => {
+  it('去掉外层括号并 trim', () => {
+    expect(normalizeSelectorInput('  (-@all +set ~key2)  ')).toBe('-@all +set ~key2')
+    expect(normalizeSelectorInput('-@all +get ~key1')).toBe('-@all +get ~key1')
   })
 })
 
@@ -65,6 +92,32 @@ describe('buildAclSavePayload', () => {
     expect(payload.keyPatterns).toEqual(['app:*'])
     expect(payload.channelPatterns).toEqual(['room:*'])
   })
+
+  it('编辑保存时规范化 selectors', async () => {
+    const model = createAclModelFromDetail(
+      sampleDetail({ selectors: ['-@all +set ~key2', '(-@all +get ~key1)'] }),
+    )
+    const payload = await buildAclSavePayload(model)
+    expect(payload.selectors).toEqual(['-@all +set ~key2', '-@all +get ~key1'])
+  })
+})
+
+describe('buildAclExecutableCommand', () => {
+  it('复制命令包含真实 password hash', async () => {
+    const model = createDefaultAclModel()
+    model.username = 'demo'
+    model.password = 'secret'
+    const cmd = await buildAclExecutableCommand(model)
+    expect(cmd).toContain(`#${await sha256Hex('secret')}`)
+    expect(cmd).not.toContain('<')
+  })
+
+  it('编辑未改密码时复制已保存 hash', async () => {
+    const model = createAclModelFromDetail(sampleDetail())
+    const cmd = await buildAclExecutableCommand(model)
+    expect(cmd).toContain(`#${sampleDetail().passwordHashes[0]}`)
+    expect(cmd).not.toContain('saved-hash')
+  })
 })
 
 describe('buildAclPreviewCommand', () => {
@@ -77,5 +130,42 @@ describe('buildAclPreviewCommand', () => {
     expect(preview).toContain('~*')
     expect(preview).toContain('&*')
     expect(preview).toContain('demo')
+  })
+
+  it('allkeys / allchannels 关键字不加 ~ & 前缀', () => {
+    const model = createDefaultAclModel()
+    model.username = 'demo'
+    model.keyPatterns = ['allkeys']
+    model.channelPatterns = ['allchannels']
+    const preview = buildAclPreviewCommand(model)
+    expect(preview).toContain('allkeys')
+    expect(preview).toContain('allchannels')
+    expect(preview).not.toContain('~allkeys')
+    expect(preview).not.toContain('&allchannels')
+  })
+
+  it('预览命令包含 selector 括号段', () => {
+    const model = createDefaultAclModel()
+    model.username = 'demo'
+    model.selectors = ['-@all +set ~key2']
+    const preview = buildAclPreviewCommand(model)
+    expect(preview).toContain('(-@all +set ~key2)')
+  })
+})
+
+describe('summarizeSelectors', () => {
+  it('空列表为 --，多条带括号摘要', () => {
+    expect(summarizeSelectors([])).toBe('--')
+    expect(summarizeSelectors(['-@all +set ~key2'])).toBe('(-@all +set ~key2)')
+    expect(summarizeSelectors(['-@all +set ~key2', '-@all +get ~key1'], 1)).toContain('...')
+  })
+})
+
+describe('formatKeyPatternLabel', () => {
+  it('关键字原样展示，普通模式加前缀', () => {
+    expect(formatKeyPatternLabel('allkeys')).toBe('allkeys')
+    expect(formatKeyPatternLabel('app:*')).toBe('~app:*')
+    expect(formatChannelPatternLabel('allchannels')).toBe('allchannels')
+    expect(formatChannelPatternLabel('room:*')).toBe('&room:*')
   })
 })

@@ -440,6 +440,10 @@ impl MeClient for MeSingle {
         acl_users0(self.get_conn()?)
     }
 
+    fn acl_list_users(&self) -> AnyResult<Vec<AclUserDetail>> {
+        acl_list_users0(self.get_conn()?)
+    }
+
     fn acl_getuser(&self, username: &str) -> AnyResult<AclUserDetail> {
         acl_getuser0(self.get_conn()?, username)
     }
@@ -474,6 +478,10 @@ impl MeClient for MeSingle {
 
     fn acl_log(&self, count: Option<u64>) -> AnyResult<Vec<AclLogEntry>> {
         acl_log0(self.get_conn()?, count)
+    }
+
+    fn acl_log_reset(&self) -> AnyResult<()> {
+        acl_log_reset0(self.get_conn()?)
     }
 
     fn acl_dryrun(&self, username: String, command: String) -> AnyResult<String> {

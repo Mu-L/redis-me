@@ -686,9 +686,11 @@ api_model!(AclSetuserParam {
     command_rules: Vec<String>,
     key_patterns: Vec<String>,
     channel_patterns: Vec<String>,
+    /// Redis 7.2+ selector，每条为 SETUSER 括号内规则串（如 `-@all +set ~key2`）
+    selectors: Vec<String>,
 });
 
-// ACL LOG 条目结构
+// ACL LOG 条目结构（字段顺序与 Redis ACL LOG 文档一致）
 api_model!(
     #[derive(Default)]
     AclLogEntry {
@@ -697,10 +699,11 @@ api_model!(
         context: String,
         object: String,
         username: String,
-        age_seconds: u64,
+        age_seconds: f64,
         client_info: String,
+        entry_id: u64,
         timestamp_created: u64,
-        timestamp_last: u64,
+        timestamp_last_updated: u64,
     }
 );
 

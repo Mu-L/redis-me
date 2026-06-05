@@ -1,10 +1,20 @@
 <script setup lang="ts">
 /** ACL 新增/编辑对话框：只负责表单 UI，form 数据与保存逻辑在 RedisACL.vue */
-import { inject, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
-import { ACL_PRESET_COMMAND_RULES, type AclEditModel, type AclPreset } from '@/utils/acl'
+import {
+  ACL_PRESET_COMMAND_RULES,
+  buildAclExecutableCommand,
+  formatChannelPatternLabel,
+  formatKeyPatternLabel,
+  formatSelectorLabel,
+  isAclSelectorSupported,
+  normalizeSelectorInput,
+  type AclEditModel,
+  type AclPreset,
+} from '@/utils/acl'
 import { meCommands, meCopy, meWarn } from '@/utils/util'
 
 const { t } = useI18n()
@@ -29,15 +39,24 @@ const emit = defineEmits<{
 const ruleInput = ref('')
 const keyPatternInput = ref('')
 const channelPatternInput = ref('')
+const selectorInput = ref('')
+
+/** 7.2+ 才展示 selector 编辑；已有 selector 的用户在旧版本实例上也保留入口 */
+const selectorUiVisible = computed(
+  () => isAclSelectorSupported(share.serverVersion) || props.form.selectors.length > 0,
+)
 
 /** ACL 命令类别列表 */
 const aclCategories = ref<string[]>([])
 const categoriesLoading = ref(false)
 const selectedCategory = ref('')
 
+/** 类别命令 popover 仅对话框打开时展示（popover 挂 body，关窗须显式隐藏） */
+const categoryPopoverVisible = computed(() => visible.value && !!selectedCategory.value)
+const categoryCommandsLoading = ref(false)
+
 /** 当前选中类别的命令详情 */
 const categoryCommands = ref<string[]>([])
-const categoryCommandsLoading = ref(false)
 
 /** 加载 ACL 命令类别 */
 async function loadAclCategories() {
@@ -122,6 +141,19 @@ function addRule() {
   ruleInput.value = ''
 }
 
+function copyPassword() {
+  const pwd = props.form.password.trim()
+  if (!pwd) {
+    meWarn(t('redisACL.passwordRequired'))
+    return
+  }
+  meCopy(pwd)
+}
+
+async function copyPreviewCommand() {
+  meCopy(await buildAclExecutableCommand(props.form))
+}
+
 /** 键模式存不含 ~ 前缀的纯 pattern，展示/保存时由 acl.ts 统一加 ~ */
 function addKeyPattern() {
   const v = keyPatternInput.value.trim().replace(/^~/, '')
@@ -136,10 +168,22 @@ function addChannelPattern() {
   channelPatternInput.value = ''
 }
 
+function addSelector() {
+  const normalized = normalizeSelectorInput(selectorInput.value)
+  if (!normalized) return
+  pushUnique(props.form.selectors, normalized)
+  selectorInput.value = ''
+}
+
+function removeSelector(item: string) {
+  props.form.selectors = props.form.selectors.filter(v => v !== item)
+}
+
 function resetDraftInputs() {
   ruleInput.value = ''
   keyPatternInput.value = ''
   channelPatternInput.value = ''
+  selectorInput.value = ''
   selectedCategory.value = ''
   categoryCommands.value = []
 }
@@ -162,10 +206,12 @@ function removeChannelPattern(item: string) {
 }
 
 watch(visible, open => {
-  if (open) {
+  if (!open) {
     resetDraftInputs()
-    void loadAclCategories()
+    return
   }
+  resetDraftInputs()
+  void loadAclCategories()
 })
 </script>
 
@@ -178,6 +224,7 @@ watch(visible, open => {
     append-to-body
     align-center
     :close-on-press-escape="false"
+    destroy-on-close
     draggable>
     <el-form label-position="right" label-width="auto" class="acl-form">
       <!-- 用户行：左输入 + 右启用开关；field-inline-trail 固定宽保证与密码行对齐 -->
@@ -209,7 +256,10 @@ watch(visible, open => {
             class="base-input">
           </el-input>
           <div class="field-inline-trail">
-            <el-button @click="emit('generatePassword')">{{ t('redisACL.genPassword') }}</el-button>
+            <el-button-group>
+              <el-button @click="emit('generatePassword')">GenPass</el-button>
+              <el-button icon="el-icon-document-copy" @click="copyPassword" />
+            </el-button-group>
           </div>
         </div>
       </el-form-item>
@@ -252,12 +302,12 @@ watch(visible, open => {
             </el-tag>
           </div>
 
-          <!-- ACL 类别选择器和规则输入 -->
-          <div class="command-rules-row">
+          <!-- ACL 类别选择器和规则输入；与下方键/频道/选择器共用四列 grid -->
+          <div class="rule-input-row">
             <el-popover
               :width="500"
               trigger="manual"
-              :visible="!!selectedCategory"
+              :visible="categoryPopoverVisible"
               placement="bottom-start"
               popper-class="category-commands-popper">
               <template #reference>
@@ -316,7 +366,7 @@ watch(visible, open => {
             <el-input
               v-model="ruleInput"
               :placeholder="t('redisACL.rulePlaceholder')"
-              class="command-rule-input" />
+              class="rule-input-field" />
             <el-button class="add-item-btn" @click="addRule">{{ t('redisACL.addRule') }}</el-button>
           </div>
         </div>
@@ -324,22 +374,24 @@ watch(visible, open => {
 
       <el-form-item :label="t('redisACL.keyPatterns')">
         <div class="rule-box">
-          <div class="pattern-row">
-            <div class="pattern-tags">
-              <el-tag
-                v-for="item in props.form.keyPatterns"
-                :key="item"
-                closable
-                disable-transitions
-                style="margin: 0 6px 0 0"
-                @close="removeKeyPattern(item)">
-                ~{{ item }}
-              </el-tag>
+          <div class="rule-input-row rule-input-row--3col">
+            <div class="rule-input-leading">
+              <div class="pattern-tags">
+                <el-tag
+                  v-for="item in props.form.keyPatterns"
+                  :key="item"
+                  closable
+                  disable-transitions
+                  style="margin: 0 6px 0 0"
+                  @close="removeKeyPattern(item)">
+                  {{ formatKeyPatternLabel(item) }}
+                </el-tag>
+              </div>
             </div>
             <el-input
               v-model="keyPatternInput"
               :placeholder="t('redisACL.keyPatternPlaceholder')"
-              class="pattern-input" />
+              class="rule-input-field" />
             <el-button class="add-item-btn" @click="addKeyPattern">{{
               t('redisACL.addPattern')
             }}</el-button>
@@ -349,22 +401,24 @@ watch(visible, open => {
 
       <el-form-item :label="t('redisACL.channelPatterns')">
         <div class="rule-box">
-          <div class="pattern-row">
-            <div class="pattern-tags">
-              <el-tag
-                v-for="item in props.form.channelPatterns"
-                :key="item"
-                closable
-                disable-transitions
-                style="margin: 0 6px 0 0"
-                @close="removeChannelPattern(item)">
-                &{{ item }}
-              </el-tag>
+          <div class="rule-input-row rule-input-row--3col">
+            <div class="rule-input-leading">
+              <div class="pattern-tags">
+                <el-tag
+                  v-for="item in props.form.channelPatterns"
+                  :key="item"
+                  closable
+                  disable-transitions
+                  style="margin: 0 6px 0 0"
+                  @close="removeChannelPattern(item)">
+                  {{ formatChannelPatternLabel(item) }}
+                </el-tag>
+              </div>
             </div>
             <el-input
               v-model="channelPatternInput"
               :placeholder="t('redisACL.channelPatternPlaceholder')"
-              class="pattern-input" />
+              class="rule-input-field" />
             <el-button class="add-item-btn" @click="addChannelPattern">{{
               t('redisACL.addPattern')
             }}</el-button>
@@ -372,9 +426,38 @@ watch(visible, open => {
         </div>
       </el-form-item>
 
+      <!-- Redis 7.2+ 选择器：布局与键/频道模式一致 -->
+      <el-form-item v-if="selectorUiVisible" :label="t('redisACL.selectors')">
+        <div class="rule-box">
+          <div class="rule-input-row rule-input-row--3col">
+            <div class="rule-input-leading">
+              <div class="pattern-tags">
+                <el-tag
+                  v-for="item in props.form.selectors"
+                  :key="item"
+                  closable
+                  disable-transitions
+                  style="margin: 0 6px 0 0"
+                  @close="removeSelector(item)">
+                  {{ formatSelectorLabel(item) }}
+                </el-tag>
+              </div>
+            </div>
+            <el-input
+              v-model="selectorInput"
+              :placeholder="t('redisACL.selectorPlaceholder')"
+              class="rule-input-field"
+              @keyup.enter="addSelector" />
+            <el-button class="add-item-btn" @click="addSelector">{{
+              t('redisACL.addSelector')
+            }}</el-button>
+          </div>
+        </div>
+      </el-form-item>
+
       <el-form-item :label="t('redisACL.preview')">
-        <!-- 点击复制完整 ACL SETUSER 预览，保存前可核对 -->
-        <el-text class="preview-text" @click="meCopy(props.previewCommand)">{{
+        <!-- 展示占位符；点击复制可直执行的 ACL SETUSER（含真实 #hash） -->
+        <el-text class="preview-text" @click="copyPreviewCommand">{{
           props.previewCommand
         }}</el-text>
       </el-form-item>
@@ -417,8 +500,8 @@ watch(visible, open => {
 }
 
 .acl-form {
-  // 用户/密码行右侧区域统一宽度，保证两行输入框对齐
-  --field-inline-trail-width: 6.5rem;
+  // 用户/密码行右侧区域统一宽度，保证两行输入框对齐（密码行为 GenPass + 复制按钮组）
+  --field-inline-trail-width: 9.5rem;
 }
 
 .field-inline-trail {
@@ -458,10 +541,23 @@ watch(visible, open => {
   justify-content: flex-end;
 }
 
-.pattern-row {
-  display: flex;
-  align-items: center;
+/** 命令规则输入行与键/频道/选择器共用四列：类别选择 | 添加类别 | 输入 | 添加 */
+.rule-input-row {
+  display: grid;
+  grid-template-columns: 200px 108px 1fr 108px;
   gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.rule-input-row--3col .rule-input-leading {
+  grid-column: 1 / 3;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rule-input-field {
+  min-width: 0;
   width: 100%;
 }
 
@@ -469,15 +565,10 @@ watch(visible, open => {
   display: flex;
   align-items: center;
   gap: 6px;
-  min-width: 72px;
-  flex: 1;
+  min-width: 0;
   overflow-x: hidden;
   overflow-y: hidden;
   white-space: nowrap;
-}
-
-.pattern-input {
-  width: 200px;
 }
 
 .add-item-btn {
@@ -497,12 +588,8 @@ watch(visible, open => {
   white-space: normal;
 }
 
-.command-rules-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.command-rule-box .rule-input-row {
   margin-top: 8px;
-  width: 100%;
 }
 
 .category-select {
@@ -561,11 +648,6 @@ watch(visible, open => {
 .add-category-btn {
   flex-shrink: 0;
   width: 108px;
-}
-
-.command-rule-input {
-  flex: 1;
-  min-width: 0;
 }
 
 .preview-text {

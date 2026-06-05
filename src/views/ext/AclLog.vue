@@ -1,0 +1,165 @@
+<script setup lang="ts">
+/** ACL LOG 安全日志对话框（字段顺序与 Redis ACL LOG 文档一致） */
+import dayjs from 'dayjs'
+import { computed, inject, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+import { shareProvideKey } from '@/types/me-interface'
+import type { AclLogEntry } from '@/types/tauri-specta'
+import { meCommands, meConfirm, meOk } from '@/utils/util'
+
+const visible = defineModel<boolean>({ default: false })
+
+const { t } = useI18n()
+const share = inject(shareProvideKey)!
+const canEdit = computed(() => !share.readonly)
+
+const keyword = ref('')
+const loading = ref(false)
+const logs = ref<AclLogEntry[]>([])
+
+watch(visible, val => {
+  if (val) {
+    keyword.value = ''
+    void loadLogs()
+  }
+})
+
+const filterLogs = computed(() => {
+  const key = keyword.value.trim().toLowerCase()
+  if (!key) return logs.value
+  return logs.value.filter(row => {
+    const text = `${row.reason} ${row.username}`.toLowerCase()
+    return text.includes(key)
+  })
+})
+
+/** Redis 7.2+ 返回毫秒时间戳 */
+function formatTimestamp(ts: number) {
+  if (!ts) return '--'
+  return dayjs(ts).format('YYYY-MM-DD HH:mm:ss')
+}
+
+function formatAge(age: number) {
+  if (!Number.isFinite(age)) return '--'
+  return String(Math.round(age))
+}
+
+async function loadLogs() {
+  if (!share.conn?.id) return
+  loading.value = true
+  try {
+    logs.value = await meCommands.aclLog(share.conn.id, 100)
+  } finally {
+    loading.value = false
+  }
+}
+
+function clearLogs() {
+  meConfirm(t('redisACL.logClearConfirm'), async () => {
+    await meCommands.aclLogReset(share.conn!.id)
+    meOk(t('redisACL.logClearOk'))
+    await loadLogs()
+  })
+}
+</script>
+
+<template>
+  <me-dialog
+    v-model="visible"
+    icon="el-icon-document"
+    :title="t('redisACL.log')"
+    width="80vw"
+    :close-on-press-escape="false"
+    :close-on-click-modal="false">
+    <div class="acl-log">
+      <div class="me-flex header">
+        <me-button
+          v-if="canEdit"
+          icon="el-icon-delete"
+          :info="t('redisACL.logClear')"
+          :disabled="logs.length === 0"
+          placement="top"
+          @click="clearLogs" />
+        <div>
+          <el-input
+            v-model="keyword"
+            :placeholder="t('redisACL.logKeyword')"
+            style="width: 250px; margin-right: 10px"
+            clearable />
+          <el-button icon="el-icon-search" type="primary" :loading="loading" @click="loadLogs" />
+        </div>
+      </div>
+      <div class="table">
+        <me-table
+          v-if="logs.length"
+          :data="filterLogs"
+          export-name="acl-log"
+          height="100%"
+          v-loading="loading"
+          stripe
+          border>
+          <el-table-column prop="count" :label="t('redisACL.logCount')" width="72" align="center" />
+          <el-table-column
+            prop="reason"
+            :label="t('redisACL.logReason')"
+            width="100"
+            class-name="col-nowrap"
+            show-overflow-tooltip />
+          <el-table-column prop="context" :label="t('redisACL.logContext')" width="88" />
+          <el-table-column
+            prop="object"
+            :label="t('redisACL.logObject')"
+            min-width="120"
+            show-overflow-tooltip />
+          <el-table-column prop="username" :label="t('redisACL.username')" width="96" />
+          <el-table-column :label="t('redisACL.logAge')" width="100" align="right">
+            <template #default="{ row }">{{ formatAge(row.ageSeconds) }}</template>
+          </el-table-column>
+          <el-table-column
+            prop="clientInfo"
+            :label="t('redisACL.logClient')"
+            min-width="160"
+            show-overflow-tooltip>
+            <template #default="{ row }">{{ row.clientInfo || '--' }}</template>
+          </el-table-column>
+          <el-table-column
+            prop="entryId"
+            :label="t('redisACL.logEntryId')"
+            width="88"
+            align="right" />
+          <el-table-column :label="t('redisACL.logTimeCreated')" width="170" show-overflow-tooltip>
+            <template #default="{ row }">{{ formatTimestamp(row.timestampCreated) }}</template>
+          </el-table-column>
+          <el-table-column :label="t('redisACL.logTimeUpdated')" width="170" show-overflow-tooltip>
+            <template #default="{ row }">{{ formatTimestamp(row.timestampLastUpdated) }}</template>
+          </el-table-column>
+        </me-table>
+        <el-empty v-else-if="!loading" :description="t('redisACL.logEmpty')" />
+      </div>
+    </div>
+  </me-dialog>
+</template>
+
+<style scoped lang="scss">
+.acl-log {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    align-items: center;
+  }
+
+  .table {
+    margin-top: 10px;
+    flex-grow: 1;
+    height: 0;
+
+    :deep(.col-nowrap .cell) {
+      white-space: nowrap;
+    }
+  }
+}
+</style>
