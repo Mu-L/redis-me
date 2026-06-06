@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** ACL 重置密码：保留用户现有规则，仅更新密码 hash */
-import { inject, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
@@ -20,6 +20,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
+const canEdit = computed(() => !share.readonly)
 
 const loading = ref(false)
 const password = ref('')
@@ -43,6 +44,7 @@ function copyPassword() {
 }
 
 async function save() {
+  if (!canEdit.value) return
   if (!props.user) return
   if (!password.value.trim()) {
     meWarn(t('redisACL.passwordRequired'))

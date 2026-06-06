@@ -1276,7 +1276,27 @@ pub(crate) fn acl_rule_to_string(rule: Rule) -> String {
     }
 }
 
-/// SETUSER  wire 格式（含 ~ / & 前缀），用于 selector 文本往返
+/// ACL SETUSER 单条规则参数（集群广播 route_command 用）
+pub(crate) fn acl_rule_to_setuser_arg(rule: &Rule) -> String {
+    match rule {
+        Rule::NoPass => "nopass".into(),
+        Rule::Reset => "reset".into(),
+        Rule::ResetPass => "resetpass".into(),
+        Rule::AddHashedPass(hash) => format!("#{hash}"),
+        Rule::Selector(inner) => format!("({})", acl_rules_to_selector_text(inner)),
+        other => acl_rule_to_setuser_text(other),
+    }
+}
+
+pub fn build_acl_setuser_cmd(param: &AclSetuserParam) -> AnyResult<redis::Cmd> {
+    let rules = acl_build_rules(param)?;
+    let mut cmd = redis::cmd("ACL");
+    cmd.arg("SETUSER").arg(&param.username);
+    for rule in &rules {
+        cmd.arg(acl_rule_to_setuser_arg(rule));
+    }
+    Ok(cmd)
+}
 fn acl_rule_to_setuser_text(rule: &Rule) -> String {
     match rule {
         Rule::On => "on".into(),
@@ -1732,24 +1752,8 @@ pub fn acl_getuser0(
     Ok(acl_user_detail_from_info(username, info, selectors))
 }
 
-pub fn acl_setuser0(
-    mut conn: MutexGuard<impl Commands>,
-    param: &AclSetuserParam,
-) -> AnyResult<()> {
-    let rules = acl_build_rules(param)?;
-    let _: () = conn.acl_setuser_rules(&param.username, &rules)?;
-    Ok(())
-}
-
 pub fn acl_users0(mut conn: MutexGuard<impl Commands>) -> AnyResult<Vec<String>> {
     Ok(conn.acl_users()?)
-}
-
-pub fn acl_deluser0(
-    mut conn: MutexGuard<impl Commands>,
-    usernames: &[String],
-) -> AnyResult<usize> {
-    Ok(conn.acl_deluser(usernames)?)
 }
 
 pub fn acl_whoami0(mut conn: MutexGuard<impl Commands>) -> AnyResult<String> {
@@ -1778,18 +1782,6 @@ pub fn acl_genpass0(
     } else {
         Ok(conn.acl_genpass()?)
     }
-}
-
-/// ACL SAVE: 将当前的 ACL 规则保存到配置文件
-pub fn acl_save0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
-    let _: () = conn.acl_save()?;
-    Ok(())
-}
-
-/// ACL LOAD: 从配置文件重新加载 ACL 规则
-pub fn acl_load0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
-    let _: () = conn.acl_load()?;
-    Ok(())
 }
 
 /// ACL LOG 单条：Redis 返回扁平 key/value 数组
@@ -1866,12 +1858,6 @@ pub fn acl_log0(
         Value::Array(entries) => entries.into_iter().map(parse_acl_log_entry).collect(),
         _ => bail!("ACL LOG response should be an array"),
     }
-}
-
-/// ACL LOG RESET: 清空 ACL 安全日志
-pub fn acl_log_reset0(mut conn: MutexGuard<impl Commands>) -> AnyResult<()> {
-    let _: () = conn.acl_log_reset()?;
-    Ok(())
 }
 
 /// ACL DRYRUN: 模拟执行命令，检查用户权限

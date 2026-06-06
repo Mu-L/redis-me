@@ -156,6 +156,13 @@ function copyPassword() {
   meCopy(pwd)
 }
 
+function onNopassChange(nopass: boolean) {
+  if (nopass) {
+    props.form.password = ''
+    props.form.passwordHashes = []
+  }
+}
+
 async function copyPreviewCommand() {
   meCopy(await buildAclExecutableCommand(props.form))
 }
@@ -258,16 +265,32 @@ watch(visible, open => {
             v-model="props.form.password"
             show-password
             clearable
+            :readonly="props.form.nopass"
             :placeholder="t('redisACL.passwordPlaceholder')"
-            class="base-input">
+            :class="[
+              'base-input',
+              'password-input',
+              { 'password-input--nopass': props.form.nopass },
+            ]">
+            <template #prefix>
+              <el-checkbox v-model="props.form.nopass" @change="onNopassChange">
+                {{ t('redisACL.passwordNopass') }}
+              </el-checkbox>
+            </template>
           </el-input>
           <div class="field-inline-trail">
-            <el-button-group>
+            <el-button-group v-if="!props.form.nopass">
               <el-button @click="emit('generatePassword')">GenPass</el-button>
               <el-button icon="el-icon-document-copy" @click="copyPassword" />
             </el-button-group>
           </div>
         </div>
+      </el-form-item>
+
+      <el-form-item v-else :label="t('redisACL.password')">
+        <el-text type="info">
+          {{ props.form.nopass ? t('redisACL.passwordNopass') : t('redisACL.passwordSet') }}
+        </el-text>
       </el-form-item>
 
       <el-row v-if="!isView" :gutter="12">
@@ -500,6 +523,31 @@ watch(visible, open => {
   width: 100%;
 }
 
+.password-input :deep(.el-input__prefix) {
+  padding-left: 4px;
+  padding-right: 16px;
+  margin-right: 10px;
+  border-right: 1px solid var(--el-border-color);
+}
+
+.password-input :deep(.el-input__prefix-inner > .el-checkbox) {
+  height: auto;
+  margin-right: 0;
+}
+
+.password-input :deep(.el-input__prefix-inner > .el-checkbox .el-checkbox__label) {
+  padding-left: 6px;
+  font-size: 13px;
+}
+
+.password-input--nopass :deep(.el-input__wrapper) {
+  background-color: var(--el-fill-color-light);
+}
+
+.password-input--nopass :deep(input) {
+  cursor: not-allowed;
+}
+
 .base-input {
   flex: 1;
   min-width: 0;
@@ -514,7 +562,7 @@ watch(visible, open => {
 }
 
 .acl-form {
-  // 用户/密码行右侧区域统一宽度，保证两行输入框对齐（密码行为 GenPass + 复制按钮组）
+  // 用户/密码行右侧区域统一宽度，保证两行输入框对齐（密码行右侧为 GenPass + 复制）
   --field-inline-trail-width: 9.5rem;
 }
 

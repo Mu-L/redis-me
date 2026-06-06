@@ -617,11 +617,17 @@ impl MeClient for MeCluster {
     }
 
     fn acl_setuser(&self, param: AclSetuserParam) -> AnyResult<()> {
-        acl_setuser0(self.get_conn()?, &param)
+        self.acl_route_all_nodes(build_acl_setuser_cmd(&param)?)
     }
 
     fn acl_deluser(&self, usernames: Vec<String>) -> AnyResult<usize> {
-        acl_deluser0(self.get_conn()?, &usernames)
+        let mut cmd = redis::cmd("ACL");
+        cmd.arg("DELUSER");
+        for name in &usernames {
+            cmd.arg(name);
+        }
+        self.acl_route_all_nodes(cmd)?;
+        Ok(usernames.len())
     }
 
     fn acl_whoami(&self) -> AnyResult<String> {
@@ -637,11 +643,15 @@ impl MeClient for MeCluster {
     }
 
     fn acl_save(&self) -> AnyResult<()> {
-        acl_save0(self.get_conn()?)
+        let mut cmd = redis::cmd("ACL");
+        cmd.arg("SAVE");
+        self.acl_route_all_nodes(cmd)
     }
 
     fn acl_load(&self) -> AnyResult<()> {
-        acl_load0(self.get_conn()?)
+        let mut cmd = redis::cmd("ACL");
+        cmd.arg("LOAD");
+        self.acl_route_all_nodes(cmd)
     }
 
     fn acl_log(&self, count: Option<u64>) -> AnyResult<Vec<AclLogEntry>> {
@@ -649,7 +659,9 @@ impl MeClient for MeCluster {
     }
 
     fn acl_log_reset(&self) -> AnyResult<()> {
-        acl_log_reset0(self.get_conn()?)
+        let mut cmd = redis::cmd("ACL");
+        cmd.arg("LOG").arg("RESET");
+        self.acl_route_all_nodes(cmd)
     }
 
     fn acl_dryrun(&self, username: String, command: String) -> AnyResult<String> {
@@ -729,6 +741,17 @@ impl MeCluster {
             }),
             None => bail!(AppError::ConnectionLockTimeout),
         }
+    }
+
+    /// ACL 写操作：显式广播到集群所有节点（ACL 不会自动同步）
+    fn acl_route_all_nodes(&self, cmd: redis::Cmd) -> AnyResult<()> {
+        let mut conn = self.get_conn()?;
+        let route = RoutingInfo::MultiNode((
+            MultipleNodeRoutingInfo::AllNodes,
+            Some(ResponsePolicy::AllSucceeded),
+        ));
+        let _: Value = conn.route_command(&cmd, route)?;
+        Ok(())
     }
 
     fn check_connection_timeout(&self, conn: &mut ClusterConnection) -> AnyResult<bool> {

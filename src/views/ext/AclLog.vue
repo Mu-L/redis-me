@@ -34,7 +34,7 @@ const filterLogs = computed(() => {
   })
 })
 
-/** Redis 7.2+ 返回毫秒时间戳 */
+/** ACL LOG timestamp-created：7.2+ 为 Unix 毫秒，更早版本无该字段 */
 function formatTimestamp(ts: number) {
   if (!ts) return '--'
   return dayjs(ts).format('YYYY-MM-DD HH:mm:ss')

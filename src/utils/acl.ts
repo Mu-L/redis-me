@@ -3,6 +3,8 @@ import type { AclUserDetail } from '@/types/tauri-specta'
 export interface AclEditModel {
   username: string
   enabled: boolean
+  /** 无密码登录（nopass）；与 password / passwordHashes 互斥 */
+  nopass: boolean
   password: string
   passwordHashes: string[]
   commandRules: string[]
@@ -18,6 +20,12 @@ export type AclPreset = 'normal' | 'readonly' | 'admin'
 export function isAclSupported(version: string | undefined): boolean {
   const major = parseInt((version || '0').split('.')[0] || '0', 10)
   return Number.isFinite(major) && major >= 6
+}
+
+/** ACL DRYRUN 自 Redis/Valkey 7.0 起支持 */
+export function isAclDryrunSupported(version: string | undefined): boolean {
+  const major = parseInt((version || '0').split('.')[0] || '0', 10)
+  return Number.isFinite(major) && major >= 7
 }
 
 /** ACL selectors 自 Redis/Valkey 7.2 起支持 */
@@ -125,6 +133,7 @@ export function createDefaultAclModel(): AclEditModel {
   return {
     username: '',
     enabled: true,
+    nopass: false,
     password: '',
     passwordHashes: [],
     commandRules: [...ACL_PRESET_COMMAND_RULES.normal],
@@ -139,6 +148,7 @@ export function createAclModelFromDetail(detail: AclUserDetail): AclEditModel {
   return {
     username: detail.username,
     enabled: detail.enabled,
+    nopass: detail.nopass,
     password: '',
     passwordHashes: [...detail.passwordHashes],
     commandRules: [...detail.commandRules],
@@ -165,7 +175,14 @@ export async function buildAclSavePayload(
   const channelPatterns = normalizePatternList(model.channelPatterns, '&')
 
   const password = model.password.trim()
-  const passwordHashes = password ? [await sha256Hex(password)] : [...model.passwordHashes]
+  let passwordHashes: string[]
+  if (model.nopass && !password) {
+    passwordHashes = []
+  } else if (password) {
+    passwordHashes = [await sha256Hex(password)]
+  } else {
+    passwordHashes = [...model.passwordHashes]
+  }
 
   return {
     username,
@@ -200,10 +217,10 @@ export function buildAclPreviewCommand(model: AclEditModel): string {
 
   if (model.password.trim()) {
     chunks.push('#<sha256(new-password)>')
-  } else if (model.passwordHashes.length) {
-    chunks.push(...model.passwordHashes.map(() => '#<saved-hash>'))
-  } else {
+  } else if (model.nopass || !model.passwordHashes.length) {
     chunks.push('nopass')
+  } else {
+    chunks.push(...model.passwordHashes.map(() => '#<saved-hash>'))
   }
 
   appendAclCommandRules(chunks, model)
@@ -218,10 +235,10 @@ export async function buildAclExecutableCommand(model: AclEditModel): Promise<st
   const password = model.password.trim()
   if (password) {
     chunks.push(`#${await sha256Hex(password)}`)
-  } else if (model.passwordHashes.length) {
-    chunks.push(...model.passwordHashes.map(h => `#${h}`))
-  } else {
+  } else if (model.nopass || !model.passwordHashes.length) {
     chunks.push('nopass')
+  } else {
+    chunks.push(...model.passwordHashes.map(h => `#${h}`))
   }
 
   appendAclCommandRules(chunks, model)

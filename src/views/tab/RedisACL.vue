@@ -10,6 +10,7 @@ import {
   buildAclSavePayload,
   createAclModelFromDetail,
   createDefaultAclModel,
+  isAclDryrunSupported,
   summarizeRules,
   summarizeSelectors,
   type AclEditModel,
@@ -23,6 +24,7 @@ import UserAdd from '@/views/ext/UserAdd.vue'
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
+const dryrunSupported = computed(() => isAclDryrunSupported(share.serverVersion))
 
 const keyword = ref('')
 const loading = ref(false)
@@ -96,10 +98,20 @@ function openAdd() {
   editVisible.value = true
 }
 
+function confirmDefaultUser(row: AclUserDetail, action: () => void) {
+  if (row.username === 'default') {
+    meConfirm(t('redisACL.defaultEditConfirm'), action)
+    return
+  }
+  action()
+}
+
 function openEdit(row: AclUserDetail) {
-  editMode.value = 'edit'
-  Object.assign(form, createAclModelFromDetail(row))
-  editVisible.value = true
+  confirmDefaultUser(row, () => {
+    editMode.value = 'edit'
+    Object.assign(form, createAclModelFromDetail(row))
+    editVisible.value = true
+  })
 }
 
 function openView(row: AclUserDetail) {
@@ -109,6 +121,7 @@ function openView(row: AclUserDetail) {
 }
 
 async function genPassword() {
+  form.nopass = false
   form.password = await meCommands.aclGenpass(share.conn!.id, 128)
   meOk(t('redisACL.passwordGenerated'))
 }
@@ -121,7 +134,16 @@ async function saveUser() {
     meWarn(t('redisACL.usernameRequired'))
     return
   }
-  if (editMode.value === 'add' && !form.password.trim()) {
+  if (editMode.value === 'add' && !form.nopass && !form.password.trim()) {
+    meWarn(t('redisACL.passwordRequired'))
+    return
+  }
+  if (
+    editMode.value === 'edit' &&
+    !form.nopass &&
+    !form.password.trim() &&
+    !form.passwordHashes.length
+  ) {
     meWarn(t('redisACL.passwordRequired'))
     return
   }
@@ -137,7 +159,7 @@ async function saveUser() {
   editLoading.value = true
   try {
     const payload = await buildAclSavePayload(form)
-    if (editMode.value === 'add' && !payload.passwordHashes.length) {
+    if (editMode.value === 'add' && !form.nopass && !payload.passwordHashes.length) {
       meWarn(t('redisACL.passwordRequired'))
       return
     }
@@ -167,6 +189,7 @@ function openCopy(row: AclUserDetail) {
   editMode.value = 'add'
   Object.assign(form, createAclModelFromDetail(row), {
     username: `${row.username}-copy`,
+    nopass: false,
     password: '',
     passwordHashes: [],
   })
@@ -189,13 +212,44 @@ function aclLoad() {
 }
 
 function openDryrun(row: AclUserDetail) {
+  if (!dryrunSupported.value) {
+    meWarn(t('redisACL.dryrunUnsupported'))
+    return
+  }
   dryrunUsername.value = row.username
   dryrunVisible.value = true
 }
 
 function openResetPassword(row: AclUserDetail) {
-  resetPasswordUser.value = row
-  resetPasswordVisible.value = true
+  confirmDefaultUser(row, () => {
+    resetPasswordUser.value = row
+    resetPasswordVisible.value = true
+  })
+}
+
+function toggleUserEnabled(row: AclUserDetail) {
+  const enabling = !row.enabled
+  const confirmKey = enabling ? 'redisACL.enableUserConfirm' : 'redisACL.disableUserConfirm'
+  const okKey = enabling ? 'redisACL.enableUserOk' : 'redisACL.disableUserOk'
+
+  const run = async () => {
+    const model = createAclModelFromDetail(row)
+    model.enabled = enabling
+    const payload = await buildAclSavePayload(model)
+    await meCommands.aclSetuser(share.conn!.id, payload)
+    meOk(t(okKey))
+    await refresh()
+  }
+
+  const askAndRun = () => {
+    meConfirm(t(confirmKey, { user: row.username }), run)
+  }
+
+  if (row.username === 'default') {
+    confirmDefaultUser(row, run)
+  } else {
+    askAndRun()
+  }
 }
 
 function handleMoreCommand(command: string) {
@@ -222,6 +276,9 @@ function handleRowCommand(row: AclUserDetail, command: string) {
       break
     case 'resetPassword':
       openResetPassword(row)
+      break
+    case 'toggleEnabled':
+      toggleUserEnabled(row)
       break
     case 'delete':
       deleteUser(row)
@@ -278,10 +335,20 @@ void refresh()
           :label="t('redisACL.username')"
           width="120"
           show-overflow-tooltip />
-        <el-table-column :label="t('redisACL.status')" width="92" align="center">
+        <el-table-column
+          :label="t('redisACL.status')"
+          width="128"
+          align="center"
+          show-overflow-tooltip>
           <template #default="{ row }">
-            <el-tag :type="row.enabled ? 'success' : 'info'">
+            <el-tag
+              size="small"
+              :type="row.enabled ? (row.nopass ? 'warning' : 'success') : 'info'"
+              class="status-tag">
               {{ row.enabled ? t('redisACL.enabled') : t('redisACL.disabled') }}
+              <span v-if="row.nopass" class="status-nopass">{{
+                t('redisACL.passwordNopass')
+              }}</span>
             </el-tag>
           </template>
         </el-table-column>
@@ -321,13 +388,20 @@ void refresh()
                 <me-icon icon="el-icon-more-filled" class="icon-btn" />
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item command="dryrun">
+                    <el-dropdown-item v-if="dryrunSupported" command="dryrun">
                       <me-icon icon="me-icon-terminal" :name="t('redisACL.dryRun')" />
                     </el-dropdown-item>
                     <el-dropdown-item v-if="canEdit" command="resetPassword">
                       <me-icon icon="el-icon-key" :name="t('redisACL.resetPassword')" />
                     </el-dropdown-item>
-                    <el-dropdown-item v-if="canEdit" command="copy" divided>
+                    <el-dropdown-item v-if="canEdit" command="toggleEnabled" divided>
+                      <me-icon
+                        :icon="row.enabled ? 'el-icon-circle-close' : 'el-icon-check'"
+                        :name="
+                          row.enabled ? t('redisACL.disableUser') : t('redisACL.enableUser')
+                        " />
+                    </el-dropdown-item>
+                    <el-dropdown-item v-if="canEdit" command="copy">
                       <me-icon icon="el-icon-document-copy" :name="t('redisACL.copyUser')" />
                     </el-dropdown-item>
                     <el-dropdown-item v-if="canEdit && row.username !== 'default'" command="delete">
@@ -386,5 +460,14 @@ void refresh()
   align-items: center;
   justify-content: space-evenly;
   flex-wrap: nowrap;
+}
+
+.status-tag {
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.status-nopass::before {
+  content: ' · ';
 }
 </style>

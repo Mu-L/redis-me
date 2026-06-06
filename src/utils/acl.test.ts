@@ -9,6 +9,7 @@ import {
   createDefaultAclModel,
   formatChannelPatternLabel,
   formatKeyPatternLabel,
+  isAclDryrunSupported,
   isAclSupported,
   isAclSelectorSupported,
   normalizeSelectorInput,
@@ -45,6 +46,17 @@ describe('isAclSupported', () => {
   })
 })
 
+describe('isAclDryrunSupported', () => {
+  it('7.0 及以上为 true', () => {
+    expect(isAclDryrunSupported('7.0.0')).toBe(true)
+    expect(isAclDryrunSupported('8.0.0')).toBe(true)
+  })
+
+  it('6.x 及以下为 false', () => {
+    expect(isAclDryrunSupported('6.2.0')).toBe(false)
+  })
+})
+
 describe('isAclSelectorSupported', () => {
   it('7.2 及以上为 true', () => {
     expect(isAclSelectorSupported('7.2.0')).toBe(true)
@@ -73,6 +85,14 @@ describe('buildAclSavePayload', () => {
 
   it('编辑 nopass 用户允许空 passwordHashes', async () => {
     const model = createAclModelFromDetail(sampleDetail({ nopass: true, passwordHashes: [] }))
+    model.nopass = true
+    const payload = await buildAclSavePayload(model)
+    expect(payload.passwordHashes).toEqual([])
+  })
+
+  it('勾选 nopass 时忽略已有 hash', async () => {
+    const model = createAclModelFromDetail(sampleDetail())
+    model.nopass = true
     const payload = await buildAclSavePayload(model)
     expect(payload.passwordHashes).toEqual([])
   })

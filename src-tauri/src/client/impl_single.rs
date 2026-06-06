@@ -449,11 +449,13 @@ impl MeClient for MeSingle {
     }
 
     fn acl_setuser(&self, param: AclSetuserParam) -> AnyResult<()> {
-        acl_setuser0(self.get_conn()?, &param)
+        let rules = acl_build_rules(&param)?;
+        let _: () = self.get_conn()?.acl_setuser_rules(&param.username, &rules)?;
+        Ok(())
     }
 
     fn acl_deluser(&self, usernames: Vec<String>) -> AnyResult<usize> {
-        acl_deluser0(self.get_conn()?, &usernames)
+        Ok(self.get_conn()?.acl_deluser(&usernames)?)
     }
 
     fn acl_whoami(&self) -> AnyResult<String> {
@@ -469,11 +471,13 @@ impl MeClient for MeSingle {
     }
 
     fn acl_save(&self) -> AnyResult<()> {
-        acl_save0(self.get_conn()?)
+        let _: () = self.get_conn()?.acl_save()?;
+        Ok(())
     }
 
     fn acl_load(&self) -> AnyResult<()> {
-        acl_load0(self.get_conn()?)
+        let _: () = self.get_conn()?.acl_load()?;
+        Ok(())
     }
 
     fn acl_log(&self, count: Option<u64>) -> AnyResult<Vec<AclLogEntry>> {
@@ -481,7 +485,8 @@ impl MeClient for MeSingle {
     }
 
     fn acl_log_reset(&self) -> AnyResult<()> {
-        acl_log_reset0(self.get_conn()?)
+        let _: () = self.get_conn()?.acl_log_reset()?;
+        Ok(())
     }
 
     fn acl_dryrun(&self, username: String, command: String) -> AnyResult<String> {
