@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** ACL LOG 安全日志对话框（字段顺序与 Redis ACL LOG 文档一致） */
+/** ACL LOG 安全日志对话框；客户端列置末便于横向浏览 */
 import dayjs from 'dayjs'
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -110,18 +110,11 @@ function clearLogs() {
           <el-table-column
             prop="object"
             :label="t('redisACL.logObject')"
-            min-width="120"
+            min-width="150"
             show-overflow-tooltip />
           <el-table-column prop="username" :label="t('redisACL.username')" width="96" />
           <el-table-column :label="t('redisACL.logAge')" width="100" align="right">
             <template #default="{ row }">{{ formatAge(row.ageSeconds) }}</template>
-          </el-table-column>
-          <el-table-column
-            prop="clientInfo"
-            :label="t('redisACL.logClient')"
-            min-width="160"
-            show-overflow-tooltip>
-            <template #default="{ row }">{{ row.clientInfo || '--' }}</template>
           </el-table-column>
           <el-table-column
             prop="entryId"
@@ -133,6 +126,13 @@ function clearLogs() {
           </el-table-column>
           <el-table-column :label="t('redisACL.logTimeUpdated')" width="170" show-overflow-tooltip>
             <template #default="{ row }">{{ formatTimestamp(row.timestampLastUpdated) }}</template>
+          </el-table-column>
+          <el-table-column
+            prop="clientInfo"
+            :label="t('redisACL.logClient')"
+            min-width="160"
+            show-overflow-tooltip>
+            <template #default="{ row }">{{ row.clientInfo || '--' }}</template>
           </el-table-column>
         </me-table>
         <el-empty v-else-if="!loading" :description="t('redisACL.logEmpty')" />

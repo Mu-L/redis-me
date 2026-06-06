@@ -17,6 +17,7 @@ import {
 import { meCommands, meConfirm, meOk, meWarn } from '@/utils/util'
 import AclDryrun from '@/views/ext/AclDryrun.vue'
 import AclLog from '@/views/ext/AclLog.vue'
+import AclResetPassword from '@/views/ext/AclResetPassword.vue'
 import UserAdd from '@/views/ext/UserAdd.vue'
 
 const { t } = useI18n()
@@ -31,6 +32,8 @@ const whoami = ref('')
 const dryrunVisible = ref(false)
 const dryrunUsername = ref('')
 const logVisible = ref(false)
+const resetPasswordVisible = ref(false)
+const resetPasswordUser = ref<AclUserDetail | null>(null)
 
 /** 编辑对话框：form 与 UserAdd 共享同一 reactive 对象 */
 const editVisible = ref(false)
@@ -40,16 +43,23 @@ const form = reactive<AclEditModel>(createDefaultAclModel())
 
 const filterUsers = computed(() => {
   const key = keyword.value.trim().toLowerCase()
-  if (!key) return users.value
-  return users.value.filter(item => {
-    const command = item.commandRules.join(' ').toLowerCase()
-    return (
-      item.username.toLowerCase().includes(key) ||
-      command.includes(key) ||
-      item.keyPatterns.join(' ').toLowerCase().includes(key) ||
-      item.channelPatterns.join(' ').toLowerCase().includes(key) ||
-      item.selectors.join(' ').toLowerCase().includes(key)
-    )
+  const list = key
+    ? users.value.filter(item => {
+        const command = item.commandRules.join(' ').toLowerCase()
+        return (
+          item.username.toLowerCase().includes(key) ||
+          command.includes(key) ||
+          item.keyPatterns.join(' ').toLowerCase().includes(key) ||
+          item.channelPatterns.join(' ').toLowerCase().includes(key) ||
+          item.selectors.join(' ').toLowerCase().includes(key)
+        )
+      })
+    : users.value
+  // default 用户始终排第一，其余保持 ACL LIST 返回顺序
+  return [...list].sort((a, b) => {
+    if (a.username === 'default') return -1
+    if (b.username === 'default') return 1
+    return 0
   })
 })
 
@@ -64,8 +74,6 @@ const dangerousBlocked = computed({
     form.commandRules = next
   },
 })
-
-const actionColWidth = computed(() => (canEdit.value ? 130 : 40))
 
 function resetForm() {
   Object.assign(form, createDefaultAclModel())
@@ -178,6 +186,11 @@ function openDryrun(row: AclUserDetail) {
   dryrunVisible.value = true
 }
 
+function openResetPassword(row: AclUserDetail) {
+  resetPasswordUser.value = row
+  resetPasswordVisible.value = true
+}
+
 function handleMoreCommand(command: string) {
   switch (command) {
     case 'save':
@@ -188,6 +201,23 @@ function handleMoreCommand(command: string) {
       break
     case 'log':
       logVisible.value = true
+      break
+  }
+}
+
+function handleRowCommand(row: AclUserDetail, command: string) {
+  switch (command) {
+    case 'copy':
+      openCopy(row)
+      break
+    case 'dryrun':
+      openDryrun(row)
+      break
+    case 'resetPassword':
+      openResetPassword(row)
+      break
+    case 'delete':
+      deleteUser(row)
       break
   }
 }
@@ -210,17 +240,17 @@ void refresh()
           placement="bottom-start"
           @command="handleMoreCommand"
           style="margin-right: 10px">
-          <el-button>...</el-button>
+          <el-button icon="el-icon-more-filled" />
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item v-if="canEdit" command="save">
-                {{ t('redisACL.save') }}
+                <me-icon icon="el-icon-document-checked" :name="t('redisACL.save')" />
               </el-dropdown-item>
               <el-dropdown-item v-if="canEdit" command="load">
-                {{ t('redisACL.load') }}
+                <me-icon icon="el-icon-refresh-left" :name="t('redisACL.load')" />
               </el-dropdown-item>
               <el-dropdown-item command="log" :divided="canEdit">
-                {{ t('redisACL.log') }}
+                <me-icon icon="el-icon-document" :name="t('redisACL.log')" />
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -262,32 +292,37 @@ void refresh()
         <el-table-column :label="t('redisACL.selectorsCol')" width="120" show-overflow-tooltip>
           <template #default="{ row }">{{ summarizeSelectors(row.selectors, 2) }}</template>
         </el-table-column>
-        <el-table-column :label="t('action')" :width="actionColWidth" align="center">
+        <el-table-column :label="t('action')" width="80" align="center">
           <template #default="{ row }">
             <div class="action-icons">
-              <template v-if="canEdit">
-                <me-icon
-                  icon="el-icon-document-copy"
-                  class="icon-btn"
-                  :info="t('copy')"
-                  @click="openCopy(row)" />
-                <me-icon
-                  icon="el-icon-edit"
-                  class="icon-btn"
-                  :info="t('edit')"
-                  @click="openEdit(row)" />
-                <me-icon
-                  v-if="row.username !== 'default'"
-                  icon="el-icon-delete"
-                  class="icon-btn"
-                  :info="t('delete')"
-                  @click="deleteUser(row)" />
-              </template>
               <me-icon
-                icon="me-icon-terminal"
+                v-if="canEdit"
+                icon="el-icon-edit"
                 class="icon-btn"
-                :info="t('redisACL.dryrun')"
-                @click="openDryrun(row)" />
+                :info="t('edit')"
+                @click="openEdit(row)" />
+              <el-dropdown
+                trigger="click"
+                placement="bottom-end"
+                @command="(cmd: string) => handleRowCommand(row, cmd)">
+                <me-icon icon="el-icon-more-filled" class="icon-btn" />
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="dryrun">
+                      <me-icon icon="me-icon-terminal" :name="t('redisACL.dryRun')" />
+                    </el-dropdown-item>
+                    <el-dropdown-item v-if="canEdit" command="resetPassword">
+                      <me-icon icon="el-icon-key" :name="t('redisACL.resetPassword')" />
+                    </el-dropdown-item>
+                    <el-dropdown-item v-if="canEdit" command="copy" divided>
+                      <me-icon icon="el-icon-document-copy" :name="t('redisACL.copyUser')" />
+                    </el-dropdown-item>
+                    <el-dropdown-item v-if="canEdit && row.username !== 'default'" command="delete">
+                      <me-icon icon="el-icon-delete" :name="t('redisACL.deleteUser')" />
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </template>
         </el-table-column>
@@ -307,6 +342,7 @@ void refresh()
 
   <AclDryrun v-model="dryrunVisible" :username="dryrunUsername" />
   <AclLog v-model="logVisible" />
+  <AclResetPassword v-model="resetPasswordVisible" :user="resetPasswordUser" @success="refresh" />
 </template>
 
 <style scoped lang="scss">
@@ -335,8 +371,7 @@ void refresh()
 .action-icons {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  justify-content: space-evenly;
   flex-wrap: nowrap;
 }
 </style>
