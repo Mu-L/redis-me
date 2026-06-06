@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { shareProvideKey } from '@/types/me-interface'
 import {
   ACL_PRESET_COMMAND_RULES,
+  getReadonlyPresetCommandRules,
   buildAclExecutableCommand,
   formatChannelPatternLabel,
   formatKeyPatternLabel,
@@ -134,9 +135,12 @@ function pushUnique(target: string[], value: string) {
   if (!target.includes(text)) target.push(text)
 }
 
-/** 快捷模板：覆盖 commandRules；新增时顺带重置键/频道为 * */
+/** 快捷模板：覆盖 commandRules；只读项按当前连接是否集群取默认列表 */
 function applyPreset(preset: AclPreset) {
-  props.form.commandRules = [...ACL_PRESET_COMMAND_RULES[preset]]
+  props.form.commandRules =
+    preset === 'readonly'
+      ? getReadonlyPresetCommandRules(!!share.conn?.cluster)
+      : [...ACL_PRESET_COMMAND_RULES[preset]]
   // 编辑已有用户时只换命令规则，避免覆盖键/频道模式
   if (props.mode === 'add') {
     props.form.keyPatterns = ['*']

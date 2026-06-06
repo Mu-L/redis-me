@@ -56,12 +56,38 @@ export function formatSelectorLabel(selector: string): string {
   return inner ? `(${inner})` : ''
 }
 
-/** 快捷模板：普通用户对齐 Redis Cloud Read-Write；只读在 +@read 基础上补 connection */
+/** 只读快捷模板：单机默认 */
+export const ACL_READONLY_PRESET_RULES = ['+@read', '+@connection', '-@dangerous'] as const
+
+/** 当前连接为集群时：+cluster 先放开整组，-@dangerous 再按子命令类别去掉危险项（NODES/SLOTS 仅 @slow 会保留） */
+export const ACL_READONLY_CLUSTER_PRESET_RULES = [
+  '+@read',
+  '+@connection',
+  '+cluster',
+  '-@dangerous',
+] as const
+
+/** 快捷模板：普通用户对齐 Redis Cloud Read-Write */
 export const ACL_PRESET_COMMAND_RULES: Record<AclPreset, string[]> = {
   normal: ['+@all', '-@dangerous'],
-  // reset 后默认全禁，未 +@write/+@all 时不必写 -@write；-@dangerous 仍要：KEYS 等带 @read
-  readonly: ['+@read', '+@connection', '-@dangerous'],
+  readonly: [...ACL_READONLY_PRESET_RULES],
   admin: ['+@all'],
+}
+
+/** 只读快捷模板默认命令规则；`cluster` 表示当前连接是否为集群模式 */
+export function getReadonlyPresetCommandRules(cluster: boolean): string[] {
+  return cluster ? [...ACL_READONLY_CLUSTER_PRESET_RULES] : [...ACL_READONLY_PRESET_RULES]
+}
+
+/** 快捷模板命令规则；只读项随当前连接是否集群切换默认列表 */
+export function getAclPresetCommandRules(
+  preset: AclPreset,
+  options: { cluster?: boolean } = {},
+): string[] {
+  if (preset === 'readonly') {
+    return getReadonlyPresetCommandRules(!!options.cluster)
+  }
+  return [...ACL_PRESET_COMMAND_RULES[preset]]
 }
 
 function uniq(list: string[]): string[] {

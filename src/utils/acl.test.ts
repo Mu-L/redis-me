@@ -7,6 +7,8 @@ import {
   buildAclSavePayload,
   createAclModelFromDetail,
   createDefaultAclModel,
+  getAclPresetCommandRules,
+  getReadonlyPresetCommandRules,
   formatChannelPatternLabel,
   formatKeyPatternLabel,
   isAclDryrunSupported,
@@ -73,6 +75,37 @@ describe('normalizeSelectorInput', () => {
   it('去掉外层括号并 trim', () => {
     expect(normalizeSelectorInput('  (-@all +set ~key2)  ')).toBe('-@all +set ~key2')
     expect(normalizeSelectorInput('-@all +get ~key1')).toBe('-@all +get ~key1')
+  })
+})
+
+describe('getReadonlyPresetCommandRules', () => {
+  it('单机连接默认不含 +cluster', () => {
+    expect(getReadonlyPresetCommandRules(false)).toEqual(['+@read', '+@connection', '-@dangerous'])
+  })
+
+  it('集群连接：+cluster 在 -@dangerous 之前，保留 NODES/SLOTS、排除 MEET 等危险子命令', () => {
+    expect(getReadonlyPresetCommandRules(true)).toEqual([
+      '+@read',
+      '+@connection',
+      '+cluster',
+      '-@dangerous',
+    ])
+  })
+})
+
+describe('getAclPresetCommandRules', () => {
+  it('只读项随 cluster 切换默认列表', () => {
+    expect(getAclPresetCommandRules('readonly', { cluster: false })).toEqual(
+      getReadonlyPresetCommandRules(false),
+    )
+    expect(getAclPresetCommandRules('readonly', { cluster: true })).toEqual(
+      getReadonlyPresetCommandRules(true),
+    )
+  })
+
+  it('普通/管理员模板不受 cluster 影响', () => {
+    expect(getAclPresetCommandRules('normal', { cluster: true })).toEqual(['+@all', '-@dangerous'])
+    expect(getAclPresetCommandRules('admin', { cluster: true })).toEqual(['+@all'])
   })
 })
 
