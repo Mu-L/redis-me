@@ -38,7 +38,7 @@ const resetPasswordUser = ref<AclUserDetail | null>(null)
 /** 编辑对话框：form 与 UserAdd 共享同一 reactive 对象 */
 const editVisible = ref(false)
 const editLoading = ref(false)
-const editMode = ref<'add' | 'edit'>('add')
+const editMode = ref<'add' | 'edit' | 'view'>('add')
 const form = reactive<AclEditModel>(createDefaultAclModel())
 
 const filterUsers = computed(() => {
@@ -102,6 +102,12 @@ function openEdit(row: AclUserDetail) {
   editVisible.value = true
 }
 
+function openView(row: AclUserDetail) {
+  editMode.value = 'view'
+  Object.assign(form, createAclModelFromDetail(row))
+  editVisible.value = true
+}
+
 async function genPassword() {
   form.password = await meCommands.aclGenpass(share.conn!.id, 128)
   meOk(t('redisACL.passwordGenerated'))
@@ -109,6 +115,7 @@ async function genPassword() {
 
 /** 校验 → buildAclSavePayload（密码 SHA256）→ aclSetuser；键/频道空列表在后端会放宽权限，故前端拦截 */
 async function saveUser() {
+  if (editMode.value === 'view') return
   const username = form.username.trim()
   if (!username) {
     meWarn(t('redisACL.usernameRequired'))
@@ -301,6 +308,12 @@ void refresh()
                 class="icon-btn"
                 :info="t('edit')"
                 @click="openEdit(row)" />
+              <me-icon
+                v-else
+                icon="el-icon-view"
+                class="icon-btn"
+                :info="t('view')"
+                @click="openView(row)" />
               <el-dropdown
                 trigger="click"
                 placement="bottom-end"

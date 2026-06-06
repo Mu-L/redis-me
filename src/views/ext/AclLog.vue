@@ -81,7 +81,7 @@ function clearLogs() {
           :disabled="logs.length === 0"
           placement="top"
           @click="clearLogs" />
-        <div>
+        <div class="header-tools">
           <el-input
             v-model="keyword"
             :placeholder="t('redisACL.logKeyword')"
@@ -150,6 +150,12 @@ function clearLogs() {
 
   .header {
     align-items: center;
+
+    .header-tools {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
   }
 
   .table {

@@ -24,7 +24,7 @@ const visible = defineModel<boolean>({ default: false })
 const dangerousBlocked = defineModel<boolean>('dangerousBlocked', { required: true })
 
 const props = defineProps<{
-  mode: 'add' | 'edit'
+  mode: 'add' | 'edit' | 'view'
   loading: boolean
   form: AclEditModel
   previewCommand: string
@@ -45,6 +45,12 @@ const selectorInput = ref('')
 const selectorUiVisible = computed(
   () => isAclSelectorSupported(share.serverVersion) || props.form.selectors.length > 0,
 )
+const isView = computed(() => props.mode === 'view')
+const dialogTitle = computed(() => {
+  if (props.mode === 'add') return t('redisACL.addUser')
+  if (props.mode === 'view') return t('redisACL.viewUser')
+  return t('redisACL.editUser')
+})
 
 /** ACL 命令类别列表 */
 const aclCategories = ref<string[]>([])
@@ -218,7 +224,7 @@ watch(visible, open => {
 <template>
   <el-dialog
     v-model="visible"
-    :title="mode === 'add' ? t('redisACL.addUser') : t('redisACL.editUser')"
+    :title="dialogTitle"
     width="800px"
     class="acl-edit-dialog"
     append-to-body
@@ -232,7 +238,7 @@ watch(visible, open => {
         <div class="field-inline-row">
           <el-input
             v-model="props.form.username"
-            :disabled="mode === 'edit'"
+            :disabled="mode === 'edit' || isView"
             clearable
             :placeholder="t('redisACL.usernamePlaceholder')"
             class="base-input">
@@ -240,13 +246,13 @@ watch(visible, open => {
           <div class="field-inline-trail">
             <div class="field-inline-action">
               <span>{{ t('redisACL.enableSwitch') }}</span>
-              <el-switch v-model="props.form.enabled" />
+              <el-switch v-model="props.form.enabled" :disabled="isView" />
             </div>
           </div>
         </div>
       </el-form-item>
 
-      <el-form-item :label="t('redisACL.password')">
+      <el-form-item v-if="!isView" :label="t('redisACL.password')">
         <div class="field-inline-row">
           <el-input
             v-model="props.form.password"
@@ -264,7 +270,7 @@ watch(visible, open => {
         </div>
       </el-form-item>
 
-      <el-row :gutter="12">
+      <el-row v-if="!isView" :gutter="12">
         <el-col :span="16">
           <el-form-item :label="t('redisACL.quickPreset')">
             <div class="preset-row">
@@ -294,7 +300,7 @@ watch(visible, open => {
             <el-tag
               v-for="item in props.form.commandRules"
               :key="item"
-              closable
+              :closable="!isView"
               disable-transitions
               style="margin: 0 6px 0 0"
               @close="props.form.commandRules = props.form.commandRules.filter(v => v !== item)">
@@ -303,7 +309,7 @@ watch(visible, open => {
           </div>
 
           <!-- ACL 类别选择器和规则输入；与下方键/频道/选择器共用四列 grid -->
-          <div class="rule-input-row">
+          <div v-if="!isView" class="rule-input-row">
             <el-popover
               :width="500"
               trigger="manual"
@@ -380,7 +386,7 @@ watch(visible, open => {
                 <el-tag
                   v-for="item in props.form.keyPatterns"
                   :key="item"
-                  closable
+                  :closable="!isView"
                   disable-transitions
                   style="margin: 0 6px 0 0"
                   @close="removeKeyPattern(item)">
@@ -388,13 +394,15 @@ watch(visible, open => {
                 </el-tag>
               </div>
             </div>
-            <el-input
-              v-model="keyPatternInput"
-              :placeholder="t('redisACL.keyPatternPlaceholder')"
-              class="rule-input-field" />
-            <el-button class="add-item-btn" @click="addKeyPattern">{{
-              t('redisACL.addPattern')
-            }}</el-button>
+            <template v-if="!isView">
+              <el-input
+                v-model="keyPatternInput"
+                :placeholder="t('redisACL.keyPatternPlaceholder')"
+                class="rule-input-field" />
+              <el-button class="add-item-btn" @click="addKeyPattern">{{
+                t('redisACL.addPattern')
+              }}</el-button>
+            </template>
           </div>
         </div>
       </el-form-item>
@@ -407,7 +415,7 @@ watch(visible, open => {
                 <el-tag
                   v-for="item in props.form.channelPatterns"
                   :key="item"
-                  closable
+                  :closable="!isView"
                   disable-transitions
                   style="margin: 0 6px 0 0"
                   @close="removeChannelPattern(item)">
@@ -415,13 +423,15 @@ watch(visible, open => {
                 </el-tag>
               </div>
             </div>
-            <el-input
-              v-model="channelPatternInput"
-              :placeholder="t('redisACL.channelPatternPlaceholder')"
-              class="rule-input-field" />
-            <el-button class="add-item-btn" @click="addChannelPattern">{{
-              t('redisACL.addPattern')
-            }}</el-button>
+            <template v-if="!isView">
+              <el-input
+                v-model="channelPatternInput"
+                :placeholder="t('redisACL.channelPatternPlaceholder')"
+                class="rule-input-field" />
+              <el-button class="add-item-btn" @click="addChannelPattern">{{
+                t('redisACL.addPattern')
+              }}</el-button>
+            </template>
           </div>
         </div>
       </el-form-item>
@@ -435,7 +445,7 @@ watch(visible, open => {
                 <el-tag
                   v-for="item in props.form.selectors"
                   :key="item"
-                  closable
+                  :closable="!isView"
                   disable-transitions
                   style="margin: 0 6px 0 0"
                   @close="removeSelector(item)">
@@ -443,14 +453,16 @@ watch(visible, open => {
                 </el-tag>
               </div>
             </div>
-            <el-input
-              v-model="selectorInput"
-              :placeholder="t('redisACL.selectorPlaceholder')"
-              class="rule-input-field"
-              @keyup.enter="addSelector" />
-            <el-button class="add-item-btn" @click="addSelector">{{
-              t('redisACL.addSelector')
-            }}</el-button>
+            <template v-if="!isView">
+              <el-input
+                v-model="selectorInput"
+                :placeholder="t('redisACL.selectorPlaceholder')"
+                class="rule-input-field"
+                @keyup.enter="addSelector" />
+              <el-button class="add-item-btn" @click="addSelector">{{
+                t('redisACL.addSelector')
+              }}</el-button>
+            </template>
           </div>
         </div>
       </el-form-item>
@@ -465,7 +477,9 @@ watch(visible, open => {
 
     <template #footer>
       <el-button @click="visible = false">{{ t('cancel') }}</el-button>
-      <el-button type="primary" :loading="loading" @click="emit('save')">{{ t('save') }}</el-button>
+      <el-button v-if="!isView" type="primary" :loading="loading" @click="emit('save')">{{
+        t('save')
+      }}</el-button>
     </template>
   </el-dialog>
 </template>

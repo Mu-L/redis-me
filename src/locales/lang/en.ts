@@ -496,6 +496,7 @@ export default {
     keyword: 'Filter (username/rules)',
     addUser: 'Add User',
     editUser: 'Edit User',
+    viewUser: 'View User',
     username: 'User',
     usernamePlaceholder: 'Enter username',
     usernameRequired: 'Username is required',

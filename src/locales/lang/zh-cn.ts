@@ -487,6 +487,7 @@ export default {
     keyword: '模糊筛选（用户名/规则）',
     addUser: '新增用户',
     editUser: '编辑用户',
+    viewUser: '查看用户',
     username: '用户',
     usernamePlaceholder: '请输入用户名',
     usernameRequired: '用户名不能为空',
