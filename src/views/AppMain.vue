@@ -26,7 +26,7 @@ import {
   type UiConn,
 } from '@/types/me-interface'
 import type { ConnConfig } from '@/types/tauri-specta'
-import { mergeConnGroupsFromList } from '@/utils/conn'
+import { isConnMinimalMode, mergeConnGroupsFromList } from '@/utils/conn'
 import { mergeImportedConnList } from '@/utils/rdm'
 import { matchConnShortcutAction } from '@/utils/shortcut'
 import {
@@ -118,7 +118,7 @@ watch(
       if (newConn) {
         share.color = newConn.color ?? 'var(--el-color-primary)'
         share.readonly = !!newConn.readonly
-        share.tabName = 'info'
+        share.tabName = isConnMinimalMode(newConn) ? 'value' : 'info'
         share.capabilities = await meCommands.connect(newConn.id)
         connPrepared.value = true
       }

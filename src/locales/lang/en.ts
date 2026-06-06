@@ -130,6 +130,7 @@ export default {
     showFlat: 'Flat View',
     showGroup: 'Grouped View',
     ungrouped: 'Default Group',
+    groupLabel: 'Group',
     newFolder: 'New Group',
     renameFolder: 'Rename',
     deleteFolder: 'Delete Folder',
@@ -201,6 +202,9 @@ export default {
     loginType: 'Login',
     nameHint: '[Optional] Automatically generated',
     testConn: 'Test Conn',
+    uiModeMinimal: 'Minimal',
+    uiModeTip:
+      'Minimal mode shows only Key-Value and Terminal for ACL users without INFO, CONFIG, etc.',
     sshOption: {
       host: 'Host',
       port: 'Port',

@@ -6,7 +6,13 @@ import { computed, inject, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey, type UiConn } from '@/types/me-interface'
-import { getConnGroup, normalizeGroupName, setConnGroup } from '@/utils/conn'
+import {
+  getConnGroup,
+  getConnUiMode,
+  normalizeGroupName,
+  setConnGroup,
+  setConnUiMode,
+} from '@/utils/conn'
 import { meCommands, PREDEFINE_COLORS, meRandomString, meOk, meErr, meWarn } from '@/utils/util'
 const { t } = useI18n()
 
@@ -318,6 +324,11 @@ const connGroup = computed({
   get: () => getConnGroup(form as UiConn),
   set: (v: string) => setConnGroup(form as UiConn, v),
 })
+
+const connMinimal = computed({
+  get: () => getConnUiMode(form as UiConn) === 'minimal',
+  set: (v: boolean) => setConnUiMode(form as UiConn, v ? 'minimal' : 'normal'),
+})
 </script>
 
 <template>
@@ -338,27 +349,26 @@ const connGroup = computed({
       :rules="rules"
       label-position="right"
       :label-width="t('conn.labelWidth')">
-      <!-- 连接名称、分组 -->
-      <el-form-item :label="t('conn.name')" prop="name">
-        <el-row style="width: 100%">
-          <div style="display: flex; gap: 8px; width: 100%">
-            <el-input
-              v-model.trim="form.name"
-              :placeholder="t('conn.nameHint')"
-              clearable
-              style="flex: 1; min-width: 0" />
+      <!-- 连接名称、分组（与主机/端口同栅格，分组框与端口等宽） -->
+      <el-row :gutter="24">
+        <el-col :span="connShowGroup ? 12 : 24">
+          <el-form-item :label="t('conn.name')" prop="name">
+            <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
+          </el-form-item>
+        </el-col>
+        <el-col v-if="connShowGroup" :span="12">
+          <el-form-item :label="t('conn.groupLabel')">
             <el-select
-              v-if="connShowGroup"
               v-model="connGroup"
               clearable
               :placeholder="t('conn.ungrouped')"
-              style="width: calc(100% * 8 / 24); flex-shrink: 0">
+              style="width: 100%">
               <el-option :label="t('conn.ungrouped')" value="" />
               <el-option v-for="g in connGroupOptions" :key="g" :label="g" :value="g" />
             </el-select>
-          </div>
-        </el-row>
-      </el-form-item>
+          </el-form-item>
+        </el-col>
+      </el-row>
 
       <!-- 主机、端口 -->
       <el-row :gutter="24">
@@ -409,62 +419,53 @@ const connGroup = computed({
           </el-form-item>
         </el-col>
 
-        <!-- 复选框 -->
+        <!-- 复选框：连接模式（靠右对齐） -->
         <el-col :span="18" style="padding-left: 0; padding-right: 0">
-          <!-- 只读模式 -->
-          <el-checkbox v-model="form.readonly">
-            <me-icon
-              :name="t('conn.readonly')"
-              icon="el-icon-question-filled"
-              placement="top"
-              :info="t('conn.readonlyTip')"
-              :icon-left="false"
-              raw-content />
-          </el-checkbox>
+          <div class="conn-mode-checkboxes">
+            <!-- 集群模式 -->
+            <el-checkbox v-model="form.cluster">
+              <me-icon
+                :name="t('conn.cluster')"
+                icon="el-icon-question-filled"
+                placement="top"
+                :info="t('conn.clusterTip')"
+                :icon-left="false"
+                raw-content />
+            </el-checkbox>
 
-          <!-- 集群模式 -->
-          <el-checkbox v-model="form.cluster">
-            <me-icon
-              :name="t('conn.cluster')"
-              icon="el-icon-question-filled"
-              placement="top"
-              :info="t('conn.clusterTip')"
-              :icon-left="false"
-              raw-content />
-          </el-checkbox>
+            <!-- 哨兵模式 -->
+            <el-checkbox v-model="form.sentinel">
+              <me-icon
+                :name="t('conn.sentinel')"
+                icon="el-icon-question-filled"
+                placement="top"
+                :info="t('conn.sentinelTip')"
+                :icon-left="false"
+                raw-content />
+            </el-checkbox>
 
-          <!-- 哨兵模式 -->
-          <el-checkbox v-model="form.sentinel">
-            <me-icon
-              :name="t('conn.sentinel')"
-              icon="el-icon-question-filled"
-              placement="top"
-              :info="t('conn.sentinelTip')"
-              :icon-left="false"
-              raw-content />
-          </el-checkbox>
+            <!-- SSL加密 -->
+            <el-checkbox v-model="form.ssl">
+              <me-icon
+                name="SSL"
+                icon="el-icon-question-filled"
+                placement="top"
+                :info="t('conn.sslTip')"
+                :icon-left="false"
+                raw-content />
+            </el-checkbox>
 
-          <!-- SSL加密 -->
-          <el-checkbox v-model="form.ssl">
-            <me-icon
-              name="SSL"
-              icon="el-icon-question-filled"
-              placement="top"
-              :info="t('conn.sslTip')"
-              :icon-left="false"
-              raw-content />
-          </el-checkbox>
-
-          <!-- SSH隧道 -->
-          <el-checkbox v-model="form.ssh">
-            <me-icon
-              name="SSH"
-              icon="el-icon-question-filled"
-              placement="top"
-              :info="t('conn.sshTip')"
-              :icon-left="false"
-              raw-content />
-          </el-checkbox>
+            <!-- SSH隧道 -->
+            <el-checkbox v-model="form.ssh">
+              <me-icon
+                name="SSH"
+                icon="el-icon-question-filled"
+                placement="top"
+                :info="t('conn.sshTip')"
+                :icon-left="false"
+                raw-content />
+            </el-checkbox>
+          </div>
         </el-col>
       </el-row>
 
@@ -615,15 +616,34 @@ const connGroup = computed({
       </div>
     </el-form>
     <template #footer>
-      <div class="me-flex">
-        <el-button
-          type="primary"
-          style="margin-left: 20px"
-          :loading="loading"
-          :disabled="!(form.host && form.port)"
-          @click="testConn"
-          >{{ t('conn.testConn') }}</el-button
-        >
+      <div class="conn-footer">
+        <div class="conn-footer-left">
+          <el-button
+            type="primary"
+            :loading="loading"
+            :disabled="!(form.host && form.port)"
+            @click="testConn"
+            >{{ t('conn.testConn') }}</el-button
+          >
+          <el-checkbox v-model="form.readonly" style="margin-left: 20px" border>
+            <me-icon
+              :name="t('conn.readonly')"
+              icon="el-icon-question-filled"
+              placement="top"
+              :info="t('conn.readonlyTip')"
+              :icon-left="false"
+              raw-content />
+          </el-checkbox>
+          <el-checkbox v-model="connMinimal" border>
+            <me-icon
+              :name="t('conn.uiModeMinimal')"
+              icon="el-icon-question-filled"
+              placement="top"
+              :info="t('conn.uiModeTip')"
+              :icon-left="false"
+              raw-content />
+          </el-checkbox>
+        </div>
         <div>
           <el-button @click="visible = false">{{ t('cancel') }}</el-button>
           <el-button type="primary" @click="submit">{{ t('ok') }}</el-button>
@@ -634,6 +654,35 @@ const connGroup = computed({
 </template>
 
 <style scoped lang="scss">
+.conn-mode-checkboxes {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+  min-height: 32px;
+
+  // 与英文标签等宽占位，避免中文过短导致整组贴右
+  :deep(.el-checkbox) {
+    min-width: 5rem;
+    margin-right: 12px;
+  }
+}
+
+.conn-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.conn-footer-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  margin-left: 20px;
+}
+
 :deep(.el-checkbox) {
   margin-right: 12px;
 }

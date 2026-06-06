@@ -123,6 +123,7 @@ export default {
     showFlat: '平铺展示',
     showGroup: '分组展示',
     ungrouped: '默认分组',
+    groupLabel: '分组',
     newFolder: '新建分组',
     renameFolder: '重命名',
     deleteFolder: '删除文件夹',
@@ -212,6 +213,8 @@ export default {
 
     nameHint: '【可选】默认自动根据主机和端口生成',
     testConn: '测试连接',
+    uiModeMinimal: '极简',
+    uiModeTip: '极简模式仅展示键值与终端，适用于 INFO、CONFIG 等命令受限的 ACL 账号',
     readonly: '只读',
     readonlyShort: '只读',
     nameRequired: '请输入主机',
