@@ -14,7 +14,9 @@ import { useI18n } from 'vue-i18n'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/locales/info'
 import { shareProvideKey } from '@/types/me-interface'
+import { isAclSupported } from '@/utils/acl'
 import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util'
+import RedisACL from '@/views/tab/RedisACL.vue'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
 
@@ -39,6 +41,7 @@ const dialog = reactive({
   raw: false,
   client: false,
   config: false,
+  acl: false,
   memory: false,
   topology: false,
 })
@@ -63,6 +66,9 @@ const displayUsername = computed(() => {
   const name = share.conn?.username?.trim()
   return name || 'default'
 })
+
+/** ACL 6.0+ 才在 Info 展示可点击入口 */
+const aclSupported = computed(() => isAclSupported(share.serverVersion))
 
 /** INFO instantaneous_ops_per_sec */
 const opsPerSec = computed(() => {
@@ -223,6 +229,9 @@ function goClient() {
 function goConfig() {
   dialog.config = true
 }
+function goAcl() {
+  dialog.acl = true
+}
 function goMemory() {
   // dialog.memory = true
   share.tabName = 'memory'
@@ -307,7 +316,10 @@ const nodeGroups = computed(() => {
 
       <el-descriptions-item>
         <template #label><me-icon :name="t('redisInfo.user')" icon="el-icon-user" /></template>
-        {{ displayUsername }}
+        <el-link v-if="aclSupported" underline="never" type="primary" @click="goAcl">{{
+          displayUsername
+        }}</el-link>
+        <span v-else>{{ displayUsername }}</span>
       </el-descriptions-item>
 
       <el-descriptions-item>
@@ -460,6 +472,16 @@ const nodeGroups = computed(() => {
     <RedisMemory/>
   </me-dialog>
   -->
+
+  <me-dialog
+    v-model="dialog.acl"
+    icon="el-icon-user"
+    :title="t('redisACL.title')"
+    width="88vw"
+    :close-on-press-escape="false"
+    :close-on-click-modal="false">
+    <RedisACL />
+  </me-dialog>
 
   <me-dialog
     v-model="dialog.config"

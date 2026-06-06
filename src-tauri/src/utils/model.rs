@@ -662,6 +662,51 @@ api_model!(ExportImportEvent {
     finished: bool
 });
 
+// ACL 用户详情（由 ACL GETUSER 结构化转换而来）
+api_model!(
+    #[derive(Default)]
+    AclUserDetail {
+        username: String,
+        enabled: bool,
+        nopass: bool,
+        flags: Vec<String>,
+        password_hashes: Vec<String>,
+        command_rules: Vec<String>,
+        key_patterns: Vec<String>,
+        channel_patterns: Vec<String>,
+        selectors: Vec<String>
+    }
+);
+
+// ACL SETUSER 参数（新建/更新用户）
+api_model!(AclSetuserParam {
+    username: String,
+    enabled: bool,
+    password_hashes: Vec<String>,
+    command_rules: Vec<String>,
+    key_patterns: Vec<String>,
+    channel_patterns: Vec<String>,
+    /// Redis 7.2+ selector，每条为 SETUSER 括号内规则串（如 `-@all +set ~key2`）
+    selectors: Vec<String>,
+});
+
+// ACL LOG 条目结构（字段顺序与 Redis ACL LOG 文档一致）
+api_model!(
+    #[derive(Default)]
+    AclLogEntry {
+        count: u64,
+        reason: String,
+        context: String,
+        object: String,
+        username: String,
+        age_seconds: f64,
+        client_info: String,
+        entry_id: u64,
+        timestamp_created: u64,
+        timestamp_last_updated: u64,
+    }
+);
+
 //~~~~~ 自定义Vec<u8>序列化为Base64字符串
 mod v8_base64 {
     use base64::Engine;

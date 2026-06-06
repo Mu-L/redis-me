@@ -156,6 +156,19 @@ api_commands!(
     key_node(key: RedisKey) -> Vec<RedisNode>;   // 获取键所在节点ID
     flush_db() -> ();                            // 清空当前数据库
     flush_all() -> ();                           // 清空所有数据库
+    acl_users() -> Vec<String>;                  // ACL 用户列表
+    acl_list_users() -> Vec<AclUserDetail>;     // ACL LIST 解析用户详情（单次往返）
+    acl_getuser(username: &str) -> AclUserDetail; // ACL 用户详情
+    acl_setuser(param: AclSetuserParam) -> ();   // ACL 新建/更新用户
+    acl_deluser(usernames: Vec<String>) -> usize; // ACL 删除用户
+    acl_whoami() -> String;                      // ACL 当前用户
+    acl_cat(category: Option<String>) -> Vec<String>; // ACL 命令分类
+    acl_genpass(bits: Option<i64>) -> String;    // ACL 生成密码
+    acl_save() -> ();                            // ACL 保存规则
+    acl_load() -> ();                            // ACL 加载规则
+    acl_log(count: Option<u64>) -> Vec<AclLogEntry>; // ACL 安全日志
+    acl_log_reset() -> ();                       // ACL 清空安全日志
+    acl_dryrun(username: String, command: String) -> String; // ACL 模拟测试
 );
 
 // 需要将app_handle传递过去的命令

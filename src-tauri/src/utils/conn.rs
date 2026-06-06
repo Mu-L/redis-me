@@ -3,7 +3,7 @@ use crate::utils::model::{ConnConfig, SslOption};
 use crate::utils::ssh_tunnel::SshTunnel;
 use crate::utils::util::{AnyResult, CONNECTION_CHECK_TIMEOUT, parse_path};
 use anyhow::{Context, bail};
-use log::info;
+use log::{info, warn};
 use redis::cluster::{ClusterClient, ClusterConfig};
 use redis::sentinel::{SentinelClientBuilder, SentinelServerType};
 use redis::{
@@ -219,12 +219,14 @@ fn get_tls_certs(ssl_option: SslOption) -> AnyResult<Option<TlsCertificates>> {
     Ok(Some(certs))
 }
 
-// 设置客户端名称
-pub fn set_client_name(conn: &mut dyn ConnectionLike) -> AnyResult<()> {
-    let _: () = redis::cmd("client")
+/// 设置客户端名称；无 CLIENT 权限时跳过，不影响连接
+pub fn set_client_name(conn: &mut dyn ConnectionLike) {
+    match redis::cmd("client")
         .arg("setname")
         .arg("RedisME")
-        .query(conn)?;
-    info!("client setname RedisME");
-    Ok(())
+        .query::<()>(conn)
+    {
+        Ok(()) => info!("client setname RedisME"),
+        Err(e) => warn!("client setname 不可用，跳过: {e}"),
+    }
 }

@@ -1,12 +1,22 @@
 <script setup lang="ts">
 import { getVersion } from '@tauri-apps/api/app'
+import { openUrl } from '@tauri-apps/plugin-opener'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+
 const { t } = useI18n()
 const appVersion = ref('')
 getVersion()
   .then(res => (appVersion.value = res))
   .catch(() => {})
+
+function openSourceCode(): void {
+  void openUrl('https://github.com/hepengju/redis-me')
+}
+
+function openOfficialWebsite(): void {
+  void openUrl('https://www.hepengju.com')
+}
 </script>
 
 <template>
@@ -15,11 +25,9 @@ getVersion()
     <div class="app-name">RedisME</div>
     <div class="app-version">v{{ appVersion }}</div>
     <div class="app-site">
-      <el-link underline="never" href="https://github.com/hepengju/redis-me" target="_blank">{{
-        t('about.sourceCode')
-      }}</el-link>
+      <el-link underline="never" @click="openSourceCode">{{ t('about.sourceCode') }}</el-link>
       <div class="sep"></div>
-      <el-link underline="never" href="https://www.hepengju.com" target="_blank">{{
+      <el-link underline="never" @click="openOfficialWebsite">{{
         t('about.officialWebsite')
       }}</el-link>
     </div>

@@ -604,6 +604,70 @@ impl MeClient for MeCluster {
         flush_all0(self.get_conn()?)
     }
 
+    fn acl_users(&self) -> AnyResult<Vec<String>> {
+        acl_users0(self.get_conn()?)
+    }
+
+    fn acl_list_users(&self) -> AnyResult<Vec<AclUserDetail>> {
+        acl_list_users0(self.get_conn()?)
+    }
+
+    fn acl_getuser(&self, username: &str) -> AnyResult<AclUserDetail> {
+        acl_getuser0(self.get_conn()?, username)
+    }
+
+    fn acl_setuser(&self, param: AclSetuserParam) -> AnyResult<()> {
+        self.acl_route_all_nodes(build_acl_setuser_cmd(&param)?)
+    }
+
+    fn acl_deluser(&self, usernames: Vec<String>) -> AnyResult<usize> {
+        let mut cmd = redis::cmd("ACL");
+        cmd.arg("DELUSER");
+        for name in &usernames {
+            cmd.arg(name);
+        }
+        self.acl_route_all_nodes(cmd)?;
+        Ok(usernames.len())
+    }
+
+    fn acl_whoami(&self) -> AnyResult<String> {
+        acl_whoami0(self.get_conn()?)
+    }
+
+    fn acl_cat(&self, category: Option<String>) -> AnyResult<Vec<String>> {
+        acl_cat0(self.get_conn()?, category)
+    }
+
+    fn acl_genpass(&self, bits: Option<i64>) -> AnyResult<String> {
+        acl_genpass0(self.get_conn()?, bits)
+    }
+
+    fn acl_save(&self) -> AnyResult<()> {
+        let mut cmd = redis::cmd("ACL");
+        cmd.arg("SAVE");
+        self.acl_route_all_nodes(cmd)
+    }
+
+    fn acl_load(&self) -> AnyResult<()> {
+        let mut cmd = redis::cmd("ACL");
+        cmd.arg("LOAD");
+        self.acl_route_all_nodes(cmd)
+    }
+
+    fn acl_log(&self, count: Option<u64>) -> AnyResult<Vec<AclLogEntry>> {
+        acl_log0(self.get_conn()?, count)
+    }
+
+    fn acl_log_reset(&self) -> AnyResult<()> {
+        let mut cmd = redis::cmd("ACL");
+        cmd.arg("LOG").arg("RESET");
+        self.acl_route_all_nodes(cmd)
+    }
+
+    fn acl_dryrun(&self, username: String, command: String) -> AnyResult<String> {
+        acl_dryrun0(self.get_conn()?, username, command)
+    }
+
     implement_pipeline_commands!(ClusterPipeline);
 }
 
@@ -613,17 +677,19 @@ impl MeCluster {
         let client = get_client_cluster(redis_conn)?;
         let mut conn = Self::new_conn(&client, command_timeout)?;
 
-        // 获取版本信息并检测能力（从任意节点获取，通常集群版本一致）
-        let value: Value = conn.route_command(
-            redis::cmd("INFO").arg("SERVER"),
-            SingleNode(SingleNodeRoutingInfo::RandomPrimary),
-        )?;
-        let info = redis_value_to_string(value, "\n");
         let mut base = MeBase::from(redis_conn);
         base.command_timeout = command_timeout;
-        base.update_server_info(&info, &mut conn);
+        match conn.route_command(
+            redis::cmd("INFO").arg("SERVER"),
+            SingleNode(SingleNodeRoutingInfo::RandomPrimary),
+        ) {
+            Ok(value) => {
+                let info = redis_value_to_string(value, "\n");
+                base.update_server_info(&info, &mut conn);
+            }
+            Err(e) => warn!("INFO SERVER 不可用，跳过版本探测: {e}"),
+        }
 
-        // 获取节点信息并保存起来
         let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query(&mut conn)?;
         let node_list = Self::parse_node_list(cluster_nodes)?;
         info!("Redis集群连接初始化成功: {}", redis_conn.name);
@@ -639,7 +705,7 @@ impl MeCluster {
     fn new_conn(client: &ClusterClient, command_timeout: Duration) -> AnyResult<ClusterConnection> {
         let mut conn = client.get_connection()?;
         // 设置客户端名称
-        set_client_name(&mut conn)?;
+        set_client_name(&mut conn);
 
         conn.set_read_timeout(Some(command_timeout))?;
         conn.set_write_timeout(Some(command_timeout))?;
@@ -679,6 +745,17 @@ impl MeCluster {
         }
     }
 
+    /// ACL 写操作：显式广播到集群所有节点（ACL 不会自动同步）
+    fn acl_route_all_nodes(&self, cmd: redis::Cmd) -> AnyResult<()> {
+        let mut conn = self.get_conn()?;
+        let route = RoutingInfo::MultiNode((
+            MultipleNodeRoutingInfo::AllNodes,
+            Some(ResponsePolicy::AllSucceeded),
+        ));
+        let _: Value = conn.route_command(&cmd, route)?;
+        Ok(())
+    }
+
     fn check_connection_timeout(&self, conn: &mut ClusterConnection) -> AnyResult<bool> {
         conn.set_read_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
         conn.set_write_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
@@ -700,15 +777,25 @@ impl MeCluster {
 
     // 获取节点路由
     fn get_node_route(&self, node: Option<String>) -> AnyResult<(RoutingInfo, String)> {
-        let node: String = if let Some(node) = node {
-            if node.is_empty() {
-                random_item(&self.node_list).node.clone()
-            } else {
-                node.to_string()
+        if let Some(node) = node.filter(|n| !n.is_empty()) {
+            if let Some((host, port)) = node.split_once(":") {
+                let route = SingleNode(ByAddress {
+                    host: host.into(),
+                    port: port.parse::<u16>()?,
+                });
+                return Ok((route, node));
             }
-        } else {
-            random_item(&self.node_list).node.clone()
-        };
+            bail!(AppError::InvalidNodeFormat { node });
+        }
+
+        if self.node_list.is_empty() {
+            return Ok((
+                RoutingInfo::SingleNode(SingleNodeRoutingInfo::RandomPrimary),
+                String::new(),
+            ));
+        }
+
+        let node = random_item(&self.node_list).node.clone();
 
         if let Some((host, port)) = node.split_once(":") {
             let route = SingleNode(ByAddress {

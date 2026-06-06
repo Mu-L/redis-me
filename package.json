@@ -1,6 +1,6 @@
 {
   "name": "redis-me",
-  "version": "3.7.0",
+  "version": "3.8.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -73,6 +73,7 @@
     "vite": "npm:@voidzero-dev/vite-plus-core@0.1.16",
     "vite-plus": "0.1.16",
     "vitepress": "2.0.0-alpha.17",
+    "vitest": "npm:@voidzero-dev/vite-plus-test@0.1.16",
     "vue-tsc": "^3.3.3"
   },
   "packageManager": "pnpm@11.0.9",

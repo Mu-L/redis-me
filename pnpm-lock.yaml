@@ -168,6 +168,9 @@ importers:
       vitepress:
         specifier: 2.0.0-alpha.17
         version: 2.0.0-alpha.17(async-validator@4.2.5)(lightningcss@1.32.0)(oxc-minify@0.133.0)(postcss@8.5.15)(sass-embedded@1.100.0)(sass@1.100.0)(sortablejs@1.15.7)(typescript@5.8.3)(yaml@2.9.0)
+      vitest:
+        specifier: npm:@voidzero-dev/vite-plus-test@0.1.16
+        version: '@voidzero-dev/vite-plus-test@0.1.16(@voidzero-dev/vite-plus-core@0.1.16(sass-embedded@1.100.0)(sass@1.100.0)(typescript@5.8.3)(yaml@2.9.0))(sass-embedded@1.100.0)(sass@1.100.0)(typescript@5.8.3)(yaml@2.9.0)'
       vue-tsc:
         specifier: ^3.3.3
         version: 3.3.3(typescript@5.8.3)

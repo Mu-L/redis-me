@@ -49,7 +49,14 @@ impl MeClient for MeSingle {
     }
 
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
-        let map = self.config_get("databases", None)?;
+        let map = match self.config_get("databases", None) {
+            Ok(map) => map,
+            Err(e) => {
+                let db = self.db.load(Relaxed);
+                warn!("CONFIG GET databases 不可用，退回当前库 db{db}: {e}");
+                return Ok(vec![RedisDB { db, size: 0 }]);
+            }
+        };
         let db_count = map
             .get("databases")
             .unwrap_or(&"0".to_string())
@@ -436,6 +443,63 @@ impl MeClient for MeSingle {
         flush_all0(self.get_conn()?)
     }
 
+    fn acl_users(&self) -> AnyResult<Vec<String>> {
+        acl_users0(self.get_conn()?)
+    }
+
+    fn acl_list_users(&self) -> AnyResult<Vec<AclUserDetail>> {
+        acl_list_users0(self.get_conn()?)
+    }
+
+    fn acl_getuser(&self, username: &str) -> AnyResult<AclUserDetail> {
+        acl_getuser0(self.get_conn()?, username)
+    }
+
+    fn acl_setuser(&self, param: AclSetuserParam) -> AnyResult<()> {
+        let rules = acl_build_rules(&param)?;
+        let _: () = self.get_conn()?.acl_setuser_rules(&param.username, &rules)?;
+        Ok(())
+    }
+
+    fn acl_deluser(&self, usernames: Vec<String>) -> AnyResult<usize> {
+        Ok(self.get_conn()?.acl_deluser(&usernames)?)
+    }
+
+    fn acl_whoami(&self) -> AnyResult<String> {
+        acl_whoami0(self.get_conn()?)
+    }
+
+    fn acl_cat(&self, category: Option<String>) -> AnyResult<Vec<String>> {
+        acl_cat0(self.get_conn()?, category)
+    }
+
+    fn acl_genpass(&self, bits: Option<i64>) -> AnyResult<String> {
+        acl_genpass0(self.get_conn()?, bits)
+    }
+
+    fn acl_save(&self) -> AnyResult<()> {
+        let _: () = self.get_conn()?.acl_save()?;
+        Ok(())
+    }
+
+    fn acl_load(&self) -> AnyResult<()> {
+        let _: () = self.get_conn()?.acl_load()?;
+        Ok(())
+    }
+
+    fn acl_log(&self, count: Option<u64>) -> AnyResult<Vec<AclLogEntry>> {
+        acl_log0(self.get_conn()?, count)
+    }
+
+    fn acl_log_reset(&self) -> AnyResult<()> {
+        let _: () = self.get_conn()?.acl_log_reset()?;
+        Ok(())
+    }
+
+    fn acl_dryrun(&self, username: String, command: String) -> AnyResult<String> {
+        acl_dryrun0(self.get_conn()?, username, command)
+    }
+
     implement_pipeline_commands!(Pipeline);
 }
 
@@ -444,13 +508,13 @@ impl MeSingle {
     pub fn init(redis_conn: &ConnConfig, command_timeout: Duration) -> AnyResult<Box<dyn MeClient>> {
         let (client, ssh_tunnel) = get_client_single(redis_conn)?;
         let mut conn = Self::new_conn(&client, redis_conn.db, command_timeout)?;
-        info!("Redis单机连接初始化成功: {}", redis_conn.name);
-
-        // 获取版本信息并检测能力
-        let info: String = redis::cmd("INFO").arg("SERVER").query(&mut conn)?;
         let mut base = MeBase::from(redis_conn);
         base.command_timeout = command_timeout;
-        base.update_server_info(&info, &mut conn);
+        match redis::cmd("INFO").arg("SERVER").query::<String>(&mut conn) {
+            Ok(info) => base.update_server_info(&info, &mut conn),
+            Err(e) => warn!("INFO SERVER 不可用，跳过版本探测: {e}"),
+        }
+        info!("Redis单机连接初始化成功: {}", redis_conn.name);
 
         Ok(Box::new(MeSingle {
             base,
@@ -462,7 +526,7 @@ impl MeSingle {
 
     fn new_conn(client: &Client, db: u16, command_timeout: Duration) -> AnyResult<Connection> {
         let mut conn = client.get_connection()?;
-        set_client_name(&mut conn)?;
+        set_client_name(&mut conn);
         conn.set_read_timeout(Some(command_timeout))?;
         conn.set_write_timeout(Some(command_timeout))?;
 
