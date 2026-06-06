@@ -1,5 +1,24 @@
 # 3.x Changelog
 
+## [v3.8.0](https://mp.weixin.qq.com/s/Us7_dM8mEVOAz7kbqvbh4w) (2026-06-06)
+
+### ✨ New Features
+
+- **ACL user management**
+  - User list: current user, user list, save and reload, link to official docs, etc.
+  - Log list: security log display and reset
+  - User actions: add user, generate password, dry-run simulation, reset password, enable/disable, etc.
+  - Quick presets: templates for normal, read-only, and admin users
+  - Command categories: dropdown of all categories and the commands in each category
+  - Cluster: ACL write operations automatically **broadcast to all nodes**
+- Connection: support for accounts restricted on INFO, CONFIG, and similar commands
+  - New **minimal mode**: shows only **keys/values** and **terminal**
+  - Connection init **gracefully degrades** when INFO, CLIENT SETNAME, CONFIG GET, etc. are unavailable
+
+### 🐞 Bug Fixes
+
+- Read-only mode: context menu **rename key** was not hidden
+
 ## [v3.7.0](https://mp.weixin.qq.com/s/mhlhujX5zpbi1XadHTa60A) (2026-06-01)
 
 ### ✨ New Features
