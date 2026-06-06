@@ -41,10 +41,12 @@ const keyPatternInput = ref('')
 const channelPatternInput = ref('')
 const selectorInput = ref('')
 
-/** 7.2+ 才展示 selector 编辑；已有 selector 的用户在旧版本实例上也保留入口 */
-const selectorUiVisible = computed(
-  () => isAclSelectorSupported(share.serverVersion) || props.form.selectors.length > 0,
-)
+/** 7.2+ 可编辑 selector；已有 selector 的用户在旧版本上也展示；查看且无配置时不占空行 */
+const selectorUiVisible = computed(() => {
+  if (props.form.selectors.length > 0) return true
+  if (props.mode === 'view') return false
+  return isAclSelectorSupported(share.serverVersion)
+})
 const isView = computed(() => props.mode === 'view')
 const dialogTitle = computed(() => {
   if (props.mode === 'add') return t('redisACL.addUser')
@@ -236,7 +238,8 @@ watch(visible, open => {
     class="acl-edit-dialog"
     append-to-body
     align-center
-    :close-on-press-escape="false"
+    :close-on-press-escape="isView"
+    :close-on-click-modal="isView"
     destroy-on-close
     draggable>
     <el-form label-position="right" label-width="auto" class="acl-form">
