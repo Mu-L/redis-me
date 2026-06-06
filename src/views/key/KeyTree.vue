@@ -359,7 +359,7 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
           <el-dropdown-item command="copyKey"
             ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')"
           /></el-dropdown-item>
-          <el-dropdown-item command="renameKey"
+          <el-dropdown-item v-if="canEdit" command="renameKey"
             ><me-icon icon="el-icon-edit" :name="t('keyList.renameKey')"
           /></el-dropdown-item>
           <el-dropdown-item command="deleteKey" divided v-if="canEdit"
