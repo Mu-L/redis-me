@@ -49,7 +49,14 @@ impl MeClient for MeSingle {
     }
 
     fn db_list(&self) -> AnyResult<Vec<RedisDB>> {
-        let map = self.config_get("databases", None)?;
+        let map = match self.config_get("databases", None) {
+            Ok(map) => map,
+            Err(e) => {
+                let db = self.db.load(Relaxed);
+                warn!("CONFIG GET databases 不可用，退回当前库 db{db}: {e}");
+                return Ok(vec![RedisDB { db, size: 0 }]);
+            }
+        };
         let db_count = map
             .get("databases")
             .unwrap_or(&"0".to_string())
@@ -501,13 +508,13 @@ impl MeSingle {
     pub fn init(redis_conn: &ConnConfig, command_timeout: Duration) -> AnyResult<Box<dyn MeClient>> {
         let (client, ssh_tunnel) = get_client_single(redis_conn)?;
         let mut conn = Self::new_conn(&client, redis_conn.db, command_timeout)?;
-        info!("Redis单机连接初始化成功: {}", redis_conn.name);
-
-        // 获取版本信息并检测能力
-        let info: String = redis::cmd("INFO").arg("SERVER").query(&mut conn)?;
         let mut base = MeBase::from(redis_conn);
         base.command_timeout = command_timeout;
-        base.update_server_info(&info, &mut conn);
+        match redis::cmd("INFO").arg("SERVER").query::<String>(&mut conn) {
+            Ok(info) => base.update_server_info(&info, &mut conn),
+            Err(e) => warn!("INFO SERVER 不可用，跳过版本探测: {e}"),
+        }
+        info!("Redis单机连接初始化成功: {}", redis_conn.name);
 
         Ok(Box::new(MeSingle {
             base,
@@ -519,7 +526,7 @@ impl MeSingle {
 
     fn new_conn(client: &Client, db: u16, command_timeout: Duration) -> AnyResult<Connection> {
         let mut conn = client.get_connection()?;
-        set_client_name(&mut conn)?;
+        set_client_name(&mut conn);
         conn.set_read_timeout(Some(command_timeout))?;
         conn.set_write_timeout(Some(command_timeout))?;
 

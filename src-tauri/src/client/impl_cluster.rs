@@ -677,17 +677,19 @@ impl MeCluster {
         let client = get_client_cluster(redis_conn)?;
         let mut conn = Self::new_conn(&client, command_timeout)?;
 
-        // 获取版本信息并检测能力（从任意节点获取，通常集群版本一致）
-        let value: Value = conn.route_command(
-            redis::cmd("INFO").arg("SERVER"),
-            SingleNode(SingleNodeRoutingInfo::RandomPrimary),
-        )?;
-        let info = redis_value_to_string(value, "\n");
         let mut base = MeBase::from(redis_conn);
         base.command_timeout = command_timeout;
-        base.update_server_info(&info, &mut conn);
+        match conn.route_command(
+            redis::cmd("INFO").arg("SERVER"),
+            SingleNode(SingleNodeRoutingInfo::RandomPrimary),
+        ) {
+            Ok(value) => {
+                let info = redis_value_to_string(value, "\n");
+                base.update_server_info(&info, &mut conn);
+            }
+            Err(e) => warn!("INFO SERVER 不可用，跳过版本探测: {e}"),
+        }
 
-        // 获取节点信息并保存起来
         let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query(&mut conn)?;
         let node_list = Self::parse_node_list(cluster_nodes)?;
         info!("Redis集群连接初始化成功: {}", redis_conn.name);
@@ -703,7 +705,7 @@ impl MeCluster {
     fn new_conn(client: &ClusterClient, command_timeout: Duration) -> AnyResult<ClusterConnection> {
         let mut conn = client.get_connection()?;
         // 设置客户端名称
-        set_client_name(&mut conn)?;
+        set_client_name(&mut conn);
 
         conn.set_read_timeout(Some(command_timeout))?;
         conn.set_write_timeout(Some(command_timeout))?;
@@ -775,15 +777,25 @@ impl MeCluster {
 
     // 获取节点路由
     fn get_node_route(&self, node: Option<String>) -> AnyResult<(RoutingInfo, String)> {
-        let node: String = if let Some(node) = node {
-            if node.is_empty() {
-                random_item(&self.node_list).node.clone()
-            } else {
-                node.to_string()
+        if let Some(node) = node.filter(|n| !n.is_empty()) {
+            if let Some((host, port)) = node.split_once(":") {
+                let route = SingleNode(ByAddress {
+                    host: host.into(),
+                    port: port.parse::<u16>()?,
+                });
+                return Ok((route, node));
             }
-        } else {
-            random_item(&self.node_list).node.clone()
-        };
+            bail!(AppError::InvalidNodeFormat { node });
+        }
+
+        if self.node_list.is_empty() {
+            return Ok((
+                RoutingInfo::SingleNode(SingleNodeRoutingInfo::RandomPrimary),
+                String::new(),
+            ));
+        }
+
+        let node = random_item(&self.node_list).node.clone();
 
         if let Some((host, port)) = node.split_once(":") {
             let route = SingleNode(ByAddress {

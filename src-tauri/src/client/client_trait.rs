@@ -790,7 +790,7 @@ pub fn subscribe0(
     channel: Option<String>,
     id: String,
 ) -> AnyResult<()> {
-    set_client_name(&mut conn)?;
+    set_client_name(&mut conn);
     running.store(true, Relaxed);
 
     let patterns = psubscribe_patterns(channel);
@@ -833,7 +833,7 @@ pub fn monitor0(
     app_handle: AppHandle,
     id: String,
 ) -> AnyResult<()> {
-    set_client_name(&mut conn)?;
+    set_client_name(&mut conn);
     running.store(true, Relaxed);
 
     let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
