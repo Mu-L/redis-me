@@ -16,7 +16,7 @@ export default defineAdditionalConfig({
       message: `Links: 
              <a href="https://redis.tinycraft.cc" target="_blank">Tiny RDM</a> | 
              <a href="https://goanother.com/cn" target="_blank">Another RDM</a> | 
-             <a href="https://redis.io/insight" target="_blank">Redis Insight</a>
+             <a href="https://github.com/redis/RedisInsight" target="_blank">Redis Insight</a>
              <br/><br/>
              Released under the GPL-3.0 License`,
       copyright: 'Copyright © 2025-present All Rights Reserved. 沪ICP备2026000918号',
