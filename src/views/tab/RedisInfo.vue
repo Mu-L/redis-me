@@ -15,7 +15,7 @@ import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/locales/info'
 import { shareProvideKey } from '@/types/me-interface'
 import { isAclSupported } from '@/utils/acl'
-import { bus, INFO_REFRESH, meCommands, enrichNodeList } from '@/utils/util'
+import { bus, enrichNodeList, INFO_REFRESH, meCommands } from '@/utils/util'
 import RedisACL from '@/views/tab/RedisACL.vue'
 import RedisClient from '@/views/tab/RedisClient.vue'
 import RedisConfig from '@/views/tab/RedisConfig.vue'
@@ -47,9 +47,17 @@ const dialog = reactive({
 })
 const loading = ref(false)
 const config = ref<Record<string, string>>({})
-const rdbChecked = computed(() => !!config.value['save'])
+const configError = ref('') // config get save 的错误信息
+const rdbChecked = computed(() => {
+  if (configError.value) return false // indeterminate 需要配合单独的属性
+  return !!config.value['save']
+})
+const rdbIndeterminate = computed(() => !!configError.value) // 中间状态
 const aofChecked = computed(() => dic.value['aof_enabled'] === '1')
-const rdbTooltip = computed(() => config.value['save'] || t('redisInfo.rdbDisabled'))
+const rdbTooltip = computed(() => {
+  if (configError.value) return configError.value // 失败时显示错误信息
+  return config.value['save'] || t('redisInfo.rdbDisabled')
+})
 const cacheRatio = computed(() => {
   try {
     const ratio =
@@ -201,8 +209,15 @@ async function refresh(withConfigGet: boolean = false) {
     infoNode.value = data.node || (conn ? `${conn.host}:${conn.port}` : '')
 
     if (withConfigGet) {
-      const data2 = await meCommands.configGet(share.conn!.id, 'save', node.value)
-      config.value = data2 ?? {}
+      try {
+        configError.value = '' // 清除之前的错误
+        const data2 = await meCommands.configGet(share.conn!.id, 'save', node.value, false)
+        config.value = data2 ?? {}
+      } catch (e: unknown) {
+        // config get save 失败时，记录错误信息
+        configError.value = String(e)
+        config.value = {}
+      }
     }
   } finally {
     loading.value = false
@@ -348,7 +363,7 @@ const nodeGroups = computed(() => {
           ><me-icon :name="t('redisInfo.persistence')" icon="me-icon-save"
         /></template>
         <!-- rdb需要通过config get save命令去确认 -->
-        <el-checkbox v-model="rdbChecked" disabled>
+        <el-checkbox v-model="rdbChecked" :indeterminate="rdbIndeterminate" disabled>
           <el-tooltip :content="rdbTooltip" placement="top-start">RDB</el-tooltip>
         </el-checkbox>
         <el-checkbox v-model="aofChecked" disabled>AOF</el-checkbox>
