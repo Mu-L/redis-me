@@ -104,10 +104,7 @@ async function scanKey(useCursor = false, loadAll = false): Promise<void> {
 
   loading.value = true
   try {
-    if (!useCursor) {
-      cursor.value = null
-      keyList.value = []
-    }
+    if (!useCursor) cursor.value = null
 
     const params = {
       match: match.value,
@@ -120,7 +117,8 @@ async function scanKey(useCursor = false, loadAll = false): Promise<void> {
     cursor.value = data.cursor
 
     // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
-    const newKeyList = [...keyList.value, ...data.keyList]
+    // 非游标扫描：拿到结果后再整体替换，避免请求期间清空列表导致「暂无数据」闪烁
+    const newKeyList = useCursor ? [...keyList.value, ...data.keyList] : data.keyList
     keyList.value = sortBy(newKeyList, ['key'])
   } finally {
     loading.value = false

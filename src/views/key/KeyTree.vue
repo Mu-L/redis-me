@@ -160,7 +160,43 @@ function nodesSort(n1: KeyBuildNode, n2: KeyBuildNode) {
 // 显示复选框时补充根节点
 const rootId = nanoid() + Date.now()
 const treeRef = useTemplateRef('tree')
-const defaultExpandedKeys = computed(() => [rootId])
+/** 用户手动展开的节点 id；同步到 defaultExpandedKeys，data 刷新时避免先折叠再恢复 */
+const expandedKeys = ref<string[]>([])
+const defaultExpandedKeys = computed(() => {
+  if (props.showCheckbox) {
+    return expandedKeys.value.length > 0 ? [...new Set([rootId, ...expandedKeys.value])] : [rootId]
+  }
+  return [...expandedKeys.value]
+})
+
+function onNodeExpand(_data: unknown, node: TreeNode) {
+  const key = String(node.key)
+  if (!expandedKeys.value.includes(key)) {
+    expandedKeys.value = [...expandedKeys.value, key]
+  }
+}
+
+/** 判断 key 是否属于 folderKey 文件夹或其子树（含叶子键） */
+function isUnderFolder(key: string, folderKey: string): boolean {
+  if (key === folderKey) return true
+  if (key.startsWith(folderKey + ':')) return true
+  if (key.startsWith(TREE_KEY_ID_PREFIX)) {
+    const redisKey = key.slice(TREE_KEY_ID_PREFIX.length)
+    return redisKey === folderKey || redisKey.startsWith(folderKey + ':')
+  }
+  return false
+}
+
+function onNodeCollapse(_data: unknown, node: TreeNode) {
+  const key = String(node.key)
+  // 折叠父节点时子节点不会触发 collapse，需一并移除，否则刷新后会因 setExpandedKeys 沿父链展开而“弹回”
+  if (key === rootId) {
+    expandedKeys.value = []
+    return
+  }
+  expandedKeys.value = expandedKeys.value.filter(k => !isUnderFolder(k, key))
+}
+
 watch(
   () => [props.showCheckbox, props.filterKeyList],
   () => {
@@ -301,6 +337,8 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
         :default-expanded-keys="defaultExpandedKeys"
         @check-change="checkChange"
         @node-click="nodeClick"
+        @node-expand="onNodeExpand"
+        @node-collapse="onNodeCollapse"
         @node-contextmenu="nodeContextMenu"
         highlight-current
         :style="{
@@ -317,14 +355,7 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
             v-if="node.isLeaf"
             :class="getNodeClass(node)"
             class="me-flex">
-            <Suspense>
-              <template #default>
-                <KeyTypeTag :redis-key="node.data.redisKey" />
-              </template>
-              <template #fallback>
-                <el-tag size="small" disable-transitions type="info" effect="dark">?</el-tag>
-              </template>
-            </Suspense>
+            <KeyTypeTag :redis-key="node.data.redisKey" />
             <div style="margin-left: 5px">
               <span v-if="node.label">{{ node.label }}</span>
               <span v-else style="color: var(--el-color-info-light-3)">[EMPTY]</span>
