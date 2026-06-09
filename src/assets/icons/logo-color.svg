@@ -1,13 +1,13 @@
-<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-        <linearGradient id="lg" x1="0" y1="0" y2="1" x2="1">
-            <stop stop-color="rgba(0,0,255,0.8)" offset="0%" />
-            <stop stop-color="rgba(255,255,0,0.8)" offset="100%" />
-        </linearGradient>
-    </defs>
-    <rect style="fill: url(#lg);" width="512" height="512" rx="80" ry="80"/>
-    <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle"
-          font-family="Arial" font-weight="bold" fill="#FFF" font-size="300" dy="0">
-        ME
-    </text>
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lg" x1="0" y1="0" y2="1" x2="1">
+      <stop stop-color="rgba(0,0,255,0.8)" offset="0%" />
+      <stop stop-color="rgba(255,255,0,0.8)" offset="100%" />
+    </linearGradient>
+  </defs>
+  <!-- macOS：90% squircle 居中，四边各 51px 透明边距 -->
+  <rect x="51" y="51" width="922" height="922" style="fill: url(#lg);" rx="207" ry="207"/>
+  <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-weight="bold"
+        fill="#FFFFFF" font-size="560" dy="0">ME</text>
 </svg>
