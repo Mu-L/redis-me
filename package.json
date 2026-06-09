@@ -67,7 +67,7 @@
     "@types/lodash": "^4.17.24",
     "@vitejs/plugin-vue": "^6.0.7",
     "front-matter": "^4.0.2",
-    "sass-embedded": "^1.100.0",
+    "sass": "^1.100.0",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-svg-component": "^0.12.6",
     "vite": "npm:@voidzero-dev/vite-plus-core@0.1.16",
