@@ -145,6 +145,23 @@ export function checkConnList(connList: ConnFromStore[]): void {
     if (group !== undefined && typeof group !== 'string') delete meta['group']
     else if (typeof group === 'string') meta['group'] = group.trim()
 
+    // 命令映射：meta.commandMap 为 { 原命令小写: 映射名 }
+    const commandMap = meta['commandMap']
+    if (commandMap !== undefined) {
+      if (!commandMap || typeof commandMap !== 'object' || Array.isArray(commandMap)) {
+        delete meta['commandMap']
+      } else {
+        const cleaned: Record<string, string> = {}
+        for (const [k, v] of Object.entries(commandMap as Record<string, unknown>)) {
+          const cmd = typeof k === 'string' ? k.trim().toLowerCase() : ''
+          const mapped = typeof v === 'string' ? v.trim() : ''
+          if (cmd && mapped) cleaned[cmd] = mapped
+        }
+        if (Object.keys(cleaned).length) meta['commandMap'] = cleaned
+        else delete meta['commandMap']
+      }
+    }
+
     // v2.7.0 兼容旧版本，补充SSH属性
     if (!('ssh' in conn) || typeof conn.ssh != 'boolean') conn.ssh = false
     if (!conn.sshOption)

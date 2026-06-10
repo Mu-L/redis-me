@@ -7,9 +7,11 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey, type UiConn } from '@/types/me-interface'
 import {
+  getConnCommandMap,
   getConnGroup,
   getConnUiMode,
   normalizeGroupName,
+  setConnCommandMap,
   setConnGroup,
   setConnUiMode,
 } from '@/utils/conn'
@@ -329,6 +331,26 @@ const connMinimal = computed({
   get: () => getConnUiMode(form as UiConn) === 'minimal',
   set: (v: boolean) => setConnUiMode(form as UiConn, v ? 'minimal' : 'normal'),
 })
+
+// 高级选项：初始 DB、CONFIG 命令映射（存 meta.commandMap）
+const advancedVisible = ref(false)
+const advancedForm = reactive({
+  db: 0,
+  configMapped: '',
+})
+
+function openAdvanced() {
+  advancedForm.db = form.db
+  advancedForm.configMapped = getConnCommandMap(form as UiConn).config ?? ''
+  advancedVisible.value = true
+}
+
+function applyAdvanced() {
+  form.db = advancedForm.db
+  const mapped = advancedForm.configMapped.trim()
+  setConnCommandMap(form as UiConn, mapped ? { config: mapped } : {})
+  advancedVisible.value = false
+}
 </script>
 
 <template>
@@ -415,7 +437,10 @@ const connMinimal = computed({
         <!-- 颜色选择 -->
         <el-col :span="6">
           <el-form-item :label="t('conn.color')">
-            <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS" />
+            <div class="conn-color-row">
+              <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS" />
+              <el-button class="conn-advanced-btn" @click="openAdvanced">...</el-button>
+            </div>
           </el-form-item>
         </el-col>
 
@@ -615,6 +640,45 @@ const connMinimal = computed({
         </template>
       </div>
     </el-form>
+
+    <el-dialog
+      v-model="advancedVisible"
+      :title="t('conn.advancedTitle')"
+      width="520"
+      append-to-body
+      destroy-on-close
+      align-center>
+      <el-form label-position="right" :label-width="t('conn.advancedLabelWidth')">
+        <el-form-item :label="t('conn.initDb')">
+          <el-input-number
+            v-model="advancedForm.db"
+            :min="0"
+            :max="255"
+            :controls="false"
+            align="left"
+            :disabled="form.cluster"
+            style="width: 100%" />
+          <div v-if="form.cluster" class="conn-advanced-hint">
+            {{ t('conn.initDbClusterHint') }}
+          </div>
+        </el-form-item>
+        <el-form-item :label="t('conn.commandMap')">
+          <div class="conn-command-map-row">
+            <span class="conn-command-map-cmd">CONFIG</span>
+            <span class="conn-command-map-arrow">→</span>
+            <el-input
+              v-model.trim="advancedForm.configMapped"
+              :placeholder="t('conn.commandMapMappedHint')" />
+          </div>
+          <div class="conn-advanced-hint">{{ t('conn.commandMapTip') }}</div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="advancedVisible = false">{{ t('cancel') }}</el-button>
+        <el-button type="primary" @click="applyAdvanced">{{ t('ok') }}</el-button>
+      </template>
+    </el-dialog>
+
     <template #footer>
       <div class="conn-footer">
         <div class="conn-footer-left">
@@ -654,6 +718,46 @@ const connMinimal = computed({
 </template>
 
 <style scoped lang="scss">
+.conn-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.conn-advanced-btn {
+  min-width: 32px;
+  padding: 8px 10px;
+}
+
+.conn-command-map-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+
+  .el-input {
+    flex: 1;
+  }
+}
+
+.conn-command-map-cmd {
+  flex-shrink: 0;
+  font-family: var(--el-font-family);
+  color: var(--el-text-color-regular);
+}
+
+.conn-command-map-arrow {
+  color: var(--el-text-color-secondary);
+  flex-shrink: 0;
+}
+
+.conn-advanced-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.4;
+}
+
 .conn-mode-checkboxes {
   display: flex;
   justify-content: flex-end;

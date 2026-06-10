@@ -30,12 +30,8 @@ export interface MeAppUpdateState {
   downloadPercentage: number
 }
 
-/** 存储/列表中的连接 + 界面字段（颜色、只读等） */
-export type UiConn = ConnConfig & {
-  color?: string
-  readonly?: boolean
-  meta?: Record<string, unknown>
-}
+/** 存储/列表中的连接 + 界面字段（颜色、只读等）；meta 在 ConnConfig 上 */
+export type UiConn = ConnConfig & { color?: string; readonly?: boolean }
 
 /** AppMain 注入的共享状态（与 `shareProvideKey` 配对） */
 export interface AppMainShare {

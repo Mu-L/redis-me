@@ -201,6 +201,16 @@ export default {
     sshModeTip: 'SSH tunnel does not support cluster/sentinel mode now',
     loginType: 'Login',
     nameHint: '[Optional] Automatically generated',
+    advancedTitle: 'Advanced',
+    advancedLabelWidth: '120px',
+    initDb: 'Initial DB',
+    initDbClusterHint: 'Cluster mode uses db0 only; this setting is ignored',
+    commandMap: 'Command Map',
+    commandMapCmdHint: 'Original command, e.g. config',
+    commandMapMappedHint: 'Mapped command name',
+    commandMapAdd: 'Add mapping',
+    commandMapTip:
+      'Matches Redis rename-command. When CONFIG is renamed, enter the mapped name; subcommands (get/set) stay the same',
     testConn: 'Test Conn',
     uiModeMinimal: 'Minimal',
     uiModeTip:

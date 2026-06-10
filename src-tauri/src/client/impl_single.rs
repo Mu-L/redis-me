@@ -189,8 +189,9 @@ impl MeClient for MeSingle {
         pattern: &str,
         _node: Option<String>,
     ) -> AnyResult<HashMap<String, String>> {
+        let cmd = resolve_command_name(&self.conf, "config");
         let mut conn = self.get_conn()?;
-        let result: HashMap<String, String> = redis::cmd("config")
+        let result: HashMap<String, String> = redis::cmd(&cmd)
             .arg("get")
             .arg(pattern)
             .query(&mut conn)?;
@@ -198,8 +199,9 @@ impl MeClient for MeSingle {
     }
 
     fn config_set(&self, key: &str, value: &str, _node: Option<String>) -> AnyResult<()> {
+        let cmd = resolve_command_name(&self.conf, "config");
         let mut conn = self.get_conn()?;
-        let _: () = redis::cmd("config")
+        let _: () = redis::cmd(&cmd)
             .arg("set")
             .arg(key)
             .arg(value)

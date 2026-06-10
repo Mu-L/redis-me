@@ -246,26 +246,26 @@ impl MeClient for MeCluster {
         pattern: &str,
         node: Option<String>,
     ) -> AnyResult<HashMap<String, String>> {
+        let cmd = resolve_command_name(&self.conf, "config");
         let mut conn = self.get_conn()?;
         let (route, _) = self.get_node_route(node)?;
-        let value = conn.route_command(redis::cmd("config").arg("get").arg(pattern), route)?;
+        let value = conn.route_command(redis::cmd(&cmd).arg("get").arg(pattern), route)?;
         let result: HashMap<String, String> = FromRedisValue::from_redis_value(value)?;
         Ok(result)
     }
 
     fn config_set(&self, key: &str, value: &str, node: Option<String>) -> AnyResult<()> {
+        let cmd = resolve_command_name(&self.conf, "config");
         let mut conn = self.get_conn()?;
         if "*" == node.clone().unwrap_or_default() {
             let route = RoutingInfo::MultiNode((
                 MultipleNodeRoutingInfo::AllNodes,
                 Some(ResponsePolicy::AllSucceeded),
             ));
-            let _ =
-                conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
+            let _ = conn.route_command(redis::cmd(&cmd).arg("set").arg(key).arg(value), route)?;
         } else {
             let (route, _) = self.get_node_route(node)?;
-            let _ =
-                conn.route_command(redis::cmd("config").arg("set").arg(key).arg(value), route)?;
+            let _ = conn.route_command(redis::cmd(&cmd).arg("set").arg(key).arg(value), route)?;
         }
         Ok(())
     }
