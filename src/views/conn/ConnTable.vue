@@ -47,32 +47,33 @@ defineExpose({
 </script>
 
 <template>
-  <el-table
-    ref="table"
-    :data="data"
-    :cell-style="cellStyle"
-    row-key="id"
-    border
-    stripe
-    @row-dblclick="(row: UiConn) => emit('select', row)">
+  <el-table ref="table" :data="data" :cell-style="cellStyle" row-key="id" border stripe>
     <el-table-column label="#" type="index" width="50" align="center" class-name="drag-handle" />
     <el-table-column :label="t('conn.color')" prop="color" width="64" align="center">
       <template #default="scope">
         <el-color-picker size="small" v-model="scope.row.color" :predefine="PREDEFINE_COLORS" />
       </template>
     </el-table-column>
-    <el-table-column :label="t('conn.name')" prop="name" show-overflow-tooltip>
+    <el-table-column
+      :label="t('conn.name')"
+      prop="name"
+      show-overflow-tooltip
+      class-name="conn-name">
       <template #default="scope">
-        <el-link
-          underline="never"
-          type="primary"
-          @click="emit('select', scope.row)"
-          :style="{ '--el-link-text-color': scope.row.color }">
+        <div
+          class="conn-name-hit"
+          :style="{ color: scope.row.color || 'var(--el-color-primary)' }"
+          @click="emit('select', scope.row)">
           <me-icon :icon="getConnIcon(scope.row)" :name="scope.row.name" />
-        </el-link>
+        </div>
       </template>
     </el-table-column>
-    <el-table-column :label="t('conn.hostPort')" prop="host" width="200" show-overflow-tooltip>
+    <el-table-column
+      :label="t('conn.hostPort')"
+      prop="host"
+      width="200"
+      show-overflow-tooltip
+      class-name="conn-host">
       <template #default="scope">
         <div style="color: var(--el-color-info)">
           {{ scope.row.host + ':' + scope.row.port }}
@@ -113,3 +114,16 @@ defineExpose({
     </el-table-column>
   </el-table>
 </template>
+
+<style scoped lang="scss">
+/* 名称列横向铺满可点，保留表格默认 cell 内边距避免撑高行高 */
+.conn-name-hit {
+  display: block;
+  width: 100%;
+  cursor: pointer;
+
+  :deep(.icon-main) {
+    overflow: hidden;
+  }
+}
+</style>

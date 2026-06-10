@@ -240,8 +240,7 @@ onBeforeUnmount(() => destroySortables())
           :key="conn.id"
           class="conn-row"
           :data-id="conn.id"
-          :style="connStyle(conn)"
-          @dblclick="emit('select', conn)">
+          :style="connStyle(conn)">
           <me-icon
             :icon="getConnIcon(conn)"
             :name="conn.name"
