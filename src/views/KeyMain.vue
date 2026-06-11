@@ -209,6 +209,10 @@ function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
     meDeleteKey(share.conn!.id, redisKey)
   } else if (command === 'renameKey') {
     keyRenameRef.value?.open({ redisKey })
+  } else if (command === 'checkedMode') {
+    enterCheckedMode()
+  } else if (command === 'exitCheckedMode') {
+    exitCheckedMode()
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -236,6 +240,10 @@ function contextFolder(command: string, folder: string): void {
     deleteFolder(folder)
   } else if (command === 'exportFolder') {
     exportFolder(folder)
+  } else if (command === 'checkedMode') {
+    enterCheckedMode()
+  } else if (command === 'exitCheckedMode') {
+    exitCheckedMode()
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -429,6 +437,18 @@ const checkedKeyList = ref<RedisKey_Deserialize[]>([])
 
 function toggleChecked(): void {
   showCheckbox.value = !showCheckbox.value
+  checkedKeyList.value = []
+}
+
+function enterCheckedMode(): void {
+  if (showCheckbox.value) return
+  showCheckbox.value = true
+  checkedKeyList.value = []
+}
+
+function exitCheckedMode(): void {
+  if (!showCheckbox.value) return
+  showCheckbox.value = false
   checkedKeyList.value = []
 }
 
@@ -675,7 +695,7 @@ function editDbName(db: number): void {
           placement="top"
           :name="t('keyMain.checkedMode')"
           hint
-          style="font-size: 24px" />
+          style="font-size: 18px" />
         <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
           <me-icon icon="el-icon-more-filled" class="icon-btn footer-btn" />
           <template #dropdown>

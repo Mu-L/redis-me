@@ -832,7 +832,7 @@ export default {
     importing: 'Importing',
     importDone: 'Import Done',
     importResult: 'Success: {okCount}, Fail: {errCount}, Ignore: {ignoreCount}',
-    checkedMode: 'Checked Mode',
+    checkedMode: 'Multi Select',
 
     mockData: 'Mock Data',
     exportData: 'Export Data',
@@ -846,7 +846,7 @@ export default {
     exportChecked: 'Export Checked',
     ttlChecked: 'TTL Checked',
     deleteChecked: 'Delete Checked',
-    exitCheckedMode: 'Exit Checked',
+    exitCheckedMode: 'Exit Select',
     batchDelete: 'Delete Keys',
     flushDb: 'Flush DB',
     flushDbConfirm: '【Danger】Confirm Flush DB ?',

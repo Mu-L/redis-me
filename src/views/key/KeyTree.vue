@@ -384,6 +384,12 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
           <el-dropdown-item command="addKey" v-if="canEdit"
             ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
           /></el-dropdown-item>
+          <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
+            ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
+          /></el-dropdown-item>
+          <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
+            ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
+          /></el-dropdown-item>
           <el-dropdown-item command="refreshKey"
             ><me-icon icon="el-icon-refresh" :name="t('keyTree.refreshKey')"
           /></el-dropdown-item>
@@ -400,6 +406,12 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
         <template v-else>
           <el-dropdown-item command="addKey" v-if="canEdit"
             ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
+          /></el-dropdown-item>
+          <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
+            ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
+          /></el-dropdown-item>
+          <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
+            ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
           /></el-dropdown-item>
           <el-dropdown-item command="copyFolder"
             ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyFolder')"
