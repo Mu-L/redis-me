@@ -1,6 +1,7 @@
 <script setup lang="ts">
 /** ACL 新增/编辑对话框：只负责表单 UI，form 数据与保存逻辑在 RedisACL.vue */
-import { computed, inject, ref, watch } from 'vue'
+import { Sortable, type SortableEvent } from 'sortablejs'
+import { computed, inject, nextTick, onBeforeUnmount, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
@@ -224,13 +225,60 @@ function removeChannelPattern(item: string) {
   props.form.channelPatterns = props.form.channelPatterns.filter(v => v !== item)
 }
 
+/** 命令规则 / 键模式 / 频道模式标签区拖拽排序，顺序影响预览与 ACL SETUSER */
+const commandTagsRef = useTemplateRef<HTMLElement>('commandTagsRef')
+const keyPatternTagsRef = useTemplateRef<HTMLElement>('keyPatternTagsRef')
+const channelPatternTagsRef = useTemplateRef<HTMLElement>('channelPatternTagsRef')
+
+let tagSortables: Sortable[] = []
+
+function destroyTagSortables() {
+  for (const s of tagSortables) s.destroy()
+  tagSortables = []
+}
+
+function reorderList(list: string[], oldIndex: number, newIndex: number) {
+  if (oldIndex === newIndex) return
+  const [item] = list.splice(oldIndex, 1)
+  if (item) list.splice(newIndex, 0, item)
+}
+
+function bindTagSortable(el: HTMLElement | null, list: () => string[]) {
+  if (!el) return
+  tagSortables.push(
+    Sortable.create(el, {
+      draggable: '.acl-tag-item',
+      filter: '.el-tag__close',
+      preventOnFilter: true,
+      animation: 150,
+      onEnd({ oldIndex, newIndex }: SortableEvent) {
+        if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return
+        reorderList(list(), oldIndex, newIndex)
+      },
+    }),
+  )
+}
+
+async function setupTagSortables() {
+  destroyTagSortables()
+  if (isView.value) return
+  await nextTick()
+  bindTagSortable(commandTagsRef.value, () => props.form.commandRules)
+  bindTagSortable(keyPatternTagsRef.value, () => props.form.keyPatterns)
+  bindTagSortable(channelPatternTagsRef.value, () => props.form.channelPatterns)
+}
+
+onBeforeUnmount(destroyTagSortables)
+
 watch(visible, open => {
   if (!open) {
+    destroyTagSortables()
     resetDraftInputs()
     return
   }
   resetDraftInputs()
   void loadAclCategories()
+  void setupTagSortables()
 })
 </script>
 
@@ -326,10 +374,11 @@ watch(visible, open => {
       <!-- 命令规则可删至空（后端 nocommands）；键/频道至少保留一条 -->
       <el-form-item :label="t('redisACL.commandRules')">
         <div class="rule-box command-rule-box">
-          <div class="pattern-tags command-tags">
+          <div ref="commandTagsRef" class="pattern-tags command-tags">
             <el-tag
               v-for="item in props.form.commandRules"
               :key="item"
+              :class="{ 'acl-tag-item': !isView }"
               :closable="!isView"
               disable-transitions
               style="margin: 0 6px 0 0"
@@ -412,10 +461,11 @@ watch(visible, open => {
         <div class="rule-box">
           <div class="rule-input-row rule-input-row--3col">
             <div class="rule-input-leading">
-              <div class="pattern-tags">
+              <div ref="keyPatternTagsRef" class="pattern-tags">
                 <el-tag
                   v-for="item in props.form.keyPatterns"
                   :key="item"
+                  :class="{ 'acl-tag-item': !isView }"
                   :closable="!isView"
                   disable-transitions
                   style="margin: 0 6px 0 0"
@@ -441,10 +491,11 @@ watch(visible, open => {
         <div class="rule-box">
           <div class="rule-input-row rule-input-row--3col">
             <div class="rule-input-leading">
-              <div class="pattern-tags">
+              <div ref="channelPatternTagsRef" class="pattern-tags">
                 <el-tag
                   v-for="item in props.form.channelPatterns"
                   :key="item"
+                  :class="{ 'acl-tag-item': !isView }"
                   :closable="!isView"
                   disable-transitions
                   style="margin: 0 6px 0 0"
@@ -638,6 +689,22 @@ watch(visible, open => {
   overflow-x: hidden;
   overflow-y: hidden;
   white-space: nowrap;
+}
+
+.acl-tag-item {
+  cursor: grab;
+}
+
+.acl-tag-item:active {
+  cursor: grabbing;
+}
+
+.pattern-tags :deep(.sortable-ghost) {
+  opacity: 0.45;
+}
+
+.pattern-tags :deep(.sortable-chosen) {
+  opacity: 0.85;
 }
 
 .add-item-btn {
