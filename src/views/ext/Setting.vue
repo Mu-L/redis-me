@@ -9,7 +9,14 @@ import { useI18n } from 'vue-i18n'
 import MeShortcut from '@/components/MeShortcut.vue'
 import { appProvideKey, type AppMainInject } from '@/types/me-interface'
 import { getConnGlobalShortcuts } from '@/utils/shortcut'
-import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util'
+import {
+  meCheckUpdate,
+  meConfirm,
+  meCommands,
+  meErr,
+  meOk,
+  resetWindowToDefault,
+} from '@/utils/util'
 
 const { t } = useI18n()
 const settings = window.meTauri.settings
@@ -189,6 +196,15 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
   }
   await openPath(dir)
 }
+
+async function resetWindowSize() {
+  try {
+    await resetWindowToDefault()
+    meOk(t('setting.resetWindowOk'))
+  } catch (e) {
+    meErr(e)
+  }
+}
 </script>
 
 <template>
@@ -267,9 +283,18 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
             }}</el-button>
           </div>
         </el-form-item>
-        <me-button plain icon="me-icon-keyshort" @click="keyShortVisible = true">{{
-          t('setting.shortcuts')
-        }}</me-button>
+        <div class="setting-row-btns">
+          <me-button
+            plain
+            icon="el-icon-full-screen"
+            :info="t('setting.resetWindowTip')"
+            @click="resetWindowSize"
+            >{{ t('setting.resetWindow') }}</me-button
+          >
+          <me-button plain icon="me-icon-keyshort" @click="keyShortVisible = true">{{
+            t('setting.shortcuts')
+          }}</me-button>
+        </div>
       </el-row>
 
       <!-- 更新设置 -->
@@ -486,6 +511,12 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
   &:hover {
     color: var(--el-color-primary);
   }
+}
+
+.setting-row-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .setting-more-form {

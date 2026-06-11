@@ -1,5 +1,6 @@
-// 应用级通用工具；以下 `// #region` / `// #endregion` 可在 VS Code / Cursor 中折叠浏览。
 import { getAllWebviewWindows, WebviewWindow } from '@tauri-apps/api/webviewWindow'
+// 应用级通用工具；以下 `// #region` / `// #endregion` 可在 VS Code / Cursor 中折叠浏览。
+import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { type } from '@tauri-apps/plugin-os'
 import { relaunch } from '@tauri-apps/plugin-process'
@@ -9,6 +10,7 @@ import {
   type DownloadEvent,
   type Update,
 } from '@tauri-apps/plugin-updater'
+import { saveWindowState, StateFlags } from '@tauri-apps/plugin-window-state'
 import { useClipboard, useDark } from '@vueuse/core'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { ElMessageBoxOptions } from 'element-plus'
@@ -292,8 +294,13 @@ export function meWarn(message: string): void {
   ElMessage.warning(message)
 }
 
-export function meErr(message: string | Error, title: string = t('error')): void {
-  const text = message instanceof Error ? message.message : message
+export function meErr(message: unknown, title: string = t('error')): void {
+  const text =
+    message instanceof Error
+      ? message.message
+      : typeof message === 'string'
+        ? message
+        : errString(message)
   void ElMessageBox.alert(text, title, { type: 'error', draggable: true }).then(DoNothing)
 }
 
@@ -561,6 +568,27 @@ export async function meDownloadUpdate(
 // #endregion
 
 // #region 新窗口
+/** 与 tauri.conf.json 默认窗口尺寸一致 */
+export const DEFAULT_WINDOW_SIZE = { width: 1200, height: 800 } as const
+
+/** 当前窗口恢复默认大小并居中，同时写入 window-state 持久化 */
+export async function resetWindowToDefault(): Promise<void> {
+  const win = getCurrentWindow()
+  if (await win.isFullscreen()) {
+    await win.setFullscreen(false)
+    await sleep(100)
+  }
+  if (await win.isMaximized()) {
+    await win.unmaximize()
+    // Windows 取消最大化后需等布局稳定，否则 setSize 可能被忽略
+    await sleep(100)
+  }
+  await win.setSize(new LogicalSize(DEFAULT_WINDOW_SIZE.width, DEFAULT_WINDOW_SIZE.height))
+  await win.center()
+  await sleep(50)
+  await saveWindowState(StateFlags.ALL)
+}
+
 /** 新建 Tauri 窗口（与 KeyHeader 菜单「新窗口」一致） */
 export async function openNewWindow(): Promise<void> {
   const isMacOS = type() === 'macos'

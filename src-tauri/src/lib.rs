@@ -110,8 +110,7 @@ pub fn run() {
                 let _ = webview_window.set_focus();
             }
         }))
-        // 窗口状态插件暂时注释，默认的1200×800很合适，避免手动调整后恢复原始比较麻烦
-        // .plugin(tauri_plugin_window_state::Builder::new().build())
+        .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_system_fonts::init())
         .plugin(tauri_plugin_process::init())

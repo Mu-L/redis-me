@@ -108,6 +108,9 @@ export default {
     appDir: 'App',
     logDir: 'Log',
     openDir: 'Open',
+    resetWindow: 'Reset Window',
+    resetWindowTip: 'Restore default size and center',
+    resetWindowOk: 'Window restored to default size',
     shortcuts: 'Shortcuts',
   },
 

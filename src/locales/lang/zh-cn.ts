@@ -101,6 +101,9 @@ export default {
     appDir: '应用',
     logDir: '日志',
     openDir: '打开',
+    resetWindow: '重置窗口',
+    resetWindowTip: '恢复为默认大小并居中',
+    resetWindowOk: '窗口已恢复默认大小',
     shortcuts: '快捷键',
   },
 
