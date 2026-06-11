@@ -306,7 +306,7 @@ watch(
   },
 )
 
-// 仅在首页为「分组展示」时显示分组下拉；值写入 form.meta.group
+// 分组展示模式下，分组选择与名称 input 并排；值写入 form.meta.group
 const connShowGroup = computed(() => meTauri.settings.connShow === 'group')
 
 const connGroups = computed(() => {
@@ -368,23 +368,26 @@ function applyAdvanced() {
       :rules="rules"
       label-position="right"
       :label-width="t('conn.labelWidth')">
-      <!-- 连接名称、分组（与主机/端口同栅格，分组框与端口等宽） -->
+      <!-- 连接名称（分组展示时，分组选择与名称 input 并排，间距 10px） -->
       <el-row :gutter="24">
-        <el-col :span="connShowGroup ? 12 : 24">
+        <el-col :span="24">
           <el-form-item :label="t('conn.name')" prop="name">
-            <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
-          </el-form-item>
-        </el-col>
-        <el-col v-if="connShowGroup" :span="12">
-          <el-form-item :label="t('conn.groupLabel')">
-            <el-select
-              v-model="connGroup"
-              clearable
-              :placeholder="t('conn.ungrouped')"
-              style="width: 100%">
-              <el-option :label="t('conn.ungrouped')" value="" />
-              <el-option v-for="g in connGroupOptions" :key="g" :label="g" :value="g" />
-            </el-select>
+            <div class="conn-name-row">
+              <el-input
+                v-model.trim="form.name"
+                :placeholder="t('conn.nameHint')"
+                clearable
+                class="conn-name-input" />
+              <el-select
+                v-if="connShowGroup"
+                v-model="connGroup"
+                clearable
+                :placeholder="t('conn.ungrouped')"
+                class="conn-name-group-select">
+                <el-option :label="t('conn.ungrouped')" value="" />
+                <el-option v-for="g in connGroupOptions" :key="g" :label="g" :value="g" />
+              </el-select>
+            </div>
           </el-form-item>
         </el-col>
       </el-row>
@@ -710,6 +713,23 @@ function applyAdvanced() {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.conn-name-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.conn-name-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.conn-name-group-select {
+  width: 150px;
+  flex-shrink: 0;
 }
 
 .conn-advanced-btn {
