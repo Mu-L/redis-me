@@ -203,8 +203,6 @@ export default {
     nameHint: '[Optional] Automatically generated',
     advancedTitle: 'Advanced',
     advancedLabelWidth: '120px',
-    initDb: 'Initial DB',
-    initDbClusterHint: 'Cluster mode uses db0 only; this setting is ignored',
     commandMap: 'Command Map',
     commandMapCmdHint: 'Original command, e.g. config',
     commandMapMappedHint: 'Mapped command name',

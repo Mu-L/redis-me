@@ -332,21 +332,18 @@ const connMinimal = computed({
   set: (v: boolean) => setConnUiMode(form as UiConn, v ? 'minimal' : 'normal'),
 })
 
-// 高级选项：初始 DB、CONFIG 命令映射（存 meta.commandMap）
+// 高级选项：CONFIG 命令映射（存 meta.commandMap）
 const advancedVisible = ref(false)
 const advancedForm = reactive({
-  db: 0,
   configMapped: '',
 })
 
 function openAdvanced() {
-  advancedForm.db = form.db
   advancedForm.configMapped = getConnCommandMap(form as UiConn).config ?? ''
   advancedVisible.value = true
 }
 
 function applyAdvanced() {
-  form.db = advancedForm.db
   const mapped = advancedForm.configMapped.trim()
   setConnCommandMap(form as UiConn, mapped ? { config: mapped } : {})
   advancedVisible.value = false
@@ -439,7 +436,11 @@ function applyAdvanced() {
           <el-form-item :label="t('conn.color')">
             <div class="conn-color-row">
               <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS" />
-              <el-button class="conn-advanced-btn" @click="openAdvanced">...</el-button>
+              <el-button
+                class="conn-advanced-btn"
+                icon="el-icon-grid"
+                :title="t('conn.advancedTitle')"
+                @click="openAdvanced" />
             </div>
           </el-form-item>
         </el-col>
@@ -649,19 +650,6 @@ function applyAdvanced() {
       destroy-on-close
       align-center>
       <el-form label-position="right" :label-width="t('conn.advancedLabelWidth')">
-        <el-form-item :label="t('conn.initDb')">
-          <el-input-number
-            v-model="advancedForm.db"
-            :min="0"
-            :max="255"
-            :controls="false"
-            align="left"
-            :disabled="form.cluster"
-            style="width: 100%" />
-          <div v-if="form.cluster" class="conn-advanced-hint">
-            {{ t('conn.initDbClusterHint') }}
-          </div>
-        </el-form-item>
         <el-form-item :label="t('conn.commandMap')">
           <div class="conn-command-map-row">
             <span class="conn-command-map-cmd">CONFIG</span>

@@ -214,8 +214,6 @@ export default {
     nameHint: '【可选】默认自动根据主机和端口生成',
     advancedTitle: '高级选项',
     advancedLabelWidth: '100px',
-    initDb: '初始 DB',
-    initDbClusterHint: '集群模式仅使用 db0，此项无效',
     commandMap: '命令映射',
     commandMapCmdHint: '原命令，如 config',
     commandMapMappedHint: '映射后的命令名',
