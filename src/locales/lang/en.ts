@@ -211,7 +211,7 @@ export default {
     commandMapMappedHint: 'Mapped command name',
     commandMapAdd: 'Add mapping',
     commandMapTip:
-      'Matches Redis rename-command. When CONFIG is renamed, enter the mapped name; subcommands (get/set) stay the same',
+      'Matches rename-command in config file. When CONFIG is renamed, enter the mapped name',
     testConn: 'Test Conn',
     uiModeMinimal: 'Minimal',
     uiModeTip:

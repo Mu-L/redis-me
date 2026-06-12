@@ -221,8 +221,7 @@ export default {
     commandMapCmdHint: '原命令，如 config',
     commandMapMappedHint: '映射后的命令名',
     commandMapAdd: '添加映射',
-    commandMapTip:
-      '对应 Redis rename-command，如 CONFIG 被重命名时填写映射名；子命令（get/set）无需修改',
+    commandMapTip: '对应配置中的rename-command，如 CONFIG 被重命名时填写映射名',
     testConn: '测试连接',
     uiModeMinimal: '极简',
     uiModeTip: '极简模式仅展示键值与终端，适用于 INFO、CONFIG 等命令受限的 ACL 账号',
