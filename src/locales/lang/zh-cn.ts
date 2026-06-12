@@ -451,7 +451,8 @@ export default {
 
   keyTree: {
     noData: '没有数据',
-    refreshKey: '重新载入',
+    refreshKey: '刷新列表',
+    reloadKey: '重新载入',
     copyKey: '复制键名',
     deleteKey: '删除键',
     addKey: '添加新键',

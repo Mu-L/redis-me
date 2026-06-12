@@ -381,8 +381,8 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
       <!-- 右键菜单 -->
       <me-context ref="meContextRef" @handle-command="handleCommand" @handle-close="handleClose">
         <template v-if="contextMenuNode?.isLeaf">
-          <el-dropdown-item command="addKey" v-if="canEdit"
-            ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
+          <el-dropdown-item command="refreshKey"
+            ><me-icon icon="el-icon-refresh" :name="t('keyTree.refreshKey')"
           /></el-dropdown-item>
           <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
             ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
@@ -390,8 +390,11 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
           <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
             ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
           /></el-dropdown-item>
-          <el-dropdown-item command="refreshKey"
-            ><me-icon icon="el-icon-refresh" :name="t('keyTree.refreshKey')"
+          <el-dropdown-item command="addKey" v-if="canEdit"
+            ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="reloadKey"
+            ><me-icon icon="el-icon-refresh-right" :name="t('keyTree.reloadKey')"
           /></el-dropdown-item>
           <el-dropdown-item command="copyKey"
             ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')"
@@ -404,14 +407,17 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
           /></el-dropdown-item>
         </template>
         <template v-else>
-          <el-dropdown-item command="addKey" v-if="canEdit"
-            ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
+          <el-dropdown-item command="refreshKey"
+            ><me-icon icon="el-icon-refresh" :name="t('keyTree.refreshKey')"
           /></el-dropdown-item>
           <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
-            ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
+          ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
           /></el-dropdown-item>
           <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
-            ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
+          ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
+          /></el-dropdown-item>
+          <el-dropdown-item command="addKey" v-if="canEdit"
+            ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
           /></el-dropdown-item>
           <el-dropdown-item command="copyFolder"
             ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyFolder')"

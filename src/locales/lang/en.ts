@@ -461,7 +461,8 @@ export default {
 
   keyTree: {
     noData: 'No Data',
-    refreshKey: 'Reload',
+    refreshKey: 'Refresh List',
+    reloadKey: 'Reload',
     copyKey: 'Copy',
     deleteKey: 'Delete',
     addKey: 'Add Key',

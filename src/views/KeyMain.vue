@@ -198,11 +198,13 @@ function chooseFolder(folder: string): void {
 
 function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
   if (!share.conn) return
-  if (command === 'addKey') {
+  if (command === 'refreshKey') {
+    void scanKey(false, false)
+  } else if (command === 'reloadKey') {
+    chooseKey(redisKey)
+  } else if (command === 'addKey') {
     keyPrefix.value = redisKey.key + '-copy'
     addKey()
-  } else if (command === 'refreshKey') {
-    chooseKey(redisKey)
   } else if (command === 'copyKey') {
     meCopy(redisKey.key)
   } else if (command === 'deleteKey') {
@@ -220,7 +222,9 @@ function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
 
 function contextFolder(command: string, folder: string): void {
   if (!share.conn) return
-  if (command === 'addKey') {
+  if (command === 'refreshKey') {
+    void scanKey(false, false)
+  } else if (command === 'addKey') {
     keyPrefix.value = folder + ':'
     addKey()
   } else if (command === 'copyFolder') {
