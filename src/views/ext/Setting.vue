@@ -268,7 +268,7 @@ async function resetWindowSize() {
       </el-row>
 
       <!-- 目录、快捷键 -->
-      <el-row class="me-flex">
+      <el-row class="me-flex setting-inline-row">
         <el-form-item :label="t('setting.dir')">
           <div class="me-flex">
             <el-select v-model="dirType" style="width: 100px">
@@ -283,18 +283,20 @@ async function resetWindowSize() {
             }}</el-button>
           </div>
         </el-form-item>
-        <div class="setting-row-btns">
-          <me-button
-            plain
-            icon="el-icon-full-screen"
-            :info="t('setting.resetWindowTip')"
-            @click="resetWindowSize"
-            >{{ t('setting.resetWindow') }}</me-button
-          >
-          <me-button plain icon="me-icon-keyshort" @click="keyShortVisible = true">{{
-            t('setting.shortcuts')
-          }}</me-button>
-        </div>
+        <el-form-item>
+          <div class="setting-row-btns">
+            <me-button
+              plain
+              icon="el-icon-full-screen"
+              :info="t('setting.resetWindowTip')"
+              @click="resetWindowSize"
+              >{{ t('setting.resetWindow') }}</me-button
+            >
+            <me-button plain icon="me-icon-keyshort" @click="keyShortVisible = true">{{
+              t('setting.shortcuts')
+            }}</me-button>
+          </div>
+        </el-form-item>
       </el-row>
 
       <!-- 更新设置 -->
@@ -511,6 +513,10 @@ async function resetWindowSize() {
   &:hover {
     color: var(--el-color-primary);
   }
+}
+
+.setting-inline-row {
+  align-items: center;
 }
 
 .setting-row-btns {
