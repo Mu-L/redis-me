@@ -459,7 +459,7 @@ function checkChange(redisKeys: RedisKey_Deserialize[]): void {
 // 多选后的批量操作
 const checkedDisabled = computed(() => checkedKeyList.value.length === 0 || share.exportImporting)
 const checkedBtnClass = computed(() =>
-  checkedDisabled.value ? ['footer-btn'] : ['icon-btn', 'footer-btn'],
+  checkedDisabled.value ? ['icon-disabled'] : ['icon-btn'],
 )
 function exportChecked() {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'export')
@@ -634,14 +634,14 @@ function editDbName(db: number): void {
             icon="me-icon-load-more"
             hint
             placement="top"
-            class="icon-btn footer-btn"
+            class="icon-btn"
             @click="scanKey(true, false)" />
           <me-icon
             :name="t('keyMain.loadAll')"
             icon="me-icon-load-all"
             hint
             placement="top"
-            class="icon-btn footer-btn"
+            class="icon-btn"
             @click="scanKey(true, true)" />
         </div>
       </div>
@@ -690,14 +690,14 @@ function editDbName(db: number): void {
       <div class="me-flex" v-if="!showCheckbox">
         <me-icon
           icon="me-icon-checked"
-          class="icon-btn footer-btn"
+          class="icon-btn"
           @click="toggleChecked"
           placement="top"
           :name="t('keyMain.checkedMode')"
           hint
-          style="font-size: 18px" />
+          />
         <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
-          <me-icon icon="el-icon-more-filled" class="icon-btn footer-btn" />
+          <me-icon icon="el-icon-more-filled" class="icon-btn" />
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="exportData">
@@ -742,7 +742,7 @@ function editDbName(db: number): void {
           icon="el-icon-circle-close"
           @click="toggleChecked"
           hint
-          class="icon-btn footer-btn"
+          class="icon-btn"
           placement="top" />
       </div>
     </div>
@@ -817,6 +817,14 @@ function editDbName(db: number): void {
     align-items: center;
     justify-content: space-between;
 
+    :deep(.icon-btn) {
+      font-size: 20px;
+    }
+
+    :deep(.icon-disabled) {
+      font-size: 20px;
+    }
+
     :deep(.el-select__wrapper) {
       min-height: 0;
       height: 30px;
@@ -827,10 +835,6 @@ function editDbName(db: number): void {
 
     .tip {
       white-space: nowrap;
-    }
-
-    .footer-btn {
-      font-size: 20px;
     }
 
     :deep(.el-select-dropdown__item) {
