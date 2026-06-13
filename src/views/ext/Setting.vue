@@ -6,9 +6,7 @@ import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import MeShortcut from '@/components/MeShortcut.vue'
-import { appProvideKey, type AppMainInject } from '@/types/me-interface'
-import { getConnGlobalShortcuts } from '@/utils/shortcut'
+import { appProvideKey, connUiProvideKey, type AppMainInject } from '@/types/me-interface'
 import {
   meCheckUpdate,
   meConfirm,
@@ -21,6 +19,7 @@ import {
 const { t } = useI18n()
 const settings = window.meTauri.settings
 const isAppStore = window.meTauri.isAppStore
+const connUi = inject(connUiProvideKey)!
 
 /** `window.queryLocalFonts()` 返回项中用到的字段（Local Font Access，与 FontData 子集一致） */
 interface LocalFontFace {
@@ -70,7 +69,9 @@ const loadFonts = async () => {
     fonts.value = [...new Set(systemFonts.map(f => f.name))].sort()
   }
 }
-onMounted(loadFonts)
+onMounted(() => {
+  void loadFonts()
+})
 
 // 检查更新
 const appVersion = ref('')
@@ -182,9 +183,6 @@ const dirList = computed(() => [
   { value: 'app' as const, label: t('setting.appDir') },
   { value: 'log' as const, label: t('setting.logDir') },
 ])
-const globalShortcuts = computed(() => getConnGlobalShortcuts(t))
-const keyShortVisible = ref(false)
-
 async function openDir(dirType: 'config' | 'app' | 'log') {
   let dir = ''
   if (dirType === 'config') {
@@ -285,7 +283,7 @@ async function resetWindowSize() {
         </el-form-item>
         <el-form-item>
           <div class="setting-row-btns">
-            <me-button plain icon="me-icon-keyshort" @click="keyShortVisible = true">{{
+            <me-button plain icon="me-icon-keyshort" @click="connUi.openShortcuts()">{{
               t('setting.shortcuts')
             }}</me-button>
             <me-button
@@ -324,16 +322,6 @@ async function resetWindowSize() {
       </el-row>
     </el-form>
   </el-card>
-
-  <el-dialog
-    v-model="keyShortVisible"
-    width="400"
-    align-center
-    draggable
-    :show-close="false"
-    header-class="me-shortcut-dialog__header">
-    <MeShortcut :items="globalShortcuts" />
-  </el-dialog>
 
   <!-- 更多设置 -->
   <el-card style="margin-top: 20px">

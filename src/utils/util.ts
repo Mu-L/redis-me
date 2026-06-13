@@ -589,6 +589,12 @@ export async function resetWindowToDefault(): Promise<void> {
   await saveWindowState(StateFlags.ALL)
 }
 
+/** F11 切换当前 Tauri 窗口全屏；与全局快捷键「全屏应用」一致 */
+export async function toggleAppFullscreen(): Promise<void> {
+  const win = getCurrentWindow()
+  await win.setFullscreen(!(await win.isFullscreen()))
+}
+
 /** 新建 Tauri 窗口（与 KeyHeader 菜单「新窗口」一致） */
 export async function openNewWindow(): Promise<void> {
   const isMacOS = type() === 'macos'

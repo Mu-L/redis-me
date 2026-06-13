@@ -112,6 +112,11 @@ export default {
     resetWindowTip: 'Restore default size and center',
     resetWindowOk: 'Window restored to default size',
     shortcuts: 'Shortcuts',
+    appFullscreen: 'Fullscreen',
+    shortcutTips: 'Shortcuts',
+    shortcutGlobal: 'Global',
+    shortcutCodeMirror: 'CodeMirror',
+    shortcutTerminal: 'Terminal',
   },
 
   conn: {
@@ -733,7 +738,7 @@ export default {
     readonlyNo: 'No',
     keyShortHint: 'View KeyShort',
     keyShort: {
-      fullscreen: 'Full Screen',
+      fullscreen: 'Fullscreen Terminal',
       execute: 'Execute Command',
       complete: 'Command Completion',
       history: 'History',

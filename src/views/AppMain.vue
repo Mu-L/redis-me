@@ -28,7 +28,11 @@ import {
 import type { ConnConfig } from '@/types/tauri-specta'
 import { isConnMinimalMode, mergeConnGroupsFromList } from '@/utils/conn'
 import { mergeImportedConnList } from '@/utils/rdm'
-import { matchConnShortcutAction } from '@/utils/shortcut'
+import {
+  isAppFullscreenHotkeyBlocked,
+  matchAppFullscreenHotkey,
+  matchConnShortcutAction,
+} from '@/utils/shortcut'
 import {
   bus,
   CONN_LIST_WINDOWS_SYNC,
@@ -37,6 +41,7 @@ import {
   meJsonParse,
   meOk,
   openNewWindow,
+  toggleAppFullscreen,
 } from '@/utils/util'
 import ConnImport from '@/views/conn/ConnImport.vue'
 import ConnSave from '@/views/conn/ConnSave.vue'
@@ -191,19 +196,29 @@ const connUi = reactive({
   },
   /** KeyHeader onMounted 时注入，供菜单与全局快捷键共用 */
   openSetting(): void {},
+  openShortcuts(): void {},
   runConnAction(action: ConnShortcutAction): void {
     if (action === 'add') connUi.openConnSave('add')
     else if (action === 'import') connUi.openConnImport()
     else if (action === 'setting') connUi.openSetting()
+    else if (action === 'shortcuts') connUi.openShortcuts()
     else if (action === 'newWindow') void openNewWindow()
   },
 })
 
 function onGlobalConnHotkey(e: KeyboardEvent): void {
   const action = matchConnShortcutAction(e)
-  if (!action) return
+  if (action) {
+    e.preventDefault()
+    connUi.runConnAction(action)
+    return
+  }
+
+  if (!matchAppFullscreenHotkey(e)) return
+  if (isAppFullscreenHotkeyBlocked(e, { tabName: share.tabName })) return
+
   e.preventDefault()
-  connUi.runConnAction(action)
+  void toggleAppFullscreen()
 }
 
 function onConnImported(impConnList: UiConn[]): void {

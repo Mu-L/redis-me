@@ -105,6 +105,11 @@ export default {
     resetWindowTip: '恢复为默认大小并居中',
     resetWindowOk: '窗口已恢复默认大小',
     shortcuts: '快捷键',
+    appFullscreen: '全屏应用',
+    shortcutTips: '快捷键',
+    shortcutGlobal: '全局快捷键',
+    shortcutCodeMirror: 'CodeMirror 快捷键',
+    shortcutTerminal: '终端快捷键',
   },
 
   conn: {
@@ -720,7 +725,7 @@ export default {
     readonlyNo: '否',
     keyShortHint: '查看快捷键',
     keyShort: {
-      fullscreen: '全屏',
+      fullscreen: '全屏终端',
       execute: '执行命令',
       complete: '命令补全',
       history: '历史记录',

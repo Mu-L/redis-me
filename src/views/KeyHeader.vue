@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { inject, onMounted, reactive } from 'vue'
+import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import MeShortcut from '@/components/MeShortcut.vue'
 import { shareProvideKey, connUiProvideKey } from '@/types/me-interface'
 import { getConnIcon } from '@/utils/conn'
+import { getConnGlobalShortcuts, getTerminalShortcuts, getValueShortcuts } from '@/utils/shortcut'
 import { bus, CONN_REFRESH, meCommands, meOk, openNewWindow } from '@/utils/util'
 import About from '@/views/ext/About.vue'
 import Official from '@/views/ext/Official.vue'
@@ -18,13 +20,22 @@ const dialog = reactive({
   info: false,
   social: false,
 })
+const keyShortVisible = ref(false)
+const globalShortcuts = computed(() => getConnGlobalShortcuts(t))
+const codeMirrorShortcuts = computed(() => getValueShortcuts(t))
+const terminalShortcuts = computed(() => getTerminalShortcuts(t))
 
 function openSetting(): void {
   dialog.setting = true
 }
 
+function openShortcuts(): void {
+  keyShortVisible.value = true
+}
+
 onMounted(() => {
   connUi.openSetting = openSetting
+  connUi.openShortcuts = openShortcuts
 })
 
 async function handleCommand(command: string): Promise<void> {
@@ -106,17 +117,33 @@ async function handleCommand(command: string): Promise<void> {
     </el-dropdown>
 
     <!--为了方便主题语言等初始化，组件一直存在；为了方便v-model直接绑定弹框是否显示直接传入dialog-->
-    <el-dialog
-      v-model="dialog.setting"
-      width="650"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      align-center
-      draggable>
+    <el-dialog v-model="dialog.setting" width="650" align-center draggable>
       <template #header>
         <me-icon icon="el-icon-setting" :name="t('setting.title')"></me-icon>
       </template>
       <Setting />
+    </el-dialog>
+    <el-dialog
+      v-model="keyShortVisible"
+      width="900"
+      align-center
+      draggable
+      :show-close="false"
+      header-class="me-shortcut-dialog__header">
+      <div class="setting-shortcut-cols">
+        <div class="setting-shortcut-col">
+          <div class="setting-shortcut-col__title">{{ t('setting.shortcutGlobal') }}</div>
+          <MeShortcut :items="globalShortcuts" compact />
+        </div>
+        <div class="setting-shortcut-col">
+          <div class="setting-shortcut-col__title">{{ t('setting.shortcutCodeMirror') }}</div>
+          <MeShortcut :items="codeMirrorShortcuts" compact />
+        </div>
+        <div class="setting-shortcut-col">
+          <div class="setting-shortcut-col__title">{{ t('setting.shortcutTerminal') }}</div>
+          <MeShortcut :items="terminalShortcuts" compact />
+        </div>
+      </div>
     </el-dialog>
     <el-dialog v-model="dialog.info" width="400" align-center draggable>
       <About />
@@ -136,5 +163,37 @@ async function handleCommand(command: string): Promise<void> {
 <style scoped lang="scss">
 .key-header {
   display: flex;
+}
+
+.setting-shortcut-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.setting-shortcut-col__title {
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--el-text-color-primary);
+}
+
+.setting-shortcut-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  &:first-child {
+    align-items: flex-start;
+  }
+
+  &:nth-child(2) {
+    align-items: center;
+  }
+
+  &:last-child {
+    align-items: flex-end;
+  }
 }
 </style>
