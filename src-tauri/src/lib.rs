@@ -10,6 +10,7 @@ use rustls::crypto::ring::default_provider;
 use specta_typescript::Typescript;
 use std::path::PathBuf;
 use tauri::Manager;
+use tauri_plugin_window_state::StateFlags;
 use tauri_specta::{Builder, Commands, collect_commands};
 
 fn tauri_specta_commands() -> Commands<tauri::Wry> {
@@ -110,7 +111,13 @@ pub fn run() {
                 let _ = webview_window.set_focus();
             }
         }))
-        .plugin(tauri_plugin_window_state::Builder::new().build())
+        // 不持久化可见性；主窗口在 setup 中手动恢复位置后再 show，避免启动时先居中再跳动
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
+                .skip_initial_state("main")
+                .build(),
+        )
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_system_fonts::init())
         .plugin(tauri_plugin_process::init())

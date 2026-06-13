@@ -2,6 +2,7 @@ use chrono::Local;
 use log::{LevelFilter, Record};
 use std::fmt::Arguments;
 use tauri::{Manager, TitleBarStyle};
+use tauri_plugin_window_state::{StateFlags, WindowExt};
 use tauri_plugin_log::fern::{
     FormatCallback,
     colors::{Color, ColoredLevelConfig},
@@ -47,9 +48,14 @@ pub fn app_setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>>
     let window = app
         .get_webview_window("main")
         .expect("main window not exists");
+
+    // 隐藏状态下先恢复位置/大小，再显示，避免用户看到居中后瞬间跳动
+    window.restore_state(StateFlags::all())?;
     window
         .set_decorations(type_.to_string() == "macos")
         .unwrap();
     window.set_title_bar_style(TitleBarStyle::Overlay).unwrap();
+    window.show()?;
+
     Ok(())
 }
