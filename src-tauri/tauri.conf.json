@@ -12,12 +12,14 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "RedisME",
         "hiddenTitle": true,
         "width": 1200,
         "height": 800,
         "dragDropEnabled": false,
-        "center": true
+        "center": true,
+        "visible": false
       }
     ],
     "security": { "csp": null }

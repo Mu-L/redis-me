@@ -1,6 +1,13 @@
 # 3.x Changelog
 
-## [v3.9.0](https://mp.weixin.qq.com/s/xGrgNjmJwRGyN7myE1lMhQ) (2026-06-14)
+## [v3.9.1] (2026-06-14)
+
+- **Window**: **Restore position before showing** on startup, avoiding a visible center-then-jump flash
+- **Shortcuts**
+  - Settings, shortcuts reference, new connection, and import dialogs support **toggle close** (press the same shortcut again)
+  - Import connections changed to `Ctrl+Shift+O` (avoids conflict with DevTools)
+
+## [v3.9.0](https://mp.weixin.qq.com/s/xGrgNjmJwRGyN7myE1lMhQ) (2026-06-13)
 
 ### ✨ New Features
 

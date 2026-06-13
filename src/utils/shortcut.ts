@@ -53,13 +53,13 @@ export function isConnHotkeyBlocked(e: KeyboardEvent): boolean {
   return !!target.closest('input, textarea, [contenteditable="true"]')
 }
 
-/** Ctrl+[,] 打开设置；Shift 可选，标点以 e.code 为准 */
+/** Ctrl+[,] 切换设置弹窗；Shift 可选，标点以 e.code 为准 */
 function matchSettingShortcut(e: KeyboardEvent): boolean {
   if (e.altKey) return false
   return e.code === 'Comma' || e.key === ',' || e.key === '，'
 }
 
-/** Ctrl+? 打开快捷键弹窗；展示为 ?，Shift 可选，匹配 / 键 */
+/** Ctrl+? 切换快捷键弹窗；展示为 ?，Shift 可选，匹配 / 键 */
 function matchShortcutTips(e: KeyboardEvent): boolean {
   if (e.altKey) return false
   return e.code === 'Slash' || e.key === '/' || e.key === '?' || e.key === '？'
@@ -76,7 +76,7 @@ export function matchConnShortcutAction(e: KeyboardEvent): ConnShortcutAction | 
   if (e.altKey || isConnHotkeyBlocked(e)) return null
 
   if (e.shiftKey && (e.code === 'KeyN' || e.key === 'n' || e.key === 'N')) return 'add'
-  if (e.shiftKey && (e.code === 'KeyI' || e.key === 'i' || e.key === 'I')) return 'import'
+  if (e.shiftKey && (e.code === 'KeyO' || e.key === 'o' || e.key === 'O')) return 'import'
   if (e.shiftKey && (e.code === 'KeyW' || e.key === 'w' || e.key === 'W')) return 'newWindow'
   return null
 }
@@ -112,7 +112,7 @@ export function getConnGlobalShortcuts(t: ComposerTranslation): ShortcutItem[] {
   return [
     { label: t('setting.appFullscreen'), keys: ['F11'] },
     { id: 'add', label: t('conn.add'), keys: ['mod', 'shift', 'N'] },
-    { id: 'import', label: t('conn.import'), keys: ['mod', 'shift', 'I'] },
+    { id: 'import', label: t('conn.import'), keys: ['mod', 'shift', 'O'] },
     { id: 'newWindow', label: t('conn.emptyNewWindow'), keys: ['mod', 'shift', 'W'] },
     { id: 'setting', label: t('conn.emptyAppSetting'), keys: ['mod', '[shift]', ','] },
     { id: 'shortcuts', label: t('setting.shortcutTips'), keys: ['mod', '[shift]', '?'] },

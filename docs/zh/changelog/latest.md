@@ -1,6 +1,13 @@
 # 3.x 更新日志
 
-## [v3.9.0](https://mp.weixin.qq.com/s/xGrgNjmJwRGyN7myE1lMhQ) (2026-06-14)
+## [v3.9.1] (2026-06-14)
+
+- **窗口**: 启动时**先恢复位置再显示**，避免先居中再跳动
+- **快捷键**
+  - 设置/快捷键/新建/导入弹窗支持**再按关闭**（toggle）
+  - 导入连接改为 `Ctrl+Shift+O`（避免与 DevTools 冲突）
+
+## [v3.9.0](https://mp.weixin.qq.com/s/xGrgNjmJwRGyN7myE1lMhQ) (2026-06-13)
 
 ### ✨ 新增优化
 
