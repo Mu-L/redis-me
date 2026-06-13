@@ -1,6 +1,6 @@
 # 3.x Changelog
 
-## [v3.9.1] (2026-06-14)
+## v3.9.1 (2026-06-14)
 
 - **Window**: **Restore position before showing** on startup, avoiding a visible center-then-jump flash
 - **Shortcuts**
