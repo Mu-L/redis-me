@@ -1,6 +1,6 @@
 # 3.x Changelog
 
-## [v3.9.0] (2026-06-14)
+## [v3.9.0](https://mp.weixin.qq.com/s/xGrgNjmJwRGyN7myE1lMhQ) (2026-06-14)
 
 ### ✨ New Features
 
