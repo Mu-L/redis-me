@@ -108,7 +108,7 @@ async function handleCommand(command: string): Promise<void> {
     <!--为了方便主题语言等初始化，组件一直存在；为了方便v-model直接绑定弹框是否显示直接传入dialog-->
     <el-dialog
       v-model="dialog.setting"
-      width="666"
+      width="650"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
       align-center

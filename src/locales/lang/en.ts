@@ -76,7 +76,7 @@ export default {
     fieldScanCount: 'Field Scan',
     keyScanCountTip:
       'Keys loaded per SCAN; larger values may affect performance. Range {min}–{max}',
-    fieldScanCountTip: 'Fields loaded per page for Hash, Set, and similar types. Range {min}–{max}',
+    fieldScanCountTip: 'Fields loaded per HSCAN or SSCAN. Range {min}~{max}',
     commandTimeout: 'Cmd Timeout',
     commandTimeoutTip:
       'Max wait for one Redis command on an open connection; takes effect after reconnect. Range {min}–{max} s',

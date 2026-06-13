@@ -526,8 +526,20 @@ async function resetWindowSize() {
 }
 
 .setting-more-form {
+  width: 100%;
+
   :deep(.me-flex) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     flex-wrap: nowrap;
+
+    .el-form-item:first-child {
+      justify-self: start;
+    }
+
+    .el-form-item:last-child {
+      justify-self: end;
+    }
   }
 
   :deep(.el-form-item) {

@@ -70,7 +70,7 @@ export default {
     keyScanCount: '键扫描',
     fieldScanCount: '字段扫描',
     keyScanCountTip: '键列表每次 SCAN 加载的数量；过大可能影响性能。范围 {min}–{max} 个',
-    fieldScanCountTip: 'Hash、Set 等类型字段分页加载的数量。范围 {min}–{max} 个',
+    fieldScanCountTip: '每次 HSCAN、SSCAN 加载的数量。范围 {min}~{max} 个',
     commandTimeout: '命令超时',
     commandTimeoutTip: '单次 Redis 命令读写的最长等待时间；修改后需重连生效。范围 {min}–{max} 秒',
     scriptTimeout: '脚本超时',
