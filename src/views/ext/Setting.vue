@@ -285,6 +285,9 @@ async function resetWindowSize() {
         </el-form-item>
         <el-form-item>
           <div class="setting-row-btns">
+            <me-button plain icon="me-icon-keyshort" @click="keyShortVisible = true">{{
+              t('setting.shortcuts')
+            }}</me-button>
             <me-button
               plain
               icon="el-icon-full-screen"
@@ -292,9 +295,6 @@ async function resetWindowSize() {
               @click="resetWindowSize"
               >{{ t('setting.resetWindow') }}</me-button
             >
-            <me-button plain icon="me-icon-keyshort" @click="keyShortVisible = true">{{
-              t('setting.shortcuts')
-            }}</me-button>
           </div>
         </el-form-item>
       </el-row>
