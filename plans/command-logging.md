@@ -620,3 +620,229 @@ listen('command-log', event => {
 - [ ] 执行 1000 次命令，评估日志记录开销
 - [ ] 内存占用监控（长时间运行）
 - [ ] 大响应值处理（如 SCAN 返回大量键）
+
+---
+
+## 十三、2026-06 代码对齐修订（相对原方案的变更）
+
+> 对照当前仓库（Tauri 2 + redis-rs 1.x + specta 绑定）重新梳理。**入口位置**：`KeyHeader.vue` 连接区下拉菜单，「关闭连接」与「新窗口」之间（见截图），**不是** TabMain 新 Tab。
+
+### 13.1 与原方案的主要差异
+
+| 项            | 原方案                          | 修订后                                                                                     |
+| ------------- | ------------------------------- | ------------------------------------------------------------------------------------------ |
+| 日志存储      | `AppState` 全局单例             | **`MeBase` 每连接一份** `Arc<CommandLogger>`，随 `disconnect`/客户端 Drop 释放             |
+| API 参数      | 全局 `get_command_logs(limit…)` | **`command_logs(id, …)` / `command_logs_clear(id)`**，与现有 `api_commands!` 风格一致      |
+| 前端形态      | 独立 Tab + 4 个子组件           | **`views/ext/CommandLog.vue` 弹窗**，对齐 `AclLog.vue`；菜单在 `KeyHeader.vue`             |
+| 响应序列化    | 自建 `value_to_string`          | **复用** `utils/util.rs` 的 `redis_value_to_string`                                        |
+| 命令解析      | 自建 `parse_cmd`                | **复用** `Cmd::arg_iter` + 现有 `parse_command`（终端场景）                                |
+| 类型导出      | 手写 Serialize                  | **`api_model!(CommandLogEntry { … })`** 写入 `model.rs`，specta 自动生成 TS                |
+| redis 版本    | 旧版假设                        | **redis 1.x**：`ConnectionLike` 实现者自动获得 `Commands`，包装器只需实现 `ConnectionLike` |
+| 统计/开关 API | Phase 1 包含 stats、toggle      | **v1 不做**；表格 + `me-table` 自带导出足够                                                |
+
+### 13.2 后端架构（修订）
+
+```
+MeBase.command_logger: Arc<CommandLogger>
+        ↑ log()
+LoggingConnection { inner: Connection, logger, conn_id, db }
+        ↑ req_packed_command() 拦截
+MeSingle.conn: Mutex<LoggingConnection>   // 原 Mutex<Connection>
+
+MeCluster: 无 ConnectionLike → 在 impl_cluster 内集中封装 route_logged()
+```
+
+**CommandLogEntry** 建议字段（specta 导出）：
+
+```rust
+api_model!(CommandLogEntry {
+    id: u64,
+    timestamp: String,       // Local 格式化，与慢日志一致
+    db_index: u16,
+    command: String,         // 大写
+    args: Vec<String>,         // 已脱敏
+    full_command: String,
+    response: String,          // redis_value_to_string 后截断 500
+    duration_ms: u64,
+    status: String,            // ok | error | slow
+    error: Option<String>,
+});
+```
+
+**CommandLogger**：环形缓冲（默认 10000）、`parking_lot::RwLock`（与项目其它锁一致）、慢命令阈值默认 100ms。
+
+**脱敏**（`sanitize_args`）：
+
+- `AUTH` → 密码 `***`
+- `ACL SETUSER` 含 `#` 密码哈希 → 隐藏
+- 可选：高频 `PING` / `CLIENT SETNAME` 跳过（v1 可全记录，后续加设置项）
+
+### 13.3 单机接入（impl_single.rs）
+
+1. `MeSingle.conn` 改为 `Mutex<LoggingConnection>`。
+2. `new_conn` / `reconnect` 返回 `LoggingConnection::wrap(conn, base.command_logger.clone(), …)`。
+3. `get_conn()` 返回类型改为 `MutexGuard<'_, LoggingConnection>`；`field_scan0` 等 `impl Commands` 调用**无需改动**（blanket impl）。
+4. `subscribe` / `monitor` 仍用 `client.get_connection()` 独立连接 → **不记入命令日志**（与原方案一致）。
+
+### 13.4 集群接入（impl_cluster.rs）
+
+`route_command` 约 **12 处**，不宜逐点 copy-paste。在 `impl_cluster.rs` 增加私有方法：
+
+```rust
+fn route_logged(
+    &self,
+    conn: &mut ClusterConnection,
+    cmd: &Cmd,
+    route: Route,
+) -> AnyResult<Value> {
+    let start = Instant::now();
+    let result = conn.route_command(cmd, route);
+    let duration_ms = start.elapsed().as_millis() as u64;
+    self.log_cmd(cmd, &result, duration_ms);
+    result.map_err(Into::into)
+}
+```
+
+将现有 `conn.route_command(...)` 替换为 `self.route_logged(&mut conn, …)`（scan、execute_command、config、slowlog、memory、client_list 等）。
+
+`field_scan0(self.get_conn()?, …)` 等走 `Commands` trait 的路径，集群 `ClusterConnection` 若已 impl `ConnectionLike`，可考虑同样包装；否则保持 `route_logged` 覆盖显式 `route_command` 路径即可。
+
+### 13.5 Pipeline 汇总日志
+
+`Pipeline::query` / `ClusterPipeline::query` 仍只产生**一条**底层请求，需在业务层补汇总（与原方案相同）：
+
+| 位置                                                          | 说明                          |
+| ------------------------------------------------------------- | ----------------------------- |
+| `impl_single.rs` / `impl_cluster.rs` `batch_del`、`batch_ttl` | `PIPELINE (Nx DEL/EXPIRE)`    |
+| `memory_usage` 两处 pipe                                      | `PIPELINE (Nx MEMORY USAGE)`  |
+| `implement_pipeline_commands!` 的 `mock_data`                 | `PIPELINE (mock N×5 types)`   |
+| `export_csv` 线程内 pipe                                      | v2 可选（独立连接，优先级低） |
+
+### 13.6 已知不覆盖路径（文档说明即可）
+
+| 路径                           | 原因                                          |
+| ------------------------------ | --------------------------------------------- |
+| Subscribe / Monitor            | 独立 `get_connection()`，流式 `recv_response` |
+| 导出/导入线程                  | `get_new_conn()` / 独立连接                   |
+| `ConnConfig::test` / `masters` | 临时连接，非业务客户端                        |
+| 刷新连接 `connect(id)`         | 重建 `MeClient`，旧日志随实例 Drop（可接受）  |
+
+### 13.7 Tauri API（修订）
+
+在 `api.rs` 的 `api_commands!` 中追加（**需要 conn id**）：
+
+```rust
+command_logs(id: &str, limit: Option<u64>, offset: Option<u64>, keyword: Option<String>) -> Vec<CommandLogEntry>;
+command_logs_clear(id: &str) -> ();
+```
+
+实现：`app_handle.get_client(id)?.base().command_logger.get_entries(…)`。
+
+`lib.rs` → `collect_commands!` 注册；debug 构建自动更新 `src/types/tauri-specta.ts`。
+
+**v1 不做**：`toggle_command_logger`、`get_command_log_stats`、Tauri Event 推送。
+
+### 13.8 前端（修订）
+
+**入口 — `KeyHeader.vue`**
+
+```vue
+<!-- share.conn 块内，closeConn 之后、window 之前 -->
+<el-dropdown-item command="commandLog">
+  <me-icon :name="t('keyHeader.commandLog')" icon="el-icon-document" />
+</el-dropdown-item>
+```
+
+`handleCommand` 增加 `commandLog` → `dialog.commandLog = true`（需已选连接，否则 `meOk` 提示）。
+
+**组件 — `src/views/ext/CommandLog.vue`**
+
+- 参考 `AclLog.vue`：`me-dialog` + 工具栏（清空 / 关键字 / 刷新）+ `me-table`（`export-name="command-log"`）。
+- **非模态**（已确认）：`:modal="false"` + `:close-on-click-modal="false"`，可拖到一侧后继续操作键值/终端；空态或副标题说明「可拖动窗口，不影响继续操作」。
+- 列：时间、DB、命令、参数/完整命令、耗时(ms)、状态、响应（tooltip）、错误。
+- `watch(visible)` 打开时拉取；`setInterval` 1s 轮询（仅 `visible` 时），关闭时 clear。
+- 慢命令 / 错误行用 `el-table` row-class-name 着色。
+- 行操作：复制 `full_command`（`meCopy`）。
+
+**i18n**：`keyHeader.commandLog`、`commandLog.*`（zh-cn / en）。
+
+**不做 v1**：拆 Filter/Table/Detail 子组件、统计面板、设置页开关。
+
+### 13.9 文件清单（修订）
+
+| 操作 | 路径                                                                                         |
+| ---- | -------------------------------------------------------------------------------------------- |
+| 新建 | `src-tauri/src/utils/command_log.rs`（Logger + LoggingConnection + sanitize + log_cmd 辅助） |
+| 修改 | `src-tauri/src/utils/mod.rs`                                                                 |
+| 修改 | `src-tauri/src/utils/model.rs`（`MeBase` 增字段 + `CommandLogEntry`）                        |
+| 修改 | `src-tauri/src/client/impl_single.rs`                                                        |
+| 修改 | `src-tauri/src/client/impl_cluster.rs`                                                       |
+| 修改 | `src-tauri/src/api.rs`、`src-tauri/src/lib.rs`                                               |
+| 新建 | `src/views/ext/CommandLog.vue`                                                               |
+| 修改 | `src/views/KeyHeader.vue`                                                                    |
+| 修改 | `src/locales/lang/zh-cn.ts`、`en.ts`                                                         |
+
+### 13.10 实施顺序（建议）
+
+**Phase 1 — 可演示 MVP**
+
+1. `command_log.rs` + `MeBase.command_logger`
+2. 单机 `LoggingConnection` 接入
+3. API + specta + `CommandLog.vue` + KeyHeader 菜单
+
+**Phase 2 — 覆盖率**
+
+4. 集群 `route_logged`
+5. Pipeline 汇总日志
+6. 脱敏与 PING 过滤
+
+**Phase 3 — 增强（可选）**
+
+7. 设置项：启用/禁用、缓冲上限、慢阈值
+8. Event 推送或导出格式对齐 `command-export-format.md`
+
+### 13.11 与「命令监控」Tab 的区分
+
+|      | 命令日志（本功能）          | 命令监控 Tab                       |
+| ---- | --------------------------- | ---------------------------------- |
+| 范围 | **本应用**发出的 Redis 命令 | Redis `MONITOR` 看到的**全服**命令 |
+| 触发 | 自动、常驻                  | 用户手动开启，有性能提示           |
+| 入口 | KeyHeader 菜单弹窗          | TabMain → 命令监控                 |
+
+避免用户混淆：弹窗标题/空态文案写清「记录 RedisME 客户端执行的命令」。
+
+### 13.12 改动量与可维护性（评估）
+
+**结论：中等改动量，但逻辑集中、对现有业务侵入小；理解成本可控。**
+
+#### 改动规模（粗估）
+
+| 区域                          | 文件数          | 行数量级               | 侵入性                                              |
+| ----------------------------- | --------------- | ---------------------- | --------------------------------------------------- |
+| 后端核心（logger + 单机包装） | 1 新建 + 3 小改 | ~250 新建 + ~30 改动   | **低**：`client_trait` / `set0` / `scan` 等**不改** |
+| 集群 `route_logged`           | 1 文件          | ~40 helper + 12 处替换 | **中**：改动点集中在 `impl_cluster.rs`              |
+| Pipeline 汇总                 | 2 文件          | ~6 处各 +5 行          | **低**：独立小块，不碰通用逻辑                      |
+| API + 类型                    | 3 文件          | ~30                    | **低**：惯例追加                                    |
+| 前端                          | 1 新建 + 2 小改 | ~150 新建 + ~20 改动   | **低**：与 ACL 日志同模式                           |
+
+Phase 1（单机 + 弹窗）约 **400 行净增**；Phase 2 集群/Pipeline 再 **~100 行**。相对整个仓库属于**中等功能**，不是全链路重构。
+
+#### 为什么相对好理解
+
+1. **单一职责文件**：`command_log.rs` 自包含（缓冲、脱敏、包装器、写日志），读这一文件即可懂机制。
+2. **单机一条拦截路径**：所有命令走 `LoggingConnection::req_packed_command`，不用在每个业务方法里 `log()`。
+3. **集群一条辅助方法**：`route_logged()` 替代散落的 `route_command`，新人搜 `route_logged` / `command_log` 即可。
+4. **不污染 `client_trait`**：`field_scan0`、`set0` 等共享函数签名不变，仍接收 `impl Commands`。
+5. **前端独立**：`CommandLog.vue` + KeyHeader 菜单，与 Tab、键值编辑无耦合。
+
+#### 需要心里有数的「例外」（写进模块顶注释即可）
+
+- Pipeline 只记汇总，不记每条子命令。
+- Subscribe / Monitor / 导出线程走独立连接，不进日志。
+- 刷新连接会重建客户端，日志清空。
+
+这些边界在 `command_log.rs` 文件头用 5 行中文块注释说明，避免后人误以为是 bug。
+
+#### 与非模态的关系
+
+非模态**只影响前端一行属性**，不增加后端复杂度；反而更符合「边操作边看日志」，无需为交互再改架构。
