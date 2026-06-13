@@ -104,10 +104,7 @@ async function scanKey(useCursor = false, loadAll = false): Promise<void> {
 
   loading.value = true
   try {
-    if (!useCursor) {
-      cursor.value = null
-      keyList.value = []
-    }
+    if (!useCursor) cursor.value = null
 
     const params = {
       match: match.value,
@@ -120,7 +117,8 @@ async function scanKey(useCursor = false, loadAll = false): Promise<void> {
     cursor.value = data.cursor
 
     // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
-    const newKeyList = [...keyList.value, ...data.keyList]
+    // 非游标扫描：拿到结果后再整体替换，避免请求期间清空列表导致「暂无数据」闪烁
+    const newKeyList = useCursor ? [...keyList.value, ...data.keyList] : data.keyList
     keyList.value = sortBy(newKeyList, ['key'])
   } finally {
     loading.value = false
@@ -200,17 +198,23 @@ function chooseFolder(folder: string): void {
 
 function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
   if (!share.conn) return
-  if (command === 'addKey') {
+  if (command === 'refreshKey') {
+    void scanKey(false, false)
+  } else if (command === 'reloadKey') {
+    chooseKey(redisKey)
+  } else if (command === 'addKey') {
     keyPrefix.value = redisKey.key + '-copy'
     addKey()
-  } else if (command === 'refreshKey') {
-    chooseKey(redisKey)
   } else if (command === 'copyKey') {
     meCopy(redisKey.key)
   } else if (command === 'deleteKey') {
     meDeleteKey(share.conn!.id, redisKey)
   } else if (command === 'renameKey') {
     keyRenameRef.value?.open({ redisKey })
+  } else if (command === 'checkedMode') {
+    enterCheckedMode()
+  } else if (command === 'exitCheckedMode') {
+    exitCheckedMode()
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -218,7 +222,9 @@ function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
 
 function contextFolder(command: string, folder: string): void {
   if (!share.conn) return
-  if (command === 'addKey') {
+  if (command === 'refreshKey') {
+    void scanKey(false, false)
+  } else if (command === 'addKey') {
     keyPrefix.value = folder + ':'
     addKey()
   } else if (command === 'copyFolder') {
@@ -238,6 +244,10 @@ function contextFolder(command: string, folder: string): void {
     deleteFolder(folder)
   } else if (command === 'exportFolder') {
     exportFolder(folder)
+  } else if (command === 'checkedMode') {
+    enterCheckedMode()
+  } else if (command === 'exitCheckedMode') {
+    exitCheckedMode()
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -434,6 +444,18 @@ function toggleChecked(): void {
   checkedKeyList.value = []
 }
 
+function enterCheckedMode(): void {
+  if (showCheckbox.value) return
+  showCheckbox.value = true
+  checkedKeyList.value = []
+}
+
+function exitCheckedMode(): void {
+  if (!showCheckbox.value) return
+  showCheckbox.value = false
+  checkedKeyList.value = []
+}
+
 function checkChange(redisKeys: RedisKey_Deserialize[]): void {
   checkedKeyList.value = redisKeys
 }
@@ -441,7 +463,7 @@ function checkChange(redisKeys: RedisKey_Deserialize[]): void {
 // 多选后的批量操作
 const checkedDisabled = computed(() => checkedKeyList.value.length === 0 || share.exportImporting)
 const checkedBtnClass = computed(() =>
-  checkedDisabled.value ? ['footer-btn'] : ['icon-btn', 'footer-btn'],
+  checkedDisabled.value ? ['icon-disabled'] : ['icon-btn'],
 )
 function exportChecked() {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'export')
@@ -616,14 +638,14 @@ function editDbName(db: number): void {
             icon="me-icon-load-more"
             hint
             placement="top"
-            class="icon-btn footer-btn"
+            class="icon-btn"
             @click="scanKey(true, false)" />
           <me-icon
             :name="t('keyMain.loadAll')"
             icon="me-icon-load-all"
             hint
             placement="top"
-            class="icon-btn footer-btn"
+            class="icon-btn"
             @click="scanKey(true, true)" />
         </div>
       </div>
@@ -672,14 +694,14 @@ function editDbName(db: number): void {
       <div class="me-flex" v-if="!showCheckbox">
         <me-icon
           icon="me-icon-checked"
-          class="icon-btn footer-btn"
+          class="icon-btn"
           @click="toggleChecked"
           placement="top"
           :name="t('keyMain.checkedMode')"
           hint
-          style="font-size: 24px" />
+          />
         <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
-          <me-icon icon="el-icon-more-filled" class="icon-btn footer-btn" />
+          <me-icon icon="el-icon-more-filled" class="icon-btn" />
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="exportData">
@@ -724,7 +746,7 @@ function editDbName(db: number): void {
           icon="el-icon-circle-close"
           @click="toggleChecked"
           hint
-          class="icon-btn footer-btn"
+          class="icon-btn"
           placement="top" />
       </div>
     </div>
@@ -799,6 +821,14 @@ function editDbName(db: number): void {
     align-items: center;
     justify-content: space-between;
 
+    :deep(.icon-btn) {
+      font-size: 20px;
+    }
+
+    :deep(.icon-disabled) {
+      font-size: 20px;
+    }
+
     :deep(.el-select__wrapper) {
       min-height: 0;
       height: 30px;
@@ -809,10 +839,6 @@ function editDbName(db: number): void {
 
     .tip {
       white-space: nowrap;
-    }
-
-    .footer-btn {
-      font-size: 20px;
     }
 
     :deep(.el-select-dropdown__item) {

@@ -140,7 +140,7 @@ svg {
   cursor: pointer;
 }
 
-.icon-btn :hover {
+.icon-btn:hover {
   color: var(--el-color-warning);
 }
 

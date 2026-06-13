@@ -34,6 +34,18 @@ pub const EVENT_IMPORT: &str = "import";
 pub const ME_JSON_TYPE_NAME: &str = "json";
 pub const REDIS_JSON_TYPE_NAME: &str = "ReJSON-RL";
 
+/// 将用户输入的命令名按连接 meta.commandMap 映射为服务端实际命令（键为小写，如 `config`）。
+pub fn resolve_command_name(conf: &ConnConfig, cmd: &str) -> String {
+    let map = conf.command_map();
+    if map.is_empty() {
+        return cmd.to_string();
+    }
+    let key = cmd.to_ascii_lowercase();
+    map.get(&key)
+        .cloned()
+        .unwrap_or_else(|| cmd.to_string())
+}
+
 // tauri 的错误处理中需要返回的错误实现序列化，anyhow 的错误并没有实现，因此简单返回字符串错误
 pub fn to_api_result<T>(result: anyhow::Result<T>) -> ApiResult<T> {
     match result {

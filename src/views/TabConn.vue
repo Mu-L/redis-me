@@ -103,7 +103,7 @@ function setupFlatDrag(): void {
   if (!tbody) return
   sortables.push(
     Sortable.create(tbody, {
-      handle: '.drag-handle',
+      handle: '.drag-handle, .conn-host',
       onEnd: ({ oldIndex, newIndex }: SortableEvent) => {
         if (oldIndex === undefined || newIndex === undefined) return
         const list = filterDataList.value
@@ -349,8 +349,13 @@ function clickNew(): void {
     margin-right: 10px;
   }
 
-  :deep(.drag-handle) {
-    cursor: move;
+  :deep(.drag-handle),
+  :deep(.conn-host) {
+    user-select: none;
+
+    &:hover {
+      cursor: move;
+    }
   }
 
   :deep(.sortable-ghost) {

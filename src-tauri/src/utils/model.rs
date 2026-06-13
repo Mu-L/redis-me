@@ -24,6 +24,18 @@ pub enum BytesFormat {
     Base64, // 原始字节的 Base64 编码
 }
 
+/// 连接 meta 值（与前端 JSON 结构一致，供 specta 导出）
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[serde(untagged)]
+pub enum ConnMetaValue {
+    String(String),
+    Number(f64),
+    Bool(bool),
+    Object(HashMap<String, ConnMetaValue>),
+    Array(Vec<ConnMetaValue>),
+    Null,
+}
+
 // 连接信息
 api_model!(
     #[derive(Default)]
@@ -50,9 +62,34 @@ api_model!(
 
         // SSH隧道
         ssh: bool,
-        ssh_option: SshOption
+        ssh_option: SshOption,
+
+        // 扩展元信息（分组、命令映射、库别名等，与前端 conn.meta 一致）
+        #[serde(default)]
+        meta: HashMap<String, ConnMetaValue>,
     }
 );
+
+impl ConnConfig {
+    /// 从 meta.commandMap 解析命令映射（键为小写原命令名）。
+    pub fn command_map(&self) -> HashMap<String, String> {
+        let mut map = HashMap::new();
+        let Some(ConnMetaValue::Object(obj)) = self.meta.get("commandMap") else {
+            return map;
+        };
+        for (k, v) in obj {
+            let ConnMetaValue::String(mapped) = v else {
+                continue;
+            };
+            let cmd = k.trim().to_ascii_lowercase();
+            let mapped = mapped.trim();
+            if !cmd.is_empty() && !mapped.is_empty() {
+                map.insert(cmd, mapped.to_string());
+            }
+        }
+        map
+    }
+}
 
 api_model!(
     #[derive(Default)]

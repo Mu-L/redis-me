@@ -174,6 +174,7 @@ function setupDrag(): void {
     sortables.push(
       Sortable.create(listEl, {
         draggable: '.conn-row',
+        handle: '.conn-host',
         filter: '.conn-actions',
         preventOnFilter: true,
         group: CONN_DRAG_GROUP,
@@ -239,8 +240,7 @@ onBeforeUnmount(() => destroySortables())
           :key="conn.id"
           class="conn-row"
           :data-id="conn.id"
-          :style="connStyle(conn)"
-          @dblclick="emit('select', conn)">
+          :style="connStyle(conn)">
           <me-icon
             :icon="getConnIcon(conn)"
             :name="conn.name"
@@ -343,19 +343,17 @@ onBeforeUnmount(() => destroySortables())
     gap: 8px;
     padding: 6px 10px;
     border-radius: 4px;
-    cursor: grab;
 
     &:hover {
       background: var(--el-fill-color-light);
-
-      .conn-actions {
-        opacity: 1;
-      }
     }
 
     &.sortable-chosen {
-      cursor: grabbing;
       background: var(--el-fill-color-light);
+
+      .conn-host {
+        cursor: move;
+      }
     }
   }
 
@@ -379,10 +377,15 @@ onBeforeUnmount(() => destroySortables())
     white-space: nowrap;
     text-align: right;
     color: var(--el-color-info);
+    user-select: none;
+
+    &:hover {
+      cursor: move;
+    }
   }
 
   .conn-actions {
-    opacity: 0.35;
+    opacity: 0.7;
   }
 
   .group-head:hover .folder-actions {

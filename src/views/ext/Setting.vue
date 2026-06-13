@@ -6,14 +6,20 @@ import { getSystemFonts } from 'tauri-plugin-system-fonts-api'
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import MeShortcut from '@/components/MeShortcut.vue'
-import { appProvideKey, type AppMainInject } from '@/types/me-interface'
-import { getConnGlobalShortcuts } from '@/utils/shortcut'
-import { meCheckUpdate, meConfirm, meCommands } from '@/utils/util'
+import { appProvideKey, connUiProvideKey, type AppMainInject } from '@/types/me-interface'
+import {
+  meCheckUpdate,
+  meConfirm,
+  meCommands,
+  meErr,
+  meOk,
+  resetWindowToDefault,
+} from '@/utils/util'
 
 const { t } = useI18n()
 const settings = window.meTauri.settings
 const isAppStore = window.meTauri.isAppStore
+const connUi = inject(connUiProvideKey)!
 
 /** `window.queryLocalFonts()` 返回项中用到的字段（Local Font Access，与 FontData 子集一致） */
 interface LocalFontFace {
@@ -63,7 +69,9 @@ const loadFonts = async () => {
     fonts.value = [...new Set(systemFonts.map(f => f.name))].sort()
   }
 }
-onMounted(loadFonts)
+onMounted(() => {
+  void loadFonts()
+})
 
 // 检查更新
 const appVersion = ref('')
@@ -175,9 +183,6 @@ const dirList = computed(() => [
   { value: 'app' as const, label: t('setting.appDir') },
   { value: 'log' as const, label: t('setting.logDir') },
 ])
-const globalShortcuts = computed(() => getConnGlobalShortcuts(t))
-const keyShortVisible = ref(false)
-
 async function openDir(dirType: 'config' | 'app' | 'log') {
   let dir = ''
   if (dirType === 'config') {
@@ -188,6 +193,15 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
     dir = await appLogDir()
   }
   await openPath(dir)
+}
+
+async function resetWindowSize() {
+  try {
+    await resetWindowToDefault()
+    meOk(t('setting.resetWindowOk'))
+  } catch (e) {
+    meErr(e)
+  }
 }
 </script>
 
@@ -252,7 +266,7 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
       </el-row>
 
       <!-- 目录、快捷键 -->
-      <el-row class="me-flex">
+      <el-row class="me-flex setting-inline-row">
         <el-form-item :label="t('setting.dir')">
           <div class="me-flex">
             <el-select v-model="dirType" style="width: 100px">
@@ -267,9 +281,20 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
             }}</el-button>
           </div>
         </el-form-item>
-        <me-button plain icon="me-icon-keyshort" @click="keyShortVisible = true">{{
-          t('setting.shortcuts')
-        }}</me-button>
+        <el-form-item>
+          <div class="setting-row-btns">
+            <me-button plain icon="me-icon-keyshort" @click="connUi.openShortcuts()">{{
+              t('setting.shortcuts')
+            }}</me-button>
+            <me-button
+              plain
+              icon="el-icon-full-screen"
+              :info="t('setting.resetWindowTip')"
+              @click="resetWindowSize"
+              >{{ t('setting.resetWindow') }}</me-button
+            >
+          </div>
+        </el-form-item>
       </el-row>
 
       <!-- 更新设置 -->
@@ -297,16 +322,6 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
       </el-row>
     </el-form>
   </el-card>
-
-  <el-dialog
-    v-model="keyShortVisible"
-    width="400"
-    align-center
-    draggable
-    :show-close="false"
-    header-class="me-shortcut-dialog__header">
-    <MeShortcut :items="globalShortcuts" />
-  </el-dialog>
 
   <!-- 更多设置 -->
   <el-card style="margin-top: 20px">
@@ -488,9 +503,31 @@ async function openDir(dirType: 'config' | 'app' | 'log') {
   }
 }
 
+.setting-inline-row {
+  align-items: center;
+}
+
+.setting-row-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .setting-more-form {
+  width: 100%;
+
   :deep(.me-flex) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     flex-wrap: nowrap;
+
+    .el-form-item:first-child {
+      justify-self: start;
+    }
+
+    .el-form-item:last-child {
+      justify-self: end;
+    }
   }
 
   :deep(.el-form-item) {

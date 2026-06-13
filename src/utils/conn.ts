@@ -3,6 +3,7 @@
  *
  * 数据约定：
  * - 每条连接的分组名存在 `conn.meta.group`（空字符串 = 默认分组，UI 显示「默认分组」）
+ * - 命令映射存在 `conn.meta.commandMap`（原命令小写 → 重命名后的命令，随 meta 同步后端）
  * - `settings.connGroups` 为分组名的有序列表（可含空分组占位，用于控制展示顺序）
  * - `settings.connShow`：`'flat'` 平铺表格 | `'group'` 分组树形列表
  * - `connList` 在分组模式下按「分组顺序 + 组内顺序」扁平存储，拖拽后需写回此顺序
@@ -14,6 +15,11 @@ export const CONN_META_GROUP = 'group'
 
 /** 连接 meta 中界面模式：normal 全功能，minimal 仅键值与终端 */
 export const CONN_META_UI_MODE = 'uiMode'
+
+/** 连接 meta 中命令映射：原命令名（小写）→ 服务端重命名后的命令 */
+export const CONN_META_COMMAND_MAP = 'commandMap'
+
+export type ConnCommandMap = Record<string, string>
 export type ConnUiMode = 'normal' | 'minimal'
 
 export function normalizeGroupName(name: unknown): string {
@@ -51,6 +57,25 @@ export function setConnUiMode(conn: UiConn, mode: ConnUiMode): void {
 
 export function isConnMinimalMode(conn: UiConn | null | undefined): boolean {
   return !!conn && getConnUiMode(conn) === 'minimal'
+}
+
+export function getConnCommandMap(conn: UiConn): ConnCommandMap {
+  const raw = conn.meta?.[CONN_META_COMMAND_MAP]
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+  const map: ConnCommandMap = {}
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    const cmd = typeof k === 'string' ? k.trim().toLowerCase() : ''
+    const mapped = typeof v === 'string' ? v.trim() : ''
+    if (cmd && mapped) map[cmd] = mapped
+  }
+  return map
+}
+
+export function setConnCommandMap(conn: UiConn, map: ConnCommandMap): void {
+  conn.meta ??= {}
+  const cleaned = getConnCommandMap({ ...conn, meta: { [CONN_META_COMMAND_MAP]: map } })
+  if (Object.keys(cleaned).length) conn.meta[CONN_META_COMMAND_MAP] = cleaned
+  else delete conn.meta[CONN_META_COMMAND_MAP]
 }
 
 export function connMatchesKeyword(conn: UiConn, keyword: string): boolean {

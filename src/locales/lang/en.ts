@@ -76,7 +76,7 @@ export default {
     fieldScanCount: 'Field Scan',
     keyScanCountTip:
       'Keys loaded per SCAN; larger values may affect performance. Range {min}–{max}',
-    fieldScanCountTip: 'Fields loaded per page for Hash, Set, and similar types. Range {min}–{max}',
+    fieldScanCountTip: 'Fields loaded per HSCAN or SSCAN. Range {min}~{max}',
     commandTimeout: 'Cmd Timeout',
     commandTimeoutTip:
       'Max wait for one Redis command on an open connection; takes effect after reconnect. Range {min}–{max} s',
@@ -108,7 +108,15 @@ export default {
     appDir: 'App',
     logDir: 'Log',
     openDir: 'Open',
+    resetWindow: 'Reset Window',
+    resetWindowTip: 'Restore default size and center',
+    resetWindowOk: 'Window restored to default size',
     shortcuts: 'Shortcuts',
+    appFullscreen: 'Fullscreen',
+    shortcutTips: 'Shortcuts',
+    shortcutGlobal: 'Global',
+    shortcutCodeMirror: 'CodeMirror',
+    shortcutTerminal: 'Terminal',
   },
 
   conn: {
@@ -201,6 +209,14 @@ export default {
     sshModeTip: 'SSH tunnel does not support cluster/sentinel mode now',
     loginType: 'Login',
     nameHint: '[Optional] Automatically generated',
+    advancedTitle: 'Advanced',
+    advancedLabelWidth: '120px',
+    commandMap: 'Command Map',
+    commandMapCmdHint: 'Original command, e.g. config',
+    commandMapMappedHint: 'Mapped command name',
+    commandMapAdd: 'Add mapping',
+    commandMapTip:
+      'Matches rename-command in config file. When CONFIG is renamed, enter the mapped name',
     testConn: 'Test Conn',
     uiModeMinimal: 'Minimal',
     uiModeTip:
@@ -450,7 +466,8 @@ export default {
 
   keyTree: {
     noData: 'No Data',
-    refreshKey: 'Reload',
+    refreshKey: 'Refresh List',
+    reloadKey: 'Reload',
     copyKey: 'Copy',
     deleteKey: 'Delete',
     addKey: 'Add Key',
@@ -721,7 +738,7 @@ export default {
     readonlyNo: 'No',
     keyShortHint: 'View KeyShort',
     keyShort: {
-      fullscreen: 'Full Screen',
+      fullscreen: 'Fullscreen Terminal',
       execute: 'Execute Command',
       complete: 'Command Completion',
       history: 'History',
@@ -821,7 +838,7 @@ export default {
     importing: 'Importing',
     importDone: 'Import Done',
     importResult: 'Success: {okCount}, Fail: {errCount}, Ignore: {ignoreCount}',
-    checkedMode: 'Checked Mode',
+    checkedMode: 'Multi Select',
 
     mockData: 'Mock Data',
     exportData: 'Export Data',
@@ -835,7 +852,7 @@ export default {
     exportChecked: 'Export Checked',
     ttlChecked: 'TTL Checked',
     deleteChecked: 'Delete Checked',
-    exitCheckedMode: 'Exit Checked',
+    exitCheckedMode: 'Exit Select',
     batchDelete: 'Delete Keys',
     flushDb: 'Flush DB',
     flushDbConfirm: '【Danger】Confirm Flush DB ?',

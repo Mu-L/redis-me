@@ -30,12 +30,8 @@ export interface MeAppUpdateState {
   downloadPercentage: number
 }
 
-/** 存储/列表中的连接 + 界面字段（颜色、只读等） */
-export type UiConn = ConnConfig & {
-  color?: string
-  readonly?: boolean
-  meta?: Record<string, unknown>
-}
+/** 存储/列表中的连接 + 界面字段（颜色、只读等）；meta 在 ConnConfig 上 */
+export type UiConn = ConnConfig & { color?: string; readonly?: boolean }
 
 /** AppMain 注入的共享状态（与 `shareProvideKey` 配对） */
 export interface AppMainShare {
@@ -68,13 +64,15 @@ export const shareProvideKey: InjectionKey<AppMainShare> = Symbol('redis-me.shar
 export const appProvideKey: InjectionKey<AppMainInject> = Symbol('redis-me.app')
 
 /** ConnEmpty / 全局快捷键：新增连接、导入、设置等（由 AppMain provide） */
-export type ConnShortcutAction = 'add' | 'import' | 'newWindow' | 'setting'
+export type ConnShortcutAction = 'add' | 'import' | 'newWindow' | 'setting' | 'shortcuts'
 
 export interface ConnUiInject {
   openConnSave: (mode: 'add' | 'edit', conn?: UiConn) => void
   openConnImport: () => void
   /** 由 KeyHeader 挂载时赋值，打开左侧菜单同款设置弹窗 */
   openSetting: () => void
+  /** 由 KeyHeader 挂载时赋值，打开三列快捷键弹窗 */
+  openShortcuts: () => void
   runConnAction: (action: ConnShortcutAction) => void
 }
 

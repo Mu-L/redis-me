@@ -130,7 +130,11 @@ export type ConnConfig = {
 	sentinelOption: SentinelOption,
 	ssh: boolean,
 	sshOption: SshOption,
+	meta?: { [key in string]: ConnMetaValue },
 };
+
+/**  连接 meta 值（与前端 JSON 结构一致，供 specta 导出） */
+export type ConnMetaValue = string | number | null | boolean | { [key in string]: ConnMetaValue } | ConnMetaValue[] | "Null";
 
 export type FieldScanParam = FieldScanParam_Serialize | FieldScanParam_Deserialize;
 

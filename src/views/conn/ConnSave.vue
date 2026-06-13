@@ -7,9 +7,11 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey, type UiConn } from '@/types/me-interface'
 import {
+  getConnCommandMap,
   getConnGroup,
   getConnUiMode,
   normalizeGroupName,
+  setConnCommandMap,
   setConnGroup,
   setConnUiMode,
 } from '@/utils/conn'
@@ -304,7 +306,7 @@ watch(
   },
 )
 
-// 仅在首页为「分组展示」时显示分组下拉；值写入 form.meta.group
+// 分组展示模式下，分组选择与名称 input 并排；值写入 form.meta.group
 const connShowGroup = computed(() => meTauri.settings.connShow === 'group')
 
 const connGroups = computed(() => {
@@ -329,6 +331,23 @@ const connMinimal = computed({
   get: () => getConnUiMode(form as UiConn) === 'minimal',
   set: (v: boolean) => setConnUiMode(form as UiConn, v ? 'minimal' : 'normal'),
 })
+
+// 高级选项：CONFIG 命令映射（存 meta.commandMap）
+const advancedVisible = ref(false)
+const advancedForm = reactive({
+  configMapped: '',
+})
+
+function openAdvanced() {
+  advancedForm.configMapped = getConnCommandMap(form as UiConn).config ?? ''
+  advancedVisible.value = true
+}
+
+function applyAdvanced() {
+  const mapped = advancedForm.configMapped.trim()
+  setConnCommandMap(form as UiConn, mapped ? { config: mapped } : {})
+  advancedVisible.value = false
+}
 </script>
 
 <template>
@@ -349,23 +368,26 @@ const connMinimal = computed({
       :rules="rules"
       label-position="right"
       :label-width="t('conn.labelWidth')">
-      <!-- 连接名称、分组（与主机/端口同栅格，分组框与端口等宽） -->
+      <!-- 连接名称（分组展示时，分组选择与名称 input 并排，间距 10px） -->
       <el-row :gutter="24">
-        <el-col :span="connShowGroup ? 12 : 24">
+        <el-col :span="24">
           <el-form-item :label="t('conn.name')" prop="name">
-            <el-input v-model.trim="form.name" :placeholder="t('conn.nameHint')" clearable />
-          </el-form-item>
-        </el-col>
-        <el-col v-if="connShowGroup" :span="12">
-          <el-form-item :label="t('conn.groupLabel')">
-            <el-select
-              v-model="connGroup"
-              clearable
-              :placeholder="t('conn.ungrouped')"
-              style="width: 100%">
-              <el-option :label="t('conn.ungrouped')" value="" />
-              <el-option v-for="g in connGroupOptions" :key="g" :label="g" :value="g" />
-            </el-select>
+            <div class="conn-name-row">
+              <el-input
+                v-model.trim="form.name"
+                :placeholder="t('conn.nameHint')"
+                clearable
+                class="conn-name-input" />
+              <el-select
+                v-if="connShowGroup"
+                v-model="connGroup"
+                clearable
+                :placeholder="t('conn.ungrouped')"
+                class="conn-name-group-select">
+                <el-option :label="t('conn.ungrouped')" value="" />
+                <el-option v-for="g in connGroupOptions" :key="g" :label="g" :value="g" />
+              </el-select>
+            </div>
           </el-form-item>
         </el-col>
       </el-row>
@@ -415,7 +437,14 @@ const connMinimal = computed({
         <!-- 颜色选择 -->
         <el-col :span="6">
           <el-form-item :label="t('conn.color')">
-            <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS" />
+            <div class="conn-color-row">
+              <el-color-picker v-model="form.color" :predefine="PREDEFINE_COLORS" />
+              <el-button
+                class="conn-advanced-btn"
+                icon="el-icon-grid"
+                :title="t('conn.advancedTitle')"
+                @click="openAdvanced" />
+            </div>
           </el-form-item>
         </el-col>
 
@@ -615,6 +644,32 @@ const connMinimal = computed({
         </template>
       </div>
     </el-form>
+
+    <el-dialog
+      v-model="advancedVisible"
+      :title="t('conn.advancedTitle')"
+      width="520"
+      append-to-body
+      destroy-on-close
+      align-center>
+      <el-form label-position="right" :label-width="t('conn.advancedLabelWidth')">
+        <el-form-item :label="t('conn.commandMap')">
+          <div class="conn-command-map-row">
+            <span class="conn-command-map-cmd">CONFIG</span>
+            <span class="conn-command-map-arrow">→</span>
+            <el-input
+              v-model.trim="advancedForm.configMapped"
+              :placeholder="t('conn.commandMapMappedHint')" />
+          </div>
+          <div class="conn-advanced-hint">{{ t('conn.commandMapTip') }}</div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="advancedVisible = false">{{ t('cancel') }}</el-button>
+        <el-button type="primary" @click="applyAdvanced">{{ t('ok') }}</el-button>
+      </template>
+    </el-dialog>
+
     <template #footer>
       <div class="conn-footer">
         <div class="conn-footer-left">
@@ -654,6 +709,63 @@ const connMinimal = computed({
 </template>
 
 <style scoped lang="scss">
+.conn-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.conn-name-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.conn-name-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.conn-name-group-select {
+  width: 150px;
+  flex-shrink: 0;
+}
+
+.conn-advanced-btn {
+  min-width: 32px;
+  padding: 8px 10px;
+}
+
+.conn-command-map-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+
+  .el-input {
+    flex: 1;
+  }
+}
+
+.conn-command-map-cmd {
+  flex-shrink: 0;
+  font-family: var(--el-font-family);
+  color: var(--el-text-color-regular);
+}
+
+.conn-command-map-arrow {
+  color: var(--el-text-color-secondary);
+  flex-shrink: 0;
+}
+
+.conn-advanced-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.4;
+}
+
 .conn-mode-checkboxes {
   display: flex;
   justify-content: flex-end;

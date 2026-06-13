@@ -10,10 +10,13 @@ const props = withDefaults(
     /** 行可点击（如 ConnEmpty 触发 action） */
     clickable?: boolean
     width?: string
+    /** 多列并排时紧凑布局，缩小标签与按键间距 */
+    compact?: boolean
   }>(),
   {
     clickable: false,
     width: 'min(400px, 100%)',
+    compact: false,
   },
 )
 
@@ -29,7 +32,10 @@ function onRowClick(item: ShortcutItem): void {
 </script>
 
 <template>
-  <ul class="shortcut-list" :style="{ width: props.width }">
+  <ul
+    class="shortcut-list"
+    :class="{ compact: props.compact }"
+    :style="props.compact ? undefined : { width: props.width }">
     <li
       v-for="item in items"
       :key="item.id ?? item.label"
@@ -79,6 +85,34 @@ function onRowClick(item: ShortcutItem): void {
 
   li.gap-before {
     margin-top: 10px;
+  }
+
+  &.compact {
+    width: max-content;
+    max-width: 100%;
+
+    li.gap-before {
+      margin-top: 8px;
+    }
+
+    .shortcut-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      width: 100%;
+      padding: 4px 0;
+      font-size: 13px;
+    }
+
+    .shortcut-label {
+      flex: unset;
+      min-width: 0;
+    }
+
+    .shortcut-keys {
+      flex: unset;
+      justify-self: end;
+    }
   }
 }
 
@@ -149,6 +183,10 @@ kbd {
 kbd.kbd-mod {
   padding: 3px 7px;
   min-width: 28px;
+}
+
+kbd.kbd-optional {
+  opacity: 0.6;
 }
 
 kbd.kbd-last {
