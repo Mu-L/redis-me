@@ -26,11 +26,11 @@ const codeMirrorShortcuts = computed(() => getValueShortcuts(t))
 const terminalShortcuts = computed(() => getTerminalShortcuts(t))
 
 function openSetting(): void {
-  dialog.setting = true
+  dialog.setting = !dialog.setting
 }
 
 function openShortcuts(): void {
-  keyShortVisible.value = true
+  keyShortVisible.value = !keyShortVisible.value
 }
 
 onMounted(() => {

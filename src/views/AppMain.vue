@@ -187,10 +187,18 @@ const dialog = reactive({ conn: false, import: false })
 
 const connUi = reactive({
   openConnSave(mode: 'add' | 'edit', conn?: UiConn): void {
+    if (mode === 'add' && !conn && dialog.conn) {
+      dialog.conn = false
+      return
+    }
     dialog.conn = true
     void nextTick(() => connSaveRef.value?.open(mode, conn))
   },
   openConnImport(): void {
+    if (dialog.import) {
+      dialog.import = false
+      return
+    }
     dialog.import = true
     void nextTick(() => connImportRef.value?.open())
   },

@@ -1,5 +1,9 @@
 # 3.x 更新日志
 
+## v3.9.1
+
+- **快捷键**：设置/快捷键/新建/导入弹窗支持再按关闭；导入连接改为 `Ctrl+Shift+O`（避免与 DevTools 冲突）
+
 ## [v3.9.0](https://mp.weixin.qq.com/s/xGrgNjmJwRGyN7myE1lMhQ) (2026-06-14)
 
 ### ✨ 新增优化
