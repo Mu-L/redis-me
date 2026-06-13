@@ -1,5 +1,23 @@
 # 3.x Changelog
 
+## [v3.9.0] (2026-06-14)
+
+### ✨ New Features
+
+- **Keys panel**
+  - Context menu: **Refresh list** #103 and **multi-select mode**
+  - Key tree: **preserves expanded node state** #106
+- **ACL management**: **Drag to reorder** command rules, key patterns, and channel patterns
+- **Info**
+  - Failed `CONFIG GET save` no longer shows an error dialog #102
+  - RDB persistence checkbox supports an **indeterminate** state
+- **Connections**
+  - New advanced option: **CONFIG command mapping** #102
+  - Improved grouped list layout, click-to-enter, and drag-to-reorder details
+- **Icon**: Adjusted RedisME icon **safe-area margins** #104
+- **Window**: **Window state persistence** and **Reset window** #105
+- **Shortcuts**: **Three-column** shortcut dialog; global shortcuts add **F11 fullscreen**, **settings**, and **shortcuts reference**
+
 ## [v3.8.0](https://mp.weixin.qq.com/s/Us7_dM8mEVOAz7kbqvbh4w) (2026-06-06)
 
 ### ✨ New Features
