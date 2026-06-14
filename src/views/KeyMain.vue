@@ -462,9 +462,7 @@ function checkChange(redisKeys: RedisKey_Deserialize[]): void {
 
 // 多选后的批量操作
 const checkedDisabled = computed(() => checkedKeyList.value.length === 0 || share.exportImporting)
-const checkedBtnClass = computed(() =>
-  checkedDisabled.value ? ['icon-disabled'] : ['icon-btn'],
-)
+const checkedBtnClass = computed(() => (checkedDisabled.value ? ['icon-disabled'] : ['icon-btn']))
 function exportChecked() {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'export')
 }
@@ -698,8 +696,7 @@ function editDbName(db: number): void {
           @click="toggleChecked"
           placement="top"
           :name="t('keyMain.checkedMode')"
-          hint
-          />
+          hint />
         <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
           <me-icon icon="el-icon-more-filled" class="icon-btn" />
           <template #dropdown>

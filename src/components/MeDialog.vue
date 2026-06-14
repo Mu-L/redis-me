@@ -26,10 +26,7 @@ withDefaults(
     append-to-body>
     <template #header>
       <div class="me-flex">
-        <!-- 带图标的标题 -->
         <me-icon :name="title" :icon="icon" />
-
-        <!-- 最大化按钮 -->
         <me-icon
           :icon="fullscreen ? 'me-icon-window-restore' : 'me-icon-window-maximize'"
           class="fullscreen-icon"

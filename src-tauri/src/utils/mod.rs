@@ -1,4 +1,5 @@
 pub mod app_store;
+pub mod command_log;
 pub mod conn;
 pub mod error;
 pub mod macros;

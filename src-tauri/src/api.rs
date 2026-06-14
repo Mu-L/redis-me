@@ -107,7 +107,8 @@ pub fn app_settings(app_handle: AppHandle, app_settings: AppSettings) -> ApiResu
 #[command]
 #[specta]
 pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<ServerCapabilities> {
-    to_api_result(app_handle.connect(id)).map(|client| (*client.base().capabilities).clone())
+    to_api_result(app_handle.connect(app_handle.clone(), id))
+        .map(|client| (*client.base().capabilities).clone())
 }
 
 // 断开
@@ -169,6 +170,8 @@ api_commands!(
     acl_log(count: Option<u64>) -> Vec<AclLogEntry>; // ACL 安全日志
     acl_log_reset() -> ();                       // ACL 清空安全日志
     acl_dryrun(username: String, command: String) -> String; // ACL 模拟测试
+    command_logs(limit: Option<u64>) -> Vec<CommandLogEntry>; // 命令日志（打开面板时拉快照）
+    command_logs_clear() -> (); // 清空命令日志
 );
 
 // 需要将app_handle传递过去的命令

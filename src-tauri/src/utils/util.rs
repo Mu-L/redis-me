@@ -30,6 +30,7 @@ pub const EVENT_SUBSCRIBE: &str = "subscribe";
 pub const EVENT_MONITOR: &str = "monitor";
 pub const EVENT_EXPORT: &str = "export";
 pub const EVENT_IMPORT: &str = "import";
+pub const EVENT_COMMAND_LOG: &str = "command-log";
 
 pub const ME_JSON_TYPE_NAME: &str = "json";
 pub const REDIS_JSON_TYPE_NAME: &str = "ReJSON-RL";

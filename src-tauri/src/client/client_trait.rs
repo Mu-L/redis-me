@@ -122,6 +122,15 @@ pub trait MeClient: Send + Sync {
     fn acl_log(&self, count: Option<u64>) -> AnyResult<Vec<AclLogEntry>>;
     fn acl_log_reset(&self) -> AnyResult<()>;
     fn acl_dryrun(&self, username: String, command: String) -> AnyResult<String>;
+
+    fn command_logs(&self, limit: Option<u64>) -> AnyResult<Vec<CommandLogEntry>> {
+        Ok(self.base().command_logger.query(limit))
+    }
+
+    fn command_logs_clear(&self) -> AnyResult<()> {
+        self.base().command_logger.clear();
+        Ok(())
+    }
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中

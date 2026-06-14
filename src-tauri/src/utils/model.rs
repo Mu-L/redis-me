@@ -187,6 +187,8 @@ pub struct MeBase {
     pub capabilities: Arc<ServerCapabilities>,
     /// 已建立连接上的单次命令读写超时（init 时从 AppSettings 快照）
     pub command_timeout: Duration,
+    /// 本连接命令执行日志（环形缓冲）
+    pub command_logger: Arc<crate::utils::command_log::CommandLogger>,
 }
 
 impl From<&ConnConfig> for MeBase {
@@ -204,6 +206,9 @@ impl From<&ConnConfig> for MeBase {
             server_version: String::new(),
             capabilities: Arc::new(ServerCapabilities::default()),
             command_timeout: crate::utils::util::CONNECTION_NORMAL_TIMEOUT,
+            command_logger: Arc::new(crate::utils::command_log::CommandLogger::new(
+                conf.id.clone(),
+            )),
         }
     }
 }
@@ -590,6 +595,19 @@ api_model!(RedisCommand {
     auto_broadcast: Option<bool>,
 });
 
+// 命令执行日志条目
+api_model!(CommandLogEntry {
+    id: u64,
+    timestamp: String,
+    db_index: u16,
+    command: String,
+    args: Vec<String>,
+    full_command: String,
+    response: String,
+    duration_ms: u64,
+    error: Option<String>,
+});
+
 // 慢日志
 api_model!(RedisSlowLog {
     node: String,
@@ -688,6 +706,11 @@ api_model!(MonitorEvent {
     id: String,
     datetime: String,
     command: String,
+});
+
+api_model!(CommandLogEvent {
+    id: String,
+    entry: CommandLogEntry,
 });
 
 api_model!(ExportImportEvent {

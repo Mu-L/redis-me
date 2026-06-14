@@ -8,6 +8,7 @@ import { getConnIcon } from '@/utils/conn'
 import { getConnGlobalShortcuts, getTerminalShortcuts, getValueShortcuts } from '@/utils/shortcut'
 import { bus, CONN_REFRESH, meCommands, meOk, openNewWindow } from '@/utils/util'
 import About from '@/views/ext/About.vue'
+import CommandLog from '@/views/ext/CommandLog.vue'
 import Official from '@/views/ext/Official.vue'
 import Setting from '@/views/ext/Setting.vue'
 
@@ -19,6 +20,7 @@ const dialog = reactive({
   setting: false,
   info: false,
   social: false,
+  commandLog: false,
 })
 const keyShortVisible = ref(false)
 const globalShortcuts = computed(() => getConnGlobalShortcuts(t))
@@ -45,6 +47,12 @@ async function handleCommand(command: string): Promise<void> {
     bus.emit(CONN_REFRESH)
   } else if ('closeConn' === command) {
     share.conn = null
+  } else if ('commandLog' === command) {
+    if (!share.conn) {
+      meOk(t('keyHeader.commandLogNeedConn'))
+      return
+    }
+    dialog.commandLog = true
   } else if ('setting' === command) {
     openSetting()
   } else if ('window' === command) {
@@ -97,6 +105,9 @@ async function handleCommand(command: string): Promise<void> {
             </el-dropdown-item>
             <el-dropdown-item command="closeConn">
               <me-icon :name="t('keyHeader.closeConn')" icon="el-icon-circle-close" />
+            </el-dropdown-item>
+            <el-dropdown-item command="commandLog">
+              <me-icon :name="t('keyHeader.commandLog')" icon="el-icon-document" />
             </el-dropdown-item>
           </template>
 
@@ -157,6 +168,7 @@ async function handleCommand(command: string): Promise<void> {
       style="--el-dialog-bg-color: unset; box-shadow: unset">
       <Official />
     </el-dialog>
+    <CommandLog v-model="dialog.commandLog" />
   </div>
 </template>
 

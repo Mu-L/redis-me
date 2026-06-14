@@ -411,10 +411,10 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
             ><me-icon icon="el-icon-refresh" :name="t('keyTree.refreshKey')"
           /></el-dropdown-item>
           <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
-          ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
+            ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
           /></el-dropdown-item>
           <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
-          ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
+            ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
           /></el-dropdown-item>
           <el-dropdown-item command="addKey" v-if="canEdit"
             ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"

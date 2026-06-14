@@ -1,5 +1,6 @@
 use crate::client::client_trait::*;
 use crate::implement_pipeline_commands;
+use crate::utils::command_log::LoggingConnection;
 use crate::utils::conn::{get_client_single, set_client_name};
 use crate::utils::error::AppError;
 use crate::utils::model::*;
@@ -20,7 +21,7 @@ use tauri::AppHandle;
 pub struct MeSingle {
     base: MeBase,
     client: Client,
-    conn: Mutex<Connection>,
+    conn: Mutex<LoggingConnection>,
     // SSH 隧道，在 Drop 时自动关闭
     #[allow(dead_code)]
     ssh_tunnel: Option<SshTunnel>,
@@ -77,6 +78,7 @@ impl MeClient for MeSingle {
         self.db.store(db, Relaxed);
         let mut conn = self.get_conn()?;
         let _: () = redis::cmd("select").arg(db).query(&mut conn)?;
+        conn.set_db_index(db);
         info!("select db: {}", db);
         Ok(())
     }
@@ -509,9 +511,11 @@ impl MeClient for MeSingle {
 impl MeSingle {
     pub fn init(redis_conn: &ConnConfig, command_timeout: Duration) -> AnyResult<Box<dyn MeClient>> {
         let (client, ssh_tunnel) = get_client_single(redis_conn)?;
-        let mut conn = Self::new_conn(&client, redis_conn.db, command_timeout)?;
         let mut base = MeBase::from(redis_conn);
         base.command_timeout = command_timeout;
+        let logger = base.command_logger.clone();
+        let raw_conn = Self::new_raw_conn(&client, redis_conn.db, command_timeout)?;
+        let mut conn = LoggingConnection::new(raw_conn, logger, redis_conn.db);
         match redis::cmd("INFO").arg("SERVER").query::<String>(&mut conn) {
             Ok(info) => base.update_server_info(&info, &mut conn),
             Err(e) => warn!("INFO SERVER 不可用，跳过版本探测: {e}"),
@@ -526,7 +530,7 @@ impl MeSingle {
         }))
     }
 
-    fn new_conn(client: &Client, db: u16, command_timeout: Duration) -> AnyResult<Connection> {
+    fn new_raw_conn(client: &Client, db: u16, command_timeout: Duration) -> AnyResult<Connection> {
         let mut conn = client.get_connection()?;
         set_client_name(&mut conn);
         conn.set_read_timeout(Some(command_timeout))?;
@@ -545,16 +549,21 @@ impl MeSingle {
 
     // 重新连接
     fn reconnect(&self) -> AnyResult<()> {
-        let new_conn = Self::new_conn(&self.client, self.db.load(Relaxed), self.command_timeout)?;
-        let mut conn_guard = self.conn.lock(); // 使用阻塞锁来替换连接
-        *conn_guard = new_conn;
+        let raw_conn =
+            Self::new_raw_conn(&self.client, self.db.load(Relaxed), self.command_timeout)?;
+        let mut conn_guard = self.conn.lock();
+        *conn_guard = LoggingConnection::new(
+            raw_conn,
+            self.command_logger.clone(),
+            self.db.load(Relaxed),
+        );
         self.last_check_time.store(Utc::now().timestamp(), Relaxed);
         info!("Redis单机连接重连成功: {}", self.conf.name);
         Ok(())
     }
 
     // 获取已经建立的连接
-    fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, Connection>> {
+    fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, LoggingConnection>> {
         // match self.conn.lock() {
         //     Ok(conn) => Ok(conn),
         //     Err(_) => {
@@ -584,7 +593,7 @@ impl MeSingle {
         }
     }
 
-    fn check_connection_timeout(&self, conn: &mut Connection) -> AnyResult<bool> {
+    fn check_connection_timeout(&self, conn: &mut LoggingConnection) -> AnyResult<bool> {
         conn.set_read_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
         conn.set_write_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
         if conn.check_connection() {
@@ -600,6 +609,6 @@ impl MeSingle {
 
     // 获取一个新的连接
     fn get_new_conn(&self) -> AnyResult<Connection> {
-        Self::new_conn(&self.client, self.db.load(Relaxed), self.command_timeout)
+        Self::new_raw_conn(&self.client, self.db.load(Relaxed), self.command_timeout)
     }
 }

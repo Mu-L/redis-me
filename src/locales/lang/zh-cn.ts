@@ -346,6 +346,8 @@ export default {
 
     refreshConn: '刷新连接',
     closeConn: '关闭连接',
+    commandLog: '命令日志',
+    commandLogNeedConn: '请先选择连接',
 
     newWindow: '新窗口',
     newWindowError: '打开新窗口失败',
@@ -355,6 +357,20 @@ export default {
   },
 
   about: { sourceCode: '源码地址', officialWebsite: '官方网站' },
+
+  commandLog: {
+    title: '命令日志',
+    keyword: '过滤已显示命令…',
+    clear: '清空',
+    close: '关闭',
+    clearConfirm: '确定清空当前连接的命令日志吗？',
+    clearOk: '命令日志已清空',
+    empty: '暂无命令记录',
+    time: '时间',
+    db: 'DB',
+    command: '命令',
+    duration: '耗时(ms)',
+  },
 
   fieldAdd: {
     append: '尾部追加',

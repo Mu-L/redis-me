@@ -69,6 +69,8 @@ export const commands = {
 	keyNode: (id: string, key: RedisKey_Deserialize) => typedError<RedisNode[], string>(__TAURI_INVOKE("key_node", { id, key })),
 	flushDb: (id: string) => typedError<null, string>(__TAURI_INVOKE("flush_db", { id })),
 	flushAll: (id: string) => typedError<null, string>(__TAURI_INVOKE("flush_all", { id })),
+	commandLogs: (id: string, limit: number | null) => typedError<CommandLogEntry[], string>(__TAURI_INVOKE("command_logs", { id, limit })),
+	commandLogsClear: (id: string) => typedError<null, string>(__TAURI_INVOKE("command_logs_clear", { id })),
 };
 
 /* Types */
@@ -114,6 +116,18 @@ export type AppSettings = {
 
 /**  前后端 IPC 字节格式：utf8 文本或 base64 原始字节（hex/binary/msgpack 等视图格式在前端处理） */
 export type BytesFormat = "utf8" | "base64";
+
+export type CommandLogEntry = {
+	id: number,
+	timestamp: string,
+	dbIndex: number,
+	command: string,
+	args: string[],
+	fullCommand: string,
+	response: string,
+	durationMs: number,
+	error: string | null,
+};
 
 export type ConnConfig = {
 	id: string,

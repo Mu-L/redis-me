@@ -25,7 +25,7 @@ pub trait ClientAccess {
     fn conn_list(&self, conn_list: Vec<ConnConfig>) -> AnyResult<()>;
     fn app_settings(&self, app_settings: AppSettings) -> AnyResult<()>;
     fn get_client(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>>;
-    fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>>;
+    fn connect(&self, app_handle: AppHandle, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>>;
     fn disconnect(&self, id: &str) -> AnyResult<()>;
 }
 
@@ -61,10 +61,10 @@ impl ClientAccess for AppHandle {
                 return Ok(Arc::clone(client));
             }
         }
-        self.connect(id)
+        self.connect(self.clone(), id)
     }
 
-    fn connect(&self, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>> {
+    fn connect(&self, app_handle: AppHandle, id: &str) -> AnyResult<Arc<Box<dyn MeClient>>> {
         let state: State<AppState> = self.state();
         let map = state.connections.lock().unwrap();
         let conn = map
@@ -79,6 +79,10 @@ impl ClientAccess for AppHandle {
             MeSingle::init(conn, command_timeout)?
         });
 
+        client
+            .base()
+            .command_logger
+            .bind_app_handle(app_handle);
         clients.insert(id.to_string(), Arc::clone(&client));
         info!("连接成功: {}", client.name());
         Ok(client)
