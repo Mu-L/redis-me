@@ -631,6 +631,23 @@ function rowClick(row: ValueTableRow, _column: unknown, event: MouseEvent) {
   }
 }
 
+/** 编辑面板打开时：点表格行切换内容；点面板外空白/表头等关闭 */
+function onFieldPanelOutsideClick(e: MouseEvent) {
+  if (fieldSetIndex.value === -1) return
+  const el = e.target as HTMLElement | null
+  if (!el) return
+  if (el.closest('.field-set')) return
+  if (el.closest('.el-table__body tbody tr')) return
+  if (
+    el.closest(
+      'button, input, textarea, select, .el-input, .el-select, .el-pagination, .icon-btn, .me-table-more, a',
+    )
+  ) {
+    return
+  }
+  fieldSetInit()
+}
+
 async function fieldDel(row: ValueTableRow) {
   const rv = redisValue.value
   if (!rv) return
@@ -825,7 +842,11 @@ onUnmounted(() => {
           :read-only="!canSave" />
 
         <!-- 表格显示 -->
-        <div class="me-flex" style="flex-direction: column; height: 100%" v-else>
+        <div
+          class="me-flex"
+          style="flex-direction: column; height: 100%"
+          v-else
+          @click="onFieldPanelOutsideClick">
           <div class="me-flex" style="width: 100%">
             <!-- 左侧模糊筛选 -->
             <div>
@@ -992,7 +1013,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 功能区 -->
-      <div class="value-footer me-flex">
+      <div class="value-footer me-flex" @click="onFieldPanelOutsideClick">
         <div class="me-flex" style="align-items: center">
           <!-- 美化/复制 -->
           <me-icon
