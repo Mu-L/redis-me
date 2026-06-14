@@ -3,7 +3,7 @@
 ## v3.9.2 (2026-06-14)
 
 - Field scan maximum increased to **1000** #111
-- Field edit panel: close with **Esc** #112
+- Field edit panel: close with **Esc** or **click outside** (table rows still switch) #112
 
 ## v3.9.1 (2026-06-13)
 

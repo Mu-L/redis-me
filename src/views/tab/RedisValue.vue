@@ -638,13 +638,6 @@ function onFieldPanelOutsideClick(e: MouseEvent) {
   if (!el) return
   if (el.closest('.field-set')) return
   if (el.closest('.el-table__body tbody tr')) return
-  if (
-    el.closest(
-      'button, input, textarea, select, .el-input, .el-select, .el-pagination, .icon-btn, .me-table-more, a',
-    )
-  ) {
-    return
-  }
   fieldSetInit()
 }
 
