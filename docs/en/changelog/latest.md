@@ -1,6 +1,11 @@
 # 3.x Changelog
 
-## v3.9.1 (2026-06-14)
+## v3.9.2 (2026-06-14)
+
+- Field scan maximum increased to **1000** #111
+- Field edit panel: close with **Esc** #112
+
+## v3.9.1 (2026-06-13)
 
 - **Window**: **Restore position before showing** on startup, avoiding a visible center-then-jump flash
 - **Shortcuts**
