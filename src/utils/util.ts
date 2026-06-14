@@ -30,6 +30,7 @@ import type {
 } from '@/types/me-interface'
 import { commands as spectaCommands } from '@/types/tauri-specta'
 import type { RedisKey_Deserialize, RedisNode } from '@/types/tauri-specta'
+import { invalidateKeyType } from '@/utils/key-type-cache'
 
 /** 全局 `bus` 事件载荷（与 `bus.emit` / `bus.on` 一致） */
 export type MeBusEvents = {
@@ -442,6 +443,7 @@ export function meFilterHandler<T extends Record<string, unknown>>(
 export function meDeleteKey(id: string, redisKey: RedisKey_Deserialize, thenFn?: () => void): void {
   meConfirm(t('util.deleteKey', { key: redisKey.key }), async () => {
     await meCommands.del(id, redisKey)
+    invalidateKeyType(id, redisKey)
     bus.emit(KEY_DELETE, redisKey)
     meOk(t('deleteOk'))
     thenFn?.()

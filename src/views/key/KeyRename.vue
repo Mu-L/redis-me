@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisKey_Deserialize } from '@/types/tauri-specta'
 import { BYTES_FORMAT, meFormatBytes, meToBase64 } from '@/utils/format'
+import { invalidateKeyType } from '@/utils/key-type-cache'
 import { meCommands, meErr, meOk } from '@/utils/util'
 
 const { t } = useI18n()
@@ -48,9 +49,11 @@ async function submit() {
 
   loading.value = true
   try {
+    const oldKey = { key: k.key, bytes: k.bytes }
     const newKey: RedisKey_Deserialize =
       enc === 'utf8' ? { key: value, bytes: '' } : { key: '', bytes: meToBase64(value, enc) }
     const apiNewKey = await meCommands.rename(id, k, newKey)
+    invalidateKeyType(id, oldKey)
     k.key = apiNewKey.key
     k.bytes = apiNewKey.bytes
     meOk(t('actionOk'))

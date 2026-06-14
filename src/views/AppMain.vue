@@ -27,6 +27,7 @@ import {
 } from '@/types/me-interface'
 import type { ConnConfig } from '@/types/tauri-specta'
 import { isConnMinimalMode, mergeConnGroupsFromList } from '@/utils/conn'
+import { clearKeyTypeCacheForConn } from '@/utils/key-type-cache'
 import { mergeImportedConnList } from '@/utils/rdm'
 import {
   isAppFullscreenHotkeyBlocked,
@@ -117,6 +118,7 @@ watch(
 
     try {
       if (oldConn) {
+        clearKeyTypeCacheForConn(oldConn.id)
         await meCommands.disconnect(oldConn.id)
       }
 
