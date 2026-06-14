@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { cloneDeep } from 'lodash'
-import { computed, inject, ref, useTemplateRef, watch } from 'vue'
+import { computed, inject, onUnmounted, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
@@ -157,6 +157,18 @@ function cancel() {
   visible.value = false
   emit('closed')
 }
+
+function onEscapeKey(e: KeyboardEvent) {
+  if (!visible.value || e.key !== 'Escape') return
+  e.stopPropagation()
+  cancel()
+}
+
+watch(visible, val => {
+  if (val) window.addEventListener('keydown', onEscapeKey, true)
+  else window.removeEventListener('keydown', onEscapeKey, true)
+})
+onUnmounted(() => window.removeEventListener('keydown', onEscapeKey, true))
 
 const formRef = useTemplateRef('formRef')
 function submit() {
