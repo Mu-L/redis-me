@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const keyType = ref<string | undefined>()
 
-// scan 无 keyType；虚拟列表展开会重建组件，用 conn+db+key 缓存避免重复 TYPE
+// scan 无 keyType；有 bytes 的 SCAN 键走缓存，无 bytes 的 UI 新建键每次拉 TYPE
 watch(
   () => [props.redisKey?.key, props.redisKey?.bytes, share.conn?.id, share.conn?.db] as const,
   async () => {

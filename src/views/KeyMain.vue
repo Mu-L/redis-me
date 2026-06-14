@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
+import { clearKeyTypeCacheForConn } from '@/utils/key-type-cache'
 import {
   bus,
   CONN_REFRESH,
@@ -389,6 +390,7 @@ function flushDb(): void {
   if (!share.conn) return
   meConfirm(t('keyMain.flushDbConfirm'), async () => {
     await meCommands.flushDb(share.conn!.id)
+    clearKeyTypeCacheForConn(share.conn!.id)
     meOk(t('keyMain.flushDbOk'))
     bus.emit(CONN_REFRESH)
     bus.emit(INFO_REFRESH)

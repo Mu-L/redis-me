@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisKey_Deserialize } from '@/types/tauri-specta'
+import { clearKeyTypeCacheForConn } from '@/utils/key-type-cache'
 import { meCommands, meOk } from '@/utils/util'
 
 /** 打开对话框时合并进表单的字段（与 initForm 一致） */
@@ -83,6 +84,7 @@ function submit() {
         await meCommands.exportCsv(share.conn!.id, form.value)
       } else {
         await meCommands.batchDel(share.conn!.id, form.value)
+        clearKeyTypeCacheForConn(share.conn!.id)
       }
       if (!isExport.value) {
         meOk(t('deleteOk'))
