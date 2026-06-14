@@ -247,6 +247,11 @@ pub fn field_scan_0_get(
     let mut length = 0;
 
     let value: Option<serde_json::Value> = match key_type {
+        ValueType::None => {
+            bail!(AppError::KeyNotFound {
+                key: vec8_to_display_string(key.to_bytes())
+            })
+        }
         ValueType::String => {
             let value: Vec<u8> = conn.get(key)?;
             length = value.len();
