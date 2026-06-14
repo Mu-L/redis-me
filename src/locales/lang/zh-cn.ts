@@ -370,6 +370,7 @@ export default {
     db: 'DB',
     command: '命令',
     duration: '耗时(ms)',
+    slowHint: '慢命令，耗时 {ms} ms',
   },
 
   fieldAdd: {

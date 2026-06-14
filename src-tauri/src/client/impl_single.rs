@@ -516,6 +516,7 @@ impl MeSingle {
         let logger = base.command_logger.clone();
         let raw_conn = Self::new_raw_conn(&client, redis_conn.db, command_timeout)?;
         let mut conn = LoggingConnection::new(raw_conn, logger, redis_conn.db);
+        set_client_name(&mut conn);
         match redis::cmd("INFO").arg("SERVER").query::<String>(&mut conn) {
             Ok(info) => base.update_server_info(&info, &mut conn),
             Err(e) => warn!("INFO SERVER 不可用，跳过版本探测: {e}"),
@@ -532,7 +533,6 @@ impl MeSingle {
 
     fn new_raw_conn(client: &Client, db: u16, command_timeout: Duration) -> AnyResult<Connection> {
         let mut conn = client.get_connection()?;
-        set_client_name(&mut conn);
         conn.set_read_timeout(Some(command_timeout))?;
         conn.set_write_timeout(Some(command_timeout))?;
 
@@ -557,6 +557,7 @@ impl MeSingle {
             self.command_logger.clone(),
             self.db.load(Relaxed),
         );
+        set_client_name(&mut *conn_guard);
         self.last_check_time.store(Utc::now().timestamp(), Relaxed);
         info!("Redis单机连接重连成功: {}", self.conf.name);
         Ok(())
@@ -607,8 +608,10 @@ impl MeSingle {
         }
     }
 
-    // 获取一个新的连接
+    // 获取一个新的连接（导出/导入等独立线程，不记命令日志）
     fn get_new_conn(&self) -> AnyResult<Connection> {
-        Self::new_raw_conn(&self.client, self.db.load(Relaxed), self.command_timeout)
+        let mut conn = Self::new_raw_conn(&self.client, self.db.load(Relaxed), self.command_timeout)?;
+        set_client_name(&mut conn);
+        Ok(conn)
     }
 }

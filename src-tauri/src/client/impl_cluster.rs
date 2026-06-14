@@ -61,6 +61,8 @@ impl MeClient for MeCluster {
         }
 
         self.db.store(db, Relaxed);
+        let mut conn = self.get_conn()?;
+        conn.set_db_index(db);
         info!("集群模式下不支持切换DB");
         Ok(())
     }
@@ -724,6 +726,7 @@ impl MeCluster {
             logger,
             db,
         );
+        set_client_name(&mut conn);
 
         let mut info_cmd = redis::cmd("INFO");
         info_cmd.arg("SERVER");
@@ -751,10 +754,7 @@ impl MeCluster {
     }
 
     fn new_raw_conn(client: &ClusterClient, command_timeout: Duration) -> AnyResult<ClusterConnection> {
-        let mut conn = client.get_connection()?;
-        // 设置客户端名称
-        set_client_name(&mut conn);
-
+        let conn = client.get_connection()?;
         conn.set_read_timeout(Some(command_timeout))?;
         conn.set_write_timeout(Some(command_timeout))?;
         Ok(conn)
@@ -769,6 +769,7 @@ impl MeCluster {
             self.command_logger.clone(),
             self.db.load(Relaxed),
         );
+        set_client_name(&mut *conn_guard);
         self.last_check_time.store(Utc::now().timestamp(), Relaxed);
         info!("Redis集群连接重连成功: {}", self.conf.name);
         Ok(())
@@ -821,9 +822,11 @@ impl MeCluster {
         }
     }
 
-    // 获取一个新的连接
+    // 获取一个新的连接（导出/导入等独立线程，不记命令日志）
     fn get_new_conn(&self) -> AnyResult<ClusterConnection> {
-        Self::new_raw_conn(&self.client, self.command_timeout)
+        let mut conn = Self::new_raw_conn(&self.client, self.command_timeout)?;
+        set_client_name(&mut conn);
+        Ok(conn)
     }
 
     // 获取节点路由

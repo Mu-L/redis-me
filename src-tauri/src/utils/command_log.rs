@@ -3,10 +3,12 @@
 //! - 单机：LoggingConnection 包装 Connection，在 ConnectionLike 拦截。
 //! - 集群：LoggingClusterConnection 包装 ClusterConnection（ConnectionLike + route_command）。
 //! - Pipeline 仅在 req_packed_commands 记一条汇总；Subscribe/Monitor/导出线程走独立连接，不记录。
+//! - 连接初始化命令（INFO、CLIENT SETNAME、PING、CLUSTER NODES 等）均记入日志。
+//! - 错误判定：`req_command` 的 `Err`，以及 RESP3 下 `Ok(Value::ServerError)`（与 redis-rs `Cmd::query` 的 `extract_error` 一致）。
 //! - 写入后通过 `command-log` 事件推增量；打开面板时 `command_logs(limit)` 拉一次快照。
 
 use crate::utils::model::{CommandLogEntry, CommandLogEvent};
-use crate::utils::util::{redis_value_to_string, EVENT_COMMAND_LOG};
+use crate::utils::util::EVENT_COMMAND_LOG;
 use chrono::Local;
 use parking_lot::RwLock;
 use redis::cluster::ClusterConnection;
@@ -18,7 +20,6 @@ use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
 
 const DEFAULT_MAX_ENTRIES: usize = 1_000;
-const MAX_RESPONSE_LEN: usize = 500;
 
 /// 每连接一份，挂在 MeBase.command_logger
 #[derive(Debug)]
@@ -64,10 +65,8 @@ impl CommandLogger {
 
     pub fn log_from_cmd(&self, db_index: u16, cmd: &Cmd, result: &RedisResult<Value>, duration_ms: u64) {
         let (command, args) = parse_cmd(cmd);
-        if should_skip(&command) {
-            return;
-        }
-        self.push_entry(db_index, &command, &args, result, duration_ms);
+        let error = command_log_error(result);
+        self.push_entry(db_index, &command, &args, error, duration_ms);
     }
 
     fn push_entry(
@@ -75,17 +74,9 @@ impl CommandLogger {
         db_index: u16,
         command: &str,
         args: &[String],
-        result: &RedisResult<Value>,
+        error: Option<String>,
         duration_ms: u64,
     ) {
-        let (response, error) = match result {
-            Ok(value) => (
-                truncate(&redis_value_to_string(value.clone(), " "), MAX_RESPONSE_LEN),
-                None,
-            ),
-            Err(e) => (String::new(), Some(e.to_string())),
-        };
-
         let full_command = if args.is_empty() {
             command.to_string()
         } else {
@@ -99,7 +90,6 @@ impl CommandLogger {
             command: command.to_string(),
             args: args.to_vec(),
             full_command,
-            response,
             duration_ms,
             error,
         };
@@ -132,18 +122,9 @@ impl CommandLogger {
         result: &RedisResult<Vec<Value>>,
         duration_ms: u64,
     ) {
-        let mapped: RedisResult<Value> = result
-            .as_ref()
-            .map(|values| Value::Array(values.clone()))
-            .map_err(|e| e.clone());
         let summary = format!("{}x commands", count.max(1));
-        self.push_entry(
-            db_index,
-            "PIPELINE",
-            &[summary],
-            &mapped,
-            duration_ms,
-        );
+        let error = result.as_ref().err().map(|e| e.to_string());
+        self.push_entry(db_index, "PIPELINE", &[summary], error, duration_ms);
     }
 }
 
@@ -241,6 +222,10 @@ impl LoggingClusterConnection {
         self.inner.set_write_timeout(timeout)
     }
 
+    pub fn set_db_index(&mut self, db: u16) {
+        self.db_index = db;
+    }
+
     pub fn route_command(&mut self, cmd: &Cmd, route: RoutingInfo) -> RedisResult<Value> {
         let start = Instant::now();
         let result = self.inner.route_command(cmd, route);
@@ -318,6 +303,13 @@ impl ConnectionLike for LoggingClusterConnection {
     }
 }
 
+fn command_log_error(result: &RedisResult<Value>) -> Option<String> {
+    match result {
+        Err(e) => Some(e.to_string()),
+        Ok(value) => value.clone().extract_error().err().map(|e| e.to_string()),
+    }
+}
+
 fn parse_cmd(cmd: &Cmd) -> (String, Vec<String>) {
     let args: Vec<String> = cmd
         .args_iter()
@@ -334,18 +326,6 @@ fn parse_cmd(cmd: &Cmd) -> (String, Vec<String>) {
         .to_uppercase();
     let rest = args.into_iter().skip(1).collect();
     (command, rest)
-}
-
-fn should_skip(command: &str) -> bool {
-    command == "PING"
-}
-
-fn truncate(s: &str, max_len: usize) -> String {
-    if s.len() > max_len {
-        format!("{}...", &s[..max_len])
-    } else {
-        s.to_string()
-    }
 }
 
 #[cfg(test)]
@@ -366,5 +346,13 @@ mod tests {
             logger.log_from_cmd(0, &cmd, &Ok(Value::Okay), 1);
         }
         assert_eq!(logger.entries.read().len(), 3);
+    }
+
+    #[test]
+    fn command_log_error_includes_server_error_value() {
+        let wire = b"-NOPERM User has no permissions to run the 'config|get' command\r\n";
+        let value = redis::parse_redis_value(wire).unwrap();
+        let err = command_log_error(&Ok(value)).expect("should detect server error");
+        assert!(err.contains("NoPerm") || err.contains("permissions"));
     }
 }

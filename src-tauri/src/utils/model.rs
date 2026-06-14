@@ -603,7 +603,6 @@ api_model!(CommandLogEntry {
     command: String,
     args: Vec<String>,
     full_command: String,
-    response: String,
     duration_ms: u64,
     error: Option<String>,
 });

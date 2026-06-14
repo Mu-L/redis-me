@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** RedisME 客户端命令执行日志；非模态弹窗，可拖动后继续操作 */
+/** RedisME 客户端命令执行日志；非模态弹窗，标题栏可拖动 */
 import { listen } from '@tauri-apps/api/event'
 import { computed, inject, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -8,7 +8,6 @@ import { shareProvideKey } from '@/types/me-interface'
 import type { CommandLogEntry } from '@/types/tauri-specta'
 import { meCommands, meConfirm, meOk } from '@/utils/util'
 
-/** 与 Tauri `command-log` 事件 payload 一致 */
 interface CommandLogEvent {
   id: string
   entry: CommandLogEntry
@@ -24,9 +23,7 @@ const loading = ref(false)
 const logs = ref<CommandLogEntry[]>([])
 let unlisten: (() => void) | null = null
 
-/** 已见过的最大 id，打开弹窗时基线化，之后事件推送的更大 id 视为新命令 */
 const seenMaxId = ref(0)
-/** 当前批次新命令 id；下一批到来时整批替换，不自动淡出 */
 const highlightIds = ref(new Set<number>())
 const highlightColor = computed(() => share.conn?.color || share.color || 'var(--el-color-primary)')
 
@@ -36,8 +33,13 @@ type ResizeDir = (typeof RESIZE_DIRS)[number]
 const MIN_W = 520
 const MIN_H = 320
 const LOG_LIMIT = 1000
-/** 慢命令阈值（ms），仅用于行样式 */
 const SLOW_MS = 10
+const HIGHLIGHT_WINDOW_MS = 1000
+
+function parseLogTime(timestamp: string): number {
+  const ms = Date.parse(timestamp.replace(' ', 'T'))
+  return Number.isFinite(ms) ? ms : 0
+}
 
 function resetHighlightState() {
   seenMaxId.value = 0
@@ -47,7 +49,16 @@ function resetHighlightState() {
 function markNewEntry(entry: CommandLogEntry) {
   if (entry.id <= seenMaxId.value) return
   seenMaxId.value = entry.id
-  highlightIds.value = new Set([entry.id])
+
+  const latestMs = parseLogTime(entry.timestamp)
+  const ids = new Set<number>()
+  for (const row of logs.value) {
+    const diff = latestMs - parseLogTime(row.timestamp)
+    if (diff >= 0 && diff <= HIGHLIGHT_WINDOW_MS) {
+      ids.add(row.id)
+    }
+  }
+  highlightIds.value = ids
 }
 
 function stopListening() {
@@ -78,7 +89,6 @@ function clampSize(w: number, h: number) {
   }
 }
 
-/** 首次拖动/缩放前把居中弹框钉到 fixed 坐标，便于改 left/top */
 function pinDialog(el: HTMLElement) {
   if (el.dataset.commandLogPinned) return
   const rect = el.getBoundingClientRect()
@@ -114,7 +124,7 @@ function onResizeStart(e: MouseEvent, dir: ResizeDir) {
 
   const onMove = (ev: MouseEvent) => {
     let l = start.l
-    let t = start.t
+    let top = start.t
     let w = start.w
     let h = start.h
     const dx = ev.clientX - start.x
@@ -128,15 +138,15 @@ function onResizeStart(e: MouseEvent, dir: ResizeDir) {
     if (dir.includes('s')) h = start.h + dy
     if (dir.includes('n')) {
       h = start.h - dy
-      t = start.t + dy
+      top = start.t + dy
     }
 
     const sized = clampSize(w, h)
     if (dir.includes('w')) l = start.l + start.w - sized.w
-    if (dir.includes('n')) t = start.t + start.h - sized.h
+    if (dir.includes('n')) top = start.t + start.h - sized.h
 
     el.style.left = `${l}px`
-    el.style.top = `${t}px`
+    el.style.top = `${top}px`
     el.style.width = `${sized.w}px`
     el.style.height = `${sized.h}px`
   }
@@ -161,16 +171,9 @@ function setupResizeHandles() {
   }
 }
 
-function isDragTarget(target: EventTarget | null) {
-  const el = target as HTMLElement | null
-  if (!el) return false
-  return !el.closest(
-    'button, input, textarea, .el-input, .el-pagination, .el-table__body-wrapper, .me-table-more, .command-log-header__tools, .command-log-resize-handle, .el-scrollbar__thumb',
-  )
-}
-
-function onDragMouseDown(e: MouseEvent) {
-  if (!isDragTarget(e.target)) return
+function onDragMouseDown(e: Event) {
+  if (!(e instanceof MouseEvent)) return
+  if (e.target instanceof HTMLElement && e.target.closest('.el-dialog__headerbtn')) return
   const el = getDialogEl()
   if (!el) return
   pinDialog(el)
@@ -210,9 +213,13 @@ function resetDialogShell() {
 
 function onDialogOpened() {
   setupResizeHandles()
+  getDialogEl()?.querySelector('.el-dialog__header')?.addEventListener('mousedown', onDragMouseDown)
 }
 
 function onDialogClosed() {
+  getDialogEl()
+    ?.querySelector('.el-dialog__header')
+    ?.removeEventListener('mousedown', onDragMouseDown)
   resetDialogShell()
 }
 
@@ -251,17 +258,13 @@ const filterLogs = computed(() => {
   const key = keyword.value.trim().toLowerCase()
   if (!key) return logs.value
   return logs.value.filter(row => {
-    const text = `${row.fullCommand} ${row.response} ${row.command}`.toLowerCase()
+    const text = `${row.fullCommand} ${row.command}`.toLowerCase()
     return text.includes(key)
   })
 })
 
 function rowClassName({ row }: { row: CommandLogEntry }) {
-  const classes: string[] = []
-  if (highlightIds.value.has(row.id)) classes.push('command-log-row--new')
-  if (row.error) classes.push('command-log-row--error')
-  else if (row.durationMs > SLOW_MS) classes.push('command-log-row--slow')
-  return classes.join(' ')
+  return highlightIds.value.has(row.id) ? 'command-log-row--new' : ''
 }
 
 function rowStyle({ row }: { row: CommandLogEntry }) {
@@ -298,9 +301,9 @@ function clearLogs() {
   <el-dialog
     v-model="visible"
     :class="DIALOG_CLASS"
+    :title="t('commandLog.title')"
     width="80vw"
     align-center
-    :show-close="false"
     :modal="false"
     :modal-penetrable="true"
     :lock-scroll="false"
@@ -310,68 +313,68 @@ function clearLogs() {
     append-to-body
     @opened="onDialogOpened"
     @closed="onDialogClosed">
-    <div class="command-log" @mousedown="onDragMouseDown">
-      <div class="command-log-table">
-        <me-table
-          :data="filterLogs"
-          export-name="command-log"
-          height="100%"
-          v-loading="loading"
-          stripe
-          border
-          :empty-text="loading ? ' ' : t('commandLog.empty')"
-          :row-class-name="rowClassName"
-          :row-style="rowStyle">
-          <el-table-column width="272" class-name="col-nowrap" show-overflow-tooltip>
-            <template #header>
-              <div class="command-log-header">
-                <span class="command-log-header__label">
-                  {{ t('commandLog.time') }} | {{ t('commandLog.duration') }}
-                </span>
-                <div class="command-log-header__tools" @mousedown.stop>
-                  <me-button
-                    icon="el-icon-close"
-                    :info="t('commandLog.close')"
-                    placement="top"
-                    @click="visible = false" />
-                </div>
-              </div>
-            </template>
-            <template #default="{ row }">{{ row.timestamp }} | {{ row.durationMs }}</template>
-          </el-table-column>
-          <el-table-column prop="dbIndex" :label="t('commandLog.db')" width="56" align="center" />
-          <el-table-column min-width="360">
-            <template #header>
-              <div class="command-log-header">
-                <span class="command-log-header__label">{{ t('commandLog.command') }}</span>
-                <div class="command-log-header__tools" @mousedown.stop>
-                  <me-button
-                    icon="el-icon-delete"
-                    :info="t('commandLog.clear')"
-                    :disabled="logs.length === 0"
-                    placement="top"
-                    @click="clearLogs" />
-                  <el-input
-                    v-model="keyword"
-                    :placeholder="t('commandLog.keyword')"
-                    class="command-log-header__search"
-                    clearable />
-                </div>
-              </div>
-            </template>
-            <template #default="{ row }">
+    <me-table
+      class="command-log-table"
+      :data="filterLogs"
+      export-name="command-log"
+      height="100%"
+      v-loading="loading"
+      stripe
+      border
+      :empty-text="loading ? ' ' : t('commandLog.empty')"
+      :row-class-name="rowClassName"
+      :row-style="rowStyle">
+      <el-table-column
+        prop="timestamp"
+        :label="t('commandLog.time')"
+        width="200"
+        class-name="col-nowrap"
+        show-overflow-tooltip />
+      <el-table-column prop="dbIndex" :label="t('commandLog.db')" width="56" align="center" />
+      <el-table-column min-width="360">
+        <template #header>
+          <div class="command-log-header">
+            <span class="command-log-header__label">{{ t('commandLog.command') }}</span>
+            <div class="command-log-header__tools" @mousedown.stop>
+              <me-button
+                icon="el-icon-delete"
+                :info="t('commandLog.clear')"
+                :disabled="logs.length === 0"
+                placement="top"
+                @click="clearLogs" />
+              <el-input
+                v-model="keyword"
+                :placeholder="t('commandLog.keyword')"
+                class="command-log-header__search"
+                clearable />
+            </div>
+          </div>
+        </template>
+        <template #default="{ row }">
+          <div class="command-log-cmd-row">
+            <span class="command-log-cmd" :title="row.fullCommand">{{ row.fullCommand }}</span>
+            <span v-if="row.error" class="command-log-cmd__flag">
+              <el-tooltip :content="row.error" placement="top" :show-after="300">
+                <span aria-hidden="true">❎</span>
+              </el-tooltip>
+            </span>
+            <span v-else-if="row.durationMs > SLOW_MS" class="command-log-cmd__flag">
               <el-tooltip
-                :disabled="!row.error"
-                :content="row.error ?? ''"
+                :content="t('commandLog.slowHint', { ms: row.durationMs })"
                 placement="top"
                 :show-after="300">
-                <span class="command-log-cmd">{{ row.fullCommand }}</span>
+                <span aria-hidden="true">⚠️</span>
               </el-tooltip>
-            </template>
-          </el-table-column>
-        </me-table>
-      </div>
-    </div>
+            </span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column
+        :label="t('commandLog.duration')"
+        width="96"
+        align="right"
+        prop="durationMs" />
+    </me-table>
   </el-dialog>
 </template>
 
@@ -388,7 +391,9 @@ function clearLogs() {
   max-height: 92vh;
 
   .el-dialog__header {
-    display: none;
+    cursor: move;
+    margin-right: 0;
+    padding-bottom: 8px;
   }
 
   .el-dialog__body {
@@ -397,7 +402,7 @@ function clearLogs() {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    cursor: move;
+    padding-top: 8px;
   }
 
   .command-log-resize-handle {
@@ -472,71 +477,65 @@ function clearLogs() {
 </style>
 
 <style scoped lang="scss">
-.command-log {
+.command-log-table {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+}
+
+:deep(.command-log-header) {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  font-weight: normal;
+}
 
-  &-table {
-    flex: 1;
-    min-height: 0;
-    cursor: move;
-  }
+:deep(.command-log-header__label) {
+  flex-shrink: 0;
+  font-weight: bold;
+}
 
-  :deep(.command-log-header) {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    font-weight: normal;
-    cursor: default;
-  }
+:deep(.command-log-header__tools) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  min-width: 0;
+  flex: 1;
+  justify-content: flex-end;
+}
 
-  :deep(.command-log-header__label) {
-    flex-shrink: 0;
-    font-weight: bold;
-  }
+:deep(.command-log-header__search) {
+  width: 200px;
+  max-width: 100%;
+}
 
-  :deep(.command-log-header__tools) {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-    min-width: 0;
-    flex: 1;
-    justify-content: flex-end;
-  }
+.command-log-cmd-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
 
-  :deep(.command-log-header__search) {
-    width: 200px;
-    max-width: 100%;
-  }
+.command-log-cmd {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  .command-log-cmd {
-    display: inline-block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: middle;
-  }
+.command-log-cmd__flag {
+  flex-shrink: 0;
+  line-height: 1;
+}
 
-  :deep(.col-nowrap .cell) {
-    white-space: nowrap;
-  }
+:deep(.col-nowrap .cell) {
+  white-space: nowrap;
+}
 
-  :deep(.command-log-row--new .cell) {
-    color: inherit;
-  }
-
-  :deep(.command-log-row--error) {
-    --el-table-tr-bg-color: var(--el-color-error-light-9);
-  }
-
-  :deep(.command-log-row--slow) {
-    --el-table-tr-bg-color: var(--el-color-warning-light-9);
-  }
+:deep(.command-log-row--new .cell) {
+  color: inherit;
 }
 </style>

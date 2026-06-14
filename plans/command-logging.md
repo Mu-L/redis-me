@@ -8,7 +8,7 @@
 - 界面操作触发的命令（GET/SET/HSCAN 等）
 - 批量操作（Pipeline）
 - 集群路由命令
-- 系统初始化命令（可选过滤）
+- 连接初始化命令（INFO、CLIENT SETNAME、PING、CLUSTER NODES 等，均记入日志）
 
 ## 二、核心原理
 
@@ -56,7 +56,7 @@ ConnectionLike::req_packed_command()  ← 唯一拦截点（单机模式）
 │              │                          │
 │  ┌───────────▼───────────────────────┐  │
 │  │ CommandLogger (全局单例)          │  │
-│  │ - 环形缓冲区 (默认10000条)        │  │
+│  │ - 环形缓冲区 (默认1000条)        │  │
 │  │ - 原子操作，线程安全              │  │
 │  │ - 可选: emit 事件到前端           │  │
 │  └───────────▲──────────────────────┘  │
@@ -95,12 +95,8 @@ pub struct CommandLogEntry {
     pub args: Vec<String>,
     /// 完整命令字符串 "GET mykey"（方便复制）
     pub full_command: String,
-    /// 响应内容（截断到500字符）
-    pub response: String,
     /// 执行耗时（毫秒）
     pub duration_ms: u64,
-    /// 状态: "ok" / "error" / "slow"（超过100ms标记为慢命令）
-    pub status: String,
     /// 错误信息（如果有）
     pub error: Option<String>,
 }
@@ -114,7 +110,7 @@ pub struct CommandLogger {
     entries: RwLock<Vec<CommandLogEntry>>,
     /// 下一个ID
     next_id: AtomicU64,
-    /// 最大条目数（默认10000）
+    /// 最大条目数（默认1000）
     max_entries: usize,
     /// 是否启用
     enabled: AtomicBool,
@@ -358,22 +354,13 @@ logger.log(CommandLogEntry {
 - `memory_usage()`
 - `client_list()`
 
-### 5.4 敏感命令过滤
+### 5.4 初始化命令
 
-某些命令的参数可能包含敏感信息（如密码），需要过滤:
+连接建立时的 **INFO**、**CLIENT SETNAME**（`RedisME`）、**PING**、**CLUSTER NODES**（集群）等初始化命令**均记入日志**，便于排查连接问题。
 
-```rust
-fn sanitize_args(command: &str, args: &[String]) -> Vec<String> {
-    match command {
-        "AUTH" => vec!["***".to_string()],  // 隐藏密码
-        "CONFIG" if args.get(0).map(|s| s.to_lowercase()) == Some("set".into()) => {
-            // CONFIG SET 可能需要隐藏某些配置值
-            args.to_vec()
-        },
-        _ => args.to_vec(),
-    }
-}
-```
+**不做脱敏**：AUTH 等命令参数原样记录（本地调试工具，用户自行注意敏感信息）。
+
+**不记录响应内容**：仅保留命令、耗时与错误信息，避免大 Value 序列化复杂度。
 
 ## 六、Tauri API 设计
 
@@ -528,27 +515,24 @@ listen('command-log', event => {
 
 ### 8.1 开销评估
 
-| 操作              | 耗时        | 说明                         |
-| ----------------- | ----------- | ---------------------------- |
-| parse_cmd()       | < 0.01ms    | 简单的参数提取               |
-| value_to_string() | < 0.1ms     | 序列化响应（截断到10个元素） |
-| log()             | < 0.01ms    | RwLock 写入                  |
-| **总计**          | **< 0.2ms** | 对命令执行影响极小           |
+| 操作        | 耗时        | 说明               |
+| ----------- | ----------- | ------------------ |
+| parse_cmd() | < 0.01ms    | 简单的参数提取     |
+| log()       | < 0.01ms    | RwLock 写入        |
+| **总计**    | **< 0.2ms** | 对命令执行影响极小 |
 
 ### 8.2 优化措施
 
 1. **环形缓冲区**: 限制最大条目数，避免内存无限增长
-2. **响应截断**: 响应内容截断到 500 字符，数组最多取 10 个元素
-3. **可选开关**: 提供全局开关，生产环境可关闭
-4. **异步 emit**: 前端推送使用异步事件，不阻塞命令执行
-5. **跳过滤镜**: 可配置跳过高频系统命令（PING 等）
+2. **可选开关**: 提供全局开关，生产环境可关闭
+3. **异步 emit**: 前端推送使用异步事件，不阻塞命令执行
 
 ### 8.3 内存占用估算
 
 ```
-单条日志大小: ~500 字节 (命令 + 参数 + 响应)
-最大条目数: 10,000
-总内存: ~5 MB
+单条日志大小: ~200 字节 (命令 + 参数 + 错误)
+最大条目数: 1,000
+总内存: ~0.5 MB
 ```
 
 ## 九、实施步骤
@@ -565,7 +549,6 @@ listen('command-log', event => {
 
 - [ ] 修改 `impl_cluster.rs` - 集群模式添加 日志
 - [ ] 修改 `client_trait.rs` - Pipeline 汇总日志
-- [ ] 添加命令过滤/敏感信息处理
 
 ### Phase 3: 前端界面
 
@@ -595,9 +578,8 @@ listen('command-log', event => {
 1. **集群模式特殊**: ClusterConnection 没有实现 ConnectionLike，需单独处理
 2. **Pipeline 限制**: Pipeline::query() 只记录一次，子命令需业务层添加汇总日志
 3. **SUBSCRIBE/MONITOR**: 流式命令不适合记录到命令日志，保持现有事件机制
-4. **敏感信息**: AUTH 等命令的参数需要过滤/脱敏
-5. **线程安全**: CommandLogger 使用 RwLock + Atomic 保证并发安全
-6. **性能监控**: 建议后续添加日志写入耗时监控，确保不影响正常操作
+4. **线程安全**: CommandLogger 使用 RwLock + Atomic 保证并发安全
+5. **性能监控**: 建议后续添加日志写入耗时监控，确保不影响正常操作
 
 ## 十二、测试计划
 
@@ -660,27 +642,23 @@ api_model!(CommandLogEntry {
     timestamp: String,       // Local 格式化，与慢日志一致
     db_index: u16,
     command: String,         // 大写
-    args: Vec<String>,         // 已脱敏
+    args: Vec<String>,
     full_command: String,
-    response: String,          // redis_value_to_string 后截断 500
     duration_ms: u64,
-    status: String,            // ok | error | slow
     error: Option<String>,
 });
 ```
 
-**CommandLogger**：环形缓冲（默认 10000）、`parking_lot::RwLock`（与项目其它锁一致）、慢命令阈值默认 100ms。
+**CommandLogger**：环形缓冲（默认 **1000**）、`parking_lot::RwLock`（与项目其它锁一致）。
 
-**脱敏**（`sanitize_args`）：
+**记录范围**：所有经主连接发出的命令（含 PING、初始化命令），不记录响应正文。
 
-- `AUTH` → 密码 `***`
-- `ACL SETUSER` 含 `#` 密码哈希 → 隐藏
-- 可选：高频 `PING` / `CLIENT SETNAME` 跳过（v1 可全记录，后续加设置项）
+**集群 db_index**：`select_db` 时同步 `LoggingClusterConnection.set_db_index`，与 `MeBase.db` 一致。
 
 ### 13.3 单机接入（impl_single.rs）
 
 1. `MeSingle.conn` 改为 `Mutex<LoggingConnection>`。
-2. `new_conn` / `reconnect` 返回 `LoggingConnection::wrap(conn, base.command_logger.clone(), …)`。
+2. `new_conn` / `reconnect` 返回 `LoggingConnection::wrap(conn, …)`；**CLIENT SETNAME 在包装后执行**，以便记入日志。
 3. `get_conn()` 返回类型改为 `MutexGuard<'_, LoggingConnection>`；`field_scan0` 等 `impl Commands` 调用**无需改动**（blanket impl）。
 4. `subscribe` / `monitor` 仍用 `client.get_connection()` 独立连接 → **不记入命令日志**（与原方案一致）。
 
@@ -740,7 +718,9 @@ command_logs_clear(id: &str) -> ();
 
 `lib.rs` → `collect_commands!` 注册；debug 构建自动更新 `src/types/tauri-specta.ts`。
 
-**v1 不做**：`toggle_command_logger`、`get_command_log_stats`、Tauri Event 推送。
+**v1 不做**：`toggle_command_logger`、`get_command_log_stats`。
+
+**已实现**：Tauri Event `command-log` 增量推送 + 打开面板 `command_logs` 拉快照。
 
 ### 13.8 前端（修订）
 
@@ -759,7 +739,7 @@ command_logs_clear(id: &str) -> ();
 
 - 参考 `AclLog.vue`：`me-dialog` + 工具栏（清空 / 关键字 / 刷新）+ `me-table`（`export-name="command-log"`）。
 - **非模态**（已确认）：`:modal="false"` + `:close-on-click-modal="false"`，可拖到一侧后继续操作键值/终端；空态或副标题说明「可拖动窗口，不影响继续操作」。
-- 列：时间、DB、命令、参数/完整命令、耗时(ms)、状态、响应（tooltip）、错误。
+- 列：时间、DB、命令、耗时(ms)、错误（tooltip）。
 - `watch(visible)` 打开时拉取；`setInterval` 1s 轮询（仅 `visible` 时），关闭时 clear。
 - 慢命令 / 错误行用 `el-table` row-class-name 着色。
 - 行操作：复制 `full_command`（`meCopy`）。
@@ -770,17 +750,17 @@ command_logs_clear(id: &str) -> ();
 
 ### 13.9 文件清单（修订）
 
-| 操作 | 路径                                                                                         |
-| ---- | -------------------------------------------------------------------------------------------- |
-| 新建 | `src-tauri/src/utils/command_log.rs`（Logger + LoggingConnection + sanitize + log_cmd 辅助） |
-| 修改 | `src-tauri/src/utils/mod.rs`                                                                 |
-| 修改 | `src-tauri/src/utils/model.rs`（`MeBase` 增字段 + `CommandLogEntry`）                        |
-| 修改 | `src-tauri/src/client/impl_single.rs`                                                        |
-| 修改 | `src-tauri/src/client/impl_cluster.rs`                                                       |
-| 修改 | `src-tauri/src/api.rs`、`src-tauri/src/lib.rs`                                               |
-| 新建 | `src/views/ext/CommandLog.vue`                                                               |
-| 修改 | `src/views/KeyHeader.vue`                                                                    |
-| 修改 | `src/locales/lang/zh-cn.ts`、`en.ts`                                                         |
+| 操作 | 路径                                                                        |
+| ---- | --------------------------------------------------------------------------- |
+| 新建 | `src-tauri/src/utils/command_log.rs`（Logger + LoggingConnection + 包装器） |
+| 修改 | `src-tauri/src/utils/mod.rs`                                                |
+| 修改 | `src-tauri/src/utils/model.rs`（`MeBase` 增字段 + `CommandLogEntry`）       |
+| 修改 | `src-tauri/src/client/impl_single.rs`                                       |
+| 修改 | `src-tauri/src/client/impl_cluster.rs`                                      |
+| 修改 | `src-tauri/src/api.rs`、`src-tauri/src/lib.rs`                              |
+| 新建 | `src/views/ext/CommandLog.vue`                                              |
+| 修改 | `src/views/KeyHeader.vue`                                                   |
+| 修改 | `src/locales/lang/zh-cn.ts`、`en.ts`                                        |
 
 ### 13.10 实施顺序（建议）
 
@@ -792,9 +772,8 @@ command_logs_clear(id: &str) -> ();
 
 **Phase 2 — 覆盖率**
 
-4. 集群 `route_logged`
+4. 集群 `LoggingClusterConnection` 包装 + `route_command` / `cluster_pipe_query`
 5. Pipeline 汇总日志
-6. 脱敏与 PING 过滤
 
 **Phase 3 — 增强（可选）**
 
@@ -829,7 +808,7 @@ Phase 1（单机 + 弹窗）约 **400 行净增**；Phase 2 集群/Pipeline 再 
 
 #### 为什么相对好理解
 
-1. **单一职责文件**：`command_log.rs` 自包含（缓冲、脱敏、包装器、写日志），读这一文件即可懂机制。
+1. **单一职责文件**：`command_log.rs` 自包含（缓冲、包装器、写日志），读这一文件即可懂机制。
 2. **单机一条拦截路径**：所有命令走 `LoggingConnection::req_packed_command`，不用在每个业务方法里 `log()`。
 3. **集群一条辅助方法**：`route_logged()` 替代散落的 `route_command`，新人搜 `route_logged` / `command_log` 即可。
 4. **不污染 `client_trait`**：`field_scan0`、`set0` 等共享函数签名不变，仍接收 `impl Commands`。

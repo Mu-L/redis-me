@@ -380,6 +380,7 @@ export default {
     db: 'DB',
     command: 'Command',
     duration: 'Cost(ms)',
+    slowHint: 'Slow command, {ms} ms',
   },
 
   fieldAdd: {

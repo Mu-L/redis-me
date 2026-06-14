@@ -124,7 +124,6 @@ export type CommandLogEntry = {
 	command: string,
 	args: string[],
 	fullCommand: string,
-	response: string,
 	durationMs: number,
 	error: string | null,
 };
