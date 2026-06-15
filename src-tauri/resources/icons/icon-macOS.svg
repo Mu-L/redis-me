@@ -1,7 +1,7 @@
 <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-  <!-- Windows：无安全区，内容铺满画布 -->
-  <rect x="0" y="0" width="1024" height="1024" fill="#6B46C1" rx="189" ry="189"/>
+  <!-- macOS：82% squircle 居中，四边各 92px 透明边距 -->
+  <rect x="92" y="92" width="840" height="840" fill="#6B46C1" rx="189" ry="189"/>
   <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle"
         font-family="Arial, Helvetica, sans-serif" font-weight="bold"
-        fill="#FFFFFF" font-size="620" dy="0">ME</text>
+        fill="#FFFFFF" font-size="512" dy="0">ME</text>
 </svg>
