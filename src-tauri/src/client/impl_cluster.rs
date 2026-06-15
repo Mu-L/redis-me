@@ -21,7 +21,6 @@ use std::ops::Deref;
 use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
-use tauri::AppHandle;
 
 pub struct MeCluster {
     base: MeBase,
@@ -422,9 +421,10 @@ impl MeClient for MeCluster {
         publish0(self.get_conn()?, channel, message)
     }
 
-    fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
+    fn subscribe(&self, channel: Option<String>) -> AnyResult<()> {
         let conn = get_client_single(&self.conf)?.0.get_connection()?;
         let running = self.subscribe_running.clone();
+        let app_handle = self.base().get_app_handle()?;
         subscribe0(conn, running, app_handle, channel, self.id.clone())
     }
 
@@ -432,7 +432,7 @@ impl MeClient for MeCluster {
         subscribe_stop0(self.get_conn()?, self.subscribe_running.clone())
     }
 
-    fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()> {
+    fn monitor(&self, node: &str) -> AnyResult<()> {
         // 集群中的monitor命令是针对单个节点的，所以需要获取该节点的连接
         let mut conf = self.conf.clone();
         if let Some((host, port)) = node.split_once(":") {
@@ -441,6 +441,7 @@ impl MeClient for MeCluster {
         }
         let conn = get_client_single(&conf)?.0.get_connection()?;
         let running = self.monitor_running.clone();
+        let app_handle = self.base().get_app_handle()?;
         monitor0(conn, running, app_handle, self.id.clone())
     }
 
@@ -485,11 +486,12 @@ impl MeClient for MeCluster {
         Ok(())
     }
 
-    fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()> {
+    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()> {
         let key_list = batch_key0(self, param.clone().into(), true)?;
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
+        let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
         thread::spawn(move || {
             export_csv_0_thread(
@@ -505,19 +507,21 @@ impl MeClient for MeCluster {
         Ok(())
     }
 
-    fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()> {
+    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()> {
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
+        let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
         thread::spawn(move || import_csv_0_thread(&mut conn, param, running, app_handle, id));
         Ok(())
     }
 
-    fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()> {
+    fn import_cmd(&self, file: String) -> AnyResult<()> {
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
+        let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
         thread::spawn(move || import_cmd_0_thread(&mut conn, file, running, app_handle, id));
         Ok(())

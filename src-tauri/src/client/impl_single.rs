@@ -16,7 +16,6 @@ use std::ops::Deref;
 use std::sync::atomic::Ordering::Relaxed;
 use std::thread;
 use std::time::Duration;
-use tauri::AppHandle;
 
 pub struct MeSingle {
     base: MeBase,
@@ -320,9 +319,10 @@ impl MeClient for MeSingle {
         publish0(self.get_conn()?, channel, message)
     }
 
-    fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
+    fn subscribe(&self, channel: Option<String>) -> AnyResult<()> {
         let conn = self.client.get_connection()?;
         let running = self.subscribe_running.clone();
+        let app_handle = self.base().get_app_handle()?;
         subscribe0(conn, running, app_handle, channel, self.id.clone())
     }
 
@@ -330,9 +330,10 @@ impl MeClient for MeSingle {
         subscribe_stop0(self.get_conn()?, self.subscribe_running.clone())
     }
 
-    fn monitor(&self, app_handle: AppHandle, _node: &str) -> AnyResult<()> {
+    fn monitor(&self, _node: &str) -> AnyResult<()> {
         let conn = self.client.get_connection()?;
         let running = self.monitor_running.clone();
+        let app_handle = self.base().get_app_handle()?;
         monitor0(conn, running, app_handle, self.id.clone())
     }
 
@@ -377,11 +378,12 @@ impl MeClient for MeSingle {
         Ok(())
     }
 
-    fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()> {
+    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()> {
         let key_list = batch_key0(self, param.clone().into(), true)?;
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
+        let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
         thread::spawn(move || {
             export_csv_0_thread(
@@ -397,19 +399,21 @@ impl MeClient for MeSingle {
         Ok(())
     }
 
-    fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()> {
+    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()> {
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
+        let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
         thread::spawn(move || import_csv_0_thread(&mut conn, param, running, app_handle, id));
         Ok(())
     }
 
-    fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()> {
+    fn import_cmd(&self, file: String) -> AnyResult<()> {
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
+        let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
         thread::spawn(move || import_cmd_0_thread(&mut conn, file, running, app_handle, id));
         Ok(())

@@ -2,7 +2,7 @@ use crate::client::state::ClientAccess;
 use crate::utils::app_store;
 use crate::utils::model::*;
 use crate::utils::util::*;
-use crate::{api_commands, api_commands2};
+use crate::{api_commands};
 use specta::specta;
 use std::collections::HashMap;
 use tauri::utils::platform::current_exe;
@@ -172,13 +172,10 @@ api_commands!(
     acl_dryrun(username: String, command: String) -> String; // ACL 模拟测试
     command_logs(limit: Option<u64>) -> Vec<CommandLogEntry>; // 命令日志（打开面板时拉快照）
     command_logs_clear() -> (); // 清空命令日志
-);
-
-// 需要将app_handle传递过去的命令
-api_commands2!(
+    // 以下方法需要 app_handle（内部从 MeBase 获取）
     monitor(node: &str) -> ();                   // 监控命令
-    subscribe(channel: Option<String>)-> ();     // 订阅消息
-    export_csv(param: RedisExportCsv) -> ();     // 导出CSV
-    import_csv(param: RedisImportCsv) -> ();     // 导入CSV
-    import_cmd(file: String) -> ();              // 导入命令
+    subscribe(channel: Option<String>) -> ();  // 订阅消息
+    export_csv(param: RedisExportCsv) -> ();    // 导出CSV
+    import_csv(param: RedisImportCsv) -> ();    // 导入CSV
+    import_cmd(file: String) -> ();             // 导入命令
 );

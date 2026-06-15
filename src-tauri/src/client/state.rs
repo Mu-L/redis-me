@@ -82,7 +82,8 @@ impl ClientAccess for AppHandle {
         client
             .base()
             .command_logger
-            .bind_app_handle(app_handle);
+            .bind_app_handle(app_handle.clone());
+        *client.base().app_handle.write() = Some(app_handle);
         clients.insert(id.to_string(), Arc::clone(&client));
         info!("连接成功: {}", client.name());
         Ok(client)

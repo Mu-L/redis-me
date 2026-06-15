@@ -88,17 +88,17 @@ pub trait MeClient: Send + Sync {
 
     fn publish(&self, channel: &str, message: &str) -> AnyResult<()>;
 
-    fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()>;
+    fn subscribe(&self, channel: Option<String>) -> AnyResult<()>;
     fn subscribe_stop(&self) -> AnyResult<()>;
 
-    fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()>;
+    fn monitor(&self, node: &str) -> AnyResult<()>;
     fn monitor_stop(&self) -> AnyResult<()>;
 
     fn batch_del(&self, param: RedisBatchKey) -> AnyResult<()>;
     fn batch_ttl(&self, param: RedisBatchTtl) -> AnyResult<()>;
-    fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()>;
-    fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()>;
-    fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()>;
+    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()>;
+    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()>;
+    fn import_cmd(&self, file: String) -> AnyResult<()>;
 
     fn mock_data(&self, count: u64) -> AnyResult<()>;
     fn key_type(&self, key: RedisKey) -> AnyResult<String>;

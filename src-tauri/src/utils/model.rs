@@ -2,6 +2,7 @@
 
 use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
+use crate::utils::error::AppError;
 use crate::utils::util::{
     AnyResult, parse_server_version, redis_value_to_string, vec8_to_display_string,
 };
@@ -14,6 +15,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU16};
 use std::time::Duration;
+use parking_lot::RwLock;
+use tauri::AppHandle;
 
 /// 前后端 IPC 字节格式：utf8 文本或 base64 原始字节（hex/binary/msgpack 等视图格式在前端处理）
 #[derive(Debug, Clone, Default, Serialize, Deserialize, Type)]
@@ -189,6 +192,8 @@ pub struct MeBase {
     pub command_timeout: Duration,
     /// 本连接命令执行日志（环形缓冲）
     pub command_logger: Arc<crate::utils::command_log::CommandLogger>,
+    /// 用于后台线程 emit 事件到前端
+    pub app_handle: Arc<RwLock<Option<AppHandle>>>,
 }
 
 impl From<&ConnConfig> for MeBase {
@@ -209,12 +214,23 @@ impl From<&ConnConfig> for MeBase {
             command_logger: Arc::new(crate::utils::command_log::CommandLogger::new(
                 conf.id.clone(),
             )),
+            app_handle: Arc::new(RwLock::new(None::<AppHandle>)),
         }
     }
 }
 
 // 新增：MeBase 更新版本和能力的方法
 impl MeBase {
+    /// 获取绑定的 AppHandle，未初始化时返回错误
+    pub fn get_app_handle(&self) -> AnyResult<AppHandle> {
+        self.app_handle.read().clone().ok_or_else(|| {
+            AppError::Internal {
+                message: "AppHandle not initialized".to_string(),
+            }
+            .into()
+        })
+    }
+
     pub fn update_server_info(&mut self, info_output: &str, conn: &mut impl Commands) {
         // 解析版本号
         self.server_version = parse_server_version(info_output);
