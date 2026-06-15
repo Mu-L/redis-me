@@ -370,6 +370,7 @@ export default {
 
   commandLog: {
     title: 'Command Log',
+    description: 'Records all Redis commands. Recent 1s commands highlighted',
     keyword: 'Filter displayed commands…',
     clear: 'Clear',
     close: 'Close',
@@ -380,7 +381,7 @@ export default {
     db: 'DB',
     command: 'Command',
     duration: 'Cost(ms)',
-    slowHint: 'Slow command, {ms} ms',
+    slowHint: 'Slow command, cost>100ms',
   },
 
   fieldAdd: {

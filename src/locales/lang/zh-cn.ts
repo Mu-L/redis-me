@@ -360,6 +360,8 @@ export default {
 
   commandLog: {
     title: '命令日志',
+    description:
+      '记录当前连接的所有Redis命令执行情况。最近1秒内执行的命令会以高亮颜色显示，便于追踪最新操作',
     keyword: '过滤已显示命令…',
     clear: '清空',
     close: '关闭',
@@ -370,7 +372,7 @@ export default {
     db: 'DB',
     command: '命令',
     duration: '耗时(ms)',
-    slowHint: '慢命令，耗时 {ms} ms',
+    slowHint: '慢命令，耗时>100ms',
   },
 
   fieldAdd: {
