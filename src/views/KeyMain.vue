@@ -81,8 +81,6 @@ const keyword = ref('')
 const loading = ref(false)
 const loadFolder = ref(false)
 const autoLoading = ref(false)
-const autoLoadCount = ref(0)
-const MAX_AUTO_LOAD_COUNT = 10
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -115,7 +113,6 @@ async function scanKey(useCursor = false, loadAll = false, autoContinue = false)
   try {
     if (!useCursor) {
       cursor.value = null
-      autoLoadCount.value = 0
       autoLoading.value = false
     }
 
@@ -133,20 +130,15 @@ async function scanKey(useCursor = false, loadAll = false, autoContinue = false)
     // 非游标扫描：拿到结果后再整体替换，避免请求期间清空列表导致「暂无数据」闪烁
     const newKeyList = useCursor ? [...keyList.value, ...data.keyList] : data.keyList
     keyList.value = sortBy(newKeyList, ['key'])
+
+    // 搜索后自动继续加载更多，提升大数据量搜索体验
+    // 停止条件：1）返回了新结果（用户已看到结果） 2）扫描完成
+    if (autoContinue && cursor.value && !cursor.value.finished && data.keyList.length === 0) {
+      setTimeout(() => scanKey(true, false, true), 100)
+    }
   } finally {
     loading.value = false
     autoLoading.value = false
-  }
-
-  // 搜索后自动继续加载更多，提升大数据量搜索体验
-  if (
-    autoContinue &&
-    cursor.value &&
-    !cursor.value.finished &&
-    autoLoadCount.value < MAX_AUTO_LOAD_COUNT
-  ) {
-    autoLoadCount.value++
-    setTimeout(() => scanKey(true, false, true), 100)
   }
 }
 
