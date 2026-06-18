@@ -1,5 +1,6 @@
 use crate::client::client_trait::*;
 use crate::implement_pipeline_commands;
+use crate::utils::capabilities::detect_server_capabilities;
 use crate::utils::command_log::LoggingConnection;
 use crate::utils::conn::{get_client_single, set_client_name};
 use crate::utils::error::AppError;
@@ -135,7 +136,8 @@ impl MeClient for MeSingle {
     }
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
-        field_scan0(self.get_conn()?, param, &self.capabilities)
+        let httl_supported = self.base().capabilities.httl_supported;
+        field_scan0(self.get_conn()?, param, httl_supported)
     }
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
@@ -163,11 +165,11 @@ impl MeClient for MeSingle {
     }
 
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey> {
-        field_add0(self.get_conn()?, param, &self.capabilities)
+        field_add0(self.get_conn()?, param, self.base().capabilities.httl_supported)
     }
 
     fn field_set(&self, param: RedisFieldSet) -> AnyResult<()> {
-        field_set0(self.get_conn()?, param, &self.capabilities)
+        field_set0(self.get_conn()?, param, self.base().capabilities.httl_supported)
     }
 
     fn field_del(&self, param: RedisFieldDel) -> AnyResult<()> {
@@ -521,10 +523,9 @@ impl MeSingle {
         let raw_conn = Self::new_raw_conn(&client, redis_conn.db, command_timeout)?;
         let mut conn = LoggingConnection::new(raw_conn, logger, redis_conn.db);
         set_client_name(&mut conn);
-        match redis::cmd("INFO").arg("SERVER").query::<String>(&mut conn) {
-            Ok(info) => base.update_server_info(&info, &mut conn),
-            Err(e) => warn!("INFO SERVER 不可用，跳过版本探测: {e}"),
-        }
+
+        detect_server_capabilities(&mut conn, &mut base);
+
         info!("Redis单机连接初始化成功: {}", redis_conn.name);
 
         Ok(Box::new(MeSingle {

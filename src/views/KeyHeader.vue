@@ -43,7 +43,8 @@ onMounted(() => {
 async function handleCommand(command: string): Promise<void> {
   if (command === 'refreshConn') {
     if (!share.conn) return
-    share.capabilities = await meCommands.connect(share.conn!.id)
+    const capabilities = await meCommands.connect(share.conn!.id)
+    Object.assign(share.capabilities, capabilities)
     bus.emit(CONN_REFRESH)
   } else if ('closeConn' === command) {
     share.conn = null
@@ -88,11 +89,6 @@ async function handleCommand(command: string): Promise<void> {
           <me-icon :icon="getConnIcon(value)" :name="value.name" />
         </div>
       </template>
-      <!-- 
-      <template #prefix>
-        <me-icon :icon="share.isValkey ? 'me-icon-valkey' : 'me-icon-redis'" />
-      </template>
-      -->
     </el-select>
 
     <el-dropdown placement="bottom-end" @command="handleCommand" style="margin-left: 10px">

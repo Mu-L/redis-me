@@ -46,7 +46,7 @@ interface ConfigTableRow {
 const dataList = ref<ConfigTableRow[]>([])
 
 // 文件格式的配置文件（使用 Vite ?raw 导入，打包时会内联到 JS 中）
-const serverType = computed(() => (share.isValkey ? 'Valkey' : 'Redis'))
+const serverType = computed(() => (share.capabilities.isValkey ? 'Valkey' : 'Redis'))
 
 // 动态加载配置文件
 const configCache: Record<string, string | null> = {}
@@ -113,7 +113,7 @@ function handleCommand(command: string) {
 }
 
 // Json格式的默认配置
-const confDict = computed(() => (share.isValkey ? valkeyConfDict : redisConfDict))
+const confDict = computed(() => (share.capabilities.isValkey ? valkeyConfDict : redisConfDict))
 
 const dictVersionList = Object.keys(confDict.value).reverse()
 function getDefaultVersion() {

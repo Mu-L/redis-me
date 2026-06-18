@@ -4,11 +4,10 @@ use crate::api_model;
 use crate::utils::conn::{get_client_cluster, get_client_single};
 use crate::utils::error::AppError;
 use crate::utils::util::{
-    AnyResult, parse_server_version, redis_value_to_string, vec8_to_display_string,
+    AnyResult, vec8_to_display_string,
 };
 use chrono::Utc;
-use log::info;
-use redis::{Commands, RedisWrite, ToRedisArgs, ToSingleRedisArg, Value};
+use redis::{RedisWrite, ToRedisArgs, ToSingleRedisArg};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::collections::HashMap;
@@ -186,14 +185,14 @@ pub struct MeBase {
     pub monitor_running: Arc<AtomicBool>,
     pub export_import_running: Arc<AtomicBool>,
     pub last_check_time: Arc<AtomicI64>,
-    pub server_version: String,
-    pub capabilities: Arc<ServerCapabilities>,
     /// 已建立连接上的单次命令读写超时（init 时从 AppSettings 快照）
     pub command_timeout: Duration,
     /// 本连接命令执行日志（环形缓冲）
     pub command_logger: Arc<crate::utils::command_log::CommandLogger>,
     /// 用于后台线程 emit 事件到前端
     pub app_handle: Arc<RwLock<Option<AppHandle>>>,
+    /// 连接成功后检测的服务器能力
+    pub capabilities: ServerCapabilities,
 }
 
 impl From<&ConnConfig> for MeBase {
@@ -207,14 +206,12 @@ impl From<&ConnConfig> for MeBase {
             export_import_running: Arc::new(AtomicBool::new(false)),
             last_check_time: Arc::new(AtomicI64::new(Utc::now().timestamp())),
 
-            // 默认值，实际在创建客户端时更新
-            server_version: String::new(),
-            capabilities: Arc::new(ServerCapabilities::default()),
             command_timeout: crate::utils::util::CONNECTION_NORMAL_TIMEOUT,
             command_logger: Arc::new(crate::utils::command_log::CommandLogger::new(
                 conf.id.clone(),
             )),
             app_handle: Arc::new(RwLock::new(None::<AppHandle>)),
+            capabilities: ServerCapabilities::default(),
         }
     }
 }
@@ -231,43 +228,7 @@ impl MeBase {
         })
     }
 
-    pub fn update_server_info(&mut self, info_output: &str, conn: &mut impl Commands) {
-        // 解析版本号
-        self.server_version = parse_server_version(info_output);
-        // 通过命令检测能力
-        self.capabilities = Arc::new(ServerCapabilities::from_command_info(conn));
-        info!(
-            "Detected server: {} (capabilities: hash_field_ttl={})",
-            self.server_version, self.capabilities.hash_field_ttl
-        );
-    }
-}
 
-// 能力标识
-api_model!(
-    #[derive(Default)]
-    ServerCapabilities {
-        hash_field_ttl: bool, // Redis/Valkey >= 7.4.0
-                              // 未来可扩展其他特性
-    }
-);
-
-impl ServerCapabilities {
-    // 通过 COMMAND INFO HTTL 检测是否支持字段级 TTL
-    pub fn from_command_info(conn: &mut impl Commands) -> Self {
-        // COMMAND INFO HTTL 返回命令信息，如果命令不存在返回 Nil
-        let result: Result<Value, _> = redis::cmd("COMMAND").arg("INFO").arg("HTTL").query(conn);
-
-        let hash_field_ttl = match result {
-            Ok(value) => {
-                let str = redis_value_to_string(value, "");
-                !str.trim().is_empty() // HTTL 命令存在
-            }
-            _ => false,
-        };
-
-        Self { hash_field_ttl }
-    }
 }
 
 // 数据库信息
@@ -301,6 +262,18 @@ api_model!(
 api_model!(RedisInfo {
     node: String,
     info: String,
+});
+
+// 服务器能力（connect 时检测并返回）
+api_model!(
+#[derive(Default)]
+ServerCapabilities {
+    version: String,
+    is_valkey: bool,
+    acl_supported: bool,
+    acl_dryrun_supported: bool,
+    acl_selector_supported: bool,
+    httl_supported: bool,
 });
 
 // 集群节点

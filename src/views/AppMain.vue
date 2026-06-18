@@ -71,11 +71,13 @@ const share = reactive<AppMainShare>({
   exportImportingTip: '',
   exportImportingPercentage: 0,
 
-  isValkey: false,
-  serverVersion: '',
-
   capabilities: {
-    hashFieldTtl: false,
+    version: '',
+    isValkey: false,
+    aclSupported: false,
+    aclDryrunSupported: false,
+    aclSelectorSupported: false,
+    httlSupported: false,
   },
 })
 provide(shareProvideKey, share)
@@ -126,7 +128,8 @@ watch(
         share.color = newConn.color ?? 'var(--el-color-primary)'
         share.readonly = !!newConn.readonly
         share.tabName = isConnMinimalMode(newConn) ? 'value' : 'info'
-        share.capabilities = await meCommands.connect(newConn.id)
+        const capabilities = await meCommands.connect(newConn.id)
+        Object.assign(share.capabilities, capabilities)
         connPrepared.value = true
       }
     } catch {

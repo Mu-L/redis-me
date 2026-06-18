@@ -10,7 +10,6 @@ import {
   buildAclSavePayload,
   createAclModelFromDetail,
   createDefaultAclModel,
-  isAclDryrunSupported,
   summarizeRules,
   summarizeSelectors,
   type AclEditModel,
@@ -24,7 +23,7 @@ import UserAdd from '@/views/ext/UserAdd.vue'
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
 const canEdit = computed(() => !share.readonly)
-const dryrunSupported = computed(() => isAclDryrunSupported(share.serverVersion))
+const dryrunSupported = computed(() => share.capabilities.aclDryrunSupported)
 
 const keyword = ref('')
 const loading = ref(false)

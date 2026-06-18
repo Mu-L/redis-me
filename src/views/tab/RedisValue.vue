@@ -940,7 +940,7 @@ onUnmounted(() => {
                 :label="t('redisValue.ttl')"
                 width="150"
                 prop="ttl"
-                v-if="redisValue.type === 'hash' && share.capabilities.hashFieldTtl">
+                v-if="redisValue.type === 'hash' && share.capabilities.httlSupported">
                 <template #default="scope">
                   {{ meHumanSeconds(scope.row.ttl) }}
                 </template>

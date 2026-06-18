@@ -1,5 +1,6 @@
 import type { AclUserDetail } from '@/types/tauri-specta'
 
+
 export interface AclEditModel {
   username: string
   enabled: boolean
@@ -15,27 +16,6 @@ export interface AclEditModel {
 }
 
 export type AclPreset = 'normal' | 'readonly' | 'admin'
-
-/** ACL 自 Redis/Valkey 6.0 起支持；用于 Info 入口与 ACL 页 */
-export function isAclSupported(version: string | undefined): boolean {
-  const major = parseInt((version || '0').split('.')[0] || '0', 10)
-  return Number.isFinite(major) && major >= 6
-}
-
-/** ACL DRYRUN 自 Redis/Valkey 7.0 起支持 */
-export function isAclDryrunSupported(version: string | undefined): boolean {
-  const major = parseInt((version || '0').split('.')[0] || '0', 10)
-  return Number.isFinite(major) && major >= 7
-}
-
-/** ACL selectors 自 Redis/Valkey 7.2 起支持 */
-export function isAclSelectorSupported(version: string | undefined): boolean {
-  const parts = (version || '0').split('.')
-  const major = parseInt(parts[0] || '0', 10)
-  const minor = parseInt(parts[1] || '0', 10)
-  if (!Number.isFinite(major) || !Number.isFinite(minor)) return false
-  return major > 7 || (major === 7 && minor >= 2)
-}
 
 /** 去掉外层括号，统一存 SETUSER 括号内规则串 */
 export function normalizeSelectorInput(text: string): string {

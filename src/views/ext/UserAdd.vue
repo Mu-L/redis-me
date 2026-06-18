@@ -12,7 +12,6 @@ import {
   formatChannelPatternLabel,
   formatKeyPatternLabel,
   formatSelectorLabel,
-  isAclSelectorSupported,
   normalizeSelectorInput,
   type AclEditModel,
   type AclPreset,
@@ -47,7 +46,7 @@ const selectorInput = ref('')
 const selectorUiVisible = computed(() => {
   if (props.form.selectors.length > 0) return true
   if (props.mode === 'view') return false
-  return isAclSelectorSupported(share.serverVersion)
+  return share.capabilities.aclSelectorSupported
 })
 const isView = computed(() => props.mode === 'view')
 const dialogTitle = computed(() => {

@@ -167,7 +167,7 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
 pub fn field_scan0(
     mut conn: MutexGuard<impl Commands>,
     param: FieldScanParam,
-    capabilities: &ServerCapabilities,
+    httl_supported: bool,
 ) -> AnyResult<FieldScanResult> {
     let bytes_format = param.bytes_format.as_ref().cloned().unwrap_or_default();
 
@@ -197,8 +197,8 @@ pub fn field_scan0(
                 &mut scan_value,
                 new_value,
                 &key,
-                capabilities,
                 &bytes_format,
+                httl_supported,
             )?;
 
             ready_count += new_count;
@@ -409,8 +409,8 @@ pub fn field_scan_2_value(
     scan_value: &mut FieldScanValue,
     new_value: Value,
     key: &RedisKey,
-    capabilities: &ServerCapabilities,
     bytes_format: &BytesFormat,
+    httl_supported: bool,
 ) -> AnyResult<usize> {
     let new_count = match key_type {
         ValueType::Hash => {
@@ -418,18 +418,18 @@ pub fn field_scan_2_value(
             let new_count = value.len();
             let mut new_value = ui_hash_value(&value, bytes_format);
 
-            // 补充hash字段ttl
-            if capabilities.hash_field_ttl {
+            // 补充hash字段ttl（Redis/Valkey >= 7.4）
+            if httl_supported {
                 let fields: Vec<&Vec<u8>> = value.iter().map(|(f, _)| f).collect();
-                let ttl_values: Vec<IntegerReplyOrNoOp> = conn.httl(key, fields)?;
-
-                for (item, ttl_reply) in new_value.iter_mut().zip(ttl_values) {
-                    item.ttl = match ttl_reply {
-                        IntegerReplyOrNoOp::IntegerReply(ttl) => Some(ttl as i64),
-                        IntegerReplyOrNoOp::NotExists => Some(-2),
-                        IntegerReplyOrNoOp::ExistsButNotRelevant => Some(-1),
-                        _ => None, // 其他场景
-                    };
+                if let Ok(ttl_values) = conn.httl::<_, _, Vec<IntegerReplyOrNoOp>>(key, &fields) {
+                    for (item, ttl_reply) in new_value.iter_mut().zip(ttl_values) {
+                        item.ttl = match ttl_reply {
+                            IntegerReplyOrNoOp::IntegerReply(ttl) => Some(ttl as i64),
+                            IntegerReplyOrNoOp::NotExists => Some(-2),
+                            IntegerReplyOrNoOp::ExistsButNotRelevant => Some(-1),
+                            _ => None,
+                        };
+                    }
                 }
             }
 
@@ -573,7 +573,7 @@ pub fn del0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<()>
 pub fn field_add0(
     mut conn: MutexGuard<impl Commands>,
     param: RedisFieldAdd,
-    capabilities: &ServerCapabilities,
+    httl_supported: bool,
 ) -> AnyResult<RedisKey> {
     let key_fmt = param.key_fmt.as_ref().cloned().unwrap_or_default();
     let val_fmt = param.val_fmt.as_ref().cloned().unwrap_or_default();
@@ -626,7 +626,7 @@ pub fn field_add0(
                 .into_iter()
                 .unzip();
             let _: () = conn.hset_multiple(&key, &field_pairs)?;
-            if capabilities.hash_field_ttl {
+            if httl_supported {
                 for ((fk, _), ttl) in field_pairs.iter().zip(&ttls) {
                     if *ttl > 0 {
                         let _: () = conn.hexpire(&key, *ttl, ExpireOption::NONE, fk)?;
@@ -698,7 +698,7 @@ pub fn field_add0(
 pub fn field_set0(
     mut conn: MutexGuard<impl Commands>,
     param: RedisFieldSet,
-    capabilities: &ServerCapabilities,
+    httl_supported: bool,
 ) -> AnyResult<()> {
     let key: RedisKey = param.key;
     let key_type: ValueType = conn.key_type(&key)?;
@@ -710,7 +710,7 @@ pub fn field_set0(
             let key_bytes = parse_bytes(&param.field_key, &val_fmt)?;
             let value_bytes = parse_bytes(&param.field_value, &val_fmt)?;
             let _: () = conn.hset(&key, &key_bytes, &value_bytes)?;
-            if capabilities.hash_field_ttl && param.field_ttl > 0 {
+            if httl_supported && param.field_ttl > 0 {
                 let _: () = conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, &key_bytes)?;
             }
         }

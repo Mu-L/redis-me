@@ -1,4 +1,5 @@
 use crate::client::client_trait::*;
+use crate::utils::capabilities::detect_server_capabilities;
 use crate::utils::command_log::LoggingClusterConnection;
 use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name};
 use crate::utils::error::AppError;
@@ -164,7 +165,8 @@ impl MeClient for MeCluster {
     }
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
-        field_scan0(self.get_conn()?, param, &self.capabilities)
+        let httl_supported = self.base().capabilities.httl_supported;
+        field_scan0(self.get_conn()?, param, httl_supported)
     }
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
@@ -209,11 +211,11 @@ impl MeClient for MeCluster {
     }
 
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey> {
-        field_add0(self.get_conn()?, param, &self.capabilities)
+        field_add0(self.get_conn()?, param, self.base().capabilities.httl_supported)
     }
 
     fn field_set(&self, param: RedisFieldSet) -> AnyResult<()> {
-        field_set0(self.get_conn()?, param, &self.capabilities)
+        field_set0(self.get_conn()?, param, self.base().capabilities.httl_supported)
     }
 
     fn field_del(&self, param: RedisFieldDel) -> AnyResult<()> {
@@ -732,18 +734,7 @@ impl MeCluster {
         );
         set_client_name(&mut conn);
 
-        let mut info_cmd = redis::cmd("INFO");
-        info_cmd.arg("SERVER");
-        match conn.route_command(
-            &info_cmd,
-            SingleNode(SingleNodeRoutingInfo::RandomPrimary),
-        ) {
-            Ok(value) => {
-                let info = redis_value_to_string(value, "\n");
-                base.update_server_info(&info, &mut conn);
-            }
-            Err(e) => warn!("INFO SERVER 不可用，跳过版本探测: {e}"),
-        }
+        detect_server_capabilities(&mut conn, &mut base);
 
         let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query(&mut conn)?;
         let node_list = Self::parse_node_list(cluster_nodes)?;

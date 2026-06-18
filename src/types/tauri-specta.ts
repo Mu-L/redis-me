@@ -492,7 +492,12 @@ export type SentinelOption = {
 };
 
 export type ServerCapabilities = {
-	hashFieldTtl: boolean,
+	version: string,
+	isValkey: boolean,
+	aclSupported: boolean,
+	aclDryrunSupported: boolean,
+	aclSelectorSupported: boolean,
+	httlSupported: boolean,
 };
 
 export type SshOption = {

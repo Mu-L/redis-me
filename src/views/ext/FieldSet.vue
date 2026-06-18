@@ -217,7 +217,7 @@ function submit() {
       </el-form-item>
       <el-form-item
         :label="t('fieldSet.fieldTtl')"
-        v-if="form.type === 'hash' && share.capabilities?.hashFieldTtl">
+        v-if="form.type === 'hash' && share.capabilities.httlSupported">
         <el-input-number
           v-model="form.fieldTtl"
           :min="-1"

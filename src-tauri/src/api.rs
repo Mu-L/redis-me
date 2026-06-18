@@ -107,8 +107,9 @@ pub fn app_settings(app_handle: AppHandle, app_settings: AppSettings) -> ApiResu
 #[command]
 #[specta]
 pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<ServerCapabilities> {
-    to_api_result(app_handle.connect(app_handle.clone(), id))
-        .map(|client| (*client.base().capabilities).clone())
+    let client = app_handle.connect(app_handle.clone(), id).map_err(|e| e.to_string())?;
+    let capabilities = client.base().capabilities.clone();
+    Ok(capabilities)
 }
 
 // 断开
