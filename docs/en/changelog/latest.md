@@ -2,7 +2,7 @@
 
 ## [v4.0.0](https://mp.weixin.qq.com/s/U9DYq4LfoliE_eR1BKE5mg) (2026-06-18)
 
-### ✨ New Features & Improvements
+### ✨ New Features
 
 - **Command Log**
   - Command interception, event push and visual panel display
