@@ -105,6 +105,7 @@ impl MeClient for MeCluster {
         let batch_count = scan_0_batch_count(&param.pattern);
 
         let mut keys: Vec<Vec<u8>> = vec![];
+        let mut iterations = 0u32;
 
         // 遍历集群节点: 仅扫描主节点
         let nodes: Vec<String> = self.get_node_list_master();
@@ -119,6 +120,11 @@ impl MeClient for MeCluster {
             let (route, _) = self.get_node_route(Some(node.clone()))?;
 
             'inner: loop {
+                iterations += 1;
+                if iterations > SCAN_MAX_ITERATIONS {
+                    break 'outer;
+                }
+
                 // 正在扫描的节点则重置上次游标
                 let cursor = if cc.now_node == node {
                     cc.now_cursor

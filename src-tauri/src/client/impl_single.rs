@@ -107,8 +107,14 @@ impl MeClient for MeSingle {
         let batch_count = scan_0_batch_count(&param.pattern);
 
         let mut keys: Vec<Vec<u8>> = vec![];
+        let mut iterations = 0u32;
 
         loop {
+            iterations += 1;
+            if iterations > SCAN_MAX_ITERATIONS {
+                break;
+            }
+
             let cmd = scan_1_cmd(
                 cc.now_cursor,
                 &param.pattern,

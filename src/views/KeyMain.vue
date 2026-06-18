@@ -80,6 +80,9 @@ const exact = ref(false)
 const keyword = ref('')
 const loading = ref(false)
 const loadFolder = ref(false)
+const autoLoading = ref(false)
+const autoLoadCount = ref(0)
+const MAX_AUTO_LOAD_COUNT = 10
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -100,12 +103,21 @@ const filterKeyList = computed(() => {
   return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
 })
 
-async function scanKey(useCursor = false, loadAll = false): Promise<void> {
+async function scanKey(useCursor = false, loadAll = false, autoContinue = false): Promise<void> {
   if (loading.value || !share.conn) return
 
-  loading.value = true
+  // 自动加载时不显示全局 loading 遮罩，避免遮挡已显示的结果
+  if (autoContinue && useCursor) {
+    autoLoading.value = true
+  } else {
+    loading.value = true
+  }
   try {
-    if (!useCursor) cursor.value = null
+    if (!useCursor) {
+      cursor.value = null
+      autoLoadCount.value = 0
+      autoLoading.value = false
+    }
 
     const params = {
       match: match.value,
@@ -123,6 +135,18 @@ async function scanKey(useCursor = false, loadAll = false): Promise<void> {
     keyList.value = sortBy(newKeyList, ['key'])
   } finally {
     loading.value = false
+    autoLoading.value = false
+  }
+
+  // 搜索后自动继续加载更多，提升大数据量搜索体验
+  if (
+    autoContinue &&
+    cursor.value &&
+    !cursor.value.finished &&
+    autoLoadCount.value < MAX_AUTO_LOAD_COUNT
+  ) {
+    autoLoadCount.value++
+    setTimeout(() => scanKey(true, false, true), 100)
   }
 }
 
@@ -501,7 +525,7 @@ function editDbName(db: number): void {
       <el-input
         v-model="keyword"
         :placeholder="t('keyMain.keyword')"
-        @keyup.enter="scanKey(false, false)"
+        @keyup.enter="scanKey(false, false, true)"
         clearable>
         <template #prepend>
           <el-dropdown placement="bottom-start" @command="chooseKeyType">
@@ -550,7 +574,7 @@ function editDbName(db: number): void {
           <el-button-group>
             <me-button
               :info="t('keyMain.refreshKey')"
-              @click="scanKey(false, false)"
+              @click="scanKey(false, false, true)"
               icon="el-icon-search"
               placement="bottom" />
             <me-button
@@ -632,20 +656,30 @@ function editDbName(db: number): void {
           </template>
         </el-select>
         <div class="me-flex" style="width: 45px; margin: 0 5px" v-if="!cursor?.finished">
-          <me-icon
-            :name="t('keyMain.loadMore')"
-            icon="me-icon-load-more"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, false)" />
-          <me-icon
-            :name="t('keyMain.loadAll')"
-            icon="me-icon-load-all"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, true)" />
+          <template v-if="autoLoading">
+            <me-icon
+              name="Loading..."
+              icon="el-icon-loading"
+              hint
+              placement="top"
+              class="icon-btn is-loading" />
+          </template>
+          <template v-else>
+            <me-icon
+              :name="t('keyMain.loadMore')"
+              icon="me-icon-load-more"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="scanKey(true, false)" />
+            <me-icon
+              :name="t('keyMain.loadAll')"
+              icon="me-icon-load-all"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="scanKey(true, true)" />
+          </template>
         </div>
       </div>
 
