@@ -110,6 +110,7 @@ async function scanKey(useCursor = false, loadAll = false, autoContinue = false)
   } else {
     loading.value = true
   }
+  let keepLoading = false
   try {
     if (!useCursor) {
       cursor.value = null
@@ -133,11 +134,22 @@ async function scanKey(useCursor = false, loadAll = false, autoContinue = false)
 
     // 搜索后自动继续加载更多，提升大数据量搜索体验
     // 停止条件：1）返回了新结果（用户已看到结果） 2）扫描完成
+    // 注意：与下方 loadAll 模式互斥（autoContinue=true 时 loadAll=false）
     if (autoContinue && cursor.value && !cursor.value.finished && data.keyList.length === 0) {
       setTimeout(() => scanKey(true, false, true), 100)
     }
+
+    // loadAll 模式：循环加载直到扫描完成，避免单次请求耗时过长导致界面卡死
+    // 注意：与上方自动加载互斥（loadAll=true 时 autoContinue=false）
+    if (loadAll && cursor.value && !cursor.value.finished) {
+      keepLoading = true
+      setTimeout(() => scanKey(true, true), 100)
+    }
   } finally {
-    loading.value = false
+    // loadAll 模式下如果还需要继续加载，保持 loading 状态，避免闪烁
+    if (!keepLoading) {
+      loading.value = false
+    }
     autoLoading.value = false
   }
 }
