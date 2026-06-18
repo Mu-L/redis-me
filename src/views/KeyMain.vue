@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
+import { clearKeyTypeCacheForConn } from '@/utils/key-type-cache'
 import {
   bus,
   CONN_REFRESH,
@@ -79,6 +80,7 @@ const exact = ref(false)
 const keyword = ref('')
 const loading = ref(false)
 const loadFolder = ref(false)
+const autoLoading = ref(false)
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -99,12 +101,20 @@ const filterKeyList = computed(() => {
   return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
 })
 
-async function scanKey(useCursor = false, loadAll = false): Promise<void> {
+async function scanKey(useCursor = false, loadAll = false, autoContinue = false): Promise<void> {
   if (loading.value || !share.conn) return
 
-  loading.value = true
+  // 自动加载时不显示全局 loading 遮罩，避免遮挡已显示的结果
+  if (autoContinue && useCursor) {
+    autoLoading.value = true
+  } else {
+    loading.value = true
+  }
   try {
-    if (!useCursor) cursor.value = null
+    if (!useCursor) {
+      cursor.value = null
+      autoLoading.value = false
+    }
 
     const params = {
       match: match.value,
@@ -120,8 +130,15 @@ async function scanKey(useCursor = false, loadAll = false): Promise<void> {
     // 非游标扫描：拿到结果后再整体替换，避免请求期间清空列表导致「暂无数据」闪烁
     const newKeyList = useCursor ? [...keyList.value, ...data.keyList] : data.keyList
     keyList.value = sortBy(newKeyList, ['key'])
+
+    // 搜索后自动继续加载更多，提升大数据量搜索体验
+    // 停止条件：1）返回了新结果（用户已看到结果） 2）扫描完成
+    if (autoContinue && cursor.value && !cursor.value.finished && data.keyList.length === 0) {
+      setTimeout(() => scanKey(true, false, true), 100)
+    }
   } finally {
     loading.value = false
+    autoLoading.value = false
   }
 }
 
@@ -137,7 +154,6 @@ onUnmounted(() => {
 function deleteKey(redisKey: RedisKey_Deserialize): void {
   keyList.value = keyList.value.filter(rk => rk.bytes !== redisKey.bytes)
   share.redisKey = null
-  bus.emit(INFO_REFRESH)
 }
 
 const dbList = ref<RedisDB[]>([])
@@ -389,6 +405,7 @@ function flushDb(): void {
   if (!share.conn) return
   meConfirm(t('keyMain.flushDbConfirm'), async () => {
     await meCommands.flushDb(share.conn!.id)
+    clearKeyTypeCacheForConn(share.conn!.id)
     meOk(t('keyMain.flushDbOk'))
     bus.emit(CONN_REFRESH)
     bus.emit(INFO_REFRESH)
@@ -462,9 +479,7 @@ function checkChange(redisKeys: RedisKey_Deserialize[]): void {
 
 // 多选后的批量操作
 const checkedDisabled = computed(() => checkedKeyList.value.length === 0 || share.exportImporting)
-const checkedBtnClass = computed(() =>
-  checkedDisabled.value ? ['icon-disabled'] : ['icon-btn'],
-)
+const checkedBtnClass = computed(() => (checkedDisabled.value ? ['icon-disabled'] : ['icon-btn']))
 function exportChecked() {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'export')
 }
@@ -502,7 +517,7 @@ function editDbName(db: number): void {
       <el-input
         v-model="keyword"
         :placeholder="t('keyMain.keyword')"
-        @keyup.enter="scanKey(false, false)"
+        @keyup.enter="scanKey(false, false, true)"
         clearable>
         <template #prepend>
           <el-dropdown placement="bottom-start" @command="chooseKeyType">
@@ -551,7 +566,7 @@ function editDbName(db: number): void {
           <el-button-group>
             <me-button
               :info="t('keyMain.refreshKey')"
-              @click="scanKey(false, false)"
+              @click="scanKey(false, false, true)"
               icon="el-icon-search"
               placement="bottom" />
             <me-button
@@ -633,20 +648,30 @@ function editDbName(db: number): void {
           </template>
         </el-select>
         <div class="me-flex" style="width: 45px; margin: 0 5px" v-if="!cursor?.finished">
-          <me-icon
-            :name="t('keyMain.loadMore')"
-            icon="me-icon-load-more"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, false)" />
-          <me-icon
-            :name="t('keyMain.loadAll')"
-            icon="me-icon-load-all"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, true)" />
+          <template v-if="autoLoading">
+            <me-icon
+              name="Loading..."
+              icon="el-icon-loading"
+              hint
+              placement="top"
+              class="icon-btn is-loading" />
+          </template>
+          <template v-else>
+            <me-icon
+              :name="t('keyMain.loadMore')"
+              icon="me-icon-load-more"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="scanKey(true, false)" />
+            <me-icon
+              :name="t('keyMain.loadAll')"
+              icon="me-icon-load-all"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="scanKey(true, true)" />
+          </template>
         </div>
       </div>
 
@@ -698,8 +723,7 @@ function editDbName(db: number): void {
           @click="toggleChecked"
           placement="top"
           :name="t('keyMain.checkedMode')"
-          hint
-          />
+          hint />
         <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
           <me-icon icon="el-icon-more-filled" class="icon-btn" />
           <template #dropdown>

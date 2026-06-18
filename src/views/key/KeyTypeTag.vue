@@ -3,7 +3,8 @@ import { inject, ref, watch } from 'vue'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisKey_Deserialize } from '@/types/tauri-specta'
-import { meCommands, meKeyShort, meType } from '@/utils/util'
+import { resolveKeyType } from '@/utils/key-type-cache'
+import { meKeyShort, meType } from '@/utils/util'
 
 const share = inject(shareProvideKey)!
 const props = defineProps<{
@@ -13,19 +14,17 @@ const props = defineProps<{
 
 const keyType = ref<string | undefined>()
 
-// scan 结果无 keyType；虚拟列表会复用实例，redisKey 换引用时需重新拉取
+// scan 无 keyType；有 bytes 的 SCAN 键走缓存，无 bytes 的 UI 新建键每次拉 TYPE
 watch(
-  () => props.redisKey,
-  async rk => {
-    if (!rk || !share.conn) {
+  () => [props.redisKey?.key, props.redisKey?.bytes, share.conn?.id, share.conn?.db] as const,
+  async () => {
+    const rk = props.redisKey
+    const conn = share.conn
+    if (!rk || !conn) {
       keyType.value = undefined
       return
     }
-    try {
-      keyType.value = (await meCommands.keyType(share.conn.id, rk))?.toUpperCase()
-    } catch {
-      keyType.value = undefined
-    }
+    keyType.value = await resolveKeyType(conn.id, conn.db, rk)
   },
   { immediate: true },
 )

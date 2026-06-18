@@ -206,7 +206,7 @@ function submit() {
 
 const hint = computed(() => {
   if (form.value.type === 'hash')
-    return share.capabilities?.hashFieldTtl ? t('fieldAdd.hashHintTtl') : t('fieldAdd.hashHint')
+    return share.capabilities.httlSupported ? t('fieldAdd.hashHintTtl') : t('fieldAdd.hashHint')
   if (form.value.type === 'zset') return t('fieldAdd.zsetHint')
   if (form.value.type === 'stream') return t('fieldAdd.streamHint')
   return ''
@@ -334,7 +334,7 @@ function handleKeyTypeChange() {
             v-if="form.type === 'zset'"
             :validate-event="false" />
           <el-input-number
-            v-if="form.type === 'hash' && share.capabilities?.hashFieldTtl"
+            v-if="form.type === 'hash' && share.capabilities.httlSupported"
             v-model="item.fieldTtl"
             :min="-1"
             :controls="false"

@@ -5,7 +5,7 @@
   "identifier": "com.hepengju.redis",
   "build": {
     "beforeDevCommand": "vp dev",
-    "devUrl": "http://localhost:2222",
+    "devUrl": "http://localhost:22222",
     "beforeBuildCommand": "vp build",
     "frontendDist": "../dist"
   },

@@ -1,5 +1,6 @@
 use crate::client::client_trait::*;
-use crate::implement_pipeline_commands;
+use crate::utils::capabilities::detect_server_capabilities;
+use crate::utils::command_log::LoggingClusterConnection;
 use crate::utils::conn::{get_client_cluster, get_client_single, set_client_name};
 use crate::utils::error::AppError;
 use crate::utils::model::*;
@@ -21,12 +22,11 @@ use std::ops::Deref;
 use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
-use tauri::AppHandle;
 
 pub struct MeCluster {
     base: MeBase,
     client: ClusterClient,
-    conn: Mutex<ClusterConnection>,
+    conn: Mutex<LoggingClusterConnection>,
     node_list: Vec<RedisNode>,
 }
 
@@ -61,6 +61,8 @@ impl MeClient for MeCluster {
         }
 
         self.db.store(db, Relaxed);
+        let mut conn = self.get_conn()?;
+        conn.set_db_index(db);
         info!("集群模式下不支持切换DB");
         Ok(())
     }
@@ -103,6 +105,7 @@ impl MeClient for MeCluster {
         let batch_count = scan_0_batch_count(&param.pattern);
 
         let mut keys: Vec<Vec<u8>> = vec![];
+        let mut iterations = 0u32;
 
         // 遍历集群节点: 仅扫描主节点
         let nodes: Vec<String> = self.get_node_list_master();
@@ -117,6 +120,11 @@ impl MeClient for MeCluster {
             let (route, _) = self.get_node_route(Some(node.clone()))?;
 
             'inner: loop {
+                iterations += 1;
+                if iterations > SCAN_MAX_ITERATIONS {
+                    break 'outer;
+                }
+
                 // 正在扫描的节点则重置上次游标
                 let cursor = if cc.now_node == node {
                     cc.now_cursor
@@ -163,7 +171,8 @@ impl MeClient for MeCluster {
     }
 
     fn field_scan(&self, param: FieldScanParam) -> AnyResult<FieldScanResult> {
-        field_scan0(self.get_conn()?, param, &self.capabilities)
+        let httl_supported = self.base().capabilities.httl_supported;
+        field_scan0(self.get_conn()?, param, httl_supported)
     }
 
     fn ttl(&self, key: RedisKey, ttl: i64) -> AnyResult<()> {
@@ -208,11 +217,11 @@ impl MeClient for MeCluster {
     }
 
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey> {
-        field_add0(self.get_conn()?, param, &self.capabilities)
+        field_add0(self.get_conn()?, param, self.base().capabilities.httl_supported)
     }
 
     fn field_set(&self, param: RedisFieldSet) -> AnyResult<()> {
-        field_set0(self.get_conn()?, param, &self.capabilities)
+        field_set0(self.get_conn()?, param, self.base().capabilities.httl_supported)
     }
 
     fn field_del(&self, param: RedisFieldDel) -> AnyResult<()> {
@@ -249,7 +258,9 @@ impl MeClient for MeCluster {
         let cmd = resolve_command_name(&self.conf, "config");
         let mut conn = self.get_conn()?;
         let (route, _) = self.get_node_route(node)?;
-        let value = conn.route_command(redis::cmd(&cmd).arg("get").arg(pattern), route)?;
+        let mut cfg = redis::cmd(&cmd);
+        let cfg_cmd = cfg.arg("get").arg(pattern);
+        let value = conn.route_command(cfg_cmd, route)?;
         let result: HashMap<String, String> = FromRedisValue::from_redis_value(value)?;
         Ok(result)
     }
@@ -262,10 +273,14 @@ impl MeClient for MeCluster {
                 MultipleNodeRoutingInfo::AllNodes,
                 Some(ResponsePolicy::AllSucceeded),
             ));
-            let _ = conn.route_command(redis::cmd(&cmd).arg("set").arg(key).arg(value), route)?;
+            let mut cfg = redis::cmd(&cmd);
+            let cfg_cmd = cfg.arg("set").arg(key).arg(value);
+            let _ = conn.route_command(cfg_cmd, route)?;
         } else {
             let (route, _) = self.get_node_route(node)?;
-            let _ = conn.route_command(redis::cmd(&cmd).arg("set").arg(key).arg(value), route)?;
+            let mut cfg = redis::cmd(&cmd);
+            let cfg_cmd = cfg.arg("set").arg(key).arg(value);
+            let _ = conn.route_command(cfg_cmd, route)?;
         }
         Ok(())
     }
@@ -284,10 +299,9 @@ impl MeClient for MeCluster {
 
             let node = redis_node.node.clone();
             let (route, _) = self.get_node_route(Some(node.clone()))?;
-            let value_total = conn.route_command(
-                redis::cmd("slowlog").arg("get").arg(count.unwrap_or(128)),
-                route,
-            )?;
+            let mut slow = redis::cmd("slowlog");
+            let slow_cmd = slow.arg("get").arg(count.unwrap_or(128));
+            let value_total = conn.route_command(slow_cmd, route)?;
             let value_list: Vec<Value> = FromRedisValue::from_redis_value(value_total)?;
             for value in value_list {
                 let log = redis_value_to_log(value, &node)?;
@@ -328,7 +342,8 @@ impl MeClient for MeCluster {
                         pipe.cmd("memory").arg("usage").arg(key);
                     }
                     // 此处用Option接收,避免键被删除或过期
-                    let sizes: Vec<Option<u64>> = pipe.query(&mut conn)?;
+                    let sizes: Vec<Option<u64>> =
+                        conn.cluster_pipe_query(&pipe, new_keys.len())?;
                     for (index, size) in sizes.into_iter().enumerate() {
                         if let Some(size) = size
                             && size >= param.size_limit
@@ -364,7 +379,7 @@ impl MeClient for MeCluster {
             for key in keys.iter() {
                 pipe.cmd("type").arg(&key.0);
             }
-            let types: Vec<Option<String>> = pipe.query(&mut conn)?;
+            let types: Vec<Option<String>> = conn.cluster_pipe_query(&pipe, keys.len())?;
             for (index, key_type) in types.into_iter().enumerate() {
                 keys[index].2 = key_type.unwrap_or("deleted".into());
             }
@@ -414,9 +429,10 @@ impl MeClient for MeCluster {
         publish0(self.get_conn()?, channel, message)
     }
 
-    fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()> {
+    fn subscribe(&self, channel: Option<String>) -> AnyResult<()> {
         let conn = get_client_single(&self.conf)?.0.get_connection()?;
         let running = self.subscribe_running.clone();
+        let app_handle = self.base().get_app_handle()?;
         subscribe0(conn, running, app_handle, channel, self.id.clone())
     }
 
@@ -424,7 +440,7 @@ impl MeClient for MeCluster {
         subscribe_stop0(self.get_conn()?, self.subscribe_running.clone())
     }
 
-    fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()> {
+    fn monitor(&self, node: &str) -> AnyResult<()> {
         // 集群中的monitor命令是针对单个节点的，所以需要获取该节点的连接
         let mut conf = self.conf.clone();
         if let Some((host, port)) = node.split_once(":") {
@@ -433,6 +449,7 @@ impl MeClient for MeCluster {
         }
         let conn = get_client_single(&conf)?.0.get_connection()?;
         let running = self.monitor_running.clone();
+        let app_handle = self.base().get_app_handle()?;
         monitor0(conn, running, app_handle, self.id.clone())
     }
 
@@ -452,7 +469,7 @@ impl MeClient for MeCluster {
             pipe.del(&key).ignore();
         }
         let mut conn = self.get_conn()?;
-        let _: () = pipe.query(&mut conn)?;
+        let _: () = conn.cluster_pipe_query(&pipe, size)?;
         info!("batch delete finished: {}", size);
         Ok(())
     }
@@ -472,16 +489,17 @@ impl MeClient for MeCluster {
             }
         }
         let mut conn = self.get_conn()?;
-        let _: () = pipe.query(&mut conn)?;
+        let _: () = conn.cluster_pipe_query(&pipe, size)?;
         info!("batch ttl finished: {}", size);
         Ok(())
     }
 
-    fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()> {
+    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()> {
         let key_list = batch_key0(self, param.clone().into(), true)?;
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
+        let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
         thread::spawn(move || {
             export_csv_0_thread(
@@ -497,19 +515,21 @@ impl MeClient for MeCluster {
         Ok(())
     }
 
-    fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()> {
+    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()> {
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
+        let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
         thread::spawn(move || import_csv_0_thread(&mut conn, param, running, app_handle, id));
         Ok(())
     }
 
-    fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()> {
+    fn import_cmd(&self, file: String) -> AnyResult<()> {
         let mut conn = self.get_new_conn()?;
         let running = self.export_import_running.clone();
         let id = self.id.clone();
+        let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
         thread::spawn(move || import_cmd_0_thread(&mut conn, file, running, app_handle, id));
         Ok(())
@@ -668,27 +688,59 @@ impl MeClient for MeCluster {
         acl_dryrun0(self.get_conn()?, username, command)
     }
 
-    implement_pipeline_commands!(ClusterPipeline);
+    fn mock_data(&self, count: u64) -> AnyResult<()> {
+        let mut pipe = ClusterPipeline::with_capacity(count as usize);
+        for _ in 0..count {
+            let key = format!("redis-me-mock:string:{}", random_string(10));
+            pipe.set(&key, random_string(10)).ignore();
+
+            let field_count = random_range(3, 200);
+            let key = format!("redis-me-mock:hash:{}", random_string(10));
+            for x in 0..field_count {
+                pipe.hset(&key, format!("key{x}"), random_string(10))
+                    .ignore();
+            }
+
+            let key = format!("redis-me-mock:list:{}", random_string(10));
+            for _ in 0..field_count {
+                pipe.rpush(&key, random_string(10)).ignore();
+            }
+
+            let key = format!("redis-me-mock:set:{}", random_string(10));
+            for _ in 0..field_count {
+                pipe.sadd(&key, random_string(10)).ignore();
+            }
+
+            let key = format!("redis-me-mock:zset:{}", random_string(10));
+            for _ in 0..field_count {
+                pipe.zadd(&key, random_string(10), random_range(1, 100))
+                    .ignore();
+            }
+        }
+
+        let mut conn = self.get_conn()?;
+        // 命令条数随 mock 字段数变化，汇总日志用估算值即可
+        let _: () = conn.cluster_pipe_query(&pipe, count as usize * 50)?;
+        Ok(())
+    }
 }
 
 // 个性化方法
 impl MeCluster {
     pub fn init(redis_conn: &ConnConfig, command_timeout: Duration) -> AnyResult<Box<dyn MeClient>> {
         let client = get_client_cluster(redis_conn)?;
-        let mut conn = Self::new_conn(&client, command_timeout)?;
-
         let mut base = MeBase::from(redis_conn);
         base.command_timeout = command_timeout;
-        match conn.route_command(
-            redis::cmd("INFO").arg("SERVER"),
-            SingleNode(SingleNodeRoutingInfo::RandomPrimary),
-        ) {
-            Ok(value) => {
-                let info = redis_value_to_string(value, "\n");
-                base.update_server_info(&info, &mut conn);
-            }
-            Err(e) => warn!("INFO SERVER 不可用，跳过版本探测: {e}"),
-        }
+        let logger = base.command_logger.clone();
+        let db = redis_conn.db;
+        let mut conn = LoggingClusterConnection::new(
+            Self::new_raw_conn(&client, command_timeout)?,
+            logger,
+            db,
+        );
+        set_client_name(&mut conn);
+
+        detect_server_capabilities(&mut conn, &mut base);
 
         let cluster_nodes: String = redis::cmd("cluster").arg("nodes").query(&mut conn)?;
         let node_list = Self::parse_node_list(cluster_nodes)?;
@@ -702,11 +754,8 @@ impl MeCluster {
         }))
     }
 
-    fn new_conn(client: &ClusterClient, command_timeout: Duration) -> AnyResult<ClusterConnection> {
-        let mut conn = client.get_connection()?;
-        // 设置客户端名称
-        set_client_name(&mut conn);
-
+    fn new_raw_conn(client: &ClusterClient, command_timeout: Duration) -> AnyResult<ClusterConnection> {
+        let conn = client.get_connection()?;
         conn.set_read_timeout(Some(command_timeout))?;
         conn.set_write_timeout(Some(command_timeout))?;
         Ok(conn)
@@ -714,16 +763,20 @@ impl MeCluster {
 
     // 重新连接
     fn reconnect(&self) -> AnyResult<()> {
-        let new_conn = Self::new_conn(&self.client, self.command_timeout)?;
-        let mut conn_guard = self.conn.lock(); // 使用阻塞锁来替换连接
-        *conn_guard = new_conn;
+        let raw_conn = Self::new_raw_conn(&self.client, self.command_timeout)?;
+        let mut conn_guard = self.conn.lock();
+        *conn_guard = LoggingClusterConnection::new(
+            raw_conn,
+            self.command_logger.clone(),
+            self.db.load(Relaxed),
+        );
+        set_client_name(&mut *conn_guard);
         self.last_check_time.store(Utc::now().timestamp(), Relaxed);
         info!("Redis集群连接重连成功: {}", self.conf.name);
         Ok(())
     }
 
-    // 获取已创建的连接
-    fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, ClusterConnection>> {
+    fn get_conn(&'_ self) -> AnyResult<MutexGuard<'_, LoggingClusterConnection>> {
         match self.conn.try_lock_for(Duration::from_secs(10)) {
             Some(mut conn) => Ok({
                 let curr = Utc::now().timestamp();
@@ -756,7 +809,7 @@ impl MeCluster {
         Ok(())
     }
 
-    fn check_connection_timeout(&self, conn: &mut ClusterConnection) -> AnyResult<bool> {
+    fn check_connection_timeout(&self, conn: &mut LoggingClusterConnection) -> AnyResult<bool> {
         conn.set_read_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
         conn.set_write_timeout(Some(CONNECTION_CHECK_TIMEOUT))?;
         if conn.check_connection() {
@@ -770,9 +823,11 @@ impl MeCluster {
         }
     }
 
-    // 获取一个新的连接
+    // 获取一个新的连接（导出/导入等独立线程，不记命令日志）
     fn get_new_conn(&self) -> AnyResult<ClusterConnection> {
-        Self::new_conn(&self.client, self.command_timeout)
+        let mut conn = Self::new_raw_conn(&self.client, self.command_timeout)?;
+        set_client_name(&mut conn);
+        Ok(conn)
     }
 
     // 获取节点路由

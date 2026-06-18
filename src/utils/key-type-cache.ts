@@ -1,0 +1,72 @@
+import type { RedisKey_Deserialize } from '@/types/tauri-specta'
+
+/** 连接 + db + 键 bytes(base64) → TYPE 结果；仅 SCAN 出的键有 bytes 才缓存 */
+const cache = new Map<string, string>()
+const pending = new Map<string, Promise<string | undefined>>()
+
+function cacheKey(connId: string, db: number, bytes: string): string {
+  return `${connId}\0${db}\0${bytes}`
+}
+
+/** 单键删除/重命名：按 bytes 精确失效；无 bytes 的键未入缓存，无需处理 */
+export function invalidateKeyType(connId: string, redisKey: RedisKey_Deserialize): void {
+  if (!redisKey.bytes) return
+  const suffix = `\0${redisKey.bytes}`
+  for (const k of cache.keys()) {
+    if (k.startsWith(`${connId}\0`) && k.endsWith(suffix)) {
+      cache.delete(k)
+      pending.delete(k)
+    }
+  }
+}
+
+/** 关闭/切换连接、批量删、FLUSHDB：丢弃该连接的全部 TYPE 缓存 */
+export function clearKeyTypeCacheForConn(connId: string): void {
+  const prefix = `${connId}\0`
+  for (const k of cache.keys()) {
+    if (k.startsWith(prefix)) {
+      cache.delete(k)
+      pending.delete(k)
+    }
+  }
+}
+
+async function fetchKeyType(
+  connId: string,
+  redisKey: RedisKey_Deserialize,
+): Promise<string | undefined> {
+  const { meCommands } = await import('@/utils/util')
+  try {
+    return (await meCommands.keyType(connId, redisKey, false))?.toUpperCase()
+  } catch {
+    return undefined
+  }
+}
+
+export async function resolveKeyType(
+  connId: string,
+  db: number,
+  redisKey: RedisKey_Deserialize,
+): Promise<string | undefined> {
+  if (!redisKey.bytes) {
+    return fetchKeyType(connId, redisKey)
+  }
+
+  const ck = cacheKey(connId, db, redisKey.bytes)
+  const hit = cache.get(ck)
+  if (hit) return hit
+
+  let req = pending.get(ck)
+  if (!req) {
+    req = fetchKeyType(connId, redisKey)
+      .then(upper => {
+        if (upper) cache.set(ck, upper)
+        return upper
+      })
+      .finally(() => {
+        pending.delete(ck)
+      })
+    pending.set(ck, req)
+  }
+  return req
+}

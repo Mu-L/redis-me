@@ -2,12 +2,7 @@ import type { Update } from '@tauri-apps/plugin-updater'
 import type { InjectionKey } from 'vue'
 
 import { commands as spectaCommands } from '@/types/tauri-specta'
-import type {
-  ConnConfig,
-  RedisKey_Deserialize,
-  RedisNode,
-  ServerCapabilities,
-} from '@/types/tauri-specta'
+import type { ConnConfig, RedisKey_Deserialize, RedisNode } from '@/types/tauri-specta'
 
 /** node_list 原始项经 enrich 后供 UI 使用 */
 export interface EnrichedRedisNode extends RedisNode {
@@ -34,6 +29,15 @@ export interface MeAppUpdateState {
 export type UiConn = ConnConfig & { color?: string; readonly?: boolean }
 
 /** AppMain 注入的共享状态（与 `shareProvideKey` 配对） */
+export interface ServerCapabilities {
+  version: string
+  isValkey: boolean
+  aclSupported: boolean
+  aclDryrunSupported: boolean
+  aclSelectorSupported: boolean
+  httlSupported: boolean
+}
+
 export interface AppMainShare {
   conn: UiConn | null
   connList: UiConn[]
@@ -47,8 +51,6 @@ export interface AppMainShare {
   exportImporting: boolean
   exportImportingTip: string
   exportImportingPercentage: number
-  isValkey: boolean
-  serverVersion: string
   capabilities: ServerCapabilities
 }
 

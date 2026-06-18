@@ -8,6 +8,7 @@ import { getConnIcon } from '@/utils/conn'
 import { getConnGlobalShortcuts, getTerminalShortcuts, getValueShortcuts } from '@/utils/shortcut'
 import { bus, CONN_REFRESH, meCommands, meOk, openNewWindow } from '@/utils/util'
 import About from '@/views/ext/About.vue'
+import CommandLog from '@/views/ext/CommandLog.vue'
 import Official from '@/views/ext/Official.vue'
 import Setting from '@/views/ext/Setting.vue'
 
@@ -19,6 +20,7 @@ const dialog = reactive({
   setting: false,
   info: false,
   social: false,
+  commandLog: false,
 })
 const keyShortVisible = ref(false)
 const globalShortcuts = computed(() => getConnGlobalShortcuts(t))
@@ -41,10 +43,17 @@ onMounted(() => {
 async function handleCommand(command: string): Promise<void> {
   if (command === 'refreshConn') {
     if (!share.conn) return
-    share.capabilities = await meCommands.connect(share.conn!.id)
+    const capabilities = await meCommands.connect(share.conn!.id)
+    Object.assign(share.capabilities, capabilities)
     bus.emit(CONN_REFRESH)
   } else if ('closeConn' === command) {
     share.conn = null
+  } else if ('commandLog' === command) {
+    if (!share.conn) {
+      meOk(t('keyHeader.commandLogNeedConn'))
+      return
+    }
+    dialog.commandLog = true
   } else if ('setting' === command) {
     openSetting()
   } else if ('window' === command) {
@@ -80,11 +89,6 @@ async function handleCommand(command: string): Promise<void> {
           <me-icon :icon="getConnIcon(value)" :name="value.name" />
         </div>
       </template>
-      <!-- 
-      <template #prefix>
-        <me-icon :icon="share.isValkey ? 'me-icon-valkey' : 'me-icon-redis'" />
-      </template>
-      -->
     </el-select>
 
     <el-dropdown placement="bottom-end" @command="handleCommand" style="margin-left: 10px">
@@ -97,6 +101,9 @@ async function handleCommand(command: string): Promise<void> {
             </el-dropdown-item>
             <el-dropdown-item command="closeConn">
               <me-icon :name="t('keyHeader.closeConn')" icon="el-icon-circle-close" />
+            </el-dropdown-item>
+            <el-dropdown-item command="commandLog">
+              <me-icon :name="t('keyHeader.commandLog')" icon="me-icon-log" />
             </el-dropdown-item>
           </template>
 
@@ -157,6 +164,7 @@ async function handleCommand(command: string): Promise<void> {
       style="--el-dialog-bg-color: unset; box-shadow: unset">
       <Official />
     </el-dialog>
+    <CommandLog v-model="dialog.commandLog" />
   </div>
 </template>
 

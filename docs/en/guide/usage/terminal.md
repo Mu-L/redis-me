@@ -48,7 +48,7 @@ required manual addition, meeting basic needs. **Displaying the command manual a
 heavy custom development**.
 ![xterminal.png](../../../public/images/terminal/xterminal.png)
 
-## 3. Based on [vue-web-terminal](https://tzfun.github.io/vue-web-terminal/zh) (v1.9 ~ v2.x)
+## 3. Based on [vue-web-terminal](https://tzfun.github.io/vue-web-terminal/zh) (v1.9 ~ lastest)
 
 vue-web-terminal is a powerful imperative web‑based emulated terminal plugin.It supports drag, resize, cursor
 control, history navigation, and other typical terminal behaviors,making it ideal for building clients for Redis,

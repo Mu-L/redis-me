@@ -11,12 +11,7 @@ import {
   getReadonlyPresetCommandRules,
   formatChannelPatternLabel,
   formatKeyPatternLabel,
-  isAclDryrunSupported,
-  isAclSupported,
-  isAclSelectorSupported,
   normalizeSelectorInput,
-  normalizeSelectorList,
-  formatSelectorLabel,
   summarizeSelectors,
   sha256Hex,
 } from '@/utils/acl'
@@ -35,41 +30,6 @@ function sampleDetail(overrides: Partial<AclUserDetail> = {}): AclUserDetail {
     ...overrides,
   }
 }
-
-describe('isAclSupported', () => {
-  it('6.0 及以上为 true', () => {
-    expect(isAclSupported('6.2.0')).toBe(true)
-    expect(isAclSupported('7.4.1')).toBe(true)
-  })
-
-  it('5.x 及以下为 false', () => {
-    expect(isAclSupported('5.0.14')).toBe(false)
-    expect(isAclSupported(undefined)).toBe(false)
-  })
-})
-
-describe('isAclDryrunSupported', () => {
-  it('7.0 及以上为 true', () => {
-    expect(isAclDryrunSupported('7.0.0')).toBe(true)
-    expect(isAclDryrunSupported('8.0.0')).toBe(true)
-  })
-
-  it('6.x 及以下为 false', () => {
-    expect(isAclDryrunSupported('6.2.0')).toBe(false)
-  })
-})
-
-describe('isAclSelectorSupported', () => {
-  it('7.2 及以上为 true', () => {
-    expect(isAclSelectorSupported('7.2.0')).toBe(true)
-    expect(isAclSelectorSupported('8.0.0')).toBe(true)
-  })
-
-  it('7.1 及以下为 false', () => {
-    expect(isAclSelectorSupported('7.1.0')).toBe(false)
-    expect(isAclSelectorSupported('6.2.0')).toBe(false)
-  })
-})
 
 describe('normalizeSelectorInput', () => {
   it('去掉外层括号并 trim', () => {

@@ -88,17 +88,17 @@ pub trait MeClient: Send + Sync {
 
     fn publish(&self, channel: &str, message: &str) -> AnyResult<()>;
 
-    fn subscribe(&self, app_handle: AppHandle, channel: Option<String>) -> AnyResult<()>;
+    fn subscribe(&self, channel: Option<String>) -> AnyResult<()>;
     fn subscribe_stop(&self) -> AnyResult<()>;
 
-    fn monitor(&self, app_handle: AppHandle, node: &str) -> AnyResult<()>;
+    fn monitor(&self, node: &str) -> AnyResult<()>;
     fn monitor_stop(&self) -> AnyResult<()>;
 
     fn batch_del(&self, param: RedisBatchKey) -> AnyResult<()>;
     fn batch_ttl(&self, param: RedisBatchTtl) -> AnyResult<()>;
-    fn export_csv(&self, app_handle: AppHandle, param: RedisExportCsv) -> AnyResult<()>;
-    fn import_csv(&self, app_handle: AppHandle, param: RedisImportCsv) -> AnyResult<()>;
-    fn import_cmd(&self, app_handle: AppHandle, file: String) -> AnyResult<()>;
+    fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()>;
+    fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()>;
+    fn import_cmd(&self, file: String) -> AnyResult<()>;
 
     fn mock_data(&self, count: u64) -> AnyResult<()>;
     fn key_type(&self, key: RedisKey) -> AnyResult<String>;
@@ -122,12 +122,24 @@ pub trait MeClient: Send + Sync {
     fn acl_log(&self, count: Option<u64>) -> AnyResult<Vec<AclLogEntry>>;
     fn acl_log_reset(&self) -> AnyResult<()>;
     fn acl_dryrun(&self, username: String, command: String) -> AnyResult<String>;
+
+    fn command_logs(&self, limit: Option<u64>) -> AnyResult<Vec<CommandLogEntry>> {
+        Ok(self.base().command_logger.query(limit))
+    }
+
+    fn command_logs_clear(&self) -> AnyResult<()> {
+        self.base().command_logger.clear();
+        Ok(())
+    }
 }
 
 // 通用实现: 由于Connection动态兼容问题，无法写在接口里面，因此写在方法中
 
+/// 单次 scan 请求最多执行的 SCAN 命令次数，防止大数据量搜索时界面卡死
+pub const SCAN_MAX_ITERATIONS: u32 = 30;
+
 pub fn scan_0_batch_count(pattern: &str) -> u64 {
-    // 空白或单字母查询，扫描1000槽位数即可；否则扫描10000个槽位数
+    // 空白或单字母查询，SCAN 的 COUNT 参数（每次扫描的 bucket 数量）使用 1000；否则使用 10000
     if pattern.replace("*", "").chars().count() <= 1 {
         1000
     } else {
@@ -158,7 +170,7 @@ pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Optio
 pub fn field_scan0(
     mut conn: MutexGuard<impl Commands>,
     param: FieldScanParam,
-    capabilities: &ServerCapabilities,
+    httl_supported: bool,
 ) -> AnyResult<FieldScanResult> {
     let bytes_format = param.bytes_format.as_ref().cloned().unwrap_or_default();
 
@@ -188,8 +200,8 @@ pub fn field_scan0(
                 &mut scan_value,
                 new_value,
                 &key,
-                capabilities,
                 &bytes_format,
+                httl_supported,
             )?;
 
             ready_count += new_count;
@@ -238,6 +250,11 @@ pub fn field_scan_0_get(
     let mut length = 0;
 
     let value: Option<serde_json::Value> = match key_type {
+        ValueType::None => {
+            bail!(AppError::KeyNotFound {
+                key: vec8_to_display_string(key.to_bytes())
+            })
+        }
         ValueType::String => {
             let value: Vec<u8> = conn.get(key)?;
             length = value.len();
@@ -395,8 +412,8 @@ pub fn field_scan_2_value(
     scan_value: &mut FieldScanValue,
     new_value: Value,
     key: &RedisKey,
-    capabilities: &ServerCapabilities,
     bytes_format: &BytesFormat,
+    httl_supported: bool,
 ) -> AnyResult<usize> {
     let new_count = match key_type {
         ValueType::Hash => {
@@ -404,18 +421,18 @@ pub fn field_scan_2_value(
             let new_count = value.len();
             let mut new_value = ui_hash_value(&value, bytes_format);
 
-            // 补充hash字段ttl
-            if capabilities.hash_field_ttl {
+            // 补充hash字段ttl（Redis/Valkey >= 7.4）
+            if httl_supported {
                 let fields: Vec<&Vec<u8>> = value.iter().map(|(f, _)| f).collect();
-                let ttl_values: Vec<IntegerReplyOrNoOp> = conn.httl(key, fields)?;
-
-                for (item, ttl_reply) in new_value.iter_mut().zip(ttl_values) {
-                    item.ttl = match ttl_reply {
-                        IntegerReplyOrNoOp::IntegerReply(ttl) => Some(ttl as i64),
-                        IntegerReplyOrNoOp::NotExists => Some(-2),
-                        IntegerReplyOrNoOp::ExistsButNotRelevant => Some(-1),
-                        _ => None, // 其他场景
-                    };
+                if let Ok(ttl_values) = conn.httl::<_, _, Vec<IntegerReplyOrNoOp>>(key, &fields) {
+                    for (item, ttl_reply) in new_value.iter_mut().zip(ttl_values) {
+                        item.ttl = match ttl_reply {
+                            IntegerReplyOrNoOp::IntegerReply(ttl) => Some(ttl as i64),
+                            IntegerReplyOrNoOp::NotExists => Some(-2),
+                            IntegerReplyOrNoOp::ExistsButNotRelevant => Some(-1),
+                            _ => None,
+                        };
+                    }
                 }
             }
 
@@ -559,7 +576,7 @@ pub fn del0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<()>
 pub fn field_add0(
     mut conn: MutexGuard<impl Commands>,
     param: RedisFieldAdd,
-    capabilities: &ServerCapabilities,
+    httl_supported: bool,
 ) -> AnyResult<RedisKey> {
     let key_fmt = param.key_fmt.as_ref().cloned().unwrap_or_default();
     let val_fmt = param.val_fmt.as_ref().cloned().unwrap_or_default();
@@ -612,7 +629,7 @@ pub fn field_add0(
                 .into_iter()
                 .unzip();
             let _: () = conn.hset_multiple(&key, &field_pairs)?;
-            if capabilities.hash_field_ttl {
+            if httl_supported {
                 for ((fk, _), ttl) in field_pairs.iter().zip(&ttls) {
                     if *ttl > 0 {
                         let _: () = conn.hexpire(&key, *ttl, ExpireOption::NONE, fk)?;
@@ -684,7 +701,7 @@ pub fn field_add0(
 pub fn field_set0(
     mut conn: MutexGuard<impl Commands>,
     param: RedisFieldSet,
-    capabilities: &ServerCapabilities,
+    httl_supported: bool,
 ) -> AnyResult<()> {
     let key: RedisKey = param.key;
     let key_type: ValueType = conn.key_type(&key)?;
@@ -696,7 +713,7 @@ pub fn field_set0(
             let key_bytes = parse_bytes(&param.field_key, &val_fmt)?;
             let value_bytes = parse_bytes(&param.field_value, &val_fmt)?;
             let _: () = conn.hset(&key, &key_bytes, &value_bytes)?;
-            if capabilities.hash_field_ttl && param.field_ttl > 0 {
+            if httl_supported && param.field_ttl > 0 {
                 let _: () = conn.hexpire(&key, param.field_ttl, ExpireOption::NONE, &key_bytes)?;
             }
         }

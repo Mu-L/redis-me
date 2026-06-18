@@ -78,6 +78,8 @@ fn tauri_specta_commands() -> Commands<tauri::Wry> {
         key_node,
         flush_db,
         flush_all,
+        command_logs,
+        command_logs_clear,
     ]
 }
 

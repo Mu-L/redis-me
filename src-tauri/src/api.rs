@@ -2,7 +2,7 @@ use crate::client::state::ClientAccess;
 use crate::utils::app_store;
 use crate::utils::model::*;
 use crate::utils::util::*;
-use crate::{api_commands, api_commands2};
+use crate::{api_commands};
 use specta::specta;
 use std::collections::HashMap;
 use tauri::utils::platform::current_exe;
@@ -107,7 +107,9 @@ pub fn app_settings(app_handle: AppHandle, app_settings: AppSettings) -> ApiResu
 #[command]
 #[specta]
 pub fn connect(app_handle: AppHandle, id: &str) -> ApiResult<ServerCapabilities> {
-    to_api_result(app_handle.connect(id)).map(|client| (*client.base().capabilities).clone())
+    let client = app_handle.connect(app_handle.clone(), id).map_err(|e| e.to_string())?;
+    let capabilities = client.base().capabilities.clone();
+    Ok(capabilities)
 }
 
 // 断开
@@ -128,54 +130,53 @@ api_commands!(
     chart_list() -> Vec<RedisChart>;           // 图表列表
     node_list() -> Vec<RedisNode>;             // 节点列表
     scan(param: ScanParam) -> ScanResult;      // 扫描
-    field_scan(param: FieldScanParam)  -> FieldScanResult;      // 字段扫描
+    field_scan(param: FieldScanParam)  -> FieldScanResult;        // 字段扫描
     //get(key: RedisKey, hash_key: Option<String>) -> RedisValue; // 获取值(不扫描，直接获取所有)
-    ttl(key: RedisKey, ttl: i64) -> ();                 // 设置TTL
-    set(param: RedisSetParam) -> ();  // 设置值
-    del(key: RedisKey) -> ();                           // 删除键
-    rename(key: RedisKey, new_key: RedisKey) -> RedisKey; // 重命名键
-    field_add(param: RedisFieldAdd) -> RedisKey;        // 新增字段
-    field_set(param: RedisFieldSet) -> ();              // 编辑字段
-    field_del(param: RedisFieldDel) -> ();              // 删除字段
-    execute_command(param: RedisCommand) -> String;     // 执行命令
+    ttl(key: RedisKey, ttl: i64) -> ();                           // 设置TTL
+    set(param: RedisSetParam) -> ();                              // 设置值
+    del(key: RedisKey) -> ();                                     // 删除键
+    rename(key: RedisKey, new_key: RedisKey) -> RedisKey;         // 重命名键
+    field_add(param: RedisFieldAdd) -> RedisKey;                  // 新增字段
+    field_set(param: RedisFieldSet) -> ();                        // 编辑字段
+    field_del(param: RedisFieldDel) -> ();                        // 删除字段
+    execute_command(param: RedisCommand) -> String;               // 执行命令
     config_get(pattern: &str, node: Option<String>) -> HashMap<String, String>; // 获取配置
     config_set(key: &str, value: &str, node: Option<String>) -> ();             // 设置配置
     slow_log(count: Option<u64>, node: Option<String>) -> Vec<RedisSlowLog>;    // 慢日志
     memory_usage(param: RedisMemoryParam) -> Vec<RedisKeySize>;                 // 内存分析
     client_list(node: Option<String>, client_type: Option<String>) -> Vec<RedisClientInfo>; // 客户端列表
-    publish(channel: &str, message: &str) -> (); // 发布消息
-    subscribe_stop() -> ();                      // 订阅消息停止
-    monitor_stop()   -> ();                      // 监控命令停止
-    batch_del(param: RedisBatchKey) -> ();       // 批量删除
-    batch_ttl(param: RedisBatchTtl) -> ();       // 批量更新过期时间
-    mock_data(count: u64) -> ();                 // 模拟数据
-    key_type(key: RedisKey) -> String;           // 获取键类型
+    publish(channel: &str, message: &str) -> ();    // 发布消息
+    subscribe_stop() -> ();                         // 订阅消息停止
+    monitor_stop()   -> ();                         // 监控命令停止
+    batch_del(param: RedisBatchKey) -> ();          // 批量删除
+    batch_ttl(param: RedisBatchTtl) -> ();          // 批量更新过期时间
+    mock_data(count: u64) -> ();                    // 模拟数据
+    key_type(key: RedisKey) -> String;              // 获取键类型
     xinfo_groups(key: RedisKey) -> Vec<XInfoGroup>; // 获取Stream类型的组信息
     xinfo_consumers(key: RedisKey, group: String) -> Vec<XInfoConsumer>; // 获取Stream类型的消费者信息
-    key_slot(key: RedisKey) -> u64;              // 获取键的槽位
-    key_node(key: RedisKey) -> Vec<RedisNode>;   // 获取键所在节点ID
-    flush_db() -> ();                            // 清空当前数据库
-    flush_all() -> ();                           // 清空所有数据库
-    acl_users() -> Vec<String>;                  // ACL 用户列表
-    acl_list_users() -> Vec<AclUserDetail>;     // ACL LIST 解析用户详情（单次往返）
-    acl_getuser(username: &str) -> AclUserDetail; // ACL 用户详情
-    acl_setuser(param: AclSetuserParam) -> ();   // ACL 新建/更新用户
-    acl_deluser(usernames: Vec<String>) -> usize; // ACL 删除用户
-    acl_whoami() -> String;                      // ACL 当前用户
-    acl_cat(category: Option<String>) -> Vec<String>; // ACL 命令分类
-    acl_genpass(bits: Option<i64>) -> String;    // ACL 生成密码
-    acl_save() -> ();                            // ACL 保存规则
-    acl_load() -> ();                            // ACL 加载规则
-    acl_log(count: Option<u64>) -> Vec<AclLogEntry>; // ACL 安全日志
-    acl_log_reset() -> ();                       // ACL 清空安全日志
-    acl_dryrun(username: String, command: String) -> String; // ACL 模拟测试
-);
-
-// 需要将app_handle传递过去的命令
-api_commands2!(
-    monitor(node: &str) -> ();                   // 监控命令
-    subscribe(channel: Option<String>)-> ();     // 订阅消息
-    export_csv(param: RedisExportCsv) -> ();     // 导出CSV
-    import_csv(param: RedisImportCsv) -> ();     // 导入CSV
-    import_cmd(file: String) -> ();              // 导入命令
+    key_slot(key: RedisKey) -> u64;                           // 获取键的槽位
+    key_node(key: RedisKey) -> Vec<RedisNode>;                // 获取键所在节点ID
+    flush_db() -> ();                                         // 清空当前数据库
+    flush_all() -> ();                                        // 清空所有数据库
+    acl_users() -> Vec<String>;                               // ACL 用户列表
+    acl_list_users() -> Vec<AclUserDetail>;                   // ACL LIST 解析用户详情（单次往返）
+    acl_getuser(username: &str) -> AclUserDetail;             // ACL 用户详情
+    acl_setuser(param: AclSetuserParam) -> ();                // ACL 新建/更新用户
+    acl_deluser(usernames: Vec<String>) -> usize;             // ACL 删除用户
+    acl_whoami() -> String;                                   // ACL 当前用户
+    acl_cat(category: Option<String>) -> Vec<String>;         // ACL 命令分类
+    acl_genpass(bits: Option<i64>) -> String;                 // ACL 生成密码
+    acl_save() -> ();                                         // ACL 保存规则
+    acl_load() -> ();                                         // ACL 加载规则
+    acl_log(count: Option<u64>) -> Vec<AclLogEntry>;          // ACL 安全日志
+    acl_log_reset() -> ();                                    // ACL 清空安全日志
+    acl_dryrun(username: String, command: String) -> String;  // ACL 模拟测试
+    command_logs(limit: Option<u64>) -> Vec<CommandLogEntry>; // 命令日志（打开面板时拉快照）
+    command_logs_clear() -> ();                               // 清空命令日志
+    // 以下方法需要 app_handle（内部从 MeBase 获取）
+    monitor(node: &str) -> ();                  // 监控命令
+    subscribe(channel: Option<String>) -> ();   // 订阅消息
+    export_csv(param: RedisExportCsv) -> ();    // 导出CSV
+    import_csv(param: RedisImportCsv) -> ();    // 导入CSV
+    import_cmd(file: String) -> ();             // 导入命令
 );

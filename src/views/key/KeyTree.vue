@@ -7,7 +7,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisKey_Deserialize } from '@/types/tauri-specta'
-import { TREE_KEY_ID_PREFIX } from '@/utils/util'
+import { meDeleteKey, TREE_KEY_ID_PREFIX } from '@/utils/util'
 
 import KeyTypeTag from './KeyTypeTag.vue'
 
@@ -96,11 +96,6 @@ function getNodeClass(node: TreeNode) {
     (!node.isLeaf && node.key === contextMenuNode.value?.key)
   ) {
     clazz.push('context-key')
-  }
-
-  // 列表展示时左侧的空白较多处理
-  if (!props.keyShowTree && !props.showCheckbox && node.isLeaf) {
-    clazz.push('list-key')
   }
   return clazz
 }
@@ -326,6 +321,17 @@ function setCurrentKey(redisKey: RedisKey_Deserialize) {
 
 // 键高度配置
 const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
+
+/** 当前行是否为选中键（树高亮或右侧已打开该键） */
+function isCurrentKey(node: TreeNode): boolean {
+  const rk = node.data.redisKey as RedisKey_Deserialize | undefined
+  return node.isCurrent || rk?.key === props.redisKey?.key
+}
+
+function quickDeleteKey(redisKey: RedisKey_Deserialize): void {
+  if (!share.conn) return
+  meDeleteKey(share.conn.id, redisKey)
+}
 </script>
 
 <template>
@@ -350,16 +356,22 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
         :item-size="keyHeight"
         :show-checkbox="showCheckbox">
         <template #default="{ node }">
-          <div
-            style="width: 100%; justify-content: flex-start; align-items: center"
-            v-if="node.isLeaf"
-            :class="getNodeClass(node)"
-            class="me-flex">
-            <KeyTypeTag :redis-key="node.data.redisKey" />
-            <div style="margin-left: 5px">
-              <span v-if="node.label">{{ node.label }}</span>
-              <span v-else style="color: var(--el-color-info-light-3)">[EMPTY]</span>
+          <div v-if="node.isLeaf" :class="getNodeClass(node)" class="me-flex key-leaf-row">
+            <div
+              class="me-flex key-leaf-main"
+              :class="{ 'list-key': !keyShowTree && !showCheckbox }">
+              <KeyTypeTag :redis-key="node.data.redisKey" />
+              <div class="key-leaf-label">
+                <span v-if="node.label">{{ node.label }}</span>
+                <span v-else style="color: var(--el-color-info-light-3)">[EMPTY]</span>
+              </div>
             </div>
+            <me-icon
+              v-if="canEdit && !showCheckbox && isCurrentKey(node)"
+              :info="t('keyTree.deleteKey')"
+              icon="el-icon-delete"
+              class="key-delete-btn"
+              @click.stop="quickDeleteKey(node.data.redisKey)" />
           </div>
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
             <me-icon
@@ -411,10 +423,10 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
             ><me-icon icon="el-icon-refresh" :name="t('keyTree.refreshKey')"
           /></el-dropdown-item>
           <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
-          ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
+            ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
           /></el-dropdown-item>
           <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
-          ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
+            ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
           /></el-dropdown-item>
           <el-dropdown-item command="addKey" v-if="canEdit"
             ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
@@ -453,8 +465,45 @@ const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
 }
 
 /* 列表展示时左侧空白处理 */
-:deep(.list-key) {
+.list-key {
   margin-left: -20px;
+}
+
+.key-leaf-row {
+  width: 100%;
+  align-items: center;
+}
+
+.key-leaf-main {
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.key-leaf-label {
+  flex: 1;
+  min-width: 0;
+  margin-left: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 删除图标右缘与文件夹 [数量] 末位数字对齐（略大于数量块的 margin-right） */
+.key-delete-btn {
+  flex-shrink: 0;
+  margin-right: 10px;
+  cursor: pointer;
+  color: var(--el-color-info);
+
+  :deep(.el-icon) {
+    color: inherit;
+  }
+
+  &:hover {
+    color: var(--el-color-info-light-3);
+  }
 }
 
 /*  键类型TAG设置 */

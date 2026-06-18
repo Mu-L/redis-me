@@ -14,7 +14,6 @@ import { useI18n } from 'vue-i18n'
 import MeWebsite from '@/components/MeWebsite.vue'
 import { infoTip as tips } from '@/locales/info'
 import { shareProvideKey } from '@/types/me-interface'
-import { isAclSupported } from '@/utils/acl'
 import { bus, enrichNodeList, INFO_REFRESH, meCommands } from '@/utils/util'
 import RedisACL from '@/views/tab/RedisACL.vue'
 import RedisClient from '@/views/tab/RedisClient.vue'
@@ -76,7 +75,7 @@ const displayUsername = computed(() => {
 })
 
 /** ACL 6.0+ 才在 Info 展示可点击入口 */
-const aclSupported = computed(() => isAclSupported(share.serverVersion))
+const aclSupported = computed(() => share.capabilities.aclSupported)
 
 /** INFO instantaneous_ops_per_sec */
 const opsPerSec = computed(() => {
@@ -133,7 +132,6 @@ watchEffect(() => {
   const lines = raw.value.split('\n')
   let tagKey = ''
 
-  share.isValkey = false
   lines.forEach(line => {
     if (line.startsWith('#')) {
       tagKey = line.substring(1).trim()
@@ -146,11 +144,6 @@ watchEffect(() => {
       if (key !== '') {
         tagTable.value.push({ key, value, tag: tagKey })
         dic.value[key] = value
-
-        // 如果info信息中有valkey_version则设置为true
-        if (key === 'valkey_version') {
-          share.isValkey = true
-        }
       }
 
       // db0:keys=14410,expires=3997,avg_ttl=736124073
@@ -164,8 +157,6 @@ watchEffect(() => {
       }
     }
   })
-
-  share.serverVersion = dic.value[share.isValkey ? 'valkey_version' : 'redis_version']
 })
 
 // 表格数据
@@ -270,14 +261,15 @@ const nodeGroups = computed(() => {
           <div class="me-flex">
             <el-text size="large" style="margin-left: 5px">{{ infoNode }}</el-text>
             <el-tag style="margin-left: 10px" effect="plain">
-              {{ share.isValkey ? 'Valkey' : 'Redis' }} {{ share.serverVersion }}
+              {{ share.capabilities.isValkey ? 'Valkey' : 'Redis' }}
+              {{ share.capabilities.version }}
             </el-tag>
             <el-tag
               type="success"
               style="margin-left: 10px"
               effect="plain"
-              v-if="dic[share.isValkey ? 'server_mode' : 'redis_mode']"
-              >{{ dic[share.isValkey ? 'server_mode' : 'redis_mode'] }}</el-tag
+              v-if="dic[share.capabilities.isValkey ? 'server_mode' : 'redis_mode']"
+              >{{ dic[share.capabilities.isValkey ? 'server_mode' : 'redis_mode'] }}</el-tag
             >
             <el-tag type="success" style="margin-left: 10px" v-if="dic['role']" effect="plain">{{
               dic['role']
@@ -505,7 +497,7 @@ const nodeGroups = computed(() => {
     width="80vw"
     :close-on-press-escape="false"
     :close-on-click-modal="false">
-    <RedisConfig :init-node="node || infoNode" :init-version="share.serverVersion" />
+    <RedisConfig :init-node="node || infoNode" :init-version="share.capabilities.version" />
   </me-dialog>
 
   <el-dialog

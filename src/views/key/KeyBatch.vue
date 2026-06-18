@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisKey_Deserialize } from '@/types/tauri-specta'
+import { clearKeyTypeCacheForConn } from '@/utils/key-type-cache'
 import { meCommands, meOk } from '@/utils/util'
 
 /** 打开对话框时合并进表单的字段（与 initForm 一致） */
@@ -83,6 +84,7 @@ function submit() {
         await meCommands.exportCsv(share.conn!.id, form.value)
       } else {
         await meCommands.batchDel(share.conn!.id, form.value)
+        clearKeyTypeCacheForConn(share.conn!.id)
       }
       if (!isExport.value) {
         meOk(t('deleteOk'))
@@ -138,7 +140,10 @@ const exportBtnEnabled = computed(() => (isExport.value ? !!form.value.file : tr
 
 // 导出文件名称添加服务器及版本（不同版本的redisdump命令可能不兼容，便于分析问题）
 const exportFilePrefix = computed(
-  () => 'RedisME_export_' + (share.isValkey ? 'Valkey' : 'Redis') + share.serverVersion,
+  () =>
+    'RedisME_export_' +
+    (share.capabilities.isValkey ? 'Valkey' : 'Redis') +
+    share.capabilities.version,
 )
 </script>
 

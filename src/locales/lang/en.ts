@@ -356,6 +356,8 @@ export default {
 
     refreshConn: 'Refresh Conn',
     closeConn: 'Close Conn',
+    commandLog: 'Command Log',
+    commandLogNeedConn: 'Please select a connection first',
 
     newWindow: 'New Window',
     newWindowError: 'Open New Window Error',
@@ -365,6 +367,22 @@ export default {
   },
 
   about: { sourceCode: 'Source Code', officialWebsite: 'Official Website' },
+
+  commandLog: {
+    title: 'Command Log',
+    description: 'Records all Redis commands. Recent 1s commands highlighted',
+    keyword: 'Filter displayed commands…',
+    clear: 'Clear',
+    close: 'Close',
+    clearConfirm: 'Clear command logs for this connection?',
+    clearOk: 'Command logs cleared',
+    empty: 'No commands logged yet',
+    time: 'Time',
+    db: 'DB',
+    command: 'Command',
+    duration: 'Cost(ms)',
+    slowHint: 'Slow command, cost>100ms',
+  },
 
   fieldAdd: {
     append: 'Append',
