@@ -138,7 +138,6 @@ onUnmounted(() => {
 function deleteKey(redisKey: RedisKey_Deserialize): void {
   keyList.value = keyList.value.filter(rk => rk.bytes !== redisKey.bytes)
   share.redisKey = null
-  bus.emit(INFO_REFRESH)
 }
 
 const dbList = ref<RedisDB[]>([])
