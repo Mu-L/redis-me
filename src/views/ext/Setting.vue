@@ -113,8 +113,8 @@ const baseDefaultSettings = {
 }
 
 const moreDefaultSettings = {
-  scanFetchCount: 30,
-  fieldScanCount: 30,
+  keyScanCount: 1000,
+  fieldScanCount: 20,
   keyShow: 'tree',
   keySort: 'count',
   keyHeight: 20,
@@ -126,7 +126,7 @@ const moreDefaultSettings = {
 
 /** 更多设置数字项 min/max，与表单项及 ? 提示共用 */
 const MORE_SETTING_LIMITS = {
-  scanFetchCount: { min: 10, max: 1000 },
+  keyScanCount: { min: 10, max: 10000 },
   fieldScanCount: { min: 10, max: 1000 },
   commandTimeout: { min: 5, max: 300 },
   codecExecTimeoutSec: { min: 1, max: 120 },
@@ -343,16 +343,16 @@ async function resetWindowSize() {
         <el-form-item>
           <template #label>
             <me-icon
-              :name="t('setting.scanFetchCount')"
+              :name="t('setting.keyScanCount')"
               icon="el-icon-question-filled"
-              :info="t('setting.scanFetchCountTip', MORE_SETTING_LIMITS.scanFetchCount)"
+              :info="t('setting.keyScanCountTip', MORE_SETTING_LIMITS.keyScanCount)"
               :icon-left="false"
               placement="top" />
           </template>
           <el-input-number
-            v-model="settings.scanFetchCount"
-            :min="MORE_SETTING_LIMITS.scanFetchCount.min"
-            :max="MORE_SETTING_LIMITS.scanFetchCount.max"
+            v-model="settings.keyScanCount"
+            :min="MORE_SETTING_LIMITS.keyScanCount.min"
+            :max="MORE_SETTING_LIMITS.keyScanCount.max"
             :controls="false"
             style="width: 100px"
             align="left">

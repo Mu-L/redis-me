@@ -7,7 +7,7 @@ declare global {
     settings: Record<string, unknown> & {
       language?: string
       theme?: string
-      scanFetchCount?: number
+      keyScanCount?: number
       fieldScanCount?: number
       keyShow?: string
       keySort?: string

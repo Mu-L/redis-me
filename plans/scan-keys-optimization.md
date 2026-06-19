@@ -153,9 +153,9 @@ func (b *browserService) scanKeys(ctx context.Context, client redis.UniversalCli
 | -------------- | ------------------- | ----------------- | -------------- | ------------------- |
 | **扫描方式**   | Stream API          | HTTP API + cursor | Go 后端 SCAN   | Tauri 命令 + cursor |
 | **实时显示**   | ✅ 流式实时         | ❌ 分批返回       | ❌ 分批返回    | ✅ 分批返回         |
-| **分页控制**   | stream.pause/resume | cursor 参数       | cursor + count | SCAN_MAX_ITERATIONS |
-| **加载全部**   | 大 COUNT            | scanThreshold     | count=0        | 前端循环轮询        |
-| **取消扫描**   | ✅ stream.destroy   | ✅ CancelToken    | ❌             | ❌                  |
+| **分页控制**   | stream.pause/resume | cursor 参数       | cursor + count | async/await 递归    |
+| **加载全部**   | 大 COUNT            | scanThreshold     | count=0        | 前端递归轮询        |
+| **取消扫描**   | ✅ stream.destroy   | ✅ CancelToken    | ❌             | ✅ scanCancelled    |
 | **前端复杂度** | 高                  | 低                | 低             | 中                  |
 | **后端复杂度** | 低                  | 中                | 高             | 中                  |
 
@@ -175,128 +175,59 @@ func (b *browserService) scanKeys(ctx context.Context, client redis.UniversalCli
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   用户操作   │────▶│   前端轮询   │────▶│  后端 SCAN   │
-│  搜索/加载  │     │ setTimeout  │     │ 30次迭代限制 │
+│   用户操作   │────▶│   前端递归   │────▶│  后端 SCAN   │
+│  搜索/加载  │     │ async/await │     │  单次执行    │
 └─────────────┘     └─────────────┘     └─────────────┘
        │                   │                   │
-       │              10ms间隔               每次30次
+       │              条件判断                返回结果
        │                   │                   │
        ▼                   ▼                   ▼
   ┌─────────────────────────────────────────────────┐
   │            实时显示扫描结果                      │
   │   - 搜索时：有结果立即停止，用户立即看到          │
-  │   - 加载全部：循环轮询直到扫完                    │
-  │   - loading 状态保持不闪烁                       │
+  │   - 加载全部：递归循环直到扫完                    │
+  │   - 用户可取消：设置标志位停止后续递归            │
+  └─────────────────────────────────────────────────┘
+```
+
+### 核心策略
+
+结合三款 RDM 的优点，采用 **"异步递归 + 可取消 + 实时显示"** 策略：
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   用户操作   │────▶│   前端递归   │────▶│  后端 SCAN   │
+│  搜索/加载  │     │ async/await │     │  单次执行    │
+└─────────────┘     └─────────────┘     └─────────────┘
+       │                   │                   │
+       │              条件判断                返回结果
+       │                   │                   │
+       ▼                   ▼                   ▼
+  ┌─────────────────────────────────────────────────┐
+  │            实时显示扫描结果                      │
+  │   - 搜索时：有结果立即停止，用户立即看到          │
+  │   - 加载全部：递归循环直到扫完                    │
+  │   - 用户可取消：设置标志位停止后续递归            │
   └─────────────────────────────────────────────────┘
 ```
 
 ### 具体改造点
 
-#### 1. 后端限流（已实现 ✅）
-
-```rust
-// client_trait.rs
-pub const SCAN_MAX_ITERATIONS: u32 = 30;
-```
-
-- 单次请求最多执行 **30 次 SCAN 命令**
-- 防止大数据量时单次请求耗时过长
-- 保证响应速度 < 1s
-
-#### 2. 前端轮询（已实现 ✅）
+#### 1. 异步递归扫描（已实现 ✅）
 
 ```typescript
-// loadAll 模式：循环加载直到扫描完成
-if (loadAll && cursor.value && !cursor.value.finished) {
-  keepLoading = true
-  setTimeout(() => scanKey(true, true), 10) // 10ms 间隔
+// loadAll 模式：递归加载直到扫描完成
+async function scanKeyAll(): Promise<void> {
+  if (!cursor.value || cursor.value.finished) return
+  if (scanCancelled.value) return // 用户取消则停止
+
+  await scanKeyCore(true)
+  await scanKeyAll() // 继续递归
 }
 ```
 
-- **10ms 轮询间隔**：让出主线程给 UI 渲染，又不过度等待
-- **`keepLoading` 标志**：循环加载期间保持 loading 状态，避免闪烁
-
-#### 3. 搜索自动加载（已实现 ✅）
-
-```typescript
-// 自动加载停止条件：返回新结果 或 扫描完成
-if (autoContinue && cursor.value && !cursor.value.finished && data.keyList.length === 0) {
-  setTimeout(() => scanKey(true, false, true), 10)
-}
-```
-
-- **返回新结果即停止**：用户看到结果后立即停止自动加载
-- **无结果继续扫**：如果当前批次没有匹配到，自动继续扫描
-
-#### 4. 取消扫描功能（待实现 ⏳）
-
-参考 ARDM 和 RedisInsight，添加取消扫描功能：
-
-```typescript
-// 添加取消标志
-let scanAbortController = new AbortController()
-
-async function scanKey(..., signal?: AbortSignal) {
-  // 每次请求前检查是否已取消
-  if (signal?.aborted) return
-
-  const data = await meCommands.scan(share.conn!.id, params)
-  // ...
-}
-
-// 取消扫描
-function cancelScanning() {
-  scanAbortController.abort()
-  scanAbortController = new AbortController()
-}
-```
-
-**实现方式**：
-
-- 前端添加 `AbortController`，在搜索框旁显示 cancel 图标
-- 用户点击取消时，中断当前扫描，重置状态
-- 需要后端配合支持取消（Tauri 命令可能需要额外处理）
-
-#### 5. 搜索框状态显示（待实现 ⏳）
-
-参考 ARDM，在搜索框显示扫描状态：
-
-```vue
-<el-input v-model="match" placeholder="Search keys...">
-  <template #suffix>
-    <el-icon v-if="scanning" class="is-loading"><Loading /></el-icon>
-    <el-icon v-else-if="canCancel" @click="cancelScanning"><Close /></el-icon>
-    <el-icon v-else><Search /></el-icon>
-  </template>
-</el-input>
-```
-
-**状态流转**：
-
-- 空闲：🔍 搜索图标
-- 扫描中：⏳ loading 旋转图标
-- 可取消：❌ 取消图标（扫描一段时间后显示）
-
-#### 6. SCAN 迭代次数动态调整（可选优化）
-
-根据网络延迟和数据库规模，动态调整 `SCAN_MAX_ITERATIONS`：
-
-```rust
-// 本地 Redis：可以适当增大（50~100）
-// 远程 Redis：保持 30 或更小
-// 根据前几次请求的响应时间动态调整
-```
-
-### 改造优先级
-
-| 优先级 | 改造点                       | 状态        | 说明               |
-| ------ | ---------------------------- | ----------- | ------------------ |
-| P0     | 后端限流 SCAN_MAX_ITERATIONS | ✅ 已完成   | 防止单次请求卡死   |
-| P0     | 前端轮询 + keepLoading       | ✅ 已完成   | 避免 loading 闪烁  |
-| P0     | 搜索自动加载                 | ✅ 已完成   | 有结果立即停止     |
-| P1     | 取消扫描功能                 | ⏳ 待实现   | 提升用户体验       |
-| P1     | 搜索框状态显示               | ⏳ 待实现   | 参考 ARDM          |
-| P2     | SCAN 迭代次数动态调整        | 💡 可选优化 | 根据网络环境自适应 |
+- **async/await 递归**：每次 `await` 释放调用栈，不会栈溢出
+- **无 setTimeout 轮询**：直接递归调用，结果即时返回
 
 ---
 
@@ -313,20 +244,24 @@ function cancelScanning() {
   └────┬─────┘
        │
        ▼
-  ┌──────────┐     ┌──────────┐
-  │ 后端扫描  │────▶│ 30次迭代 │
+  ┌──────────┐
+  │ 后端扫描  │────▶│ 返回结果
   └────┬─────┘     └────┬─────┘
+       │                │
+       │           有匹配结果
+       │                │
+       │                ▼
+       │           ┌──────────┐
+       │           │ 停止加载  │
+       │           └────┬─────┘
        │                │
        │           无匹配结果
        │                │
        │                ▼
        │           ┌──────────┐
-       │           │ 前端自动  │
+       │           │ 前端递归  │
        │           │ 继续扫描  │
        │           └────┬─────┘
-       │                │
-       │                ▼
-       │           找到匹配结果
        │                │
        ▼                ▼
   ┌─────────────────────────┐
@@ -341,20 +276,19 @@ function cancelScanning() {
        │
        ▼
   ┌──────────┐
-  │ 循环扫描  │
+  │ 递归扫描  │
   └────┬─────┘
        │
        ▼
   ┌─────────────────────────────────┐
   │  批次1  │  批次2  │  批次3  │ ... │
-  │  30次   │  30次   │  30次   │     │
+  │  递归   │  递归   │  递归   │     │
   └─────────────────────────────────┘
        │
-       │ 每批次间隔 10ms
        │ 结果实时追加到列表
        │
        ▼
-  cursor == 0（扫描完成）
+  cursor.finished（扫描完成）
        │
        ▼
   ┌─────────────────┐
@@ -374,38 +308,26 @@ function cancelScanning() {
 
 **当前已实现**：
 
-- ✅ 后端限流（SCAN_MAX_ITERATIONS = 30）
-- ✅ 前端轮询（10ms 间隔）
+- ✅ 异步递归扫描（async/await，不会栈溢出）
 - ✅ 搜索自动加载（有结果即停止）
-- ✅ loading 不闪烁（keepLoading 标志）
+- ✅ 可取消扫描（scanCancelled 标志位）
+- ✅ loading 统一状态管理
+- ✅ 空状态优化（扫描中显示"扫描中..."）
 
 **待实现**：
 
-- ⏳ 取消扫描功能
-- ⏳ 搜索框状态显示
 - 💡 SCAN 迭代次数动态调整（可选）
 
 ---
 
-## 六、最终改造方案（v2.0）
+## 六、最终改造方案（v2.0 - 已实现 ✅）
 
 ### 核心思路
 
-**近乎实时**：后端每次固定扫描 10 次，快速返回一批结果，前端立即显示。
-**可取消**：用户点击取消后，当前轮次完成即停止，不再发送后续请求。
-
-### 后端改造
-
-#### SCAN_MAX_ITERATIONS 改为 10
-
-```rust
-// client_trait.rs
-pub const SCAN_MAX_ITERATIONS: u32 = 10;
-```
-
-- 从 30 次降为 **10 次**，单次请求更快返回（~300ms 以内）
-- 用户几乎能实时看到结果刷新
-- 10 次 × COUNT(1000~10000) = 每次扫 1万~10万个 bucket
+**异步递归**：前端使用 async/await 递归执行扫描，每次 `await` 释放调用栈，不会栈溢出。
+**可取消**：用户点击取消后，设置 `scanCancelled = true`，当前轮次完成后停止后续递归。
+**自动加载**：搜索时达到阈值（默认 keyScanCount）自动停止，避免过度扫描。
+**即时显示**：每次 SCAN 请求返回后立即更新列表，用户能实时看到结果。
 
 ### 前端改造
 
@@ -418,29 +340,50 @@ const scanCancelled = ref(false) // 扫描是否被取消
 #### 搜索时重置取消标志
 
 ```typescript
-if (!useCursor) {
-  cursor.value = null
-  scanCancelled.value = false // 新搜索时重置取消标志
-  autoLoading.value = false
+async function scanKey(useCursor = false, loadAll = false): Promise<void> {
+  if (loading.value || !share.conn) return
+
+  loading.value = true
+  scanCancelled.value = false // 每次扫描都重置取消标志
+  try {
+    if (!useCursor) {
+      cursor.value = null
+    }
+
+    const firstScanKeys = await scanKeyCore(useCursor)
+
+    // loadAll=false 时自动继续加载（达到阈值停止）
+    if (!loadAll) {
+      await scanKeyAuto(firstScanKeys)
+    } else {
+      await scanKeyAll()
+    }
+  } finally {
+    loading.value = false
+  }
 }
 ```
 
 #### 循环前检查是否已取消
 
 ```typescript
-// 搜索自动加载
-if (autoContinue && cursor.value && !cursor.value.finished && data.keyList.length === 0) {
-  if (!scanCancelled.value) {
-    setTimeout(() => scanKey(true, false, true), 10)
-  }
+// 自动加载：递归执行直到满足停止条件（async/await 不会栈溢出）
+async function scanKeyAuto(fetchedCount: number = 0): Promise<void> {
+  if (!cursor.value || cursor.value.finished) return
+  if (scanCancelled.value) return
+  if (fetchedCount >= SCAN_FETCH_COUNT.value) return
+
+  const newKeys = await scanKeyCore(true)
+  await scanKeyAuto(fetchedCount + newKeys)
 }
 
-// loadAll 模式
-if (loadAll && cursor.value && !cursor.value.finished) {
-  if (!scanCancelled.value) {
-    keepLoading = true
-    setTimeout(() => scanKey(true, true), 10)
-  }
+// 加载全部：递归执行直到扫描完成（async/await 不会栈溢出）
+async function scanKeyAll(): Promise<void> {
+  if (!cursor.value || cursor.value.finished) return
+  if (scanCancelled.value) return
+
+  await scanKeyCore(true)
+  await scanKeyAll() // 继续递归
 }
 ```
 
@@ -459,46 +402,121 @@ function cancelScanning() {
 ```
 初始状态：
 ┌─────────────────────────────────┐
-│  [搜索框]  [加载更多] [加载全部] │
+│  [搜索框]  [🔍刷新键] [➕新增键] │
 └─────────────────────────────────┘
 
-加载全部后：
+扫描中：
 ┌─────────────────────────────────┐
-│  [搜索框 ⏳] [加载更多] [取消]   │
+│  [搜索框 ⏳] [⏳扫描中...] [❌停止扫描] │
 └─────────────────────────────────┘
 
 点击取消后：
 ┌─────────────────────────────────┐
-│  [搜索框]  [加载更多] [加载全部] │
+│  [搜索框]  [🔍刷新键] [➕新增键] │
 │         已加载 150/10000 条      │
 └─────────────────────────────────┘
 ```
 
 #### 实现细节
 
-- **点击"加载全部"**：按钮变为"取消"，显示取消图标
-- **点击"取消"**：设置 `scanCancelled = true`，当前轮次完成后停止
-- **搜索框状态**：扫描时显示 loading 图标，可取消时显示取消图标
+- **点击"刷新键"或按 Enter**：开始扫描，搜索框显示 loading 图标，新增键按钮变为"停止扫描"
+- **点击"停止扫描"**：设置 `scanCancelled = true`，当前轮次完成后停止
+- **搜索框 readonly**：扫描时禁止输入，保持视觉一致性
 - **结果保留**：取消后保留已加载的结果，不清空列表
+- **空状态优化**：扫描中显示"扫描中..."，扫描完成后无结果显示"没有数据"
 
 ### 边界情况处理
 
-| 场景     | 处理逻辑                                   |
-| -------- | ------------------------------------------ |
-| 正常完成 | `cursor.finished = true`，自动释放 loading |
-| 用户取消 | `scanCancelled = true`，当前轮次结束停止   |
-| 新搜索   | 自动重置 `scanCancelled = false`           |
-| 快速取消 | 如果请求已发出，等待当前请求完成后停止     |
+| 场景     | 处理逻辑                                         |
+| -------- | ------------------------------------------------ |
+| 正常完成 | `cursor.finished = true`，自动释放 loading       |
+| 用户取消 | `scanCancelled = true`，当前轮次结束停止         |
+| 新搜索   | 自动重置 `scanCancelled = false`                 |
+| 快速取消 | 如果请求已发出，等待当前请求完成后停止           |
+| 首次扫描 | 空列表且 loading 时显示"扫描中..."而非"没有数据" |
+
+### 关键优化点
+
+#### 1. scanKeyCore 返回新扫描数量
+
+```typescript
+async function scanKeyCore(useCursor = false): Promise<number> {
+  const params = {
+    match: match.value,
+    type: keyType.value === 'ALL' ? '' : keyType.value.toLowerCase(),
+    cursor: cursor.value,
+  }
+
+  const data = await meCommands.scan(share.conn!.id, params)
+  cursor.value = data.cursor
+
+  const newKeyList = useCursor ? [...keyList.value, ...data.keyList] : data.keyList
+  keyList.value = sortBy(newKeyList, ['key'])
+
+  return data.keyList.length // 直接返回本次扫描的 key 数量
+}
+```
+
+**优点**：
+
+- 简化调用方逻辑，无需通过 `beforeLength` 计算
+- 代码更清晰，意图明确
+
+#### 2. 删除 autoContinue 参数
+
+```typescript
+// 旧版：三个参数
+async function scanKey(useCursor = false, loadAll = false, autoContinue = false)
+
+// 新版：两个参数，语义更清晰
+async function scanKey(useCursor = false, loadAll = false)
+```
+
+**逻辑**：
+
+- `loadAll = false`：自动继续加载，达到阈值（SCAN_FETCH_COUNT）停止
+- `loadAll = true`：加载全部，直到扫描完成
+
+#### 3. async/await 递归不会栈溢出
+
+```typescript
+// 注释说明：async/await 不会栈溢出
+async function scanKeyAuto(fetchedCount: number = 0): Promise<void> {
+  if (!cursor.value || cursor.value.finished) return
+  if (scanCancelled.value) return
+  if (fetchedCount >= SCAN_FETCH_COUNT.value) return
+
+  const newKeys = await scanKeyCore(true)
+  await scanKeyAuto(fetchedCount + newKeys)
+}
+```
+
+**原理**：每次 `await` 都会释放调用栈，不会导致栈溢出
+
+#### 4. i18n 精确化
+
+```typescript
+// zh-cn.ts
+scanning: '扫描中...',
+stopScan: '停止扫描',
+
+// en.ts
+scanning: 'Scanning...',
+stopScan: 'Stop Scan',
+```
 
 ### 改造优先级（更新后）
 
-| 优先级 | 改造点                        | 状态      | 说明                  |
-| ------ | ----------------------------- | --------- | --------------------- |
-| P0     | 后端 SCAN_MAX_ITERATIONS = 10 | ⏳ 待实现 | 固定10次，快速返回    |
-| P0     | 取消扫描功能                  | ⏳ 待实现 | 提升用户体验          |
-| P0     | 搜索框状态显示                | ⏳ 待实现 | loading / cancel 图标 |
-| P1     | loading 不闪烁（keepLoading） | ✅ 已完成 | 避免 true→false→true  |
-| P1     | 搜索自动加载                  | ✅ 已完成 | 有结果即停止          |
+| 优先级 | 改造点               | 状态      | 说明                   |
+| ------ | -------------------- | --------- | ---------------------- |
+| P0     | 异步递归扫描         | ✅ 已完成 | async/await 不栈溢出   |
+| P0     | 可取消扫描           | ✅ 已完成 | scanCancelled 标志位   |
+| P0     | 搜索自动加载         | ✅ 已完成 | 有结果立即停止         |
+| P0     | 空状态优化           | ✅ 已完成 | 扫描中显示"扫描中..."  |
+| P0     | scanKey 简化         | ✅ 已完成 | 删除 autoContinue 参数 |
+| P0     | scanKeyCore 返回值   | ✅ 已完成 | 返回新扫描数量         |
+| P1     | loading 统一状态管理 | ✅ 已完成 | 避免 true→false→true   |
+| P1     | 搜索自动加载         | ✅ 已完成 | 有结果即停止           |
 
 ---
 

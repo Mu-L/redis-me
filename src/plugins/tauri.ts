@@ -47,7 +47,7 @@ const initSettings = {
   autoUpdate: true,
 
   // 扩展设置
-  scanFetchCount: 30,
+  keyScanCount: 1000,
   fieldScanCount: 10,
   keyShow: 'tree',
   keySort: 'count',

@@ -72,10 +72,10 @@ export default {
     baseSetting: 'Base Setting',
     moreSetting: 'More Setting',
     extLabelWidth: '140px',
-    scanFetchCount: 'Scan',
+    keyScanCount: 'Key Scan',
     fieldScanCount: 'Field Scan',
-    scanFetchCountTip:
-      'Max keys to auto-load during search; auto-loading stops when reached. Range {min}–{max}',
+    keyScanCountTip:
+      'Number of keys loaded per SCAN; too large may affect performance. Range {min}–{max}',
     fieldScanCountTip: 'Fields loaded per HSCAN or SSCAN. Range {min}~{max}',
     commandTimeout: 'Cmd Timeout',
     commandTimeoutTip:

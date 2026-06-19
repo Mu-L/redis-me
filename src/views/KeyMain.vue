@@ -106,8 +106,8 @@ const filterKeyList = computed(() => {
   return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
 })
 
-// 搜索自动加载的停止阈值：使用设置中的 scanFetchCount
-const SCAN_FETCH_COUNT = computed(() => meTauri.settings.scanFetchCount as number)
+// 搜索自动加载的停止阈值：使用设置中的 keyScanCount
+const SCAN_FETCH_COUNT = computed(() => meTauri.settings.keyScanCount as number)
 
 // 扫描键
 async function scanKey(useCursor = false, loadAll = false): Promise<void> {
