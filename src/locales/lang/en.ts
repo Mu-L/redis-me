@@ -880,6 +880,7 @@ export default {
     editDbName: 'Custom DB Name (db{index})',
     editDbNamePlaceholder: 'input custom name',
     dbShowLimit: 'DB display limit',
+    clearHistory: 'Clear History',
   },
 
   ttlSet: {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
+import { useStorage } from '@vueuse/core'
 import { sortBy } from 'lodash'
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -86,6 +87,57 @@ function cancelScanning() {
   scanCancelled.value = true
 }
 
+// 搜索历史记录
+const SEARCH_HISTORY_KEY = 'redis-me:search-history'
+const searchHistory = useStorage<string[]>(SEARCH_HISTORY_KEY, [])
+const showHistory = ref(false)
+let historyHideTimer: ReturnType<typeof setTimeout> | null = null
+
+// 过滤后的搜索历史（输入时实时过滤）
+const filteredSearchHistory = computed(() => {
+  const k = keyword.value.toLowerCase().trim()
+  if (!k) return searchHistory.value
+  return searchHistory.value.filter(h => h.toLowerCase().includes(k))
+})
+
+function addSearchHistory(query: string) {
+  if (!query || query === '*' || loadFolder.value) return
+  const trimmed = query.trim()
+  if (!trimmed) return
+  searchHistory.value = [trimmed, ...searchHistory.value.filter(h => h !== trimmed)].slice(0, 10)
+}
+
+function removeSearchHistory(item: string) {
+  searchHistory.value = searchHistory.value.filter(h => h !== item)
+}
+
+function clearSearchHistory() {
+  searchHistory.value = []
+}
+
+function selectHistory(item: string) {
+  keyword.value = item
+  showHistory.value = false
+  void scanKey(false, false)
+}
+
+function handleInputFocus() {
+  showHistory.value = true
+}
+
+function handleInputBlur() {
+  historyHideTimer = setTimeout(() => {
+    showHistory.value = false
+  }, 150)
+}
+
+function handleHistoryMouseDown() {
+  if (historyHideTimer) {
+    clearTimeout(historyHideTimer)
+    historyHideTimer = null
+  }
+}
+
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -117,6 +169,7 @@ async function scanKey(useCursor = false, loadAll = false): Promise<void> {
   scanCancelled.value = false // 每次扫描都重置取消标志
   try {
     if (!useCursor) {
+      addSearchHistory(keyword.value)
       cursor.value = null
     }
 
@@ -544,73 +597,91 @@ function editDbName(db: number): void {
 <template>
   <div class="key-main">
     <div class="key-header">
-      <el-input
-        v-model="keyword"
-        :readonly="loading"
-        :placeholder="t('keyMain.keyword')"
-        @keyup.enter="scanKey(false, false)"
-        clearable>
-        <template #prepend>
-          <el-dropdown placement="bottom-start" @command="chooseKeyType">
-            <el-tag
-              :type="keyTypeTag.type"
-              effect="plain"
-              style="
-                width: 32px;
-                height: 32px;
-                font-weight: bold;
-                border-bottom-right-radius: 0;
-                border-top-right-radius: 0;
-              ">
-              {{ meKeyShort(keyType, 'A') }}
-            </el-tag>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="ALL">
-                  <el-tag
-                    type="info"
-                    :effect="'ALL' === keyType ? 'plain' : 'dark'"
-                    style="width: 26px"
-                    hit>
-                    A
-                  </el-tag>
-                  <el-text style="margin-left: 6px" type="info">ALL</el-text>
-                </el-dropdown-item>
-                <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
-                  <el-tag
-                    :type="item.type"
-                    :effect="item.value === keyType ? 'plain' : 'dark'"
-                    style="width: 26px"
-                    hit>
-                    {{ meKeyShort(item.value) }}
-                  </el-tag>
-                  <el-text style="margin-left: 6px">{{ item.value }}</el-text>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
-            <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
-          </el-tooltip>
-        </template>
-        <template #append>
-          <el-button-group>
-            <me-button
-              :info="loading ? t('keyMain.scanning') : t('keyMain.refreshKey')"
-              @click="scanKey(false, false)"
-              :icon="loading ? 'el-icon-loading' : 'el-icon-search'"
-              :loading="loading"
-              placement="bottom" />
-            <me-button
-              :info="loading ? t('keyMain.stopScan') : t('keyMain.addKey')"
-              @click="loading ? cancelScanning() : addKey()"
-              style="border-color: var(--el-button-border-color)"
-              v-if="canEdit"
-              :icon="loading ? 'me-icon-stop' : 'el-icon-plus'"
-              placement="bottom" />
-          </el-button-group>
-        </template>
-      </el-input>
+      <div class="search-input-wrapper">
+        <el-input
+          v-model="keyword"
+          :readonly="loading"
+          :placeholder="t('keyMain.keyword')"
+          @keyup.enter="scanKey(false, false)"
+          @focus="handleInputFocus"
+          @blur="handleInputBlur"
+          clearable>
+          <template #prepend>
+            <el-dropdown placement="bottom-start" @command="chooseKeyType">
+              <el-tag
+                :type="keyTypeTag.type"
+                effect="plain"
+                style="
+                  width: 32px;
+                  height: 32px;
+                  font-weight: bold;
+                  border-bottom-right-radius: 0;
+                  border-top-right-radius: 0;
+                ">
+                {{ meKeyShort(keyType, 'A') }}
+              </el-tag>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="ALL">
+                    <el-tag
+                      type="info"
+                      :effect="'ALL' === keyType ? 'plain' : 'dark'"
+                      style="width: 26px"
+                      hit>
+                      A
+                    </el-tag>
+                    <el-text style="margin-left: 6px" type="info">ALL</el-text>
+                  </el-dropdown-item>
+                  <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
+                    <el-tag
+                      :type="item.type"
+                      :effect="item.value === keyType ? 'plain' : 'dark'"
+                      style="width: 26px"
+                      hit>
+                      {{ meKeyShort(item.value) }}
+                    </el-tag>
+                    <el-text style="margin-left: 6px">{{ item.value }}</el-text>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
+              <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
+            </el-tooltip>
+          </template>
+          <template #append>
+            <el-button-group>
+              <me-button
+                :info="loading ? t('keyMain.scanning') : t('keyMain.refreshKey')"
+                @click="scanKey(false, false)"
+                :icon="loading ? 'el-icon-loading' : 'el-icon-search'"
+                :loading="loading"
+                placement="bottom" />
+              <me-button
+                :info="loading ? t('keyMain.stopScan') : t('keyMain.addKey')"
+                @click="loading ? cancelScanning() : addKey()"
+                style="border-color: var(--el-button-border-color)"
+                v-if="canEdit"
+                :icon="loading ? 'me-icon-stop' : 'el-icon-plus'"
+                placement="bottom" />
+            </el-button-group>
+          </template>
+        </el-input>
+
+        <!-- 搜索历史记录下拉 -->
+        <div
+          v-if="showHistory && filteredSearchHistory.length > 0"
+          class="search-history-dropdown"
+          @mousedown.prevent="handleHistoryMouseDown">
+          <div v-for="(item, index) in filteredSearchHistory" :key="index" class="history-item">
+            <span class="history-text" @click="selectHistory(item)">{{ item }}</span>
+            <span class="history-delete" @click.stop="removeSearchHistory(item)">×</span>
+          </div>
+          <div class="history-clear" @click="clearSearchHistory">
+            {{ t('keyMain.clearHistory') }}
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="key-list">
@@ -847,6 +918,78 @@ function editDbName(db: number): void {
     // loading时不添加背景色
     :deep(.el-button.is-loading:before) {
       background-color: unset;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      width: 100%;
+
+      .search-history-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background-color: color-mix(in srgb, var(--el-bg-color) 70%, transparent);
+        border: 1px solid var(--el-border-color);
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        max-height: 300px;
+        overflow-y: auto;
+
+        .history-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 8px 12px;
+          cursor: pointer;
+          font-size: 13px;
+          color: var(--el-text-color-regular);
+
+          &:hover {
+            background-color: var(--el-color-info-light-8);
+          }
+
+          .history-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .history-delete {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--el-text-color-secondary);
+            font-size: 16px;
+            line-height: 1;
+            flex-shrink: 0;
+
+            &:hover {
+              color: var(--el-color-danger);
+              background-color: var(--el-color-danger-light-9);
+            }
+          }
+        }
+
+        .history-clear {
+          padding: 8px 12px;
+          text-align: center;
+          font-size: 12px;
+          color: var(--el-text-color-secondary);
+          border-top: 1px solid var(--el-border-color-lighter);
+          cursor: pointer;
+
+          &:hover {
+            color: var(--el-color-primary);
+          }
+        }
+      }
     }
   }
 
