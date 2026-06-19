@@ -3981,7 +3981,7 @@ dependencies = [
 
 [[package]]
 name = "redis-me"
-version = "1.0.0"
+version = "4.0.2"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

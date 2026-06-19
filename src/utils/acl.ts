@@ -1,6 +1,5 @@
 import type { AclUserDetail } from '@/types/tauri-specta'
 
-
 export interface AclEditModel {
   username: string
   enabled: boolean

@@ -1,6 +1,6 @@
 # 4.x Changelog
 
-## v4.0.2 (2026-06-20)
+## v4.0.2 (2026-06-19)
 
 - Key scan fully redesigned: real-time display + stoppable scan #116
 - Search box supports history records
