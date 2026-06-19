@@ -106,38 +106,23 @@ impl MeClient for MeSingle {
         let mut cc = param.cursor.unwrap_or_default();
         let batch_count = scan_0_batch_count(&param.pattern);
 
-        let mut keys: Vec<Vec<u8>> = vec![];
-        let mut iterations = 0u32;
+        // 只执行一次 SCAN，扫描次数和数据量判断完全由前端控制
+        let cmd = scan_1_cmd(
+            cc.now_cursor,
+            &param.pattern,
+            batch_count,
+            param.scan_type.clone(),
+        );
+        let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = cmd.query(&mut conn)?;
 
-        loop {
-            iterations += 1;
-            if iterations > SCAN_MAX_ITERATIONS {
-                break;
-            }
-
-            let cmd = scan_1_cmd(
-                cc.now_cursor,
-                &param.pattern,
-                batch_count,
-                param.scan_type.clone(),
-            );
-            let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) = cmd.query(&mut conn)?;
-            keys.extend(new_keys);
-
-            cc.now_cursor = next_cursor;
-            if next_cursor == 0 {
-                cc.finished = true;
-                break;
-            }
-
-            if !param.load_all && param.count > 0 && keys.len() >= param.count as usize {
-                break;
-            }
+        cc.now_cursor = next_cursor;
+        if next_cursor == 0 {
+            cc.finished = true;
         }
 
         Ok(ScanResult {
             cursor: cc,
-            key_list: ui_key_list(keys),
+            key_list: ui_key_list(new_keys),
         })
     }
 

@@ -291,23 +291,19 @@ RedisNode {
 api_model!(ScanParam {
     #[serde(rename = "match")]
     pattern: String,
-    count: u64,
 
     #[serde(rename = "type")]
     scan_type: Option<String>,
 
     cursor: Option<ScanCursor>,
-    load_all: bool,
 });
 
 impl ScanParam {
     pub fn all(pattern: String) -> Self {
         ScanParam {
             pattern,
-            count: 0,
             scan_type: None,
             cursor: None,
-            load_all: true,
         }
     }
 }
