@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
+import { useStorage } from '@vueuse/core'
 import { sortBy } from 'lodash'
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -80,7 +81,63 @@ const exact = ref(false)
 const keyword = ref('')
 const loading = ref(false)
 const loadFolder = ref(false)
-const autoLoading = ref(false)
+const scanCancelled = ref(false) // 扫描是否被取消
+
+function cancelScanning() {
+  scanCancelled.value = true
+}
+
+// 搜索历史记录
+const SEARCH_HISTORY_KEY = 'redis-me:search-history'
+const searchHistory = useStorage<string[]>(SEARCH_HISTORY_KEY, [])
+const showHistory = ref(false)
+let historyHideTimer: ReturnType<typeof setTimeout> | null = null
+
+// 过滤后的搜索历史（输入时实时过滤）
+const filteredSearchHistory = computed(() => {
+  const k = keyword.value.toLowerCase().trim()
+  if (!k) return searchHistory.value
+  return searchHistory.value.filter(h => h.toLowerCase().includes(k))
+})
+
+function addSearchHistory(query: string) {
+  if (!query || query === '*' || loadFolder.value) return
+  const trimmed = query.trim()
+  if (!trimmed) return
+  searchHistory.value = [trimmed, ...searchHistory.value.filter(h => h !== trimmed)].slice(0, 10)
+}
+
+function removeSearchHistory(item: string) {
+  searchHistory.value = searchHistory.value.filter(h => h !== item)
+}
+
+function clearSearchHistory() {
+  searchHistory.value = []
+}
+
+function selectHistory(item: string) {
+  keyword.value = item
+  showHistory.value = false
+  void scanKey(false, false)
+}
+
+function handleInputFocus() {
+  showHistory.value = true
+}
+
+function handleInputBlur() {
+  historyHideTimer = setTimeout(() => {
+    showHistory.value = false
+  }, 150)
+}
+
+function handleHistoryMouseDown() {
+  if (historyHideTimer) {
+    clearTimeout(historyHideTimer)
+    historyHideTimer = null
+  }
+}
+
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -101,57 +158,71 @@ const filterKeyList = computed(() => {
   return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
 })
 
-async function scanKey(useCursor = false, loadAll = false, autoContinue = false): Promise<void> {
+// 搜索自动加载的停止阈值：使用设置中的 keyScanCount
+const SCAN_FETCH_COUNT = computed(() => meTauri.settings.keyScanCount as number)
+
+// 扫描键
+async function scanKey(useCursor = false, loadAll = false): Promise<void> {
   if (loading.value || !share.conn) return
 
-  // 自动加载时不显示全局 loading 遮罩，避免遮挡已显示的结果
-  if (autoContinue && useCursor) {
-    autoLoading.value = true
-  } else {
-    loading.value = true
-  }
-  let keepLoading = false
+  loading.value = true
+  scanCancelled.value = false // 每次扫描都重置取消标志
   try {
     if (!useCursor) {
+      addSearchHistory(keyword.value)
       cursor.value = null
-      autoLoading.value = false
     }
 
-    const params = {
-      match: match.value,
-      count: meTauri.settings.keyScanCount as number,
-      type: keyType.value === 'ALL' ? '' : keyType.value.toLowerCase(),
-      loadAll,
-      cursor: cursor.value,
-    }
-    const data = await meCommands.scan(share.conn!.id, params)
-    cursor.value = data.cursor
+    const firstScanKeys = await scanKeyCore(useCursor)
 
-    // 排序下, 虽然后端排序更快，但多次扫描的结果还是需要前端排序
-    // 非游标扫描：拿到结果后再整体替换，避免请求期间清空列表导致「暂无数据」闪烁
-    const newKeyList = useCursor ? [...keyList.value, ...data.keyList] : data.keyList
-    keyList.value = sortBy(newKeyList, ['key'])
-
-    // 搜索后自动继续加载更多，提升大数据量搜索体验
-    // 停止条件：1）返回了新结果（用户已看到结果） 2）扫描完成
-    // 注意：与下方 loadAll 模式互斥（autoContinue=true 时 loadAll=false）
-    if (autoContinue && cursor.value && !cursor.value.finished && data.keyList.length === 0) {
-      setTimeout(() => scanKey(true, false, true), 10)
-    }
-
-    // loadAll 模式：循环加载直到扫描完成，避免单次请求耗时过长导致界面卡死
-    // 注意：与上方自动加载互斥（loadAll=true 时 autoContinue=false）
-    if (loadAll && cursor.value && !cursor.value.finished) {
-      keepLoading = true
-      setTimeout(() => scanKey(true, true), 10)
+    // loadAll=false 时自动继续加载（达到阈值停止）
+    if (!loadAll) {
+      await scanKeyAuto(firstScanKeys)
+    } else {
+      await scanKeyAll()
     }
   } finally {
-    // loadAll 模式下如果还需要继续加载，保持 loading 状态，避免闪烁
-    if (!keepLoading) {
-      loading.value = false
-    }
-    autoLoading.value = false
+    loading.value = false
   }
+}
+
+// 核心：执行一次 SCAN 请求，返回新扫描的 key 数量
+async function scanKeyCore(useCursor = false): Promise<number> {
+  const params = {
+    match: match.value,
+    type: keyType.value === 'ALL' ? '' : keyType.value.toLowerCase(),
+    cursor: cursor.value,
+  }
+
+  // 延迟一下，方便观察加载过程（不要删除，未来还是测试验证）
+  // await new Promise(r => setTimeout(r, 5000))
+
+  const data = await meCommands.scan(share.conn!.id, params)
+  cursor.value = data.cursor
+
+  // useCursor=false 时替换列表（新搜索），useCursor=true 时追加结果（加载更多）
+  const newKeyList = useCursor ? [...keyList.value, ...data.keyList] : data.keyList
+  keyList.value = sortBy(newKeyList, ['key'])
+  return data.keyList.length
+}
+
+// 自动加载：递归执行直到满足停止条件（async/await 不会栈溢出）
+async function scanKeyAuto(fetchedCount: number = 0): Promise<void> {
+  if (!cursor.value || cursor.value.finished) return
+  if (scanCancelled.value) return
+  if (fetchedCount >= SCAN_FETCH_COUNT.value) return
+
+  const newKeys = await scanKeyCore(true)
+  await scanKeyAuto(fetchedCount + newKeys)
+}
+
+// 加载全部：递归执行直到扫描完成（async/await 不会栈溢出）
+async function scanKeyAll(): Promise<void> {
+  if (!cursor.value || cursor.value.finished) return
+  if (scanCancelled.value) return
+
+  await scanKeyCore(true)
+  await scanKeyAll() // 继续递归
 }
 
 onMounted(() => {
@@ -433,7 +504,7 @@ async function mockData(): Promise<void> {
       inputType: 'number',
       inputValidator: value => {
         const n = Number(value)
-        if (n < 1 || n > 1000) {
+        if (n < 1 || n > 10000) {
           return t('keyHeader.mockValidator')
         }
         return true
@@ -526,74 +597,94 @@ function editDbName(db: number): void {
 <template>
   <div class="key-main">
     <div class="key-header">
-      <el-input
-        v-model="keyword"
-        :placeholder="t('keyMain.keyword')"
-        @keyup.enter="scanKey(false, false, true)"
-        clearable>
-        <template #prepend>
-          <el-dropdown placement="bottom-start" @command="chooseKeyType">
-            <el-tag
-              :type="keyTypeTag.type"
-              effect="plain"
-              style="
-                width: 32px;
-                height: 32px;
-                font-weight: bold;
-                border-bottom-right-radius: 0;
-                border-top-right-radius: 0;
-              ">
-              {{ meKeyShort(keyType, 'A') }}
-            </el-tag>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="ALL">
-                  <el-tag
-                    type="info"
-                    :effect="'ALL' === keyType ? 'plain' : 'dark'"
-                    style="width: 26px"
-                    hit>
-                    A
-                  </el-tag>
-                  <el-text style="margin-left: 6px" type="info">ALL</el-text>
-                </el-dropdown-item>
-                <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
-                  <el-tag
-                    :type="item.type"
-                    :effect="item.value === keyType ? 'plain' : 'dark'"
-                    style="width: 26px"
-                    hit>
-                    {{ meKeyShort(item.value) }}
-                  </el-tag>
-                  <el-text style="margin-left: 6px">{{ item.value }}</el-text>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
-            <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
-          </el-tooltip>
-        </template>
-        <template #append>
-          <el-button-group>
-            <me-button
-              :info="t('keyMain.refreshKey')"
-              @click="scanKey(false, false, true)"
-              icon="el-icon-search"
-              placement="bottom" />
-            <me-button
-              :info="t('keyMain.addKey')"
-              @click="addKey"
-              style="border-color: var(--el-button-border-color)"
-              v-if="canEdit"
-              icon="el-icon-plus"
-              placement="bottom" />
-          </el-button-group>
-        </template>
-      </el-input>
+      <div class="search-input-wrapper">
+        <el-input
+          v-model="keyword"
+          :readonly="loading"
+          :placeholder="t('keyMain.keyword')"
+          @keyup.enter="scanKey(false, false)"
+          @focus="handleInputFocus"
+          @blur="handleInputBlur"
+          clearable>
+          <template #prepend>
+            <el-dropdown placement="bottom-start" @command="chooseKeyType">
+              <el-tag
+                :type="keyTypeTag.type"
+                effect="plain"
+                style="
+                  width: 32px;
+                  height: 32px;
+                  font-weight: bold;
+                  border-bottom-right-radius: 0;
+                  border-top-right-radius: 0;
+                ">
+                {{ meKeyShort(keyType, 'A') }}
+              </el-tag>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="ALL">
+                    <el-tag
+                      type="info"
+                      :effect="'ALL' === keyType ? 'plain' : 'dark'"
+                      style="width: 26px"
+                      hit>
+                      A
+                    </el-tag>
+                    <el-text style="margin-left: 6px" type="info">ALL</el-text>
+                  </el-dropdown-item>
+                  <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
+                    <el-tag
+                      :type="item.type"
+                      :effect="item.value === keyType ? 'plain' : 'dark'"
+                      style="width: 26px"
+                      hit>
+                      {{ meKeyShort(item.value) }}
+                    </el-tag>
+                    <el-text style="margin-left: 6px">{{ item.value }}</el-text>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
+              <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
+            </el-tooltip>
+          </template>
+          <template #append>
+            <el-button-group>
+              <me-button
+                :info="loading ? t('keyMain.scanning') : t('keyMain.refreshKey')"
+                @click="scanKey(false, false)"
+                :icon="loading ? 'el-icon-loading' : 'el-icon-search'"
+                :loading="loading"
+                placement="bottom" />
+              <me-button
+                :info="loading ? t('keyMain.stopScan') : t('keyMain.addKey')"
+                @click="loading ? cancelScanning() : addKey()"
+                style="border-color: var(--el-button-border-color)"
+                v-if="canEdit"
+                :icon="loading ? 'me-icon-stop' : 'el-icon-plus'"
+                placement="bottom" />
+            </el-button-group>
+          </template>
+        </el-input>
+
+        <!-- 搜索历史记录下拉 -->
+        <div
+          v-if="showHistory && filteredSearchHistory.length > 0"
+          class="search-history-dropdown"
+          @mousedown.prevent="handleHistoryMouseDown">
+          <div v-for="(item, index) in filteredSearchHistory" :key="index" class="history-item">
+            <span class="history-text" @click="selectHistory(item)">{{ item }}</span>
+            <span class="history-delete" @click.stop="removeSearchHistory(item)">×</span>
+          </div>
+          <div class="history-clear" @click="clearSearchHistory">
+            {{ t('keyMain.clearHistory') }}
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="key-list" v-loading="loading">
+    <div class="key-list">
       <KeyTree
         ref="keyTreeRef"
         :show-checkbox="showCheckbox"
@@ -602,6 +693,7 @@ function editDbName(db: number): void {
         :key-show-tree="keyShowTree"
         :sort-by-count="sortByCount"
         :color="share.color"
+        :loading="loading"
         @chooseKey="chooseKey"
         @contextKey="contextKey"
         @chooseFolder="chooseFolder"
@@ -660,30 +752,20 @@ function editDbName(db: number): void {
           </template>
         </el-select>
         <div class="me-flex" style="width: 45px; margin: 0 5px" v-if="!cursor?.finished">
-          <template v-if="autoLoading">
-            <me-icon
-              name="Loading..."
-              icon="el-icon-loading"
-              hint
-              placement="top"
-              class="icon-btn is-loading" />
-          </template>
-          <template v-else>
-            <me-icon
-              :name="t('keyMain.loadMore')"
-              icon="me-icon-load-more"
-              hint
-              placement="top"
-              class="icon-btn"
-              @click="scanKey(true, false)" />
-            <me-icon
-              :name="t('keyMain.loadAll')"
-              icon="me-icon-load-all"
-              hint
-              placement="top"
-              class="icon-btn"
-              @click="scanKey(true, true)" />
-          </template>
+          <me-icon
+            :name="t('keyMain.loadMore')"
+            icon="me-icon-load-more"
+            hint
+            placement="top"
+            class="icon-btn"
+            @click="scanKey(true, false)" />
+          <me-icon
+            :name="t('keyMain.loadAll')"
+            icon="me-icon-load-all"
+            hint
+            placement="top"
+            class="icon-btn"
+            @click="scanKey(true, true)" />
         </div>
       </div>
 
@@ -801,6 +883,7 @@ function editDbName(db: number): void {
 .key-main {
   //border: 2px solid red;
   flex-grow: 1;
+  position: relative;
 
   .empty {
     height: 100%;
@@ -820,6 +903,93 @@ function editDbName(db: number): void {
     // 查询和新增key不收缩，避免调整侧边栏宽度时变为两行
     :deep(.el-input-group__append) {
       flex-shrink: 0;
+    }
+
+    // :deep(.el-button) {
+    //   padding: 8px 12px;
+    // }
+
+    // loading 图标旋转动画
+    :deep(.el-button .is-loading) {
+      animation: rotating 1s linear infinite !important;
+      background-color: unset;
+    }
+
+    // loading时不添加背景色
+    :deep(.el-button.is-loading:before) {
+      background-color: unset;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      width: 100%;
+
+      .search-history-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background-color: color-mix(in srgb, var(--el-bg-color) 70%, transparent);
+        border: 1px solid var(--el-border-color);
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        max-height: 300px;
+        overflow-y: auto;
+
+        .history-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 8px 12px;
+          cursor: pointer;
+          font-size: 13px;
+          color: var(--el-text-color-regular);
+
+          &:hover {
+            background-color: var(--el-color-info-light-8);
+          }
+
+          .history-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .history-delete {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--el-text-color-secondary);
+            font-size: 16px;
+            line-height: 1;
+            flex-shrink: 0;
+
+            &:hover {
+              color: var(--el-color-danger);
+              background-color: var(--el-color-danger-light-9);
+            }
+          }
+        }
+
+        .history-clear {
+          padding: 8px 12px;
+          text-align: center;
+          font-size: 12px;
+          color: var(--el-text-color-secondary);
+          border-top: 1px solid var(--el-border-color-lighter);
+          cursor: pointer;
+
+          &:hover {
+            color: var(--el-color-primary);
+          }
+        }
+      }
     }
   }
 

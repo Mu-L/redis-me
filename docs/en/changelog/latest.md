@@ -1,5 +1,10 @@
 # 4.x Changelog
 
+## v4.0.2 (2026-06-19)
+
+- Key scan fully redesigned: real-time display + stoppable scan #116
+- Search box supports history records
+
 ## v4.0.1 (2026-06-18)
 
 - Fixed scan issue causing "Load All Keys" functionality to fail

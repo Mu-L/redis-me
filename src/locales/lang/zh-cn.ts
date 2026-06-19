@@ -834,6 +834,8 @@ export default {
     keyword: 'Enter 键进行搜索',
     exactSearch: '精确匹配',
     refreshKey: '刷新键',
+    scanning: '扫描中...',
+    stopScan: '停止扫描',
     addKey: '新增键',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
@@ -864,6 +866,7 @@ export default {
     editDbName: '定制数据库名称 (db{index})',
     editDbNamePlaceholder: '请输入定制名称',
     dbShowLimit: '显示数量限制',
+    clearHistory: '清空历史记录',
   },
 
   ttlSet: {

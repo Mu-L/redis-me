@@ -75,7 +75,7 @@ export default {
     keyScanCount: 'Key Scan',
     fieldScanCount: 'Field Scan',
     keyScanCountTip:
-      'Keys loaded per SCAN; larger values may affect performance. Range {min}–{max}',
+      'Number of keys loaded per SCAN; too large may affect performance. Range {min}–{max}',
     fieldScanCountTip: 'Fields loaded per HSCAN or SSCAN. Range {min}~{max}',
     commandTimeout: 'Cmd Timeout',
     commandTimeoutTip:
@@ -847,6 +847,8 @@ export default {
     keyword: 'Enter to Search',
     exactSearch: 'Exact Search',
     refreshKey: 'Refresh Key',
+    scanning: 'Scanning...',
+    stopScan: 'Stop Scan',
     addKey: 'Add Key',
     loadMore: 'Load More',
     loadAll: 'Load All',
@@ -878,6 +880,7 @@ export default {
     editDbName: 'Custom DB Name (db{index})',
     editDbNamePlaceholder: 'input custom name',
     dbShowLimit: 'DB display limit',
+    clearHistory: 'Clear History',
   },
 
   ttlSet: {

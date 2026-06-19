@@ -31,6 +31,7 @@ const props = withDefaults(
     showCheckbox?: boolean
     keyShowTree?: boolean
     sortByCount?: boolean
+    loading?: boolean
   }>(),
   {
     color: 'var(--el-color-primary)',
@@ -101,7 +102,9 @@ function getNodeClass(node: TreeNode) {
 }
 
 // 计算树的数据
-const emptyText = computed(() => t('keyTree.noData'))
+const emptyText = computed(() =>
+  props.filterKeyList.length === 0 && !props.loading ? t('keyTree.noData') : t('keyMain.scanning'),
+)
 const treeData = computed(() => {
   // 列表展示
   if (!props.keyShowTree) {

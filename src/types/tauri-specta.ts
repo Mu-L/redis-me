@@ -467,10 +467,8 @@ export type ScanCursor = {
 
 export type ScanParam = {
 	match: string,
-	count: number,
 	type: string | null,
 	cursor: ScanCursor | null,
-	loadAll: boolean,
 };
 
 export type ScanResult = ScanResult_Serialize | ScanResult_Deserialize;

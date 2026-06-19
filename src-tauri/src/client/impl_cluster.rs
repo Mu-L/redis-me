@@ -105,13 +105,12 @@ impl MeClient for MeCluster {
         let batch_count = scan_0_batch_count(&param.pattern);
 
         let mut keys: Vec<Vec<u8>> = vec![];
-        let mut iterations = 0u32;
 
         // 遍历集群节点: 仅扫描主节点
         let nodes: Vec<String> = self.get_node_list_master();
-        let node_size = nodes.len();
+        let node_count = nodes.len();
 
-        'outer: for node in nodes {
+        for node in nodes {
             if cc.ready_nodes.contains(&node) {
                 continue; // 扫描过的予以跳过
             }
@@ -119,46 +118,28 @@ impl MeClient for MeCluster {
 
             let (route, _) = self.get_node_route(Some(node.clone()))?;
 
-            'inner: loop {
-                iterations += 1;
-                if iterations > SCAN_MAX_ITERATIONS {
-                    break 'outer;
-                }
+            // 正在扫描的节点则重置上次游标
+            let cursor = if cc.now_node == node {
+                cc.now_cursor
+            } else {
+                0
+            };
 
-                // 正在扫描的节点则重置上次游标
-                let cursor = if cc.now_node == node {
-                    cc.now_cursor
-                } else {
-                    0
-                };
+            let cmd = scan_1_cmd(cursor, &param.pattern, batch_count, param.scan_type.clone());
+            let value = conn.route_command(&cmd, route.clone())?;
+            let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) =
+                FromRedisValue::from_redis_value(value)?;
+            keys.extend(new_keys);
 
-                let cmd = scan_1_cmd(cursor, &param.pattern, batch_count, param.scan_type.clone());
-                let value = conn.route_command(&cmd, route.clone())?;
-                let (next_cursor, new_keys): (u64, Vec<Vec<u8>>) =
-                    FromRedisValue::from_redis_value(value)?;
-                keys.extend(new_keys);
-
-                cc.now_cursor = next_cursor;
-                if next_cursor == 0 {
-                    cc.ready_nodes.push(node.clone());
-
-                    // 单个节点扫描完了就判断1次: 避免每个节点都800多个，导致返回2400个
-                    if !param.load_all && keys.len() >= param.count as usize {
-                        break 'outer;
-                    }
-
-                    break 'inner;
-                }
-
-                // 单个节点没有扫描完，也判断1次
-                if !param.load_all && keys.len() >= param.count as usize {
-                    break 'outer;
-                }
+            cc.now_cursor = next_cursor;
+            if next_cursor == 0 {
+                cc.ready_nodes.push(node.clone());
+                break;
             }
         }
 
         // 判断是否扫描完毕
-        if cc.ready_nodes.len() == node_size {
+        if cc.ready_nodes.len() == node_count {
             cc.finished = true;
             cc.now_node = "".to_string();
             cc.now_cursor = 0;
