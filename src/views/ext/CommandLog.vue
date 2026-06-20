@@ -266,10 +266,6 @@ watch(visible, async val => {
     resetHighlightState()
     await loadLogs()
     await startListening()
-    // 弹框打开后，立即定位到右下角（使用nextTick避免闪烁）
-    nextTick(() => {
-      positionDialogToBottomRight()
-    })
   } else {
     stopListening()
     resetHighlightState()
@@ -438,6 +434,11 @@ function clearLogs() {
   min-height: 320px;
   max-width: 96vw;
   max-height: 92vh;
+  /* 直接定位到右下角，避免 JS 定位导致的居中→右下角闪烁 */
+  margin: 0 !important;
+  position: fixed;
+  right: 50px;
+  bottom: 50px;
 
   .el-dialog__header {
     cursor: move;
