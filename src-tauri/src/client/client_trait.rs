@@ -174,7 +174,6 @@ pub fn field_scan0(
 
     // String, Json, List, Hash(WithKey), Stream(WithKey), Stream 直接获取得到值
     let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, &param, &bytes_format)?;
-
     // Hash, Set, Zset 进行扫描(hscan, sscan, zscan)
     let key = param.key;
     if value.is_none() {
