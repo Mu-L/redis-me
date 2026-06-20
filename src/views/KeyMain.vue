@@ -569,9 +569,7 @@ function exportChecked() {
 
 const ttlSetRef = useTemplateRef<InstanceType<typeof TTLSet>>('ttlSetRef')
 function ttlChecked(): void {
-  ttlSetRef.value?.open({
-    keyList: checkedKeyList.value,
-  })
+  ttlSetRef.value?.open({ keyList: checkedKeyList.value })
 }
 
 function deleteChecked(): void {
@@ -942,7 +940,7 @@ function editDbName(db: number): void {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 8px 12px;
+          padding: 4px 12px;
           cursor: pointer;
           font-size: 13px;
           color: var(--el-text-color-regular);
