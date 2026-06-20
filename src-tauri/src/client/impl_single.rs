@@ -316,7 +316,8 @@ impl MeClient for MeSingle {
         let conn = self.client.get_connection()?;
         let running = self.subscribe_running.clone();
         let app_handle = self.base().get_app_handle()?;
-        subscribe0(conn, running, app_handle, channel, self.id.clone())
+        let logger = self.base().command_logger.clone();
+        subscribe0(conn, running, app_handle, channel, self.id.clone(), logger)
     }
 
     fn subscribe_stop(&self) -> AnyResult<()> {
@@ -327,7 +328,8 @@ impl MeClient for MeSingle {
         let conn = self.client.get_connection()?;
         let running = self.monitor_running.clone();
         let app_handle = self.base().get_app_handle()?;
-        monitor0(conn, running, app_handle, self.id.clone())
+        let logger = self.base().command_logger.clone();
+        monitor0(conn, running, app_handle, self.id.clone(), logger)
     }
 
     fn monitor_stop(&self) -> AnyResult<()> {
@@ -373,14 +375,17 @@ impl MeClient for MeSingle {
 
     fn export_csv(&self, param: RedisExportCsv) -> AnyResult<()> {
         let key_list = batch_key0(self, param.clone().into(), true)?;
-        let mut conn = self.get_new_conn()?;
+        let conn = self.get_new_conn()?;
+        let logger = self.base().command_logger.clone();
+        let db_index = self.db.load(Relaxed) as u16;
+        let mut logging_conn = LoggingConnection::new(conn, logger, db_index);
         let running = self.export_import_running.clone();
         let id = self.id.clone();
         let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
         thread::spawn(move || {
             export_csv_0_thread(
-                &mut conn,
+                &mut logging_conn,
                 key_list,
                 param.file,
                 param.with_ttl,
@@ -393,22 +398,28 @@ impl MeClient for MeSingle {
     }
 
     fn import_csv(&self, param: RedisImportCsv) -> AnyResult<()> {
-        let mut conn = self.get_new_conn()?;
+        let conn = self.get_new_conn()?;
+        let logger = self.base().command_logger.clone();
+        let db_index = self.db.load(Relaxed) as u16;
+        let mut logging_conn = LoggingConnection::new(conn, logger, db_index);
         let running = self.export_import_running.clone();
         let id = self.id.clone();
         let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
-        thread::spawn(move || import_csv_0_thread(&mut conn, param, running, app_handle, id));
+        thread::spawn(move || import_csv_0_thread(&mut logging_conn, param, running, app_handle, id));
         Ok(())
     }
 
     fn import_cmd(&self, file: String) -> AnyResult<()> {
-        let mut conn = self.get_new_conn()?;
+        let conn = self.get_new_conn()?;
+        let logger = self.base().command_logger.clone();
+        let db_index = self.db.load(Relaxed) as u16;
+        let mut logging_conn = LoggingConnection::new(conn, logger, db_index);
         let running = self.export_import_running.clone();
         let id = self.id.clone();
         let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
-        thread::spawn(move || import_cmd_0_thread(&mut conn, file, running, app_handle, id));
+        thread::spawn(move || import_cmd_0_thread(&mut logging_conn, file, running, app_handle, id));
         Ok(())
     }
 
