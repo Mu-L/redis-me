@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import type { TreeNode } from 'element-plus/es/components/tree-v2/src/types'
 import { nanoid } from 'nanoid'
+
+/** Element Plus TreeNode 运行时包含 isCurrent，此处扩展类型定义 */
+declare module 'element-plus/es/components/tree-v2/src/types' {
+  interface TreeNode {
+    isCurrent?: boolean
+  }
+}
 import { computed, inject, ref, useTemplateRef, watch } from 'vue'
 // 共享数据
 import { useI18n } from 'vue-i18n'
@@ -325,10 +332,9 @@ function setCurrentKey(redisKey: RedisKey_Deserialize) {
 // 键高度配置
 const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
 
-/** 当前行是否为选中键（树高亮或右侧已打开该键） */
+/** 当前行是否为选中键 */
 function isCurrentKey(node: TreeNode): boolean {
-  const rk = node.data.redisKey as RedisKey_Deserialize | undefined
-  return node.isCurrent || rk?.key === props.redisKey?.key
+  return node.isCurrent ?? false
 }
 
 function quickDeleteKey(redisKey: RedisKey_Deserialize): void {
