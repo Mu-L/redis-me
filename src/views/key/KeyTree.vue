@@ -326,6 +326,7 @@ function setCurrentKey(redisKey: RedisKey_Deserialize) {
 const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
 
 /** 当前行是否为选中键 */
+/** 当前行是否为选中键 */
 function isCurrentKey(node: TreeNode): boolean {
   if (!props.redisKey) return false
   const rk = node.data.redisKey as RedisKey_Deserialize | undefined
