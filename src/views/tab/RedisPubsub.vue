@@ -129,13 +129,13 @@ onUnmounted(() => tauriUnlisten())
           :placeholder="t('redisPubSub.keyword')"
           style="width: 280px; margin: 0 10px"
           clearable />
-        <el-button
-          :icon="subscribing ? 'el-icon-remove' : 'el-icon-user'"
+        <me-button
+          :icon="subscribing ? 'me-icon-stop' : 'el-icon-user'"
           :loading="loading"
           @click="subscribe"
           type="primary">
           {{ subscribing ? t('redisPubSub.subscribeStop') : t('redisPubSub.subscribeStart') }}
-        </el-button>
+        </me-button>
       </div>
     </div>
     <div class="table">
