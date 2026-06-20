@@ -7,7 +7,7 @@ withDefaults(
     icon?: string
   }>(),
   {
-    info: '请添加按钮提示',
+    info: '',
     placement: 'auto',
     icon: '',
   },
@@ -15,7 +15,7 @@ withDefaults(
 </script>
 
 <template>
-  <el-tooltip :content="info" :show-after="1000" :placement>
+  <el-tooltip :disabled="!info" :content="info" :show-after="1000" :placement>
     <!-- Element Plus 原生图标 -->
     <el-button v-bind="$attrs" :icon="icon" v-if="icon.startsWith('el-icon')">
       <template v-for="(, key) in $slots" v-slot:[key]>

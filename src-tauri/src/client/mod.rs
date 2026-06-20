@@ -135,21 +135,16 @@ mod tests {
     fn test_scan() {
         let param = ScanParam {
             pattern: "*".into(),
-            count: 10,
             scan_type: None,
-
             cursor: Some(ScanCursor::default()),
-            load_all: false,
         };
         let result1 = client().scan(param).unwrap();
         println!("{result1:#?}");
 
         let param2 = ScanParam {
             pattern: "*".into(),
-            count: 10,
             scan_type: None,
             cursor: Some(result1.cursor),
-            load_all: false,
         };
         let result2 = client().scan(param2).unwrap();
         println!("{result2:#?}");

@@ -69,6 +69,10 @@ impl CommandLogger {
         self.push_entry(db_index, &command, &args, error, duration_ms);
     }
 
+    pub fn log_raw(&self, db_index: u16, command: &str, args: &[String], error: Option<String>, duration_ms: u64) {
+        self.push_entry(db_index, command, args, error, duration_ms);
+    }
+
     fn push_entry(
         &self,
         db_index: u16,

@@ -325,10 +325,12 @@ function setCurrentKey(redisKey: RedisKey_Deserialize) {
 // 键高度配置
 const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
 
-/** 当前行是否为选中键（树高亮或右侧已打开该键） */
+/** 当前行是否为选中键 */
+/** 当前行是否为选中键 */
 function isCurrentKey(node: TreeNode): boolean {
+  if (!props.redisKey) return false
   const rk = node.data.redisKey as RedisKey_Deserialize | undefined
-  return node.isCurrent || rk?.key === props.redisKey?.key
+  return rk?.bytes === props.redisKey.bytes
 }
 
 function quickDeleteKey(redisKey: RedisKey_Deserialize): void {

@@ -1,5 +1,6 @@
 use crate::utils::model::{MeBase, ServerCapabilities};
-use redis::ConnectionLike;
+use crate::utils::util::redis_value_to_string;
+use redis::{ConnectionLike, Value};
 
 /// 从 INFO 输出中解析服务器版本
 /// 返回 (版本号, 是否为 Valkey)
@@ -20,7 +21,9 @@ pub fn parse_server_version(info: &str) -> (String, bool) {
 
 /// 检测服务器能力：优先通过 INFO SERVER 解析版本号，失败时 fallback 到 HTTL 命令探测
 pub fn detect_server_capabilities(conn: &mut impl ConnectionLike, base: &mut MeBase) {
-    if let Ok(info) = redis::cmd("info").arg("server").query::<String>(conn) {
+    // Value接收是为了适配单机（返回String）和集群（返回Map）场景
+    if let Ok(value) = redis::cmd("info").arg("server").query::<Value>(conn) {
+        let info = redis_value_to_string(value, "\n");
         let (version, is_valkey) = parse_server_version(&info);
         base.capabilities = detect_capabilities(&version, is_valkey);
         log::info!("服务器版本: {} (is_valkey={})", version, is_valkey);

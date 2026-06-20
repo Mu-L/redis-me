@@ -1,3 +1,4 @@
+use crate::utils::command_log::CommandLogger;
 use crate::utils::conn::set_client_name;
 use crate::utils::error::AppError;
 use crate::utils::model::*;
@@ -173,7 +174,6 @@ pub fn field_scan0(
 
     // String, Json, List, Hash(WithKey), Stream(WithKey), Stream 直接获取得到值
     let (mut value, key_type, mut cc, length) = field_scan_0_get(&mut conn, &param, &bytes_format)?;
-
     // Hash, Set, Zset 进行扫描(hscan, sscan, zscan)
     let key = param.key;
     if value.is_none() {
@@ -803,6 +803,7 @@ pub fn subscribe0(
     app_handle: AppHandle,
     channel: Option<String>,
     id: String,
+    logger: Arc<CommandLogger>,
 ) -> AnyResult<()> {
     set_client_name(&mut conn);
     running.store(true, Relaxed);
@@ -810,7 +811,16 @@ pub fn subscribe0(
     let patterns = psubscribe_patterns(channel);
 
     let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
-        conn.send_packed_command(&redis::cmd("PSUBSCRIBE").arg(&patterns).get_packed_command())?;
+        let cmd = redis::cmd("PSUBSCRIBE").arg(&patterns).get_packed_command();
+        let start = std::time::Instant::now();
+        conn.send_packed_command(&cmd)?;
+        logger.log_raw(
+            0,
+            "PSUBSCRIBE",
+            &patterns,
+            None,
+            start.elapsed().as_millis() as u64,
+        );
         info!("subscribe start: {:?}", patterns);
         while running.load(Relaxed) {
             let response = conn.recv_response()?;
@@ -846,12 +856,15 @@ pub fn monitor0(
     running: Arc<AtomicBool>,
     app_handle: AppHandle,
     id: String,
+    logger: Arc<CommandLogger>,
 ) -> AnyResult<()> {
     set_client_name(&mut conn);
     running.store(true, Relaxed);
 
     let _: JoinHandle<AnyResult<()>> = thread::spawn(move || {
+        let start = std::time::Instant::now();
         conn.send_packed_command(&redis::cmd("MONITOR").get_packed_command())?;
+        logger.log_raw(0, "MONITOR", &[], None, start.elapsed().as_millis() as u64);
         info!("monitor start");
         while running.load(Relaxed) {
             let response = conn.recv_response()?;

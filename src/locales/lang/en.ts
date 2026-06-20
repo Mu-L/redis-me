@@ -681,8 +681,8 @@ export default {
   redisMonitor: {
     monitorHint:
       'Monitor command may cause server blocking, use with caution in production environment !',
-    monitorStarted: 'Monitor Started',
-    monitorStopped: 'Monitor Stoped',
+    monitorStarted: 'Monitor',
+    monitorStopped: 'Unmonitor',
     clearMessage: 'Clear Message',
     keyword: 'Filter Command',
     monitorStart: 'Monitor',
@@ -694,8 +694,8 @@ export default {
   redisPubSub: {
     psubscribePatternHint:
       '<b>PSUBSCRIBE</b> command supports glob-style subscription patterns <br> Default * subscribes to all channels, Enter multiple patterns separated by spaces to subscribe at once<br/><br/>Examples:<br/>h?llo — subscribes to hello, hallo, and hxllo<br/>h*llo — subscribes to hllo and heeeello<br/>h[ae]llo — subscribes to hello and hallo, but not hillo<br/>news.* orders.* — subscribe to two prefixes',
-    subscribeStarted: 'Subscribe Started',
-    subscribeStopped: 'Subscribe Stopped',
+    subscribeStarted: 'Subscribe',
+    subscribeStopped: 'Unsubscribe',
     publishOk: 'Publish Success',
     subscribeChannel: 'Patterns, Space Separated',
     clearMessage: 'Clear Message',

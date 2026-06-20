@@ -1,5 +1,13 @@
 # 4.x Changelog
 
+## v4.0.3 (2026-06-20)
+
+- Command log supports async-executed MONITOR, Pub/Sub, import/export, etc.
+- Fixed INFO capability detection in cluster mode
+- Optimized MONITOR and Pub/Sub text and icons
+- Optimized search box history dropdown height
+- Updated all frontend and backend dependencies to latest versions
+
 ## v4.0.2 (2026-06-19)
 
 - Key scan fully redesigned: real-time display + stoppable scan #116
