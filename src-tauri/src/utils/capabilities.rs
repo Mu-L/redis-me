@@ -42,12 +42,13 @@ pub fn detect_server_capabilities(conn: &mut impl ConnectionLike, base: &mut MeB
         let info = redis_value_to_string(value, "\n");
         let (version, is_valkey) = parse_server_version(&info);
         base.capabilities = detect_capabilities(&version, is_valkey);
-        log::info!("服务器版本: {} (is_valkey={})", version, is_valkey);
+        log::info!("服务版本: {} (is_valkey={})", version, is_valkey);
     } else {
         log::info!("INFO SERVER 不可用，尝试 HTTL 命令探测字段级 TTL 支持");
         base.capabilities.info_supported = false;
         base.capabilities.httl_supported = detect_httl_by_command(conn);
     }
+    log::info!("服务能力: {:?}", base.capabilities);
 }
 
 /// 根据版本号检测服务器能力
