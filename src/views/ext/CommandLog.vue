@@ -266,10 +266,6 @@ watch(visible, async val => {
     resetHighlightState()
     await loadLogs()
     await startListening()
-    // 弹框打开后，立即定位到右下角（使用nextTick避免闪烁）
-    nextTick(() => {
-      positionDialogToBottomRight()
-    })
   } else {
     stopListening()
     resetHighlightState()
@@ -379,9 +375,22 @@ function clearLogs() {
       <el-table-column
         prop="timestamp"
         :label="t('commandLog.time')"
-        width="200"
+        width="118"
         class-name="col-nowrap"
-        show-overflow-tooltip />
+        sortable
+        show-overflow-tooltip>
+        <template #default="{ row }">
+          {{ row.timestamp.includes(' ') ? row.timestamp.split(' ')[1] : row.timestamp }}
+        </template>
+      </el-table-column>
+      <el-table-column
+        :label="t('commandLog.duration')"
+        width="90"
+        align="right"
+        prop="durationMs"
+        sortable>
+        <template #default="{ row }">{{ row.durationMs }} ms</template>
+      </el-table-column>
       <el-table-column prop="dbIndex" :label="t('commandLog.db')" width="56" align="center" />
       <el-table-column min-width="360">
         <template #header>
@@ -418,11 +427,6 @@ function clearLogs() {
           </div>
         </template>
       </el-table-column>
-      <el-table-column
-        :label="t('commandLog.duration')"
-        width="96"
-        align="right"
-        prop="durationMs" />
     </me-table>
   </el-dialog>
 </template>
@@ -438,6 +442,11 @@ function clearLogs() {
   min-height: 320px;
   max-width: 96vw;
   max-height: 92vh;
+  /* 直接定位到右下角，避免 JS 定位导致的居中→右下角闪烁 */
+  margin: 0 !important;
+  position: fixed;
+  right: 50px;
+  bottom: 50px;
 
   .el-dialog__header {
     cursor: move;

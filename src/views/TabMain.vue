@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, watch } from 'vue'
+import { computed, inject } from 'vue'
 
 import { shareProvideKey } from '@/types/me-interface'
 import { isConnMinimalMode } from '@/utils/conn'
@@ -14,17 +14,7 @@ import RedisValue from '@/views/tab/RedisValue.vue'
 
 const share = inject(shareProvideKey)!
 const minimalMode = computed(() => isConnMinimalMode(share.conn))
-
-/** 极简连接：仅键值与终端；若当前 Tab 不可见则切回键值 */
-watch(
-  minimalMode,
-  minimal => {
-    if (minimal && share.tabName !== 'value' && share.tabName !== 'terminal') {
-      share.tabName = 'value'
-    }
-  },
-  { immediate: true },
-)
+const infoSupported = computed(() => share.capabilities.infoSupported)
 </script>
 
 <template>
@@ -32,26 +22,39 @@ watch(
     v-model="share.tabName"
     class="redis-tab"
     :style="{ paddingBottom: share.tabName === 'value' ? 0 : '10px' }">
-    <me-tab-pane v-if="!minimalMode" name="info" icon="el-icon-calendar">
-      <RedisInfo />
+    <!-- 信息界面: 极简模式或无INFO权限则不显示 -->
+    <template v-if="!minimalMode">
+      <me-tab-pane v-if="infoSupported" name="info" icon="el-icon-calendar">
+        <RedisInfo />
+      </me-tab-pane>
+    </template>
+
+    <!-- 值和终端界面: 极简模式下仅显示这两个 -->
+    <me-tab-pane name="value" icon="el-icon-memo">
+      <RedisValue />
     </me-tab-pane>
-    <me-tab-pane name="value" icon="el-icon-memo"> <RedisValue /> </me-tab-pane>
-    <me-tab-pane name="terminal" icon="me-icon-terminal" lazy> <RedisTerminal /> </me-tab-pane>
-    <me-tab-pane v-if="!minimalMode" name="memory" icon="me-icon-memory" lazy>
-      <RedisMemory />
+    <me-tab-pane name="terminal" icon="me-icon-terminal" lazy>
+      <RedisTerminal />
     </me-tab-pane>
-    <me-tab-pane v-if="!minimalMode" name="slow" icon="me-icon-slow" lazy>
-      <RedisSlow />
-    </me-tab-pane>
-    <me-tab-pane v-if="!minimalMode" name="monitor" icon="el-icon-monitor" lazy>
-      <RedisMonitor />
-    </me-tab-pane>
-    <me-tab-pane v-if="!minimalMode" name="pubsub" icon="me-icon-pubsub" lazy>
-      <RedisPubsub />
-    </me-tab-pane>
-    <me-tab-pane v-if="!minimalMode" name="chart" icon="el-icon-data-line" lazy>
-      <RedisChart />
-    </me-tab-pane>
+
+    <!-- 内存、慢查询、监控、发布订阅和图表界面 -->
+    <template v-if="!minimalMode">
+      <me-tab-pane name="memory" icon="me-icon-memory" lazy>
+        <RedisMemory />
+      </me-tab-pane>
+      <me-tab-pane name="slow" icon="me-icon-slow" lazy>
+        <RedisSlow />
+      </me-tab-pane>
+      <me-tab-pane name="monitor" icon="el-icon-monitor" lazy>
+        <RedisMonitor />
+      </me-tab-pane>
+      <me-tab-pane name="pubsub" icon="me-icon-pubsub" lazy>
+        <RedisPubsub />
+      </me-tab-pane>
+      <me-tab-pane v-if="infoSupported" name="chart" icon="el-icon-data-line" lazy>
+        <RedisChart />
+      </me-tab-pane>
+    </template>
   </el-tabs>
 </template>
 

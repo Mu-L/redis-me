@@ -380,7 +380,7 @@ export default {
     time: 'Time',
     db: 'DB',
     command: 'Command',
-    duration: 'Cost(ms)',
+    duration: 'Cost',
     slowHint: 'Slow command, cost>100ms',
   },
 

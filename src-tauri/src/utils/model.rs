@@ -1,6 +1,7 @@
 #![cfg_attr(test, allow(warnings))] // 整个文件在测试时禁用该警告
 
 use crate::api_model;
+use crate::utils::capabilities::ServerCapabilities;
 use crate::utils::conn::{get_client_cluster, get_client_single};
 use crate::utils::error::AppError;
 use crate::utils::util::{
@@ -262,18 +263,6 @@ api_model!(
 api_model!(RedisInfo {
     node: String,
     info: String,
-});
-
-// 服务器能力（connect 时检测并返回）
-api_model!(
-#[derive(Default)]
-ServerCapabilities {
-    version: String,
-    is_valkey: bool,
-    acl_supported: bool,
-    acl_dryrun_supported: bool,
-    acl_selector_supported: bool,
-    httl_supported: bool,
 });
 
 // 集群节点

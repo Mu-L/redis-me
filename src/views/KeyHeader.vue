@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, reactive, ref } from 'vue'
+import { computed, inject, nextTick, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MeShortcut from '@/components/MeShortcut.vue'
@@ -53,7 +53,10 @@ async function handleCommand(command: string): Promise<void> {
       meOk(t('keyHeader.commandLogNeedConn'))
       return
     }
-    dialog.commandLog = true
+    // 延迟到下一帧显示弹框，确保 dropdown 菜单先完成收起，避免弹框创建干扰 dropdown 状态
+    nextTick(() => {
+      dialog.commandLog = true
+    })
   } else if ('setting' === command) {
     openSetting()
   } else if ('window' === command) {

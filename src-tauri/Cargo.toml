@@ -1,6 +1,6 @@
 [package]
 name = "redis-me"
-version = "4.0.3"
+version = "1.0.0"
 description = "Redis Desktop Manager based on Tauri"
 authors = ["hepengju"]
 edition = "2024"

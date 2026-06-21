@@ -368,10 +368,10 @@ export default {
     clearConfirm: '确定清空当前连接的命令日志吗？',
     clearOk: '命令日志已清空',
     empty: '暂无命令记录',
-    time: '时间',
+    time: '执行时间',
     db: 'DB',
     command: '命令',
-    duration: '耗时(ms)',
+    duration: '耗时',
     slowHint: '慢命令，耗时>100ms',
   },
 
