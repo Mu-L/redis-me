@@ -128,12 +128,10 @@ watch(
       if (newConn) {
         share.color = newConn.color ?? 'var(--el-color-primary)'
         share.readonly = !!newConn.readonly
-        share.tabName = isConnMinimalMode(newConn) ? 'value' : 'info'
         const capabilities = await meCommands.connect(newConn.id)
         Object.assign(share.capabilities, capabilities)
-        if (share.tabName === 'info' && !share.capabilities.infoSupported) {
-          share.tabName = 'value'
-        }
+        share.tabName =
+          isConnMinimalMode(newConn) || !share.capabilities.infoSupported ? 'value' : 'info'
         connPrepared.value = true
       }
     } catch {
