@@ -51,7 +51,7 @@ pub fn detect_server_capabilities(conn: &mut impl ConnectionLike, base: &mut MeB
     log::info!("服务能力: {:?}", base.capabilities);
 }
 
-/// 根据版本号检测服务器能力
+/// 根据版本号检测服务能力
 pub fn detect_capabilities(version: &str, is_valkey: bool) -> ServerCapabilities {
     let mut parts = version.split('.');
     let major = parts.next().and_then(|s| s.parse::<u32>().ok()).unwrap_or(0);
