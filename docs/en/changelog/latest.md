@@ -1,5 +1,11 @@
 # 4.x Changelog
 
+## v4.0.4 (2026-06-21)
+
+- Command log dialog: multiple UI improvements
+- Detect INFO command permission; hide info and chart tabs when unsupported
+- Optimized minimal mode detection logic
+
 ## v4.0.3 (2026-06-20)
 
 - Command log supports async-executed MONITOR, Pub/Sub, import/export, etc.
