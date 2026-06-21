@@ -74,6 +74,7 @@ const share = reactive<AppMainShare>({
   capabilities: {
     version: '',
     isValkey: false,
+    infoSupported: false,
     aclSupported: false,
     aclDryrunSupported: false,
     aclSelectorSupported: false,
@@ -130,6 +131,9 @@ watch(
         share.tabName = isConnMinimalMode(newConn) ? 'value' : 'info'
         const capabilities = await meCommands.connect(newConn.id)
         Object.assign(share.capabilities, capabilities)
+        if (share.tabName === 'info' && !share.capabilities.infoSupported) {
+          share.tabName = 'value'
+        }
         connPrepared.value = true
       }
     } catch {

@@ -492,6 +492,7 @@ export type SentinelOption = {
 export type ServerCapabilities = {
 	version: string,
 	isValkey: boolean,
+	infoSupported: boolean,
 	aclSupported: boolean,
 	aclDryrunSupported: boolean,
 	aclSelectorSupported: boolean,

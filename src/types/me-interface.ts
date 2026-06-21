@@ -32,6 +32,7 @@ export type UiConn = ConnConfig & { color?: string; readonly?: boolean }
 export interface ServerCapabilities {
   version: string
   isValkey: boolean
+  infoSupported: boolean
   aclSupported: boolean
   aclDryrunSupported: boolean
   aclSelectorSupported: boolean

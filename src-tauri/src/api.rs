@@ -1,5 +1,6 @@
 use crate::client::state::ClientAccess;
 use crate::utils::app_store;
+use crate::utils::capabilities::ServerCapabilities;
 use crate::utils::model::*;
 use crate::utils::util::*;
 use crate::{api_commands};

@@ -1,6 +1,22 @@
-use crate::utils::model::{MeBase, ServerCapabilities};
+use crate::api_model;
+use crate::utils::model::MeBase;
 use crate::utils::util::redis_value_to_string;
 use redis::{ConnectionLike, Value};
+use serde::{Deserialize, Serialize};
+use specta::Type;
+
+// 服务器能力（connect 时检测并返回）
+api_model!(
+#[derive(Default)]
+ServerCapabilities {
+    version: String,
+    is_valkey: bool,
+    info_supported: bool,
+    acl_supported: bool,
+    acl_dryrun_supported: bool,
+    acl_selector_supported: bool,
+    httl_supported: bool,
+});
 
 /// 从 INFO 输出中解析服务器版本
 /// 返回 (版本号, 是否为 Valkey)
@@ -29,6 +45,7 @@ pub fn detect_server_capabilities(conn: &mut impl ConnectionLike, base: &mut MeB
         log::info!("服务器版本: {} (is_valkey={})", version, is_valkey);
     } else {
         log::info!("INFO SERVER 不可用，尝试 HTTL 命令探测字段级 TTL 支持");
+        base.capabilities.info_supported = false;
         base.capabilities.httl_supported = detect_httl_by_command(conn);
     }
 }
@@ -42,6 +59,8 @@ pub fn detect_capabilities(version: &str, is_valkey: bool) -> ServerCapabilities
     ServerCapabilities {
         version: version.to_string(),
         is_valkey,
+        // INFO 命令执行成功即支持
+        info_supported: true,
         // ACL 自 Redis/Valkey 6.0 起支持；用于 Info 入口与 ACL 页
         acl_supported: major >= 6,
         // ACL DRYRUN 自 Redis/Valkey 7.0 起支持

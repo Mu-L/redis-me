@@ -32,7 +32,10 @@ watch(
     v-model="share.tabName"
     class="redis-tab"
     :style="{ paddingBottom: share.tabName === 'value' ? 0 : '10px' }">
-    <me-tab-pane v-if="!minimalMode" name="info" icon="el-icon-calendar">
+    <me-tab-pane
+      v-if="!minimalMode && share.capabilities.infoSupported"
+      name="info"
+      icon="el-icon-calendar">
       <RedisInfo />
     </me-tab-pane>
     <me-tab-pane name="value" icon="el-icon-memo"> <RedisValue /> </me-tab-pane>
@@ -49,7 +52,11 @@ watch(
     <me-tab-pane v-if="!minimalMode" name="pubsub" icon="me-icon-pubsub" lazy>
       <RedisPubsub />
     </me-tab-pane>
-    <me-tab-pane v-if="!minimalMode" name="chart" icon="el-icon-data-line" lazy>
+    <me-tab-pane
+      v-if="!minimalMode && share.capabilities.infoSupported"
+      name="chart"
+      icon="el-icon-data-line"
+      lazy>
       <RedisChart />
     </me-tab-pane>
   </el-tabs>
