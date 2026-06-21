@@ -377,10 +377,19 @@ function clearLogs() {
         :label="t('commandLog.time')"
         width="118"
         class-name="col-nowrap"
+        sortable
         show-overflow-tooltip>
         <template #default="{ row }">
           {{ row.timestamp.includes(' ') ? row.timestamp.split(' ')[1] : row.timestamp }}
         </template>
+      </el-table-column>
+      <el-table-column
+        :label="t('commandLog.duration')"
+        width="90"
+        align="right"
+        prop="durationMs"
+        sortable>
+        <template #default="{ row }">{{ row.durationMs }} ms</template>
       </el-table-column>
       <el-table-column prop="dbIndex" :label="t('commandLog.db')" width="56" align="center" />
       <el-table-column min-width="360">
@@ -418,11 +427,6 @@ function clearLogs() {
           </div>
         </template>
       </el-table-column>
-      <el-table-column
-        :label="t('commandLog.duration')"
-        width="90"
-        align="right"
-        prop="durationMs" />
     </me-table>
   </el-dialog>
 </template>
