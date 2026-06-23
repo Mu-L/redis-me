@@ -163,7 +163,8 @@ const filterKeyList = computed(() => {
   // - noext: true  禁用 +(a|b) 等 extglob（Redis 不支持）
   // - nocase: true  忽略大小写，与 Redis 默认行为一致
   return keyList.value.filter(k =>
-    minimatch(k.key, key, { nobrace: true, noglobstar: true, noext: true, nocase: true }),
+    // 此处用match，而不是key。是为了过滤时还是包含比较好
+    minimatch(k.key, match.value, { nobrace: true, noglobstar: true, noext: true, nocase: true }),
   )
 })
 
