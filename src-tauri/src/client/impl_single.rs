@@ -103,6 +103,12 @@ impl MeClient for MeSingle {
 
     fn scan(&self, param: ScanParam) -> AnyResult<ScanResult> {
         let mut conn = self.get_conn()?;
+
+        // 非 glob 模式的精确查询，使用 EXISTS 优化（O(1) 相比 SCAN 遍历大幅提速）
+        if let Some(result) = scan_0_exact(&mut conn, &param.pattern)? {
+            return Ok(result);
+        }
+
         let mut cc = param.cursor.unwrap_or_default();
         let batch_count = scan_0_batch_count(&param.pattern);
 
