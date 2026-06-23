@@ -652,7 +652,7 @@ function editDbName(db: number): void {
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
+          <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom" raw-content>
             <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
           </el-tooltip>
         </template>
