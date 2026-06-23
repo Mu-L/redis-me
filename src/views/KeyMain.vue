@@ -2,6 +2,7 @@
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { useStorage } from '@vueuse/core'
 import { sortBy } from 'lodash'
+import { minimatch } from 'minimatch'
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -154,8 +155,16 @@ const cursor = ref<ScanCursor | null>(null)
 
 const keyList = ref<RedisKey_Deserialize[]>([])
 const filterKeyList = computed(() => {
-  const key = keyword.value.toLowerCase()
-  return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
+  const key = keyword.value.trim()
+  if (!key) return keyList.value
+  // 使用 minimatch 做 Redis 风格的 glob 匹配：
+  // - nobrace: true  禁用 {a,b} 扩展（Redis 不支持 brace expansion）
+  // - noglobstar: true  将 ** 视为两个 *（Redis 没有多级目录递归概念）
+  // - noext: true  禁用 +(a|b) 等 extglob（Redis 不支持）
+  // - nocase: true  忽略大小写，与 Redis 默认行为一致
+  return keyList.value.filter(k =>
+    minimatch(k.key, key, { nobrace: true, noglobstar: true, noext: true, nocase: true }),
+  )
 })
 
 // 搜索自动加载的停止阈值：使用设置中的 keyScanCount
