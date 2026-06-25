@@ -494,6 +494,10 @@ export default {
     memoryUsage: 'Memory Usage',
     deleteFolder: 'Delete Keys',
     exportFolder: 'Export Keys',
+    favoriteKey: 'Favorite',
+    unfavoriteKey: 'Unfavorite',
+    favoriteOk: 'Added to Favorites',
+    unfavoriteOk: 'Removed from Favorites',
   },
 
   redisClient: {
@@ -882,6 +886,14 @@ export default {
     editDbNamePlaceholder: 'input custom name',
     dbShowLimit: 'DB display limit',
     clearHistory: 'Clear History',
+    myFavorites: 'Enter Favorites',
+    favoriteFilter: 'Filter Favorites',
+    favoriteMode: 'Favorite Mode',
+    exitFavoriteMode: 'Exit Favorites',
+    favoriteChecked: 'Batch Favorite',
+    unfavoriteChecked: 'Batch Unfavorite',
+    favoriteCheckedOk: 'Added {count} keys',
+    unfavoriteCheckedOk: 'Removed {count} keys',
   },
 
   ttlSet: {

@@ -8,7 +8,7 @@ import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
-import { clearKeyTypeCacheForConn } from '@/utils/key-type-cache'
+import { useFavorites, addFavorite, removeFavorite } from '@/utils/favorite'
 import {
   bus,
   CONN_REFRESH,
@@ -64,6 +64,7 @@ function initReset(): void {
   keyword.value = ''
   keyList.value = []
   share.redisKey = null
+  favoriteMode.value = false
 }
 
 const keyType = ref('ALL')
@@ -83,6 +84,15 @@ const keyword = ref('')
 const loading = ref(false)
 const loadFolder = ref(false)
 const scanCancelled = ref(false) // 扫描是否被取消
+
+// 收藏相关
+const favoriteMode = ref(false)
+const favorites = useFavorites()
+const currentFavorites = computed(() => {
+  return favorites.value
+    .filter(f => f.connId === share.conn!.id && f.db === share.conn!.db)
+    .map(f => f.redisKey)
+})
 
 function cancelScanning() {
   scanCancelled.value = true
@@ -155,14 +165,17 @@ const cursor = ref<ScanCursor | null>(null)
 
 const keyList = ref<RedisKey_Deserialize[]>([])
 const filterKeyList = computed(() => {
+  // 收藏模式下，只显示当前连接的收藏键
+  let source: RedisKey_Deserialize[] = favoriteMode.value ? currentFavorites.value : keyList.value
+
   const key = keyword.value.trim()
-  if (!key) return keyList.value
+  if (!key) return source
   // 使用 minimatch 做 Redis 风格的 glob 匹配：
   // - nobrace: true  禁用 {a,b} 扩展（Redis 不支持 brace expansion）
   // - noglobstar: true  将 ** 视为两个 *（Redis 没有多级目录递归概念）
   // - noext: true  禁用 +(a|b) 等 extglob（Redis 不支持）
   // - nocase: true  忽略大小写，与 Redis 默认行为一致
-  return keyList.value.filter(k =>
+  return source.filter(k =>
     // 此处用match，而不是key。是为了过滤时还是包含比较好
     minimatch(k.key, match.value, { nobrace: true, noglobstar: true, noext: true, nocase: true }),
   )
@@ -324,6 +337,12 @@ function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
     enterCheckedMode()
   } else if (command === 'exitCheckedMode') {
     exitCheckedMode()
+  } else if (command === 'favoriteKey') {
+    favorites.value = addFavorite(favorites.value, share.conn.id, share.conn.db, redisKey)
+    meOk(t('keyTree.favoriteOk'))
+  } else if (command === 'unfavoriteKey') {
+    favorites.value = removeFavorite(favorites.value, share.conn.id, share.conn.db, redisKey.bytes)
+    meOk(t('keyTree.unfavoriteOk'))
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -491,6 +510,8 @@ async function handleCommand(command: string): Promise<void> {
     deleteFolder('*')
   } else if ('flushDb' === command) {
     flushDb()
+  } else if ('checkedMode' === command) {
+    enterCheckedMode()
   }
 }
 
@@ -554,6 +575,10 @@ function toggleChecked(): void {
   checkedKeyList.value = []
 }
 
+function toggleFavoriteMode(): void {
+  favoriteMode.value = !favoriteMode.value
+}
+
 function enterCheckedMode(): void {
   if (showCheckbox.value) return
   showCheckbox.value = true
@@ -586,6 +611,39 @@ function deleteChecked(): void {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'delete')
 }
 
+function favoriteChecked(): void {
+  if (!share.conn) return
+  const connId = share.conn.id
+  const db = share.conn.db
+  let newFavorites = favorites.value
+  let count = 0
+  checkedKeyList.value.forEach(redisKey => {
+    const beforeLen = newFavorites.length
+    newFavorites = addFavorite(newFavorites, connId, db, redisKey)
+    if (newFavorites.length > beforeLen) count++
+  })
+  if (count > 0) {
+    favorites.value = newFavorites
+    meOk(t('keyMain.favoriteCheckedOk', { count }))
+  }
+}
+
+function unfavoriteChecked(): void {
+  if (!share.conn) return
+  const connId = share.conn.id
+  const db = share.conn.db
+  let newFavorites = favorites.value
+  const beforeLen = newFavorites.length
+  checkedKeyList.value.forEach(redisKey => {
+    newFavorites = removeFavorite(newFavorites, connId, db, redisKey.bytes)
+  })
+  const count = beforeLen - newFavorites.length
+  if (count > 0) {
+    favorites.value = newFavorites
+    meOk(t('keyMain.unfavoriteCheckedOk', { count }))
+  }
+}
+
 function editDbName(db: number): void {
   if (!share.conn) return
   mePrompt(
@@ -605,75 +663,80 @@ function editDbName(db: number): void {
 <template>
   <div class="key-main">
     <div class="key-header">
-      <el-input
-        v-model="keyword"
-        :readonly="loading"
-        :placeholder="t('keyMain.keyword')"
-        @keyup.enter="scanKey(false, false)"
-        @focus="handleInputFocus"
-        @blur="handleInputBlur"
-        clearable>
-        <template #prepend>
-          <el-dropdown placement="bottom-start" @command="chooseKeyType">
-            <el-tag
-              :type="keyTypeTag.type"
-              effect="plain"
-              style="
-                width: 32px;
-                height: 32px;
-                font-weight: bold;
-                border-bottom-right-radius: 0;
-                border-top-right-radius: 0;
-              ">
-              {{ meKeyShort(keyType, 'A') }}
-            </el-tag>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="ALL">
-                  <el-tag
-                    type="info"
-                    :effect="'ALL' === keyType ? 'plain' : 'dark'"
-                    style="width: 26px"
-                    hit>
-                    A
-                  </el-tag>
-                  <el-text style="margin-left: 6px" type="info">ALL</el-text>
-                </el-dropdown-item>
-                <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
-                  <el-tag
-                    :type="item.type"
-                    :effect="item.value === keyType ? 'plain' : 'dark'"
-                    style="width: 26px"
-                    hit>
-                    {{ meKeyShort(item.value) }}
-                  </el-tag>
-                  <el-text style="margin-left: 6px">{{ item.value }}</el-text>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom" raw-content>
-            <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
-          </el-tooltip>
-        </template>
-        <template #append>
-          <el-button-group>
-            <me-button
-              :info="loading ? t('keyMain.scanning') : t('keyMain.refreshKey')"
-              @click="scanKey(false, false)"
-              :icon="loading ? 'el-icon-loading' : 'el-icon-search'"
-              :loading="loading"
-              placement="bottom" />
-            <me-button
-              :info="loading ? t('keyMain.stopScan') : t('keyMain.addKey')"
-              @click="loading ? cancelScanning() : addKey()"
-              style="border-color: var(--el-button-border-color)"
-              v-if="canEdit"
-              :icon="loading ? 'me-icon-stop' : 'el-icon-plus'"
-              placement="bottom" />
-          </el-button-group>
-        </template>
-      </el-input>
+      <template v-if="favoriteMode">
+        <el-input v-model="keyword" :placeholder="t('keyMain.favoriteFilter')" clearable />
+      </template>
+      <template v-else>
+        <el-input
+          v-model="keyword"
+          :readonly="loading"
+          :placeholder="t('keyMain.keyword')"
+          @keyup.enter="scanKey(false, false)"
+          @focus="handleInputFocus"
+          @blur="handleInputBlur"
+          clearable>
+          <template #prepend>
+            <el-dropdown placement="bottom-start" @command="chooseKeyType">
+              <el-tag
+                :type="keyTypeTag.type"
+                effect="plain"
+                style="
+                  width: 32px;
+                  height: 32px;
+                  font-weight: bold;
+                  border-bottom-right-radius: 0;
+                  border-top-right-radius: 0;
+                ">
+                {{ meKeyShort(keyType, 'A') }}
+              </el-tag>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="ALL">
+                    <el-tag
+                      type="info"
+                      :effect="'ALL' === keyType ? 'plain' : 'dark'"
+                      style="width: 26px"
+                      hit>
+                      A
+                    </el-tag>
+                    <el-text style="margin-left: 6px" type="info">ALL</el-text>
+                  </el-dropdown-item>
+                  <el-dropdown-item v-for="item in KEY_TYPE_LIST" :command="item.value">
+                    <el-tag
+                      :type="item.type"
+                      :effect="item.value === keyType ? 'plain' : 'dark'"
+                      style="width: 26px"
+                      hit>
+                      {{ meKeyShort(item.value) }}
+                    </el-tag>
+                    <el-text style="margin-left: 6px">{{ item.value }}</el-text>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom" raw-content>
+              <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
+            </el-tooltip>
+          </template>
+          <template #append>
+            <el-button-group>
+              <me-button
+                :info="loading ? t('keyMain.scanning') : t('keyMain.refreshKey')"
+                @click="scanKey(false, false)"
+                :icon="loading ? 'el-icon-loading' : 'el-icon-search'"
+                :loading="loading"
+                placement="bottom" />
+              <me-button
+                :info="loading ? t('keyMain.stopScan') : t('keyMain.addKey')"
+                @click="loading ? cancelScanning() : addKey()"
+                style="border-color: var(--el-button-border-color)"
+                v-if="canEdit"
+                :icon="loading ? 'me-icon-stop' : 'el-icon-plus'"
+                placement="bottom" />
+            </el-button-group>
+          </template>
+        </el-input>
+      </template>
     </div>
 
     <div class="key-list">
@@ -686,6 +749,8 @@ function editDbName(db: number): void {
         :sort-by-count="sortByCount"
         :color="share.color"
         :loading="loading"
+        :favorites="currentFavorites"
+        :favorite-mode="favoriteMode"
         @chooseKey="chooseKey"
         @contextKey="contextKey"
         @chooseFolder="chooseFolder"
@@ -695,7 +760,7 @@ function editDbName(db: number): void {
       <!-- 搜索历史记录下拉  -->
       <div
         class="search-history-dropdown"
-        v-if="showHistory && filteredSearchHistory.length > 0"
+        v-if="showHistory && filteredSearchHistory.length > 0 && !favoriteMode"
         @mousedown.prevent="handleHistoryMouseDown">
         <div
           v-for="(item, index) in filteredSearchHistory"
@@ -714,145 +779,183 @@ function editDbName(db: number): void {
     <div class="key-footer">
       <!-- 左侧: 数据库|游标 -->
       <div class="me-flex" v-if="!showCheckbox && share.conn">
-        <el-select
-          v-model="share.conn.db"
-          @change="selectDB"
-          style="width: 120px"
-          filterable
-          v-if="!share.conn.cluster">
-          <template #header>
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                padding: 4px 8px;
-                font-size: 12px;
-              ">
-              <span>{{ t('keyMain.dbShowLimit') }}</span>
-              <el-input-number
-                :model-value="share.conn.meta?.dbShowLimit as number | undefined"
-                :min="1"
-                :controls="false"
-                clearable
-                size="small"
-                style="width: 72px"
-                @update:model-value="onDbShowLimitChange" />
-            </div>
-          </template>
-          <!-- label for filterable -->
-          <el-option
-            v-for="item in dbList"
-            :key="item.db"
-            :value="item.db"
-            :label="'db' + item.db + (share.conn?.meta?.['db' + item.db] || '')">
-            <div class="me-flex" style="align-items: center">
-              <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
-              <div style="display: flex">
-                <el-text type="info" style="margin: 0 10px">{{
-                  share.conn?.meta?.['db' + item.db]
-                }}</el-text>
-                <me-icon icon="el-icon-edit" class="icon-btn" @click.stop="editDbName(item.db)" />
+        <template v-if="favoriteMode">
+          <div
+            class="me-flex"
+            style="cursor: pointer; margin-left: 5px"
+            @click="toggleFavoriteMode">
+            <me-icon icon="el-icon-back" style="color: var(--el-color-warning)" />
+            <el-text type="warning" style="font-weight: bold; margin-left: 3px">
+              {{ t('keyMain.exitFavoriteMode') }}
+            </el-text>
+          </div>
+        </template>
+        <template v-else>
+          <el-select
+            v-model="share.conn.db"
+            @change="selectDB"
+            style="width: 120px"
+            filterable
+            v-if="!share.conn.cluster">
+            <template #header>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  gap: 8px;
+                  padding: 4px 8px;
+                  font-size: 12px;
+                ">
+                <span>{{ t('keyMain.dbShowLimit') }}</span>
+                <el-input-number
+                  :model-value="share.conn.meta?.dbShowLimit as number | undefined"
+                  :min="1"
+                  :controls="false"
+                  clearable
+                  size="small"
+                  style="width: 72px"
+                  @update:model-value="onDbShowLimitChange" />
               </div>
-            </div>
-          </el-option>
-          <template #label>
-            {{ `db${share.conn.db} (${share.dbSizeMap['db' + share.conn.db] || 0})` }}
-          </template>
-        </el-select>
-        <div class="me-flex" style="width: 45px; margin: 0 5px" v-if="!cursor?.finished">
-          <me-icon
-            :name="t('keyMain.loadMore')"
-            icon="me-icon-load-more"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, false)" />
-          <me-icon
-            :name="t('keyMain.loadAll')"
-            icon="me-icon-load-all"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, true)" />
-        </div>
+            </template>
+            <el-option
+              v-for="item in dbList"
+              :key="item.db"
+              :value="item.db"
+              :label="'db' + item.db + (share.conn?.meta?.['db' + item.db] || '')">
+              <div class="me-flex" style="align-items: center">
+                <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
+                <div style="display: flex">
+                  <el-text type="info" style="margin: 0 10px">{{
+                    share.conn?.meta?.['db' + item.db]
+                  }}</el-text>
+                  <me-icon icon="el-icon-edit" class="icon-btn" @click.stop="editDbName(item.db)" />
+                </div>
+              </div>
+            </el-option>
+            <template #label>
+              {{ `db${share.conn.db} (${share.dbSizeMap['db' + share.conn.db] || 0})` }}
+            </template>
+          </el-select>
+          <div class="me-flex" style="width: 45px; margin: 0 5px" v-if="!cursor?.finished">
+            <me-icon
+              :name="t('keyMain.loadMore')"
+              icon="me-icon-load-more"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="scanKey(true, false)" />
+            <me-icon
+              :name="t('keyMain.loadAll')"
+              icon="me-icon-load-all"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="scanKey(true, true)" />
+          </div>
+        </template>
       </div>
 
-      <!-- 左侧: 导出|TTL|删除 （多选时显示） -->
-      <div class="me-flex" v-else style="width: 70px; margin-left: 10px">
-        <el-link underline="never" :disabled="checkedDisabled" @click="exportChecked">
-          <me-icon
-            :name="t('keyMain.exportChecked')"
-            icon="me-icon-export"
-            hint
-            :class="checkedBtnClass"
-            placement="top" />
-        </el-link>
-        <el-link underline="never" :disabled="checkedDisabled" @click="ttlChecked" v-if="canEdit">
-          <me-icon
-            :name="t('keyMain.ttlChecked')"
-            icon="el-icon-timer"
-            hint
-            :class="checkedBtnClass"
-            placement="top" />
-        </el-link>
-        <el-link
-          underline="never"
-          :disabled="checkedDisabled"
-          @click="deleteChecked"
-          v-if="canEdit">
-          <me-icon
-            :name="t('keyMain.deleteChecked')"
-            icon="el-icon-delete"
-            hint
-            :class="checkedBtnClass"
-            placement="top" />
-        </el-link>
+      <!-- 左侧: 导出|TTL|删除|收藏 （多选时显示） -->
+      <div class="me-flex" v-else style="margin-left: 10px; gap: 5px">
+        <template v-if="!favoriteMode">
+          <el-link underline="never" :disabled="checkedDisabled" @click="exportChecked">
+            <me-icon
+              :name="t('keyMain.exportChecked')"
+              icon="me-icon-export"
+              hint
+              :class="checkedBtnClass"
+              placement="top" />
+          </el-link>
+          <el-link underline="never" :disabled="checkedDisabled" @click="ttlChecked" v-if="canEdit">
+            <me-icon
+              :name="t('keyMain.ttlChecked')"
+              icon="el-icon-timer"
+              hint
+              :class="checkedBtnClass"
+              placement="top" />
+          </el-link>
+          <el-link
+            underline="never"
+            :disabled="checkedDisabled"
+            @click="deleteChecked"
+            v-if="canEdit">
+            <me-icon
+              :name="t('keyMain.deleteChecked')"
+              icon="el-icon-delete"
+              hint
+              :class="checkedBtnClass"
+              placement="top" />
+          </el-link>
+          <el-link underline="never" :disabled="checkedDisabled" @click="favoriteChecked">
+            <me-icon
+              :name="t('keyMain.favoriteChecked')"
+              icon="el-icon-star-filled"
+              hint
+              :class="checkedBtnClass"
+              placement="top" />
+          </el-link>
+        </template>
+        <template v-else>
+          <el-link underline="never" :disabled="checkedDisabled" @click="unfavoriteChecked">
+            <me-icon
+              :name="t('keyMain.unfavoriteChecked')"
+              icon="el-icon-star"
+              hint
+              :class="checkedBtnClass"
+              placement="top" />
+          </el-link>
+        </template>
       </div>
 
       <!-- 中间: 选中/过滤, 过滤/总数 -->
       <div class="center">
         <el-text class="tip" size="large" type="primary">
           <span v-if="showCheckbox">{{ checkedKeyList.length }} / {{ filterKeyList.length }}</span>
+          <span v-else-if="favoriteMode"
+            >{{ filterKeyList.length }} / {{ currentFavorites.length }}</span
+          >
           <span v-else>{{ filterKeyList.length }} / {{ keyList.length }}</span>
         </el-text>
       </div>
 
-      <!-- 右侧: 多选|扩展 -->
+      <!-- 右侧: 收藏|扩展 -->
       <div class="me-flex" v-if="!showCheckbox">
         <me-icon
-          icon="me-icon-checked"
+          v-if="!favoriteMode"
+          icon="el-icon-star-filled"
           class="icon-btn"
-          @click="toggleChecked"
+          @click="toggleFavoriteMode"
           placement="top"
-          :name="t('keyMain.checkedMode')"
+          :name="t('keyMain.myFavorites')"
           hint />
         <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
           <me-icon icon="el-icon-more-filled" class="icon-btn" />
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="exportData">
-                <me-icon :name="t('keyMain.exportData')" icon="me-icon-export" />
-              </el-dropdown-item>
-              <el-dropdown-item command="importData" v-if="canEdit">
-                <me-icon :name="t('keyMain.importData')" icon="me-icon-import" />
-              </el-dropdown-item>
-              <el-dropdown-item command="importCmd" v-if="canEdit">
-                <me-icon :name="t('keyMain.importCmd')" icon="me-icon-import" />
-              </el-dropdown-item>
-              <el-dropdown-item command="mockData" v-if="canEdit">
-                <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />
-              </el-dropdown-item>
+              <template v-if="!favoriteMode">
+                <el-dropdown-item command="exportData">
+                  <me-icon :name="t('keyMain.exportData')" icon="me-icon-export" />
+                </el-dropdown-item>
+                <el-dropdown-item command="importData" v-if="canEdit">
+                  <me-icon :name="t('keyMain.importData')" icon="me-icon-import" />
+                </el-dropdown-item>
+                <el-dropdown-item command="importCmd" v-if="canEdit">
+                  <me-icon :name="t('keyMain.importCmd')" icon="me-icon-import" />
+                </el-dropdown-item>
+                <el-dropdown-item command="mockData" v-if="canEdit">
+                  <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />
+                </el-dropdown-item>
 
-              <el-dropdown-item command="batchDelete" v-if="canEdit" divided>
-                <me-icon :name="t('keyMain.batchDelete')" icon="el-icon-delete" />
-              </el-dropdown-item>
-              <el-dropdown-item command="flushDb" v-if="canEdit">
-                <me-icon :name="t('keyMain.flushDb')" icon="el-icon-delete-filled" />
-              </el-dropdown-item>
+                <el-dropdown-item command="batchDelete" v-if="canEdit" divided>
+                  <me-icon :name="t('keyMain.batchDelete')" icon="el-icon-delete" />
+                </el-dropdown-item>
+                <el-dropdown-item command="flushDb" v-if="canEdit">
+                  <me-icon :name="t('keyMain.flushDb')" icon="el-icon-delete-filled" />
+                </el-dropdown-item>
+              </template>
 
-              <el-dropdown-item command="toggleKeyShow" divided>
+              <el-dropdown-item command="toggleKeyShow" :divided="!favoriteMode">
                 <me-icon
                   :name="keyShowTree ? t('keyMain.listView') : t('keyMain.treeView')"
                   :icon="keyShowTree ? 'me-icon-list' : 'me-icon-tree'"></me-icon>
@@ -861,6 +964,9 @@ function editDbName(db: number): void {
                 <me-icon
                   :name="sortByCount ? t('keyMain.sortByAlphabet') : t('keyMain.sortByCount')"
                   icon="me-icon-alphabet"></me-icon>
+              </el-dropdown-item>
+              <el-dropdown-item command="checkedMode" divided>
+                <me-icon :name="t('keyMain.checkedMode')" icon="me-icon-checked" />
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -878,7 +984,6 @@ function editDbName(db: number): void {
           placement="top" />
       </div>
     </div>
-
     <!-- 字段新增、批量删除键、目录内存分析 -->
     <FieldAdd ref="fieldAddRef" @success="addKeyOk" />
     <KeyBatch ref="keyBatchRef" @success="batchKeyOk" />
@@ -1027,9 +1132,6 @@ function editDbName(db: number): void {
     height: 30px;
     border: 1px solid var(--el-border-color);
     border-top: none;
-
-    //margin-top: 5px;
-    //padding-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1046,8 +1148,6 @@ function editDbName(db: number): void {
       min-height: 0;
       height: 30px;
       padding: 4px 4px 4px 10px;
-      //border-bottom-left-radius: 0;
-      //box-shadow: 0 0 0 1px var(--el-border-color);
     }
 
     .tip {

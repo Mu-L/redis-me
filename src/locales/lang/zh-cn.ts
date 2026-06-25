@@ -484,6 +484,10 @@ export default {
     memoryUsage: '目录内存分析',
     deleteFolder: '批量删除键',
     exportFolder: '批量导出键',
+    favoriteKey: '收藏键',
+    unfavoriteKey: '取消收藏',
+    favoriteOk: '已收藏',
+    unfavoriteOk: '已取消收藏',
   },
 
   redisClient: {
@@ -868,6 +872,14 @@ export default {
     editDbNamePlaceholder: '请输入定制名称',
     dbShowLimit: '显示数量限制',
     clearHistory: '清空历史记录',
+    myFavorites: '进入收藏模式',
+    favoriteFilter: '搜索收藏键',
+    favoriteMode: '收藏模式',
+    exitFavoriteMode: '退出收藏模式',
+    favoriteChecked: '批量收藏',
+    unfavoriteChecked: '批量取消收藏',
+    favoriteCheckedOk: '已收藏 {count} 个键',
+    unfavoriteCheckedOk: '已取消收藏 {count} 个键',
   },
 
   ttlSet: {
