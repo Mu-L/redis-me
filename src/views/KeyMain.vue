@@ -106,7 +106,12 @@ const scanCancelled = ref(false) // 扫描是否被取消
 const scanPaused = ref(false) // 用户主动暂停后可用继续扫描
 const scanLoadAll = ref(false) // 暂停前是「加载更多」还是「加载剩余所有键」
 const scanBatchCount = ref(0) // 本轮搜索已执行的 SCAN 次数（用于进度估算）
-const showScanControl = computed(() => loading.value || scanPaused.value)
+// 前若干轮扫描通常很快完成，不必闪一下暂停/继续控件
+const SCAN_CONTROL_MIN_BATCHES = 10
+const showScanControl = computed(
+  () => scanPaused.value || (loading.value && scanBatchCount.value >= SCAN_CONTROL_MIN_BATCHES),
+)
+
 const scanToggleTip = computed(() =>
   loading.value ? t('keyMain.pauseScan') : t('keyMain.resumeScan'),
 )
