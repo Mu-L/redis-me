@@ -130,7 +130,7 @@ onUnmounted(() => tauriUnlisten())
           style="width: 280px; margin: 0 10px"
           clearable />
         <me-button
-          :icon="subscribing ? 'me-icon-stop' : 'el-icon-user'"
+          :icon="subscribing ? 'el-icon-video-pause' : 'el-icon-user'"
           :loading="loading"
           @click="subscribe"
           type="primary">

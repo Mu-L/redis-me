@@ -103,6 +103,13 @@ const keyword = ref('')
 const loading = ref(false)
 const loadFolder = ref(false)
 const scanCancelled = ref(false) // 扫描是否被取消
+const scanPaused = ref(false) // 用户主动暂停后可用继续扫描
+const scanLoadAll = ref(false) // 暂停前是「加载更多」还是「加载剩余所有键」
+const scanBatchCount = ref(0) // 本轮搜索已执行的 SCAN 次数（用于进度估算）
+const showScanControl = computed(() => loading.value || scanPaused.value)
+const scanToggleTip = computed(() =>
+  loading.value ? t('keyMain.pauseScan') : t('keyMain.resumeScan'),
+)
 
 // 收藏相关
 const favoriteMode = ref(false)
@@ -113,8 +120,18 @@ const currentFavorites = computed(() => {
     .map(f => f.redisKey)
 })
 
-function cancelScanning() {
+function pauseScan() {
   scanCancelled.value = true
+  scanPaused.value = true
+}
+
+function onScanAction() {
+  hideSearchHistory()
+  if (loading.value) pauseScan()
+  else if (scanPaused.value) {
+    scanPaused.value = false
+    void scanKey(true, scanLoadAll.value)
+  }
 }
 
 // 搜索历史记录
@@ -168,6 +185,19 @@ function handleHistoryMouseDown() {
   }
 }
 
+function hideSearchHistory() {
+  showHistory.value = false
+  if (historyHideTimer) {
+    clearTimeout(historyHideTimer)
+    historyHideTimer = null
+  }
+}
+
+async function onRefreshKey() {
+  hideSearchHistory()
+  await scanKey(false, false, true)
+}
+
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -180,6 +210,25 @@ const match = computed(() => {
   if (keyword.value.endsWith('*')) return '*' + keyword.value
   return '*' + keyword.value + '*'
 })
+
+// 与后端 scan_0_batch_count 一致：pattern 去 * 后 ≤1 字符 COUNT=1000，否则 10000
+const scanBatchSize = computed(() => {
+  const stripped = match.value.replace(/\*/g, '')
+  return stripped.length <= 1 ? 1000 : 10000
+})
+
+// 扫描进度：按 SCAN 批次估算（与匹配结果数量无关，稀有键搜索时进度仍正常推进）
+const scanProgress = computed(() => {
+  if (cursor.value?.finished) return 100
+  if (!share.conn || scanBatchCount.value === 0) return 0
+  const dbSize = Number(share.dbSizeMap['db' + share.conn.db] ?? 0)
+  if (dbSize > 0) {
+    const scanned = scanBatchCount.value * scanBatchSize.value
+    return Math.min(99, Math.round((scanned / dbSize) * 100))
+  }
+  return Math.min(99, scanBatchCount.value * 5)
+})
+
 const cursor = ref<ScanCursor | null>(null)
 // 仅在一次扫描结束且仍有未加载 key 时显示「加载更多」
 const showLoadMoreButtons = computed(
@@ -207,16 +256,27 @@ const filterKeyList = computed(() => {
 // 搜索自动加载的停止阈值：使用设置中的 keyScanCount
 const SCAN_FETCH_COUNT = computed(() => meTauri.settings.keyScanCount as number)
 
-// 扫描键
-async function scanKey(useCursor = false, loadAll = false): Promise<void> {
-  if (loading.value || !share.conn) return
+// 扫描键；restart=true 时中断进行中的扫描并重新开始
+async function scanKey(useCursor = false, loadAll = false, restart = false): Promise<void> {
+  if (!share.conn) return
+  if (loading.value) {
+    if (!restart) return
+    scanCancelled.value = true
+    scanPaused.value = false
+    while (loading.value) {
+      await sleep(20)
+    }
+  }
 
+  scanLoadAll.value = loadAll
   loading.value = true
   scanCancelled.value = false // 每次扫描都重置取消标志
+  if (!useCursor) scanPaused.value = false
   try {
     if (!useCursor) {
       addSearchHistory(keyword.value)
       cursor.value = null
+      scanBatchCount.value = 0
     }
 
     const firstScanKeys = await scanKeyCore(useCursor)
@@ -229,6 +289,7 @@ async function scanKey(useCursor = false, loadAll = false): Promise<void> {
     }
   } finally {
     loading.value = false
+    if (cursor.value?.finished) scanPaused.value = false
   }
 }
 
@@ -245,6 +306,7 @@ async function scanKeyCore(useCursor = false): Promise<number> {
 
   const data = await meCommands.scan(share.conn!.id, params)
   cursor.value = data.cursor
+  scanBatchCount.value++
 
   // useCursor=false 时替换列表（新搜索），useCursor=true 时追加结果（加载更多）
   const newKeyList = useCursor ? [...keyList.value, ...data.keyList] : data.keyList
@@ -746,8 +808,7 @@ function editDbName(db: number): void {
           :placeholder="t('keyMain.keyword')"
           @keyup.enter="scanKey(false, false)"
           @focus="handleInputFocus"
-          @blur="handleInputBlur"
-          clearable>
+          @blur="handleInputBlur">
           <template #prepend>
             <el-dropdown placement="bottom-start" @command="chooseKeyType">
               <el-tag
@@ -791,22 +852,43 @@ function editDbName(db: number): void {
               <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
             </el-tooltip>
           </template>
+          <template #suffix>
+            <div class="keyword-suffix" @mousedown.prevent>
+              <el-tooltip
+                v-if="showScanControl"
+                :content="scanToggleTip"
+                placement="bottom"
+                :show-after="500">
+                <div class="scan-control" @click.stop="onScanAction">
+                  <el-progress
+                    type="circle"
+                    :percentage="scanProgress"
+                    :width="22"
+                    :stroke-width="2"
+                    :show-text="false"
+                    color="var(--el-color-danger)"
+                    class="scan-ring" />
+                  <me-icon
+                    :icon="loading ? 'el-icon-video-pause' : 'el-icon-video-play'"
+                    class="scan-icon" />
+                </div>
+              </el-tooltip>
+              <el-tooltip :content="t('keyMain.refreshKey')" placement="bottom" :show-after="500">
+                <me-icon
+                  icon="el-icon-refresh-right"
+                  class="suffix-icon-btn"
+                  @click.stop="onRefreshKey" />
+              </el-tooltip>
+            </div>
+          </template>
           <template #append>
-            <el-button-group>
-              <me-button
-                :info="loading ? t('keyMain.scanning') : t('keyMain.refreshKey')"
-                @click="scanKey(false, false)"
-                :icon="loading ? 'el-icon-loading' : 'el-icon-search'"
-                :loading="loading"
-                placement="bottom" />
-              <me-button
-                :info="loading ? t('keyMain.stopScan') : t('keyMain.addKey')"
-                @click="loading ? cancelScanning() : addKey()"
-                style="border-color: var(--el-button-border-color)"
-                v-if="canEdit"
-                :icon="loading ? 'me-icon-stop' : 'el-icon-plus'"
-                placement="bottom" />
-            </el-button-group>
+            <me-button
+              :info="t('keyMain.addKey')"
+              @click="addKey()"
+              style="border-color: var(--el-button-border-color)"
+              v-if="canEdit"
+              icon="el-icon-plus"
+              placement="bottom" />
           </template>
         </el-input>
       </template>
@@ -859,7 +941,7 @@ function editDbName(db: number): void {
             @click="toggleFavoriteMode">
             <me-icon icon="el-icon-back" style="color: var(--el-color-warning)" />
             <el-text type="warning" style="font-weight: bold">
-              <div class="me-flex" style="gap: 5px">
+              <div class="me-flex" style="gap: 5px; margin-left: 5px">
                 <div>{{ t('keyMain.exitFavoriteMode') }}</div>
                 <me-icon
                   icon="me-icon-db"
@@ -1102,24 +1184,58 @@ function editDbName(db: number): void {
       padding: 0 10px 0 0;
     }
 
-    // 查询和新增key不收缩，避免调整侧边栏宽度时变为两行
+    // 新增键按钮不收缩，避免调整侧边栏宽度时变为两行
     :deep(.el-input-group__append) {
       flex-shrink: 0;
     }
 
-    // :deep(.el-button) {
-    //   padding: 8px 12px;
-    // }
-
-    // loading 图标旋转动画
-    :deep(.el-button .is-loading) {
-      animation: rotating 1s linear infinite !important;
-      background-color: unset;
+    // 输入框内右侧：暂停/继续 + 刷新
+    .keyword-suffix {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-right: 2px;
     }
 
-    // loading时不添加背景色
-    :deep(.el-button.is-loading:before) {
-      background-color: unset;
+    .scan-control {
+      position: relative;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+
+      .scan-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        line-height: 1;
+      }
+
+      .scan-icon {
+        position: relative;
+        z-index: 1;
+        font-size: 16px;
+
+        :deep(.icon),
+        :deep(svg) {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+
+    .suffix-icon-btn {
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--el-text-color-secondary);
+
+      &:hover {
+        color: var(--el-color-primary);
+      }
     }
   }
 

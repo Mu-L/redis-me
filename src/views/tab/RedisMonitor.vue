@@ -96,7 +96,7 @@ onUnmounted(() => tauriUnlisten())
           style="width: 280px; margin: 0 10px"
           clearable />
         <me-button
-          :icon="monitoring ? 'me-icon-stop' : 'el-icon-user'"
+          :icon="monitoring ? 'el-icon-video-pause' : 'el-icon-user'"
           @click="monitor"
           type="primary"
           :loading="loading">
