@@ -42,3 +42,12 @@ export function removeFavorite(
 ): FavoriteKey[] {
   return favorites.filter(f => !(f.connId === connId && f.db === db && f.redisKey.bytes === bytes))
 }
+
+/** 清空指定连接下某一 db 的全部收藏 */
+export function clearFavoritesForDb(
+  favorites: FavoriteKey[],
+  connId: string,
+  db: number,
+): FavoriteKey[] {
+  return favorites.filter(f => !(f.connId === connId && f.db === db))
+}

@@ -3,12 +3,29 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { useStorage } from '@vueuse/core'
 import { sortBy } from 'lodash'
 import { minimatch } from 'minimatch'
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
+import {
+  computed,
+  defineComponent,
+  h,
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  useTemplateRef,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
+import SvgIcon from '~virtual/svg-component'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
-import { useFavorites, addFavorite, removeFavorite } from '@/utils/favorite'
+import {
+  useFavorites,
+  addFavorite,
+  removeFavorite,
+  clearFavoritesForDb,
+  isFavorited,
+} from '@/utils/favorite'
 import {
   bus,
   CONN_REFRESH,
@@ -23,6 +40,7 @@ import {
   meKeyShort,
   meOk,
   mePrompt,
+  meWarn,
   sleep,
 } from '@/utils/util'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
@@ -63,6 +81,7 @@ function initReset(): void {
   exact.value = false
   keyword.value = ''
   keyList.value = []
+  cursor.value = null
   share.redisKey = null
   favoriteMode.value = false
 }
@@ -162,6 +181,10 @@ const match = computed(() => {
   return '*' + keyword.value + '*'
 })
 const cursor = ref<ScanCursor | null>(null)
+// 仅在一次扫描结束且仍有未加载 key 时显示「加载更多」
+const showLoadMoreButtons = computed(
+  () => !loading.value && cursor.value != null && !cursor.value.finished,
+)
 
 const keyList = ref<RedisKey_Deserialize[]>([])
 const filterKeyList = computed(() => {
@@ -303,6 +326,32 @@ async function selectDB(): Promise<void> {
   await meCommands.selectDb(share.conn!.id, share.conn.db)
   await refresh()
 }
+
+/** db 下拉展示文案：db0 (123) */
+function formatDbLabel(db: number): string {
+  return `db${db} (${share.dbSizeMap['db' + db] ?? 0})`
+}
+
+/** el-option :label，含自定义库名，供 filterable 搜索 */
+function formatDbOptionLabel(db: number): string {
+  return formatDbLabel(db) + (share.conn?.meta?.['db' + db] || '')
+}
+
+/** el-select 默认 width:100%，按文案估算宽度；fit-input-width 只管下拉面板宽度 */
+const dbSelectWidth = computed(() => {
+  if (!share.conn) return '88px'
+  const len = formatDbLabel(share.conn.db).length
+  // +16 留给 upDown 后缀图标
+  return `${Math.min(136, Math.max(88, len * 7 + 28 + 16))}px`
+})
+
+// el-select 后缀：项目 upDown 图标
+const dbSelectSuffixIcon = defineComponent({
+  name: 'DbSelectSuffixIcon',
+  setup() {
+    return () => h(SvgIcon, { name: 'me-icon-upDown', class: 'db-select-arrow' })
+  },
+})
 
 const keyPrefix = ref('')
 
@@ -512,7 +561,17 @@ async function handleCommand(command: string): Promise<void> {
     flushDb()
   } else if ('checkedMode' === command) {
     enterCheckedMode()
+  } else if ('clearFavorites' === command) {
+    clearFavorites()
   }
+}
+
+function clearFavorites(): void {
+  if (!share.conn || currentFavorites.value.length === 0) return
+  meConfirm(t('keyMain.clearFavoritesConfirm'), () => {
+    favorites.value = clearFavoritesForDb(favorites.value, share.conn!.id, share.conn!.db)
+    meOk(t('keyMain.clearFavoritesOk'))
+  })
 }
 
 function flushDb(): void {
@@ -612,9 +671,16 @@ function deleteChecked(): void {
 }
 
 function favoriteChecked(): void {
-  if (!share.conn) return
+  if (!share.conn || checkedKeyList.value.length === 0) return
   const connId = share.conn.id
   const db = share.conn.db
+  const allAlready = checkedKeyList.value.every(redisKey =>
+    isFavorited(favorites.value, connId, db, redisKey.bytes),
+  )
+  if (allAlready) {
+    meWarn(t('keyMain.favoriteCheckedAllAlready'))
+    return
+  }
   let newFavorites = favorites.value
   let count = 0
   checkedKeyList.value.forEach(redisKey => {
@@ -629,9 +695,16 @@ function favoriteChecked(): void {
 }
 
 function unfavoriteChecked(): void {
-  if (!share.conn) return
+  if (!share.conn || checkedKeyList.value.length === 0) return
   const connId = share.conn.id
   const db = share.conn.db
+  const noneFavorited = checkedKeyList.value.every(
+    redisKey => !isFavorited(favorites.value, connId, db, redisKey.bytes),
+  )
+  if (noneFavorited) {
+    meWarn(t('keyMain.unfavoriteCheckedNoneAlready'))
+    return
+  }
   let newFavorites = favorites.value
   const beforeLen = newFavorites.length
   checkedKeyList.value.forEach(redisKey => {
@@ -781,12 +854,18 @@ function editDbName(db: number): void {
       <div class="me-flex" v-if="!showCheckbox && share.conn">
         <template v-if="favoriteMode">
           <div
-            class="me-flex"
+            class="me-flex exit-favorite"
             style="cursor: pointer; margin-left: 5px"
             @click="toggleFavoriteMode">
             <me-icon icon="el-icon-back" style="color: var(--el-color-warning)" />
-            <el-text type="warning" style="font-weight: bold; margin-left: 3px">
-              {{ t('keyMain.exitFavoriteMode') }}
+            <el-text type="warning" style="font-weight: bold">
+              <div class="me-flex" style="gap: 5px">
+                <div>{{ t('keyMain.exitFavoriteMode') }}</div>
+                <me-icon
+                  icon="me-icon-db"
+                  :name="'db' + share.conn.db"
+                  v-if="!share.conn.cluster" />
+              </div>
             </el-text>
           </div>
         </template>
@@ -794,7 +873,9 @@ function editDbName(db: number): void {
           <el-select
             v-model="share.conn.db"
             @change="selectDB"
-            style="width: 120px"
+            class="db-select"
+            :style="{ width: dbSelectWidth }"
+            :suffix-icon="dbSelectSuffixIcon"
             filterable
             v-if="!share.conn.cluster">
             <template #header>
@@ -822,10 +903,10 @@ function editDbName(db: number): void {
               v-for="item in dbList"
               :key="item.db"
               :value="item.db"
-              :label="'db' + item.db + (share.conn?.meta?.['db' + item.db] || '')">
-              <div class="me-flex" style="align-items: center">
-                <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
-                <div style="display: flex">
+              :label="formatDbOptionLabel(item.db)">
+              <div class="me-flex db-option">
+                <me-icon icon="me-icon-db" :name="formatDbLabel(item.db)" />
+                <div class="me-flex db-option-extra">
                   <el-text type="info" style="margin: 0 10px">{{
                     share.conn?.meta?.['db' + item.db]
                   }}</el-text>
@@ -834,10 +915,10 @@ function editDbName(db: number): void {
               </div>
             </el-option>
             <template #label>
-              {{ `db${share.conn.db} (${share.dbSizeMap['db' + share.conn.db] || 0})` }}
+              <me-icon icon="me-icon-db" :name="formatDbLabel(share.conn.db)" />
             </template>
           </el-select>
-          <div class="me-flex" style="width: 45px; margin: 0 5px" v-if="!cursor?.finished">
+          <div class="me-flex" style="width: 45px; margin: 0 5px" v-if="showLoadMoreButtons">
             <me-icon
               :name="t('keyMain.loadMore')"
               icon="me-icon-load-more"
@@ -965,7 +1046,13 @@ function editDbName(db: number): void {
                   :name="sortByCount ? t('keyMain.sortByAlphabet') : t('keyMain.sortByCount')"
                   icon="me-icon-alphabet"></me-icon>
               </el-dropdown-item>
-              <el-dropdown-item command="checkedMode" divided>
+              <el-dropdown-item
+                v-if="favoriteMode && currentFavorites.length > 0"
+                command="clearFavorites"
+                divided>
+                <me-icon :name="t('keyMain.clearFavorites')" icon="el-icon-delete" />
+              </el-dropdown-item>
+              <el-dropdown-item command="checkedMode">
                 <me-icon :name="t('keyMain.checkedMode')" icon="me-icon-checked" />
               </el-dropdown-item>
             </el-dropdown-menu>
@@ -1137,17 +1224,66 @@ function editDbName(db: number): void {
     justify-content: space-between;
 
     :deep(.icon-btn) {
-      font-size: 20px;
+      font-size: 18px;
     }
 
     :deep(.icon-disabled) {
-      font-size: 20px;
+      font-size: 18px;
     }
 
     :deep(.el-select__wrapper) {
       min-height: 0;
       height: 30px;
       padding: 4px 4px 4px 10px;
+    }
+
+    .db-select {
+      flex-shrink: 0;
+
+      :deep(.el-select__wrapper) {
+        box-shadow: none;
+        background: transparent;
+        padding-left: 4px;
+        padding-right: 4px;
+      }
+
+      :deep(.el-select__suffix) {
+        .el-icon {
+          font-size: 12px;
+          color: var(--el-text-color-placeholder);
+
+          // upDown 图标固定方向，不随展开旋转
+          &.is-reverse {
+            transform: none;
+          }
+        }
+
+        .db-select-arrow {
+          width: 1em;
+          height: 1em;
+        }
+      }
+
+      :deep(.icon-main) {
+        min-width: 0;
+        overflow: hidden;
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+    }
+
+    .db-option {
+      align-items: center;
+      width: 100%;
+
+      .db-option-extra {
+        align-items: center;
+        margin-left: auto;
+      }
     }
 
     .tip {

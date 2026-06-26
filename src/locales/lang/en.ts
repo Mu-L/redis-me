@@ -894,6 +894,11 @@ export default {
     unfavoriteChecked: 'Batch Unfavorite',
     favoriteCheckedOk: 'Added {count} keys',
     unfavoriteCheckedOk: 'Removed {count} keys',
+    favoriteCheckedAllAlready: 'All selected keys are already favorited',
+    unfavoriteCheckedNoneAlready: 'None of the selected keys are favorited',
+    clearFavorites: 'Clear Favorites',
+    clearFavoritesConfirm: 'Clear all favorites in current DB?',
+    clearFavoritesOk: 'Favorites cleared',
   },
 
   ttlSet: {

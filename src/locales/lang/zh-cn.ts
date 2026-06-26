@@ -875,11 +875,16 @@ export default {
     myFavorites: '进入收藏模式',
     favoriteFilter: '搜索收藏键',
     favoriteMode: '收藏模式',
-    exitFavoriteMode: '退出收藏模式',
+    exitFavoriteMode: '退出收藏',
     favoriteChecked: '批量收藏',
     unfavoriteChecked: '批量取消收藏',
     favoriteCheckedOk: '已收藏 {count} 个键',
     unfavoriteCheckedOk: '已取消收藏 {count} 个键',
+    favoriteCheckedAllAlready: '所选键均已收藏',
+    unfavoriteCheckedNoneAlready: '所选键均未收藏',
+    clearFavorites: '清空收藏',
+    clearFavoritesConfirm: '确定清空当前库的全部收藏吗？',
+    clearFavoritesOk: '已清空收藏',
   },
 
   ttlSet: {
