@@ -1483,8 +1483,11 @@ fn acl_selector_from_text(text: &str) -> AnyResult<Rule> {
     if inner.is_empty() {
         bail!("empty ACL selector");
     }
-    let tokens = shell_words::split(inner)?;
-    let rules: Vec<Rule> = tokens.iter().map(|t| acl_selector_token_to_rule(t)).collect();
+    let tokens = split_redis_args(inner)?;
+    let rules: Vec<Rule> = tokens
+        .iter()
+        .map(|t| acl_selector_token_to_rule(&String::from_utf8_lossy(t)))
+        .collect();
     Ok(Rule::Selector(rules))
 }
 
@@ -1929,6 +1932,10 @@ pub fn acl_dryrun0(
     }
     
     // 使用 redis-rs 内置的 acl_dryrun 方法
+    let cmd_args: Vec<String> = cmd_args
+        .iter()
+        .map(|b| String::from_utf8_lossy(b).into_owned())
+        .collect();
     let result: String = conn.acl_dryrun(&username, &cmd_name, &cmd_args)?;
     Ok(result)
 }

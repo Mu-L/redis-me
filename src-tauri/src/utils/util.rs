@@ -235,10 +235,121 @@ pub fn random_range(min: i32, max: i32) -> i32 {
     rand::rng().random_range(min..=max)
 }
 
+fn is_hex_digit(c: u8) -> bool {
+    c.is_ascii_digit() || (b'a'..=b'f').contains(&c) || (b'A'..=b'F').contains(&c)
+}
+
+fn hex_digit_to_int(c: u8) -> u8 {
+    match c {
+        b'0'..=b'9' => c - b'0',
+        b'a' | b'A' => 10,
+        b'b' | b'B' => 11,
+        b'c' | b'C' => 12,
+        b'd' | b'D' => 13,
+        b'e' | b'E' => 14,
+        b'f' | b'F' => 15,
+        _ => 0,
+    }
+}
+
+/// 与 redis-cli sdssplitargs 一致的分词（终端命令、ACL selector 等复用）
+pub fn split_redis_args(line: &str) -> AnyResult<Vec<Vec<u8>>> {
+    let mut args = Vec::new();
+    let bytes = line.as_bytes();
+    let mut p = 0usize;
+
+    loop {
+        while p < bytes.len() && bytes[p].is_ascii_whitespace() {
+            p += 1;
+        }
+        if p >= bytes.len() {
+            break;
+        }
+
+        let mut current = Vec::new();
+        let mut in_double = false;
+        let mut in_single = false;
+        let mut done = false;
+
+        while !done {
+            if p >= bytes.len() {
+                if in_double || in_single {
+                    bail!("unbalanced quotes");
+                }
+                done = true;
+                continue;
+            }
+
+            if in_double {
+                if bytes[p] == b'\\'
+                    && p + 1 < bytes.len()
+                    && bytes[p + 1] == b'x'
+                    && p + 3 < bytes.len()
+                    && is_hex_digit(bytes[p + 2])
+                    && is_hex_digit(bytes[p + 3])
+                {
+                    let byte =
+                        hex_digit_to_int(bytes[p + 2]) * 16 + hex_digit_to_int(bytes[p + 3]);
+                    current.push(byte);
+                    p += 3;
+                } else if bytes[p] == b'\\' && p + 1 < bytes.len() {
+                    p += 1;
+                    let c = match bytes[p] {
+                        b'n' => b'\n',
+                        b'r' => b'\r',
+                        b't' => b'\t',
+                        b'b' => b'\x08',
+                        b'a' => b'\x07',
+                        other => other,
+                    };
+                    current.push(c);
+                } else if bytes[p] == b'"' {
+                    if p + 1 < bytes.len() && !bytes[p + 1].is_ascii_whitespace() {
+                        bail!("unbalanced quotes");
+                    }
+                    done = true;
+                } else {
+                    current.push(bytes[p]);
+                }
+            } else if in_single {
+                if bytes[p] == b'\\' && p + 1 < bytes.len() && bytes[p + 1] == b'\'' {
+                    p += 1;
+                    current.push(b'\'');
+                } else if bytes[p] == b'\'' {
+                    if p + 1 < bytes.len() && !bytes[p + 1].is_ascii_whitespace() {
+                        bail!("unbalanced quotes");
+                    }
+                    done = true;
+                } else {
+                    current.push(bytes[p]);
+                }
+            } else {
+                match bytes[p] {
+                    b' ' | b'\n' | b'\r' | b'\t' => done = true,
+                    b'"' => in_double = true,
+                    b'\'' => in_single = true,
+                    ch => current.push(ch),
+                }
+            }
+
+            if p < bytes.len() {
+                p += 1;
+            }
+        }
+
+        args.push(current);
+    }
+
+    Ok(args)
+}
+
 // 解析命令：主要考虑解析带有引号的参数，比如：config set save "3600 1 300 100 60 10000"
-pub fn parse_command(command: &str) -> AnyResult<(String, Vec<String>)> {
-    let tokens = shell_words::split(command.trim())?;
-    let first = tokens.first().cloned().unwrap_or_default();
+pub fn parse_command(command: &str) -> AnyResult<(String, Vec<Vec<u8>>)> {
+    let tokens = split_redis_args(command.trim())?;
+    let first = tokens
+        .first()
+        .map(|b| String::from_utf8_lossy(b).into_owned())
+        .unwrap_or_default();
     let other = tokens.into_iter().skip(1).collect();
     Ok((first, other))
 }
@@ -513,22 +624,88 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_command() -> () {
-        // cmd: , args: []
-        // cmd: ping, args: []
-        // cmd: set, args: ["name", "hepengju"]
-        // cmd: config, args: ["set", "save", "3600 1 300 100 60 10000"]
-        // cmd: config, args: ["set", "save", "3600 1 300 100 60 10000"]
+    fn test_parse_command() {
         let (cmd, args) = parse_command("").unwrap();
-        println!("cmd: {}, args: {:?}", cmd, args);
+        assert_eq!(cmd, "");
+        assert!(args.is_empty());
+
         let (cmd, args) = parse_command("ping").unwrap();
-        println!("cmd: {}, args: {:?}", cmd, args);
+        assert_eq!(cmd, "ping");
+        assert!(args.is_empty());
+
         let (cmd, args) = parse_command("set name hepengju").unwrap();
-        println!("cmd: {}, args: {:?}", cmd, args);
-        let (cmd, args) = parse_command(r#"config set save "3600 1 300 100 60 10000" "#).unwrap();
-        println!("cmd: {}, args: {:?}", cmd, args);
-        let (cmd, args) = parse_command(r#"config set save '3600 1 300 100 60 10000' "#).unwrap();
-        println!("cmd: {}, args: {:?}", cmd, args);
+        assert_eq!(cmd, "set");
+        assert_eq!(args, vec![b"name".to_vec(), b"hepengju".to_vec()]);
+
+        let (cmd, args) =
+            parse_command(r#"config set save "3600 1 300 100 60 10000" "#).unwrap();
+        assert_eq!(cmd, "config");
+        assert_eq!(
+            args,
+            vec![
+                b"set".to_vec(),
+                b"save".to_vec(),
+                b"3600 1 300 100 60 10000".to_vec()
+            ]
+        );
+
+        let (cmd, args) =
+            parse_command(r#"config set save '3600 1 300 100 60 10000' "#).unwrap();
+        assert_eq!(cmd, "config");
+        assert_eq!(
+            args,
+            vec![
+                b"set".to_vec(),
+                b"save".to_vec(),
+                b"3600 1 300 100 60 10000".to_vec()
+            ]
+        );
+    }
+
+    #[test]
+    fn test_split_redis_args_escapes() {
+        let args = split_redis_args(r#"SET "MultiLine" "Line01\nLine02""#).unwrap();
+        assert_eq!(args[0], b"SET");
+        assert_eq!(args[1], b"MultiLine");
+        assert_eq!(args[2], b"Line01\nLine02");
+
+        let args = split_redis_args(r#"SET 'MultiLine' 'Line01\nLine02'"#).unwrap();
+        assert_eq!(args[2], b"Line01\\nLine02");
+
+        let args = split_redis_args(r#"SET key "\xff\x00""#).unwrap();
+        assert_eq!(args[2], vec![0xff, 0x00]);
+
+        let args = split_redis_args(r#"call "Sabrina" and "Mark Smith\n""#).unwrap();
+        assert_eq!(
+            args,
+            vec![
+                b"call".to_vec(),
+                b"Sabrina".to_vec(),
+                b"and".to_vec(),
+                b"Mark Smith\n".to_vec()
+            ]
+        );
+
+        assert!(split_redis_args(r#""foo"bar"#).is_err());
+
+        // 双引号内 \"、\\
+        let args = split_redis_args(r#"SET key "say \"hi\"""#).unwrap();
+        assert_eq!(args[2], br#"say "hi""#);
+
+        let args = split_redis_args(r#"SET key "a\\b""#).unwrap();
+        assert_eq!(args[2], br"a\b");
+
+        // 空引号参数
+        let args = split_redis_args(r#"SET key """#).unwrap();
+        assert_eq!(args, vec![b"SET".to_vec(), b"key".to_vec(), Vec::new()]);
+
+        // 单引号内 \'
+        let args = split_redis_args(r#"SET key 'it\'s'"#).unwrap();
+        assert_eq!(args[2], b"it's");
+
+        // 未闭合引号
+        assert!(split_redis_args(r#"SET key "abc"#).is_err());
+        assert!(split_redis_args(r#"SET key "abc\"#).is_err());
     }
 
     #[test]
