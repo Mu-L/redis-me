@@ -209,6 +209,13 @@ async function onRefreshKey() {
   await scanKey(false, false, true)
 }
 
+/** F5 刷新键列表（连接内全局生效，需阻止浏览器默认刷新） */
+function onKeyListRefreshHotkey(e: KeyboardEvent) {
+  if (e.key !== 'F5') return
+  e.preventDefault()
+  void onRefreshKey()
+}
+
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -502,6 +509,7 @@ const keyCopyRef = useTemplateRef<InstanceType<typeof KeyCopy>>('keyCopyRef')
 onMounted(() => {
   bus.on(KEY_DELETE, deleteKey)
   bus.on(CONN_REFRESH, refresh)
+  window.addEventListener('keydown', onKeyListRefreshHotkey, true)
   connUi.openKeyCopy = (redisKey: RedisKey_Deserialize) => {
     keyCopyRef.value?.open({ redisKey })
   }
@@ -509,6 +517,7 @@ onMounted(() => {
 onUnmounted(() => {
   bus.off(KEY_DELETE, deleteKey)
   bus.off(CONN_REFRESH, refresh)
+  window.removeEventListener('keydown', onKeyListRefreshHotkey, true)
 })
 
 const fieldAddRef = useTemplateRef<InstanceType<typeof FieldAdd>>('fieldAddRef')
@@ -879,10 +888,7 @@ function editDbName(db: number): void {
                 </div>
               </el-tooltip>
               <el-tooltip :content="t('keyMain.refreshKey')" placement="bottom" :show-after="500">
-                <me-icon
-                  icon="el-icon-refresh-right"
-                  class="suffix-icon-btn"
-                  @click.stop="onRefreshKey" />
+                <me-icon icon="me-icon-search" class="suffix-icon-btn" @click.stop="onRefreshKey" />
               </el-tooltip>
               <el-tooltip
                 :content="t('keyMain.exactSearch')"

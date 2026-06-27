@@ -856,7 +856,7 @@ export default {
     keyword: 'Enter to Search',
     exactSearch:
       'Exact Match<br/>• Off: input app → auto add * before/after, scan *app*<br/>• On: input app* → query keys starting with app; input app → use EXISTS to check if key exists',
-    refreshKey: 'Refresh Key',
+    refreshKey: 'Refresh List (F5)',
     scanning: 'Scanning...',
     pauseScan: 'Pause Scan',
     resumeScan: 'Resume Scan',
