@@ -460,13 +460,19 @@ api_model!(RedisBatchTtl {
     ttl: i64
 });
 
-// 导出
+fn default_export_format() -> String {
+    "csv".into()
+}
+
+// 导出（csv：DUMP 格式；cmd：redis-cli 可执行命令文本）
 api_model!(RedisExportCsv {
     #[serde(rename = "match")]
     pattern: String,
     key_list: Vec<RedisKey>,
     file: String,
     with_ttl: bool,
+    #[serde(default = "default_export_format")]
+    export_format: String,
 });
 
 impl From<RedisExportCsv> for RedisBatchKey {

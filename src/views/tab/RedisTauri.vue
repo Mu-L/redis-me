@@ -165,6 +165,7 @@ const minimalExportCsv: RedisExportCsv_Deserialize = {
   keyList: [],
   file: '',
   withTtl: false,
+  exportFormat: 'csv',
 }
 
 const minimalImportCsv: RedisImportCsv = {

@@ -32,7 +32,9 @@ const initForm: RedisImportCsv = {
 
 // 支持导入不同的文件类型
 const isCmdFile = ref(false)
-const fileSuffix = computed(() => (isCmdFile.value ? 'txt' : 'csv'))
+// 命令文本：.redis 为主后缀，.txt 通用文本
+const cmdFileExtensions = ['redis', 'txt']
+const fileSuffixTip = computed(() => (isCmdFile.value ? cmdFileExtensions.join(', ') : 'csv'))
 
 const form = ref<RedisImportCsv>(cloneDeep(initForm))
 const rules = computed(() => ({
@@ -80,8 +82,9 @@ function submit() {
       <el-form-item :label="t('keyImport.file')" prop="file">
         <me-file-input
           v-model="form.file"
-          :placeholder="t('keyImport.fileTip', { tip: fileSuffix })"
-          :file-suffix="fileSuffix" />
+          :placeholder="t('keyImport.fileTip', { tip: fileSuffixTip })"
+          :file-suffix="isCmdFile ? 'redis' : 'csv'"
+          :file-extensions="isCmdFile ? cmdFileExtensions : undefined" />
       </el-form-item>
 
       <el-row :span="24" v-if="!isCmdFile">

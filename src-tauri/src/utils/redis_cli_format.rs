@@ -84,6 +84,10 @@ pub fn format_set_command(key: &[u8], value: &[u8]) -> String {
     format!("SET {} {}", format_quoted(key), format_quoted(value))
 }
 
+pub fn format_expire_command(key: &[u8], ttl_secs: i64) -> String {
+    format!("EXPIRE {} {}", format_quoted(key), ttl_secs)
+}
+
 pub fn format_hmset_command(key: &[u8], pairs: &[(Vec<u8>, Vec<u8>)]) -> Option<String> {
     if pairs.is_empty() {
         return None;

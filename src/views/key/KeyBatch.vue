@@ -17,6 +17,8 @@ type KeyBatchForm = {
   deleteDirect: boolean
   file: string
   withTtl: boolean
+  /** csv：DUMP 格式；cmd：redis-cli 可执行命令文本 */
+  exportFormat: 'csv' | 'cmd'
 }
 
 type KeyBatchOpenData = Partial<KeyBatchForm>
@@ -48,6 +50,7 @@ const initForm: KeyBatchForm = {
   deleteDirect: false,
   file: '',
   withTtl: true,
+  exportFormat: 'csv',
 }
 
 const form = ref<KeyBatchForm>(cloneDeep(initForm))
@@ -145,6 +148,16 @@ const exportFilePrefix = computed(
     (share.capabilities.isValkey ? 'Valkey' : 'Redis') +
     share.capabilities.version,
 )
+const exportFormatOptions = computed(() => [
+  { label: 'CSV', value: 'csv' as const },
+  { label: 'CMD', value: 'cmd' as const },
+])
+const exportFileSuffix = computed(() => (form.value.exportFormat === 'cmd' ? 'redis' : 'csv'))
+const exportFormatTip = computed(() =>
+  form.value.exportFormat === 'cmd'
+    ? t('keyBatch.exportFormatTipCmd')
+    : t('keyBatch.exportFormatTipCsv'),
+)
 </script>
 
 <template>
@@ -158,16 +171,26 @@ const exportFilePrefix = computed(
         }}</el-checkbox>
       </el-form-item>
 
-      <el-form-item :label="t('keyBatch.ttl')" v-if="isExport">
-        <el-checkbox v-model="form.withTtl">{{ t('keyBatch.expireTip') }}</el-checkbox>
-      </el-form-item>
+      <el-row :span="24" v-if="isExport">
+        <el-col :span="12">
+          <el-form-item :label="t('keyBatch.ttl')">
+            <el-checkbox v-model="form.withTtl">{{ t('keyBatch.expireTip') }}</el-checkbox>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item :label="t('keyBatch.exportFormat')">
+            <el-segmented v-model="form.exportFormat" :options="exportFormatOptions" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-text v-if="isExport" type="info" class="export-format-tip">{{ exportFormatTip }}</el-text>
 
       <el-form-item :label="t('keyBatch.exportFile')" v-if="isExport" prop="file">
         <me-file-input
           v-model="form.file"
           :placeholder="t('keyBatch.exportFileTip')"
           :file-prefix="exportFilePrefix"
-          file-suffix="csv" />
+          :file-suffix="exportFileSuffix" />
       </el-form-item>
 
       <el-form-item
@@ -216,5 +239,13 @@ const exportFilePrefix = computed(
   line-height: 14px;
   padding: 3px 4px;
   color: var(--el-color-info);
+}
+
+.export-format-tip {
+  display: block;
+  margin: -8px 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-line;
 }
 </style>

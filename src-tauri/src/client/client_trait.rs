@@ -1014,6 +1014,106 @@ pub fn export_csv_0_thread(
     running.store(false, Relaxed);
 }
 
+pub fn export_cmd_0_thread(
+    conn: &mut impl Commands,
+    key_list: Vec<RedisKey>,
+    file: String,
+    with_ttl: bool,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) {
+    info!("export cmd keys count: {}", key_list.len());
+    let result = export_keys_as_command(
+        conn,
+        key_list,
+        &file,
+        with_ttl,
+        running.clone(),
+        app_handle,
+        id,
+    );
+    match result {
+        Ok(_) => info!("export cmd keys ok"),
+        Err(e) => warn!("export cmd keys err: {e}"),
+    }
+    running.store(false, Relaxed);
+}
+
+fn export_keys_as_command(
+    mut conn: impl Commands,
+    key_list: Vec<RedisKey>,
+    file: &str,
+    with_ttl: bool,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) -> AnyResult<()> {
+    info!("export cmd file: {}", file);
+    let mut writer = BufWriter::new(File::create(file)?);
+    let mut ok_count = 0;
+    let mut err_count = 0;
+    let total_count = key_list.len() as u64;
+    for key in key_list {
+        if running.load(Relaxed) {
+            let result = export_key_as_command(&mut conn, &mut writer, key, with_ttl);
+            match result {
+                Ok(true) => ok_count += 1,
+                Ok(false) => err_count += 1,
+                Err(e) => {
+                    warn!("export cmd key err: {e}");
+                    err_count += 1;
+                }
+            }
+            let event = ExportImportEvent {
+                id: id.clone(),
+                ok_count,
+                err_count,
+                total_count,
+                ignore_count: 0,
+                finished: false,
+            };
+            let _ = &app_handle.emit(EVENT_EXPORT, event);
+        }
+    }
+
+    let event = ExportImportEvent {
+        id: id.clone(),
+        ok_count,
+        err_count,
+        total_count,
+        ignore_count: 0,
+        finished: true,
+    };
+    let _ = &app_handle.emit(EVENT_EXPORT, event);
+    writer.flush()?;
+    Ok(())
+}
+
+/// 写入单键命令行；返回 Ok(true) 表示有内容写出
+fn export_key_as_command(
+    conn: &mut impl Commands,
+    writer: &mut BufWriter<File>,
+    key: RedisKey,
+    with_ttl: bool,
+) -> AnyResult<bool> {
+    let key_bytes = key.to_bytes();
+    let lines = key_as_command_lines(conn, &key)?;
+    if lines.is_empty() {
+        return Ok(false);
+    }
+    for line in &lines {
+        writeln!(writer, "{line}")?;
+    }
+    if with_ttl {
+        let ttl = conn.ttl(&key)?;
+        if ttl > 0 {
+            writeln!(writer, "{}", format_expire_command(&key_bytes, ttl))?;
+        }
+    }
+    Ok(true)
+}
+
 fn export_keys(
     mut conn: impl Commands,
     key_list: Vec<RedisKey>,
@@ -1292,11 +1392,8 @@ pub fn key_type0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResul
     Ok(ui_key_type(key_type))
 }
 
-/// 单键 → redis-cli 可执行命令（全量读取，与键值页 fieldScan 分页无关）
-pub fn get_key_as_command0(
-    mut conn: MutexGuard<impl Commands>,
-    key: RedisKey,
-) -> AnyResult<String> {
+/// 单键 → redis-cli 可执行命令行列表（全量读取，与键值页 fieldScan 分页无关）
+fn key_as_command_lines(conn: &mut impl Commands, key: &RedisKey) -> AnyResult<Vec<String>> {
     let key_type: ValueType = conn.key_type(&key)?;
     if key_type == ValueType::None {
         bail!(AppError::KeyNotFound {
@@ -1305,55 +1402,59 @@ pub fn get_key_as_command0(
     }
 
     let key_bytes = key.to_bytes();
-    match key_type {
+    let lines = match key_type {
         ValueType::String => {
             let value: Vec<u8> = conn.get(&key)?;
-            Ok(format_set_command(key_bytes, &value))
+            vec![format_set_command(key_bytes, &value)]
         }
         ValueType::Hash => {
             let pairs: Vec<(Vec<u8>, Vec<u8>)> = conn.hgetall(&key)?;
-            Ok(format_hmset_command(key_bytes, &pairs).unwrap_or_default())
+            format_hmset_command(key_bytes, &pairs)
+                .map(|s| vec![s])
+                .unwrap_or_default()
         }
         ValueType::List => {
             let items: Vec<Vec<u8>> = conn.lrange(&key, 0, -1)?;
-            Ok(format_rpush_command(key_bytes, &items).unwrap_or_default())
+            format_rpush_command(key_bytes, &items)
+                .map(|s| vec![s])
+                .unwrap_or_default()
         }
         ValueType::Set => {
             let members: Vec<Vec<u8>> = conn.smembers(&key)?;
-            Ok(format_sadd_command(key_bytes, &members).unwrap_or_default())
+            format_sadd_command(key_bytes, &members)
+                .map(|s| vec![s])
+                .unwrap_or_default()
         }
         ValueType::ZSet => {
             let pairs: Vec<(Vec<u8>, f64)> = conn.zrange_withscores(&key, 0, -1)?;
-            Ok(format_zadd_command(key_bytes, &pairs).unwrap_or_default())
+            format_zadd_command(key_bytes, &pairs)
+                .map(|s| vec![s])
+                .unwrap_or_default()
         }
         ValueType::Stream => {
             let raw: Value = redis::cmd("XRANGE")
                 .arg(&key)
                 .arg("-")
                 .arg("+")
-                .query(&mut conn)?;
+                .query(conn)?;
             let entries = parse_xrange_ordered(raw)?;
-            if entries.is_empty() {
-                return Ok(String::new());
-            }
-            let lines: Vec<String> = entries
+            entries
                 .iter()
                 .map(|(id, fields)| format_xadd_command(key_bytes, id, fields))
-                .collect();
-            Ok(lines.join("\n"))
+                .collect()
         }
         ValueType::JSON => {
-            let json: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
+            let json: Value = redis::cmd("JSON.GET").arg(&key).query(conn)?;
             match json {
-                Value::Nil => Ok(String::new()),
-                Value::BulkString(b) if b.is_empty() => Ok(String::new()),
-                Value::BulkString(b) => Ok(format_json_set_command(key_bytes, &b)),
+                Value::Nil => vec![],
+                Value::BulkString(b) if b.is_empty() => vec![],
+                Value::BulkString(b) => vec![format_json_set_command(key_bytes, &b)],
                 other => {
                     let b = redis_value_to_bulk_bytes(other);
                     if b.is_empty() {
-                        Ok(String::new())
+                        vec![]
                     } else {
-                        Ok(format_json_set_command(key_bytes, &b))
+                        vec![format_json_set_command(key_bytes, &b)]
                     }
                 }
             }
@@ -1361,7 +1462,16 @@ pub fn get_key_as_command0(
         other => bail!(AppError::KeyTypeUnsupported {
             value_type: ui_key_type(other)
         }),
-    }
+    };
+    Ok(lines)
+}
+
+/// 单键 → redis-cli 可执行命令（全量读取，与键值页 fieldScan 分页无关）
+pub fn get_key_as_command0(
+    mut conn: MutexGuard<impl Commands>,
+    key: RedisKey,
+) -> AnyResult<String> {
+    Ok(key_as_command_lines(&mut conn, &key)?.join("\n"))
 }
 
 pub fn xinfo_groups0(

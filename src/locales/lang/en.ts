@@ -455,6 +455,11 @@ export default {
     exportFileTip: 'Select export path',
     expireTip: 'Include Expiration',
     ttl: 'Expiration',
+    exportFormat: 'Export Format',
+    exportFormatTipCsv:
+      'Principle: DUMP-serialized key/value (Base64), one line per key as key,value,ttl.\nCase: use with Import Data for full restore—best for bulk migration and binary-safe keys; recommended only between Redis/Valkey instances with similar versions.',
+    exportFormatTipCmd:
+      'Principle: expands keys into SET/HMSET-style redis-cli commands (UTF-8 text).\nCase: use with Import Cmd or run in terminal/scripts—human-readable and easy to edit or share.',
   },
 
   keyImport: {

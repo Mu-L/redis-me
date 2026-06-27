@@ -291,6 +291,7 @@ export type RedisExportCsv_Deserialize = {
 	keyList: RedisKey_Deserialize[],
 	file: string,
 	withTtl: boolean,
+	exportFormat?: string,
 };
 
 export type RedisExportCsv_Serialize = {
@@ -298,6 +299,7 @@ export type RedisExportCsv_Serialize = {
 	keyList: RedisKey_Serialize[],
 	file: string,
 	withTtl: boolean,
+	exportFormat: string,
 };
 
 export type RedisFieldAdd = RedisFieldAdd_Serialize | RedisFieldAdd_Deserialize;

@@ -445,6 +445,11 @@ export default {
     exportFileTip: '请选择文件导出路径',
     expireTip: '同时导出过期时间',
     ttl: '过期时间',
+    exportFormat: '导出格式',
+    exportFormatTipCsv:
+      '原理：DUMP 序列化键值（Base64），每行「键,值,过期秒数」。\n场景：配合「导入数据」完整还原，适合批量迁移及含二进制内容的键；仅建议在版本相近的 Redis/Valkey 间使用。',
+    exportFormatTipCmd:
+      '原理：展开为 SET/HMSET 等 redis-cli 命令（UTF-8 文本）。\n场景：配合「导入命令」或在终端/脚本中执行，可读可编辑，便于分享与调试。',
   },
 
   keyImport: {

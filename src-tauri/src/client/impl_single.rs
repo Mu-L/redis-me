@@ -393,16 +393,31 @@ impl MeClient for MeSingle {
         let id = self.id.clone();
         let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
+        let export_format = param.export_format.clone();
+        let file = param.file.clone();
+        let with_ttl = param.with_ttl;
         thread::spawn(move || {
-            export_csv_0_thread(
-                &mut logging_conn,
-                key_list,
-                param.file,
-                param.with_ttl,
-                running,
-                app_handle,
-                id,
-            )
+            if export_format == "cmd" {
+                export_cmd_0_thread(
+                    &mut logging_conn,
+                    key_list,
+                    file,
+                    with_ttl,
+                    running,
+                    app_handle,
+                    id,
+                );
+            } else {
+                export_csv_0_thread(
+                    &mut logging_conn,
+                    key_list,
+                    file,
+                    with_ttl,
+                    running,
+                    app_handle,
+                    id,
+                );
+            }
         });
         Ok(())
     }
