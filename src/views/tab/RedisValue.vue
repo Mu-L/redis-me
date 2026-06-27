@@ -59,6 +59,7 @@ import {
   meJsonNormal,
   meOk,
   meType,
+  meWarn,
 } from '@/utils/util'
 import TableGroup from '@/views/ext/TableGroup.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
@@ -531,6 +532,25 @@ function duplicateKey() {
   connUi.openKeyCopy(share.redisKey)
 }
 
+const copyAsCommandLoading = ref(false)
+
+async function copyAsCommand() {
+  const conn = share.conn
+  const rk = share.redisKey
+  if (!conn || !rk || copyAsCommandLoading.value) return
+  copyAsCommandLoading.value = true
+  try {
+    const text = await meCommands.getKeyAsCommand(conn.id, rk)
+    if (!text.trim()) {
+      meWarn(t('redisValue.copyCommandEmpty'))
+      return
+    }
+    meCopy(text, t('redisValue.copyCommandOk'))
+  } finally {
+    copyAsCommandLoading.value = false
+  }
+}
+
 // 收藏（与 KeyTree 右键菜单一致）
 const favorites = useFavorites()
 const isCurrentKeyFavorited = computed(() => {
@@ -564,6 +584,8 @@ function onKeyMoreCommand(command: string) {
     renameKey()
   } else if (command === 'duplicateKey') {
     duplicateKey()
+  } else if (command === 'copyAsCommand') {
+    void copyAsCommand()
   }
 }
 // #endregion
@@ -871,6 +893,9 @@ onUnmounted(() => {
                 </el-dropdown-item>
                 <el-dropdown-item v-if="canEdit" command="duplicateKey">
                   <me-icon icon="el-icon-copy-document" :name="t('redisValue.duplicateKey')" />
+                </el-dropdown-item>
+                <el-dropdown-item command="copyAsCommand" :disabled="copyAsCommandLoading">
+                  <me-icon icon="me-icon-terminal" :name="t('redisValue.copyAsCommand')" />
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>

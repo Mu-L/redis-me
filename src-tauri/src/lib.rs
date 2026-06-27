@@ -73,6 +73,7 @@ fn tauri_specta_commands() -> Commands<tauri::Wry> {
         import_cmd,
         mock_data,
         key_type,
+        get_key_as_command,
         xinfo_groups,
         xinfo_consumers,
         key_slot,

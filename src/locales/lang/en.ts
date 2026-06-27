@@ -804,6 +804,9 @@ export default {
     loadAll: 'Load All',
     renameKey: 'Rename',
     duplicateKey: 'Duplicate',
+    copyAsCommand: 'Copy as Command',
+    copyCommandOk: 'Command copied',
+    copyCommandEmpty: 'Empty key, nothing to copy',
     refreshKey: 'Refresh',
 
     textMemory: 'Memory Usage: ',

@@ -64,6 +64,7 @@ export const commands = {
 	importCmd: (id: string, file: string) => typedError<null, string>(__TAURI_INVOKE("import_cmd", { id, file })),
 	mockData: (id: string, count: number) => typedError<null, string>(__TAURI_INVOKE("mock_data", { id, count })),
 	keyType: (id: string, key: RedisKey_Deserialize) => typedError<string, string>(__TAURI_INVOKE("key_type", { id, key })),
+	getKeyAsCommand: (id: string, key: RedisKey_Deserialize) => typedError<string, string>(__TAURI_INVOKE("get_key_as_command", { id, key })),
 	xinfoGroups: (id: string, key: RedisKey_Deserialize) => typedError<XInfoGroup[], string>(__TAURI_INVOKE("xinfo_groups", { id, key })),
 	xinfoConsumers: (id: string, key: RedisKey_Deserialize, group: string) => typedError<XInfoConsumer[], string>(__TAURI_INVOKE("xinfo_consumers", { id, key, group })),
 	keySlot: (id: string, key: RedisKey_Deserialize) => typedError<number, string>(__TAURI_INVOKE("key_slot", { id, key })),

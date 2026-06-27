@@ -296,12 +296,13 @@ export function meWarn(message: string): void {
 }
 
 export function meErr(message: unknown, title: string = t('error')): void {
-  const text =
+  const raw =
     message instanceof Error
       ? message.message
       : typeof message === 'string'
         ? message
         : errString(message)
+  const text = formatSpectaErrorForUser(raw)
   void ElMessageBox.alert(text, title, { type: 'error', draggable: true }).then(DoNothing)
 }
 

@@ -154,6 +154,7 @@ api_commands!(
     batch_ttl(param: RedisBatchTtl) -> ();          // 批量更新过期时间
     mock_data(count: u64) -> ();                    // 模拟数据
     key_type(key: RedisKey) -> String;              // 获取键类型
+    get_key_as_command(key: RedisKey) -> String;    // 复制为 redis-cli 命令
     xinfo_groups(key: RedisKey) -> Vec<XInfoGroup>; // 获取Stream类型的组信息
     xinfo_consumers(key: RedisKey, group: String) -> Vec<XInfoConsumer>; // 获取Stream类型的消费者信息
     key_slot(key: RedisKey) -> u64;                           // 获取键的槽位

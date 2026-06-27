@@ -2,6 +2,7 @@ use crate::utils::command_log::CommandLogger;
 use crate::utils::conn::set_client_name;
 use crate::utils::error::AppError;
 use crate::utils::model::*;
+use crate::utils::redis_cli_format::*;
 use crate::utils::util::*;
 use Ordering::Relaxed;
 use anyhow::{Context, bail};
@@ -105,6 +106,7 @@ pub trait MeClient: Send + Sync {
 
     fn mock_data(&self, count: u64) -> AnyResult<()>;
     fn key_type(&self, key: RedisKey) -> AnyResult<String>;
+    fn get_key_as_command(&self, key: RedisKey) -> AnyResult<String>;
     fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>>;
     fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>>;
     fn key_slot(&self, key: RedisKey) -> AnyResult<u64>;
@@ -1288,6 +1290,78 @@ pub fn key_type0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResul
     // 简单字符串回复：key 的类型，如果 key 不存在则返回 none
     let key_type: ValueType = conn.key_type(&key)?;
     Ok(ui_key_type(key_type))
+}
+
+/// 单键 → redis-cli 可执行命令（全量读取，与键值页 fieldScan 分页无关）
+pub fn get_key_as_command0(
+    mut conn: MutexGuard<impl Commands>,
+    key: RedisKey,
+) -> AnyResult<String> {
+    let key_type: ValueType = conn.key_type(&key)?;
+    if key_type == ValueType::None {
+        bail!(AppError::KeyNotFound {
+            key: vec8_to_display_string(key.to_bytes())
+        });
+    }
+
+    let key_bytes = key.to_bytes();
+    match key_type {
+        ValueType::String => {
+            let value: Vec<u8> = conn.get(&key)?;
+            Ok(format_set_command(key_bytes, &value))
+        }
+        ValueType::Hash => {
+            let pairs: Vec<(Vec<u8>, Vec<u8>)> = conn.hgetall(&key)?;
+            Ok(format_hmset_command(key_bytes, &pairs).unwrap_or_default())
+        }
+        ValueType::List => {
+            let items: Vec<Vec<u8>> = conn.lrange(&key, 0, -1)?;
+            Ok(format_rpush_command(key_bytes, &items).unwrap_or_default())
+        }
+        ValueType::Set => {
+            let members: Vec<Vec<u8>> = conn.smembers(&key)?;
+            Ok(format_sadd_command(key_bytes, &members).unwrap_or_default())
+        }
+        ValueType::ZSet => {
+            let pairs: Vec<(Vec<u8>, f64)> = conn.zrange_withscores(&key, 0, -1)?;
+            Ok(format_zadd_command(key_bytes, &pairs).unwrap_or_default())
+        }
+        ValueType::Stream => {
+            let raw: Value = redis::cmd("XRANGE")
+                .arg(&key)
+                .arg("-")
+                .arg("+")
+                .query(&mut conn)?;
+            let entries = parse_xrange_ordered(raw)?;
+            if entries.is_empty() {
+                return Ok(String::new());
+            }
+            let lines: Vec<String> = entries
+                .iter()
+                .map(|(id, fields)| format_xadd_command(key_bytes, id, fields))
+                .collect();
+            Ok(lines.join("\n"))
+        }
+        ValueType::JSON => {
+            let json: Value = redis::cmd("JSON.GET").arg(&key).query(&mut conn)?;
+            match json {
+                Value::Nil => Ok(String::new()),
+                Value::BulkString(b) if b.is_empty() => Ok(String::new()),
+                Value::BulkString(b) => Ok(format_json_set_command(key_bytes, &b)),
+                other => {
+                    let b = redis_value_to_bulk_bytes(other);
+                    if b.is_empty() {
+                        Ok(String::new())
+                    } else {
+                        Ok(format_json_set_command(key_bytes, &b))
+                    }
+                }
+            }
+        }
+        other => bail!(AppError::KeyTypeUnsupported {
+            value_type: ui_key_type(other)
+        }),
+    }
 }
 
 pub fn xinfo_groups0(

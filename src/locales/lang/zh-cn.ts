@@ -791,6 +791,9 @@ export default {
     loadAll: '加载剩余所有键',
     renameKey: '重命名键',
     duplicateKey: '创建副本',
+    copyAsCommand: '复制为命令',
+    copyCommandOk: '命令已复制',
+    copyCommandEmpty: '空键，无可复制命令',
     refreshKey: '刷新键',
 
     textMemory: '内存占用：',

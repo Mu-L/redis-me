@@ -354,6 +354,52 @@ pub fn parse_command(command: &str) -> AnyResult<(String, Vec<Vec<u8>>)> {
     Ok((first, other))
 }
 
+/// Redis 回复值 → bulk bytes（复制为命令、XRANGE 解析等）
+pub fn redis_value_to_bulk_bytes(value: Value) -> Vec<u8> {
+    match value {
+        Value::BulkString(b) => b,
+        Value::SimpleString(s) => s.into_bytes(),
+        Value::Int(i) => i.to_string().into_bytes(),
+        Value::Double(d) => d.to_string().into_bytes(),
+        Value::Boolean(b) => (if b { "1" } else { "0" }).into(),
+        Value::Nil => Vec::new(),
+        other => redis_value_to_string(other, "").into_bytes(),
+    }
+}
+
+/// `XRANGE` 原始数组回复 → 保序 entry（id + field-value 对），避免 `HashMap` 打乱顺序
+pub fn parse_xrange_ordered(raw: Value) -> AnyResult<Vec<(Vec<u8>, Vec<(Vec<u8>, Vec<u8>)>)>> {
+    let entries = match raw {
+        Value::Array(arr) => arr,
+        _ => bail!(AppError::Internal {
+            message: "XRANGE expected array".into()
+        }),
+    };
+    let mut result = Vec::with_capacity(entries.len());
+    for entry in entries {
+        let parts = match entry {
+            Value::Array(p) if p.len() >= 2 => p,
+            _ => continue,
+        };
+        let id = redis_value_to_bulk_bytes(parts[0].clone());
+        let fields_flat = match &parts[1] {
+            Value::Array(f) => f.as_slice(),
+            _ => continue,
+        };
+        let mut fields = Vec::with_capacity(fields_flat.len() / 2);
+        for chunk in fields_flat.chunks(2) {
+            if chunk.len() == 2 {
+                fields.push((
+                    redis_value_to_bulk_bytes(chunk[0].clone()),
+                    redis_value_to_bulk_bytes(chunk[1].clone()),
+                ));
+            }
+        }
+        result.push((id, fields));
+    }
+    Ok(result)
+}
+
 // 命令返回值转换
 pub fn redis_value_to_string(value: Value, sep: &str) -> String {
     match value {
@@ -706,6 +752,29 @@ mod tests {
         // 未闭合引号
         assert!(split_redis_args(r#"SET key "abc"#).is_err());
         assert!(split_redis_args(r#"SET key "abc\"#).is_err());
+    }
+
+    #[test]
+    fn test_parse_xrange_ordered() {
+        let raw = Value::Array(vec![Value::Array(vec![
+            Value::SimpleString("1-0".into()),
+            Value::Array(vec![
+                Value::SimpleString("f2".into()),
+                Value::BulkString(b"v2".to_vec()),
+                Value::SimpleString("f1".into()),
+                Value::BulkString(b"v1".to_vec()),
+            ]),
+        ])]);
+        let entries = parse_xrange_ordered(raw).unwrap();
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].0, b"1-0");
+        assert_eq!(
+            entries[0].1,
+            vec![
+                (b"f2".to_vec(), b"v2".to_vec()),
+                (b"f1".to_vec(), b"v1".to_vec()),
+            ]
+        );
     }
 
     #[test]

@@ -437,6 +437,10 @@ impl MeClient for MeSingle {
         key_type0(self.get_conn()?, key)
     }
 
+    fn get_key_as_command(&self, key: RedisKey) -> AnyResult<String> {
+        get_key_as_command0(self.get_conn()?, key)
+    }
+
     fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>> {
         xinfo_groups0(self.get_conn()?, key)
     }
