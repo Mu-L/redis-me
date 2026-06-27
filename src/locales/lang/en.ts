@@ -781,7 +781,7 @@ export default {
     ttlHint: 'Click to modify the key expiration time',
     ttlHintReadonly: 'Key expiration time',
     ttlForever: 'Forever',
-    deleteKey: 'Delete Key',
+    deleteKey: 'Delete',
     prettyHint:
       'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',
     locationHint: 'View the cluster node where this key is located',
@@ -801,8 +801,8 @@ export default {
     noKeySelected: 'No Key Selected',
     loadMore: 'Load More',
     loadAll: 'Load All',
-    renameKey: 'Rename Key',
-    refreshKey: 'Refresh Key',
+    renameKey: 'Rename',
+    refreshKey: 'Refresh',
 
     textMemory: 'Memory Usage: ',
     textLength: 'Bytes Length: ',
