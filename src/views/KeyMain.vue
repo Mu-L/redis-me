@@ -26,6 +26,7 @@ import {
   clearFavoritesForDb,
   isFavorited,
 } from '@/utils/favorite'
+import { clearKeyTypeCacheForConn } from '@/utils/key-type-cache'
 import {
   bus,
   CONN_REFRESH,
@@ -173,8 +174,11 @@ function selectHistory(item: string) {
   void scanKey(false, false)
 }
 
-function handleInputFocus() {
-  showHistory.value = true
+/** 仅点击输入框本体时展开历史；suffix 内控件（含复选框）不触发 */
+function handleKeywordClick(e: MouseEvent) {
+  if ((e.target as HTMLElement).classList.contains('el-input__inner')) {
+    showHistory.value = true
+  }
 }
 
 function handleInputBlur() {
@@ -812,20 +816,11 @@ function editDbName(db: number): void {
           :readonly="loading"
           :placeholder="t('keyMain.keyword')"
           @keyup.enter="scanKey(false, false)"
-          @focus="handleInputFocus"
+          @click="handleKeywordClick"
           @blur="handleInputBlur">
           <template #prepend>
             <el-dropdown placement="bottom-start" @command="chooseKeyType">
-              <el-tag
-                :type="keyTypeTag.type"
-                effect="plain"
-                style="
-                  width: 32px;
-                  height: 32px;
-                  font-weight: bold;
-                  border-bottom-right-radius: 0;
-                  border-top-right-radius: 0;
-                ">
+              <el-tag :type="keyTypeTag.type" effect="plain" class="key-type-tag">
                 {{ meKeyShort(keyType, 'A') }}
               </el-tag>
               <template #dropdown>
@@ -853,12 +848,9 @@ function editDbName(db: number): void {
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-            <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom" raw-content>
-              <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
-            </el-tooltip>
           </template>
           <template #suffix>
-            <div class="keyword-suffix" @mousedown.prevent>
+            <div class="keyword-suffix">
               <el-tooltip
                 v-if="showScanControl"
                 :content="scanToggleTip"
@@ -884,13 +876,19 @@ function editDbName(db: number): void {
                   class="suffix-icon-btn"
                   @click.stop="onRefreshKey" />
               </el-tooltip>
+              <el-tooltip
+                :content="t('keyMain.exactSearch')"
+                placement="bottom"
+                raw-content
+                :show-after="500">
+                <el-checkbox size="small" v-model="exact" class="suffix-exact-checkbox" />
+              </el-tooltip>
             </div>
           </template>
           <template #append>
             <me-button
               :info="t('keyMain.addKey')"
               @click="addKey()"
-              style="border-color: var(--el-button-border-color)"
               v-if="canEdit"
               icon="el-icon-plus"
               placement="bottom" />
@@ -1184,9 +1182,20 @@ function editDbName(db: number): void {
       border-color: var(--el-border-color);
     }
 
-    // 复选框显示尽量为方形
+    // 类型选择与输入框衔接：prepend 只负责布局，外框由 tag / append 按钮承担，避免双边框
     :deep(.el-input-group__prepend) {
-      padding: 0 10px 0 0;
+      padding: 0;
+      box-shadow: none;
+    }
+
+    .key-type-tag {
+      width: 32px;
+      min-height: var(--el-component-size);
+      font-weight: bold;
+      border-radius: 0;
+      border-top-left-radius: var(--el-input-border-radius, var(--el-border-radius-base));
+      border-bottom-left-radius: var(--el-input-border-radius, var(--el-border-radius-base));
+      border-right: none;
     }
 
     // 新增键按钮不收缩，避免调整侧边栏宽度时变为两行
@@ -1194,12 +1203,31 @@ function editDbName(db: number): void {
       flex-shrink: 0;
     }
 
-    // 输入框内右侧：暂停/继续 + 刷新
+    // 输入框内右侧：暂停/继续 + 刷新 + 精确查询
     .keyword-suffix {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       margin-right: 2px;
+
+      // 与 suffix 图标同色，选中时用主题色
+      :deep(.suffix-exact-checkbox) {
+        height: auto;
+
+        .el-checkbox__inner {
+          border-color: var(--el-text-color-secondary);
+          background-color: transparent;
+        }
+
+        &:hover .el-checkbox__inner {
+          border-color: var(--el-color-primary);
+        }
+
+        &.is-checked .el-checkbox__inner {
+          background-color: var(--el-color-primary);
+          border-color: var(--el-color-primary);
+        }
+      }
     }
 
     .scan-control {
