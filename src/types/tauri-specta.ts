@@ -29,6 +29,7 @@ export const commands = {
 	set: (id: string, param: RedisSetParam_Deserialize) => typedError<null, string>(__TAURI_INVOKE("set", { id, param })),
 	del: (id: string, key: RedisKey_Deserialize) => typedError<null, string>(__TAURI_INVOKE("del", { id, key })),
 	rename: (id: string, key: RedisKey_Deserialize, newKey: RedisKey_Deserialize) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("rename", { id, key, newKey })),
+	copy: (id: string, param: RedisCopyParam_Deserialize) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("copy", { id, param })),
 	fieldAdd: (id: string, param: RedisFieldAdd_Deserialize) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("field_add", { id, param })),
 	fieldSet: (id: string, param: RedisFieldSet_Deserialize) => typedError<null, string>(__TAURI_INVOKE("field_set", { id, param })),
 	fieldDel: (id: string, param: RedisFieldDel_Deserialize) => typedError<null, string>(__TAURI_INVOKE("field_del", { id, param })),
@@ -261,6 +262,20 @@ export type RedisCommand = {
 	command: string,
 	node: string | null,
 	autoBroadcast: boolean | null,
+};
+
+export type RedisCopyParam = RedisCopyParam_Serialize | RedisCopyParam_Deserialize;
+
+export type RedisCopyParam_Deserialize = {
+	source: RedisKey_Deserialize,
+	destination: RedisKey_Deserialize,
+	db: number,
+};
+
+export type RedisCopyParam_Serialize = {
+	source: RedisKey_Serialize,
+	destination: RedisKey_Serialize,
+	db: number,
 };
 
 export type RedisDB = {

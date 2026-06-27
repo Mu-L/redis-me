@@ -440,6 +440,13 @@ impl ToRedisArgs for RedisKey {
 }
 impl ToSingleRedisArg for RedisKey {}
 
+// 复制键：COPY source destination [DB destination-db] [REPLACE]
+api_model!(RedisCopyParam {
+    source: RedisKey,
+    destination: RedisKey,
+    db: u16,
+});
+
 // 批量删除
 api_model!(RedisBatchKey {
     #[serde(rename = "match")]

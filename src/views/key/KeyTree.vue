@@ -451,6 +451,9 @@ const isContextNodeFavorited = computed(() => {
             <el-dropdown-item v-if="canEdit" command="renameKey"
               ><me-icon icon="el-icon-edit" :name="t('keyList.renameKey')"
             /></el-dropdown-item>
+            <el-dropdown-item v-if="canEdit" command="duplicateKey"
+              ><me-icon icon="el-icon-copy-document" :name="t('redisValue.duplicateKey')"
+            /></el-dropdown-item>
             <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
               ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
             /></el-dropdown-item>

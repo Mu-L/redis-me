@@ -17,7 +17,7 @@ import {
 import { useI18n } from 'vue-i18n'
 import SvgIcon from '~virtual/svg-component'
 
-import { shareProvideKey } from '@/types/me-interface'
+import { shareProvideKey, connUiProvideKey } from '@/types/me-interface'
 import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
 import {
   useFavorites,
@@ -46,6 +46,7 @@ import {
 } from '@/utils/util'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
+import KeyCopy from '@/views/key/KeyCopy.vue'
 import KeyImport from '@/views/key/KeyImport.vue'
 import KeyRename from '@/views/key/KeyRename.vue'
 
@@ -64,6 +65,7 @@ interface ImportExportProgressPayload {
 
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
+const connUi = inject(connUiProvideKey)!
 const canEdit = computed(() => !share.readonly)
 
 async function refresh(): Promise<void> {
@@ -342,15 +344,6 @@ async function scanKeyAll(): Promise<void> {
   await scanKeyAll() // 继续递归
 }
 
-onMounted(() => {
-  bus.on(KEY_DELETE, deleteKey)
-  bus.on(CONN_REFRESH, refresh)
-})
-onUnmounted(() => {
-  bus.off(KEY_DELETE, deleteKey)
-  bus.off(CONN_REFRESH, refresh)
-})
-
 function deleteKey(redisKey: RedisKey_Deserialize): void {
   keyList.value = keyList.value.filter(rk => rk.bytes !== redisKey.bytes)
   share.redisKey = null
@@ -453,6 +446,8 @@ function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
     meDeleteKey(share.conn!.id, redisKey)
   } else if (command === 'renameKey') {
     keyRenameRef.value?.open({ redisKey })
+  } else if (command === 'duplicateKey') {
+    keyCopyRef.value?.open({ redisKey })
   } else if (command === 'checkedMode') {
     enterCheckedMode()
   } else if (command === 'exitCheckedMode') {
@@ -502,6 +497,19 @@ function contextFolder(command: string, folder: string): void {
 }
 
 const keyRenameRef = useTemplateRef<InstanceType<typeof KeyRename>>('keyRenameRef')
+const keyCopyRef = useTemplateRef<InstanceType<typeof KeyCopy>>('keyCopyRef')
+
+onMounted(() => {
+  bus.on(KEY_DELETE, deleteKey)
+  bus.on(CONN_REFRESH, refresh)
+  connUi.openKeyCopy = (redisKey: RedisKey_Deserialize) => {
+    keyCopyRef.value?.open({ redisKey })
+  }
+})
+onUnmounted(() => {
+  bus.off(KEY_DELETE, deleteKey)
+  bus.off(CONN_REFRESH, refresh)
+})
 
 const fieldAddRef = useTemplateRef<InstanceType<typeof FieldAdd>>('fieldAddRef')
 
@@ -1163,6 +1171,7 @@ function editDbName(db: number): void {
     <KeyMemory ref="keyMemoryRef" />
     <TTLSet ref="ttlSetRef" />
     <KeyRename ref="keyRenameRef" />
+    <KeyCopy ref="keyCopyRef" @success="addKeyOk" />
   </div>
 </template>
 

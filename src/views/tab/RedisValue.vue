@@ -19,7 +19,7 @@ import {
 import { useI18n } from 'vue-i18n'
 
 import MeShortcut from '@/components/MeShortcut.vue'
-import { shareProvideKey } from '@/types/me-interface'
+import { shareProvideKey, connUiProvideKey } from '@/types/me-interface'
 import type {
   FieldScanResult,
   RedisFieldDel_Deserialize,
@@ -94,6 +94,7 @@ type ValueTableRow = Record<string, unknown> & {
 // #region 共享上下文与权限
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
+const connUi = inject(connUiProvideKey)!
 const canEdit = computed(() => !share.readonly)
 const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value))
 // #endregion
@@ -525,6 +526,11 @@ function renameKey() {
   keyRenameRef.value?.open({ redisKey: share.redisKey })
 }
 
+function duplicateKey() {
+  if (!share.redisKey) return
+  connUi.openKeyCopy(share.redisKey)
+}
+
 // 收藏（与 KeyTree 右键菜单一致）
 const favorites = useFavorites()
 const isCurrentKeyFavorited = computed(() => {
@@ -556,6 +562,8 @@ function onKeyMoreCommand(command: string) {
     meCopy(showKey.value)
   } else if (command === 'renameKey') {
     renameKey()
+  } else if (command === 'duplicateKey') {
+    duplicateKey()
   }
 }
 // #endregion
@@ -860,6 +868,9 @@ onUnmounted(() => {
                 </el-dropdown-item>
                 <el-dropdown-item v-if="canEdit" command="renameKey">
                   <me-icon icon="el-icon-edit" :name="t('redisValue.renameKey')" />
+                </el-dropdown-item>
+                <el-dropdown-item v-if="canEdit" command="duplicateKey">
+                  <me-icon icon="el-icon-copy-document" :name="t('redisValue.duplicateKey')" />
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>

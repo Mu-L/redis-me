@@ -471,6 +471,7 @@ export default {
   keyList: { renameKey: '重命名键' },
 
   keyRename: { title: '重命名键', newKeyName: '新键名' },
+  keyCopy: { title: '创建副本', newKeyName: '新键名' },
 
   keyTree: {
     noData: '没有数据',
@@ -789,6 +790,7 @@ export default {
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
     renameKey: '重命名键',
+    duplicateKey: '创建副本',
     refreshKey: '刷新键',
 
     textMemory: '内存占用：',

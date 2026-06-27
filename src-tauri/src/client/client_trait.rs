@@ -13,8 +13,8 @@ use parking_lot::MutexGuard;
 use redis::acl::Rule;
 use redis::streams::{StreamInfoConsumersReply, StreamInfoGroupsReply, StreamRangeReply};
 use redis::{
-    Cmd, Commands, Connection, ExpireOption, FromRedisValue, IntegerReplyOrNoOp, JsonCommands, Msg,
-    SetExpiry, SetOptions, Value, ValueType, from_redis_value,
+    Cmd, Commands, Connection, CopyOptions, ExpireOption, FromRedisValue, IntegerReplyOrNoOp,
+    JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType, from_redis_value,
 };
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -63,6 +63,8 @@ pub trait MeClient: Send + Sync {
     fn del(&self, key: RedisKey) -> AnyResult<()>;
 
     fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<RedisKey>;
+
+    fn copy(&self, param: RedisCopyParam) -> AnyResult<RedisKey>;
 
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey>;
 
@@ -596,6 +598,22 @@ pub fn set0(mut conn: MutexGuard<impl Commands>, param: RedisSetParam) -> AnyRes
 pub fn del0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<()> {
     let _: () = conn.del(&key)?;
     Ok(())
+}
+
+pub fn copy0(
+    mut conn: MutexGuard<impl Commands>,
+    param: RedisCopyParam,
+) -> AnyResult<RedisKey> {
+    let dest = &param.destination;
+    if conn.exists(dest)? {
+        bail!(AppError::KeyAlreadyExists {
+            key: vec8_to_display_string(dest.to_bytes())
+        });
+    }
+
+    let opts = CopyOptions::default().db(param.db);
+    let _: bool = conn.copy(&param.source, dest, opts)?;
+    Ok(param.destination.to_normal())
 }
 
 pub fn field_add0(

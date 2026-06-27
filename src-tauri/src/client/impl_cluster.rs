@@ -203,6 +203,33 @@ impl MeClient for MeCluster {
         Ok(new_key.to_normal())
     }
 
+    fn copy(&self, param: RedisCopyParam) -> AnyResult<RedisKey> {
+        // https://redis.io/docs/latest/commands/copy/
+        // Cluster 原生 COPY 要求 source/destination 同一 hash slot。
+        // 跨 slot 时用 DUMP + RESTORE 实现（保留源键，目标已存在时由 exists 前置拦截，不用 REPLACE）。
+
+        let dest = &param.destination;
+        let mut conn = self.get_conn()?;
+
+        if conn.exists(dest)? {
+            bail!(AppError::KeyAlreadyExists {
+                key: vec8_to_display_string(dest.to_bytes())
+            });
+        }
+
+        let ttl_ms: i64 = conn.pttl(&param.source)?;
+        let restore_ttl = if ttl_ms > 0 { ttl_ms } else { 0 };
+
+        let dump_value: Vec<u8> = redis::cmd("dump").arg(&param.source).query(&mut *conn)?;
+        let _: () = redis::cmd("restore")
+            .arg(dest)
+            .arg(restore_ttl)
+            .arg(dump_value)
+            .query(&mut *conn)?;
+
+        Ok(param.destination.to_normal())
+    }
+
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey> {
         field_add0(self.get_conn()?, param, self.base().capabilities.httl_supported)
     }

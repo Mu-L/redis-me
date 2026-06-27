@@ -38,6 +38,7 @@ fn tauri_specta_commands() -> Commands<tauri::Wry> {
         set,
         del,
         rename,
+        copy,
         field_add,
         field_set,
         field_del,

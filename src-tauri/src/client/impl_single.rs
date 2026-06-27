@@ -161,6 +161,10 @@ impl MeClient for MeSingle {
         Ok(new_key.to_normal())
     }
 
+    fn copy(&self, param: RedisCopyParam) -> AnyResult<RedisKey> {
+        copy0(self.get_conn()?, param)
+    }
+
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey> {
         field_add0(self.get_conn()?, param, self.base().capabilities.httl_supported)
     }

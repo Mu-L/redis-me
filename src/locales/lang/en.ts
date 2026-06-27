@@ -481,6 +481,7 @@ export default {
   keyList: { renameKey: 'Rename' },
 
   keyRename: { title: 'Rename Key', newKeyName: 'New key name' },
+  keyCopy: { title: 'Duplicate Key', newKeyName: 'New key name' },
 
   keyTree: {
     noData: 'No Data',
@@ -802,6 +803,7 @@ export default {
     loadMore: 'Load More',
     loadAll: 'Load All',
     renameKey: 'Rename',
+    duplicateKey: 'Duplicate',
     refreshKey: 'Refresh',
 
     textMemory: 'Memory Usage: ',
