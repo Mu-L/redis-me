@@ -145,6 +145,34 @@ pub fn scan_0_batch_count(pattern: &str) -> u64 {
     }
 }
 
+/// 判断 pattern 是否为 Redis glob 风格（包含 *、?、[] 等通配符）
+pub fn is_redis_glob(pattern: &str) -> bool {
+    pattern.contains('*') || pattern.contains('?') || pattern.contains('[')
+}
+
+/// 精确查询优化：非 glob 模式时直接使用 EXISTS 代替 SCAN
+pub fn scan_0_exact<C: redis::ConnectionLike>(
+    conn: &mut C,
+    pattern: &str,
+) -> AnyResult<Option<ScanResult>> {
+    if is_redis_glob(pattern) {
+        return Ok(None);
+    }
+    let exists: bool = redis::cmd("EXISTS").arg(pattern).query(conn)?;
+    let key_list = if exists {
+        vec![RedisKey::from(pattern)]
+    } else {
+        vec![]
+    };
+    Ok(Some(ScanResult {
+        cursor: ScanCursor {
+            finished: true,
+            ..Default::default()
+        },
+        key_list,
+    }))
+}
+
 pub fn scan_1_cmd(cursor: u64, pattern: &str, batch_count: u64, scan_type: Option<String>) -> Cmd {
     // SCAN cursor [MATCH pattern] [COUNT count] [TYPE type]
     let mut cmd = redis::cmd("scan");

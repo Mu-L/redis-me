@@ -96,11 +96,17 @@ impl MeClient for MeCluster {
     }
 
     fn scan(&self, param: ScanParam) -> AnyResult<ScanResult> {
+        let mut conn = self.get_conn()?;
+
+        // 非 glob 模式的精确查询，使用 EXISTS 优化（O(1) 相比 SCAN 遍历大幅提速）
+        if let Some(result) = scan_0_exact(&mut conn, &param.pattern)? {
+            return Ok(result);
+        }
+
         // RedisCluster目前不能直接扫描SCAN, 参考Issue进行多个节点处理
         // 参考: https://github.com/redis-rs/redis-rs/pull/1233/commits/997df1834d1bfccdbd56827d39fc4cf08874efec
         // Error: This command cannot be safely routed in cluster mode- ClientError
         // let keys: Vec<String> = conn.scan_options(opts)?.collect();
-        let mut conn = self.get_conn()?;
         let mut cc = param.cursor.unwrap_or_default();
         let batch_count = scan_0_batch_count(&param.pattern);
 

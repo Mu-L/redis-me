@@ -22,6 +22,8 @@ const emit = defineEmits([
   'contextKey',
   'contextFolder',
   'checkChange',
+  'favoriteKey',
+  'unfavoriteKey',
 ])
 const props = withDefaults(
   defineProps<{
@@ -32,6 +34,8 @@ const props = withDefaults(
     keyShowTree?: boolean
     sortByCount?: boolean
     loading?: boolean
+    favorites?: RedisKey_Deserialize[]
+    favoriteMode?: boolean
   }>(),
   {
     color: 'var(--el-color-primary)',
@@ -40,6 +44,8 @@ const props = withDefaults(
     showCheckbox: false,
     keyShowTree: true,
     sortByCount: true,
+    favorites: () => [],
+    favoriteMode: false,
   },
 )
 
@@ -337,6 +343,19 @@ function quickDeleteKey(redisKey: RedisKey_Deserialize): void {
   if (!share.conn) return
   meDeleteKey(share.conn.id, redisKey)
 }
+
+const favoritedBytesSet = computed(() => new Set(props.favorites.map(f => f.bytes)))
+
+function isFavoritedLocal(bytes: string): boolean {
+  return favoritedBytesSet.value.has(bytes)
+}
+
+const isContextNodeFavorited = computed(() => {
+  if (!contextMenuNode.value?.isLeaf) return false
+  const bytes = contextMenuNode.value.data.redisKey?.bytes
+  if (!bytes) return false
+  return isFavoritedLocal(bytes)
+})
 </script>
 
 <template>
@@ -371,12 +390,20 @@ function quickDeleteKey(redisKey: RedisKey_Deserialize): void {
                 <span v-else style="color: var(--el-color-info-light-3)">[EMPTY]</span>
               </div>
             </div>
-            <me-icon
-              v-if="canEdit && !showCheckbox && isCurrentKey(node)"
-              :info="t('keyTree.deleteKey')"
-              icon="el-icon-delete"
-              class="key-delete-btn"
-              @click.stop="quickDeleteKey(node.data.redisKey)" />
+            <div class="me-flex" style="margin-right: 15px; gap: 5px">
+              <me-icon
+                v-if="canEdit && !showCheckbox && !favoriteMode && isCurrentKey(node)"
+                :info="t('keyTree.deleteKey')"
+                icon="el-icon-delete"
+                class="key-delete-btn"
+                @click.stop="quickDeleteKey(node.data.redisKey)" />
+              <me-icon
+                v-if="isFavoritedLocal(node.data.redisKey.bytes)"
+                icon="el-icon-star-filled"
+                style="color: #f7ba2a"
+                class="key-favorite-btn"
+                @click.stop="emit('contextKey', 'unfavoriteKey', node.data.redisKey)" />
+            </div>
           </div>
           <div class="me-flex" v-else style="width: 100%" :class="getNodeClass(node)">
             <me-icon
@@ -398,59 +425,91 @@ function quickDeleteKey(redisKey: RedisKey_Deserialize): void {
       <!-- 右键菜单 -->
       <me-context ref="meContextRef" @handle-command="handleCommand" @handle-close="handleClose">
         <template v-if="contextMenuNode?.isLeaf">
-          <el-dropdown-item command="refreshKey"
-            ><me-icon icon="el-icon-refresh" :name="t('keyTree.refreshKey')"
-          /></el-dropdown-item>
-          <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
-            ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
-          /></el-dropdown-item>
-          <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
-            ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
-          /></el-dropdown-item>
-          <el-dropdown-item command="addKey" v-if="canEdit"
-            ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
-          /></el-dropdown-item>
-          <el-dropdown-item command="reloadKey"
-            ><me-icon icon="el-icon-refresh-right" :name="t('keyTree.reloadKey')"
-          /></el-dropdown-item>
-          <el-dropdown-item command="copyKey"
-            ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')"
-          /></el-dropdown-item>
-          <el-dropdown-item v-if="canEdit" command="renameKey"
-            ><me-icon icon="el-icon-edit" :name="t('keyList.renameKey')"
-          /></el-dropdown-item>
-          <el-dropdown-item command="deleteKey" divided v-if="canEdit"
-            ><me-icon icon="el-icon-delete" :name="t('keyTree.deleteKey')"
-          /></el-dropdown-item>
+          <!-- 收藏模式下的右键菜单 -->
+          <template v-if="favoriteMode">
+            <el-dropdown-item command="unfavoriteKey"
+              ><me-icon icon="el-icon-star-filled" :name="t('keyTree.unfavoriteKey')"
+            /></el-dropdown-item>
+            <el-dropdown-item command="copyKey"
+              ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')"
+            /></el-dropdown-item>
+            <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
+              ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
+            /></el-dropdown-item>
+            <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
+              ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
+            /></el-dropdown-item>
+          </template>
+          <!-- 正常模式下的右键菜单 -->
+          <template v-else>
+            <el-dropdown-item command="addKey" v-if="canEdit"
+              ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
+            /></el-dropdown-item>
+            <el-dropdown-item command="copyKey"
+              ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')"
+            /></el-dropdown-item>
+            <el-dropdown-item v-if="canEdit" command="renameKey"
+              ><me-icon icon="el-icon-edit" :name="t('keyList.renameKey')"
+            /></el-dropdown-item>
+            <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
+              ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
+            /></el-dropdown-item>
+            <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
+              ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
+            /></el-dropdown-item>
+            <el-dropdown-item
+              :command="isContextNodeFavorited ? 'unfavoriteKey' : 'favoriteKey'"
+              divided>
+              <me-icon
+                icon="el-icon-star-filled"
+                :name="
+                  isContextNodeFavorited ? t('keyTree.unfavoriteKey') : t('keyTree.favoriteKey')
+                " />
+            </el-dropdown-item>
+          </template>
         </template>
         <template v-else>
-          <el-dropdown-item command="refreshKey"
-            ><me-icon icon="el-icon-refresh" :name="t('keyTree.refreshKey')"
-          /></el-dropdown-item>
-          <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
-            ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
-          /></el-dropdown-item>
-          <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
-            ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
-          /></el-dropdown-item>
-          <el-dropdown-item command="addKey" v-if="canEdit"
-            ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
-          /></el-dropdown-item>
-          <el-dropdown-item command="copyFolder"
-            ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyFolder')"
-          /></el-dropdown-item>
-          <el-dropdown-item command="loadFolder" divided
-            ><me-icon icon="el-icon-search" :name="t('keyTree.loadFolder')"
-          /></el-dropdown-item>
-          <el-dropdown-item command="memoryUsage"
-            ><me-icon icon="me-icon-memory" :name="t('keyTree.memoryUsage')"
-          /></el-dropdown-item>
-          <el-dropdown-item command="exportFolder" divided :disabled="share.exportImporting"
-            ><me-icon icon="el-icon-upload" :name="t('keyTree.exportFolder')"
-          /></el-dropdown-item>
-          <el-dropdown-item command="deleteFolder" v-if="canEdit" :disabled="share.exportImporting"
-            ><me-icon icon="el-icon-delete" :name="t('keyTree.deleteFolder')"
-          /></el-dropdown-item>
+          <template v-if="favoriteMode">
+            <el-dropdown-item command="copyFolder"
+              ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyFolder')"
+            /></el-dropdown-item>
+            <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
+              ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
+            /></el-dropdown-item>
+            <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
+              ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
+            /></el-dropdown-item>
+          </template>
+          <template v-else>
+            <el-dropdown-item command="addKey" v-if="canEdit"
+              ><me-icon icon="el-icon-circle-plus" :name="t('keyTree.addKey')"
+            /></el-dropdown-item>
+            <el-dropdown-item command="copyFolder"
+              ><me-icon icon="el-icon-document-copy" :name="t('keyTree.copyFolder')"
+            /></el-dropdown-item>
+            <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
+              ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
+            /></el-dropdown-item>
+            <el-dropdown-item v-if="showCheckbox" command="exitCheckedMode"
+              ><me-icon icon="el-icon-circle-close" :name="t('keyMain.exitCheckedMode')"
+            /></el-dropdown-item>
+            <el-dropdown-item command="loadFolder" divided
+              ><me-icon icon="el-icon-search" :name="t('keyTree.loadFolder')"
+            /></el-dropdown-item>
+            <el-dropdown-item command="memoryUsage"
+              ><me-icon icon="me-icon-memory" :name="t('keyTree.memoryUsage')"
+            /></el-dropdown-item>
+            <el-dropdown-item command="exportFolder" divided :disabled="share.exportImporting"
+              ><me-icon icon="el-icon-upload" :name="t('keyTree.exportFolder')"
+            /></el-dropdown-item>
+
+            <el-dropdown-item
+              command="deleteFolder"
+              v-if="canEdit"
+              :disabled="share.exportImporting"
+              ><me-icon icon="el-icon-delete" :name="t('keyTree.deleteFolder')"
+            /></el-dropdown-item>
+          </template>
         </template>
       </me-context>
     </template>
@@ -498,7 +557,6 @@ function quickDeleteKey(redisKey: RedisKey_Deserialize): void {
 /* 删除图标右缘与文件夹 [数量] 末位数字对齐（略大于数量块的 margin-right） */
 .key-delete-btn {
   flex-shrink: 0;
-  margin-right: 10px;
   cursor: pointer;
   color: var(--el-color-info);
 
@@ -509,6 +567,12 @@ function quickDeleteKey(redisKey: RedisKey_Deserialize): void {
   &:hover {
     color: var(--el-color-info-light-3);
   }
+}
+
+/* 收藏星标图标 */
+.key-favorite-btn {
+  flex-shrink: 0;
+  font-size: 14px;
 }
 
 /*  键类型TAG设置 */

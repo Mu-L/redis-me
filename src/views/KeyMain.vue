@@ -2,11 +2,30 @@
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { useStorage } from '@vueuse/core'
 import { sortBy } from 'lodash'
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
+import { minimatch } from 'minimatch'
+import {
+  computed,
+  defineComponent,
+  h,
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  useTemplateRef,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
+import SvgIcon from '~virtual/svg-component'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
+import {
+  useFavorites,
+  addFavorite,
+  removeFavorite,
+  clearFavoritesForDb,
+  isFavorited,
+} from '@/utils/favorite'
 import { clearKeyTypeCacheForConn } from '@/utils/key-type-cache'
 import {
   bus,
@@ -22,6 +41,7 @@ import {
   meKeyShort,
   meOk,
   mePrompt,
+  meWarn,
   sleep,
 } from '@/utils/util'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
@@ -62,7 +82,9 @@ function initReset(): void {
   exact.value = false
   keyword.value = ''
   keyList.value = []
+  cursor.value = null
   share.redisKey = null
+  favoriteMode.value = false
 }
 
 const keyType = ref('ALL')
@@ -82,9 +104,40 @@ const keyword = ref('')
 const loading = ref(false)
 const loadFolder = ref(false)
 const scanCancelled = ref(false) // 扫描是否被取消
+const scanPaused = ref(false) // 用户主动暂停后可用继续扫描
+const scanLoadAll = ref(false) // 暂停前是「加载更多」还是「加载剩余所有键」
+const scanBatchCount = ref(0) // 本轮搜索已执行的 SCAN 次数（用于进度估算）
+// 前若干轮扫描通常很快完成，不必闪一下暂停/继续控件
+const SCAN_CONTROL_MIN_BATCHES = 10
+const showScanControl = computed(
+  () => scanPaused.value || (loading.value && scanBatchCount.value >= SCAN_CONTROL_MIN_BATCHES),
+)
 
-function cancelScanning() {
+const scanToggleTip = computed(() =>
+  loading.value ? t('keyMain.pauseScan') : t('keyMain.resumeScan'),
+)
+
+// 收藏相关
+const favoriteMode = ref(false)
+const favorites = useFavorites()
+const currentFavorites = computed(() => {
+  return favorites.value
+    .filter(f => f.connId === share.conn!.id && f.db === share.conn!.db)
+    .map(f => f.redisKey)
+})
+
+function pauseScan() {
   scanCancelled.value = true
+  scanPaused.value = true
+}
+
+function onScanAction() {
+  hideSearchHistory()
+  if (loading.value) pauseScan()
+  else if (scanPaused.value) {
+    scanPaused.value = false
+    void scanKey(true, scanLoadAll.value)
+  }
 }
 
 // 搜索历史记录
@@ -121,8 +174,11 @@ function selectHistory(item: string) {
   void scanKey(false, false)
 }
 
-function handleInputFocus() {
-  showHistory.value = true
+/** 仅点击输入框本体时展开历史；suffix 内控件（含复选框）不触发 */
+function handleKeywordClick(e: MouseEvent) {
+  if ((e.target as HTMLElement).classList.contains('el-input__inner')) {
+    showHistory.value = true
+  }
 }
 
 function handleInputBlur() {
@@ -138,6 +194,19 @@ function handleHistoryMouseDown() {
   }
 }
 
+function hideSearchHistory() {
+  showHistory.value = false
+  if (historyHideTimer) {
+    clearTimeout(historyHideTimer)
+    historyHideTimer = null
+  }
+}
+
+async function onRefreshKey() {
+  hideSearchHistory()
+  await scanKey(false, false, true)
+}
+
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -150,27 +219,73 @@ const match = computed(() => {
   if (keyword.value.endsWith('*')) return '*' + keyword.value
   return '*' + keyword.value + '*'
 })
+
+// 与后端 scan_0_batch_count 一致：pattern 去 * 后 ≤1 字符 COUNT=1000，否则 10000
+const scanBatchSize = computed(() => {
+  const stripped = match.value.replace(/\*/g, '')
+  return stripped.length <= 1 ? 1000 : 10000
+})
+
+// 扫描进度：按 SCAN 批次估算（与匹配结果数量无关，稀有键搜索时进度仍正常推进）
+const scanProgress = computed(() => {
+  if (cursor.value?.finished) return 100
+  if (!share.conn || scanBatchCount.value === 0) return 0
+  const dbSize = Number(share.dbSizeMap['db' + share.conn.db] ?? 0)
+  if (dbSize > 0) {
+    const scanned = scanBatchCount.value * scanBatchSize.value
+    return Math.min(99, Math.round((scanned / dbSize) * 100))
+  }
+  return Math.min(99, scanBatchCount.value * 5)
+})
+
 const cursor = ref<ScanCursor | null>(null)
+// 仅在一次扫描结束且仍有未加载 key 时显示「加载更多」
+const showLoadMoreButtons = computed(
+  () => !loading.value && cursor.value != null && !cursor.value.finished,
+)
 
 const keyList = ref<RedisKey_Deserialize[]>([])
 const filterKeyList = computed(() => {
-  const key = keyword.value.toLowerCase()
-  return keyList.value.filter(k => k.key.toLowerCase().indexOf(key) > -1)
+  // 收藏模式下，只显示当前连接的收藏键
+  let source: RedisKey_Deserialize[] = favoriteMode.value ? currentFavorites.value : keyList.value
+
+  const key = keyword.value.trim()
+  if (!key) return source
+  // 使用 minimatch 做 Redis 风格的 glob 匹配：
+  // - nobrace: true  禁用 {a,b} 扩展（Redis 不支持 brace expansion）
+  // - noglobstar: true  将 ** 视为两个 *（Redis 没有多级目录递归概念）
+  // - noext: true  禁用 +(a|b) 等 extglob（Redis 不支持）
+  // - nocase: true  忽略大小写，与 Redis 默认行为一致
+  return source.filter(k =>
+    // 此处用match，而不是key。是为了过滤时还是包含比较好
+    minimatch(k.key, match.value, { nobrace: true, noglobstar: true, noext: true, nocase: true }),
+  )
 })
 
 // 搜索自动加载的停止阈值：使用设置中的 keyScanCount
 const SCAN_FETCH_COUNT = computed(() => meTauri.settings.keyScanCount as number)
 
-// 扫描键
-async function scanKey(useCursor = false, loadAll = false): Promise<void> {
-  if (loading.value || !share.conn) return
+// 扫描键；restart=true 时中断进行中的扫描并重新开始
+async function scanKey(useCursor = false, loadAll = false, restart = false): Promise<void> {
+  if (!share.conn) return
+  if (loading.value) {
+    if (!restart) return
+    scanCancelled.value = true
+    scanPaused.value = false
+    while (loading.value) {
+      await sleep(20)
+    }
+  }
 
+  scanLoadAll.value = loadAll
   loading.value = true
   scanCancelled.value = false // 每次扫描都重置取消标志
+  if (!useCursor) scanPaused.value = false
   try {
     if (!useCursor) {
       addSearchHistory(keyword.value)
       cursor.value = null
+      scanBatchCount.value = 0
     }
 
     const firstScanKeys = await scanKeyCore(useCursor)
@@ -183,6 +298,7 @@ async function scanKey(useCursor = false, loadAll = false): Promise<void> {
     }
   } finally {
     loading.value = false
+    if (cursor.value?.finished) scanPaused.value = false
   }
 }
 
@@ -199,6 +315,7 @@ async function scanKeyCore(useCursor = false): Promise<number> {
 
   const data = await meCommands.scan(share.conn!.id, params)
   cursor.value = data.cursor
+  scanBatchCount.value++
 
   // useCursor=false 时替换列表（新搜索），useCursor=true 时追加结果（加载更多）
   const newKeyList = useCursor ? [...keyList.value, ...data.keyList] : data.keyList
@@ -281,6 +398,32 @@ async function selectDB(): Promise<void> {
   await refresh()
 }
 
+/** db 下拉展示文案：db0 (123) */
+function formatDbLabel(db: number): string {
+  return `db${db} (${share.dbSizeMap['db' + db] ?? 0})`
+}
+
+/** el-option :label，含自定义库名，供 filterable 搜索 */
+function formatDbOptionLabel(db: number): string {
+  return formatDbLabel(db) + (share.conn?.meta?.['db' + db] || '')
+}
+
+/** el-select 默认 width:100%，按文案估算宽度；fit-input-width 只管下拉面板宽度 */
+const dbSelectWidth = computed(() => {
+  if (!share.conn) return '88px'
+  const len = formatDbLabel(share.conn.db).length
+  // +16 留给 upDown 后缀图标
+  return `${Math.min(136, Math.max(88, len * 7 + 28 + 16))}px`
+})
+
+// el-select 后缀：项目 upDown 图标
+const dbSelectSuffixIcon = defineComponent({
+  name: 'DbSelectSuffixIcon',
+  setup() {
+    return () => h(SvgIcon, { name: 'me-icon-upDown', class: 'db-select-arrow' })
+  },
+})
+
 const keyPrefix = ref('')
 
 // 选中键
@@ -314,6 +457,12 @@ function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
     enterCheckedMode()
   } else if (command === 'exitCheckedMode') {
     exitCheckedMode()
+  } else if (command === 'favoriteKey') {
+    favorites.value = addFavorite(favorites.value, share.conn.id, share.conn.db, redisKey)
+    meOk(t('keyTree.favoriteOk'))
+  } else if (command === 'unfavoriteKey') {
+    favorites.value = removeFavorite(favorites.value, share.conn.id, share.conn.db, redisKey.bytes)
+    meOk(t('keyTree.unfavoriteOk'))
   } else {
     meOk(`TODO: ${command}`)
   }
@@ -481,7 +630,19 @@ async function handleCommand(command: string): Promise<void> {
     deleteFolder('*')
   } else if ('flushDb' === command) {
     flushDb()
+  } else if ('checkedMode' === command) {
+    enterCheckedMode()
+  } else if ('clearFavorites' === command) {
+    clearFavorites()
   }
+}
+
+function clearFavorites(): void {
+  if (!share.conn || currentFavorites.value.length === 0) return
+  meConfirm(t('keyMain.clearFavoritesConfirm'), () => {
+    favorites.value = clearFavoritesForDb(favorites.value, share.conn!.id, share.conn!.db)
+    meOk(t('keyMain.clearFavoritesOk'))
+  })
 }
 
 function flushDb(): void {
@@ -544,6 +705,10 @@ function toggleChecked(): void {
   checkedKeyList.value = []
 }
 
+function toggleFavoriteMode(): void {
+  favoriteMode.value = !favoriteMode.value
+}
+
 function enterCheckedMode(): void {
   if (showCheckbox.value) return
   showCheckbox.value = true
@@ -576,6 +741,53 @@ function deleteChecked(): void {
   keyBatchRef.value?.open({ match: '', keyList: checkedKeyList.value }, 'delete')
 }
 
+function favoriteChecked(): void {
+  if (!share.conn || checkedKeyList.value.length === 0) return
+  const connId = share.conn.id
+  const db = share.conn.db
+  const allAlready = checkedKeyList.value.every(redisKey =>
+    isFavorited(favorites.value, connId, db, redisKey.bytes),
+  )
+  if (allAlready) {
+    meWarn(t('keyMain.favoriteCheckedAllAlready'))
+    return
+  }
+  let newFavorites = favorites.value
+  let count = 0
+  checkedKeyList.value.forEach(redisKey => {
+    const beforeLen = newFavorites.length
+    newFavorites = addFavorite(newFavorites, connId, db, redisKey)
+    if (newFavorites.length > beforeLen) count++
+  })
+  if (count > 0) {
+    favorites.value = newFavorites
+    meOk(t('keyMain.favoriteCheckedOk', { count }))
+  }
+}
+
+function unfavoriteChecked(): void {
+  if (!share.conn || checkedKeyList.value.length === 0) return
+  const connId = share.conn.id
+  const db = share.conn.db
+  const noneFavorited = checkedKeyList.value.every(
+    redisKey => !isFavorited(favorites.value, connId, db, redisKey.bytes),
+  )
+  if (noneFavorited) {
+    meWarn(t('keyMain.unfavoriteCheckedNoneAlready'))
+    return
+  }
+  let newFavorites = favorites.value
+  const beforeLen = newFavorites.length
+  checkedKeyList.value.forEach(redisKey => {
+    newFavorites = removeFavorite(newFavorites, connId, db, redisKey.bytes)
+  })
+  const count = beforeLen - newFavorites.length
+  if (count > 0) {
+    favorites.value = newFavorites
+    meOk(t('keyMain.unfavoriteCheckedOk', { count }))
+  }
+}
+
 function editDbName(db: number): void {
   if (!share.conn) return
   mePrompt(
@@ -595,27 +807,20 @@ function editDbName(db: number): void {
 <template>
   <div class="key-main">
     <div class="key-header">
-      <div class="search-input-wrapper">
+      <template v-if="favoriteMode">
+        <el-input v-model="keyword" :placeholder="t('keyMain.favoriteFilter')" clearable />
+      </template>
+      <template v-else>
         <el-input
           v-model="keyword"
           :readonly="loading"
           :placeholder="t('keyMain.keyword')"
           @keyup.enter="scanKey(false, false)"
-          @focus="handleInputFocus"
-          @blur="handleInputBlur"
-          clearable>
+          @click="handleKeywordClick"
+          @blur="handleInputBlur">
           <template #prepend>
             <el-dropdown placement="bottom-start" @command="chooseKeyType">
-              <el-tag
-                :type="keyTypeTag.type"
-                effect="plain"
-                style="
-                  width: 32px;
-                  height: 32px;
-                  font-weight: bold;
-                  border-bottom-right-radius: 0;
-                  border-top-right-radius: 0;
-                ">
+              <el-tag :type="keyTypeTag.type" effect="plain" class="key-type-tag">
                 {{ meKeyShort(keyType, 'A') }}
               </el-tag>
               <template #dropdown>
@@ -643,43 +848,53 @@ function editDbName(db: number): void {
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-            <el-tooltip :content="t('keyMain.exactSearch')" placement="bottom">
-              <el-checkbox size="small" v-model="exact" style="margin-left: 10px" />
-            </el-tooltip>
+          </template>
+          <template #suffix>
+            <div class="keyword-suffix">
+              <el-tooltip
+                v-if="showScanControl"
+                :content="scanToggleTip"
+                placement="bottom"
+                :show-after="500">
+                <div class="scan-control" @click.stop="onScanAction">
+                  <el-progress
+                    type="circle"
+                    :percentage="scanProgress"
+                    :width="22"
+                    :stroke-width="2"
+                    :show-text="false"
+                    color="var(--el-color-danger)"
+                    class="scan-ring" />
+                  <me-icon
+                    :icon="loading ? 'el-icon-video-pause' : 'el-icon-video-play'"
+                    class="scan-icon" />
+                </div>
+              </el-tooltip>
+              <el-tooltip :content="t('keyMain.refreshKey')" placement="bottom" :show-after="500">
+                <me-icon
+                  icon="el-icon-refresh-right"
+                  class="suffix-icon-btn"
+                  @click.stop="onRefreshKey" />
+              </el-tooltip>
+              <el-tooltip
+                :content="t('keyMain.exactSearch')"
+                placement="bottom"
+                raw-content
+                :show-after="500">
+                <el-checkbox size="small" v-model="exact" class="suffix-exact-checkbox" />
+              </el-tooltip>
+            </div>
           </template>
           <template #append>
-            <el-button-group>
-              <me-button
-                :info="loading ? t('keyMain.scanning') : t('keyMain.refreshKey')"
-                @click="scanKey(false, false)"
-                :icon="loading ? 'el-icon-loading' : 'el-icon-search'"
-                :loading="loading"
-                placement="bottom" />
-              <me-button
-                :info="loading ? t('keyMain.stopScan') : t('keyMain.addKey')"
-                @click="loading ? cancelScanning() : addKey()"
-                style="border-color: var(--el-button-border-color)"
-                v-if="canEdit"
-                :icon="loading ? 'me-icon-stop' : 'el-icon-plus'"
-                placement="bottom" />
-            </el-button-group>
+            <me-button
+              :info="t('keyMain.addKey')"
+              @click="addKey()"
+              v-if="canEdit"
+              icon="el-icon-plus"
+              placement="bottom" />
           </template>
         </el-input>
-
-        <!-- 搜索历史记录下拉 -->
-        <div
-          v-if="showHistory && filteredSearchHistory.length > 0"
-          class="search-history-dropdown"
-          @mousedown.prevent="handleHistoryMouseDown">
-          <div v-for="(item, index) in filteredSearchHistory" :key="index" class="history-item">
-            <span class="history-text" @click="selectHistory(item)">{{ item }}</span>
-            <span class="history-delete" @click.stop="removeSearchHistory(item)">×</span>
-          </div>
-          <div class="history-clear" @click="clearSearchHistory">
-            {{ t('keyMain.clearHistory') }}
-          </div>
-        </div>
-      </div>
+      </template>
     </div>
 
     <div class="key-list">
@@ -692,155 +907,221 @@ function editDbName(db: number): void {
         :sort-by-count="sortByCount"
         :color="share.color"
         :loading="loading"
+        :favorites="currentFavorites"
+        :favorite-mode="favoriteMode"
         @chooseKey="chooseKey"
         @contextKey="contextKey"
         @chooseFolder="chooseFolder"
         @contextFolder="contextFolder"
         @checkChange="checkChange" />
+
+      <!-- 搜索历史记录下拉  -->
+      <div
+        class="search-history-dropdown"
+        v-if="showHistory && filteredSearchHistory.length > 0 && !favoriteMode"
+        @mousedown.prevent="handleHistoryMouseDown">
+        <div
+          v-for="(item, index) in filteredSearchHistory"
+          :key="index"
+          class="history-item"
+          @click="selectHistory(item)">
+          <span class="history-text">{{ item }}</span>
+          <span class="history-delete" @click.stop="removeSearchHistory(item)">×</span>
+        </div>
+        <div class="history-clear" @click="clearSearchHistory">
+          {{ t('keyMain.clearHistory') }}
+        </div>
+      </div>
     </div>
 
     <div class="key-footer">
       <!-- 左侧: 数据库|游标 -->
       <div class="me-flex" v-if="!showCheckbox && share.conn">
-        <el-select
-          v-model="share.conn.db"
-          @change="selectDB"
-          style="width: 120px"
-          filterable
-          v-if="!share.conn.cluster">
-          <template #header>
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                padding: 4px 8px;
-                font-size: 12px;
-              ">
-              <span>{{ t('keyMain.dbShowLimit') }}</span>
-              <el-input-number
-                :model-value="share.conn.meta?.dbShowLimit as number | undefined"
-                :min="1"
-                :controls="false"
-                clearable
-                size="small"
-                style="width: 72px"
-                @update:model-value="onDbShowLimitChange" />
-            </div>
-          </template>
-          <!-- label for filterable -->
-          <el-option
-            v-for="item in dbList"
-            :key="item.db"
-            :value="item.db"
-            :label="'db' + item.db + (share.conn?.meta?.['db' + item.db] || '')">
-            <div class="me-flex" style="align-items: center">
-              <div>{{ `db${item.db} (${share.dbSizeMap['db' + item.db] || 0})` }}</div>
-              <div style="display: flex">
-                <el-text type="info" style="margin: 0 10px">{{
-                  share.conn?.meta?.['db' + item.db]
-                }}</el-text>
-                <me-icon icon="el-icon-edit" class="icon-btn" @click.stop="editDbName(item.db)" />
+        <template v-if="favoriteMode">
+          <div
+            class="me-flex exit-favorite"
+            style="cursor: pointer; margin-left: 5px"
+            @click="toggleFavoriteMode">
+            <me-icon icon="el-icon-back" style="color: var(--el-color-warning)" />
+            <el-text type="warning" style="font-weight: bold">
+              <div class="me-flex" style="gap: 5px; margin-left: 5px">
+                <div>{{ t('keyMain.exitFavoriteMode') }}</div>
+                <me-icon
+                  icon="me-icon-db"
+                  :name="'db' + share.conn.db"
+                  v-if="!share.conn.cluster" />
               </div>
-            </div>
-          </el-option>
-          <template #label>
-            {{ `db${share.conn.db} (${share.dbSizeMap['db' + share.conn.db] || 0})` }}
-          </template>
-        </el-select>
-        <div class="me-flex" style="width: 45px; margin: 0 5px" v-if="!cursor?.finished">
-          <me-icon
-            :name="t('keyMain.loadMore')"
-            icon="me-icon-load-more"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, false)" />
-          <me-icon
-            :name="t('keyMain.loadAll')"
-            icon="me-icon-load-all"
-            hint
-            placement="top"
-            class="icon-btn"
-            @click="scanKey(true, true)" />
-        </div>
+            </el-text>
+          </div>
+        </template>
+        <template v-else>
+          <el-select
+            v-model="share.conn.db"
+            @change="selectDB"
+            class="db-select"
+            :style="{ width: dbSelectWidth }"
+            :suffix-icon="dbSelectSuffixIcon"
+            filterable
+            v-if="!share.conn.cluster">
+            <template #header>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  gap: 8px;
+                  padding: 4px 8px;
+                  font-size: 12px;
+                ">
+                <span>{{ t('keyMain.dbShowLimit') }}</span>
+                <el-input-number
+                  :model-value="share.conn.meta?.dbShowLimit as number | undefined"
+                  :min="1"
+                  :controls="false"
+                  clearable
+                  size="small"
+                  style="width: 72px"
+                  @update:model-value="onDbShowLimitChange" />
+              </div>
+            </template>
+            <el-option
+              v-for="item in dbList"
+              :key="item.db"
+              :value="item.db"
+              :label="formatDbOptionLabel(item.db)">
+              <div class="me-flex db-option">
+                <me-icon icon="me-icon-db" :name="formatDbLabel(item.db)" />
+                <div class="me-flex db-option-extra">
+                  <el-text type="info" style="margin: 0 10px">{{
+                    share.conn?.meta?.['db' + item.db]
+                  }}</el-text>
+                  <me-icon icon="el-icon-edit" class="icon-btn" @click.stop="editDbName(item.db)" />
+                </div>
+              </div>
+            </el-option>
+            <template #label>
+              <me-icon icon="me-icon-db" :name="formatDbLabel(share.conn.db)" />
+            </template>
+          </el-select>
+          <div class="me-flex" style="width: 45px; margin: 0 5px" v-if="showLoadMoreButtons">
+            <me-icon
+              :name="t('keyMain.loadMore')"
+              icon="me-icon-load-more"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="scanKey(true, false)" />
+            <me-icon
+              :name="t('keyMain.loadAll')"
+              icon="me-icon-load-all"
+              hint
+              placement="top"
+              class="icon-btn"
+              @click="scanKey(true, true)" />
+          </div>
+        </template>
       </div>
 
-      <!-- 左侧: 导出|TTL|删除 （多选时显示） -->
-      <div class="me-flex" v-else style="width: 70px; margin-left: 10px">
-        <el-link underline="never" :disabled="checkedDisabled" @click="exportChecked">
-          <me-icon
-            :name="t('keyMain.exportChecked')"
-            icon="me-icon-export"
-            hint
-            :class="checkedBtnClass"
-            placement="top" />
-        </el-link>
-        <el-link underline="never" :disabled="checkedDisabled" @click="ttlChecked" v-if="canEdit">
-          <me-icon
-            :name="t('keyMain.ttlChecked')"
-            icon="el-icon-timer"
-            hint
-            :class="checkedBtnClass"
-            placement="top" />
-        </el-link>
-        <el-link
-          underline="never"
-          :disabled="checkedDisabled"
-          @click="deleteChecked"
-          v-if="canEdit">
-          <me-icon
-            :name="t('keyMain.deleteChecked')"
-            icon="el-icon-delete"
-            hint
-            :class="checkedBtnClass"
-            placement="top" />
-        </el-link>
+      <!-- 左侧: 导出|TTL|删除|收藏 （多选时显示） -->
+      <div class="me-flex" v-else style="margin-left: 10px; gap: 5px">
+        <template v-if="!favoriteMode">
+          <el-link underline="never" :disabled="checkedDisabled" @click="exportChecked">
+            <me-icon
+              :name="t('keyMain.exportChecked')"
+              icon="me-icon-export"
+              hint
+              :class="checkedBtnClass"
+              placement="top" />
+          </el-link>
+          <el-link underline="never" :disabled="checkedDisabled" @click="ttlChecked" v-if="canEdit">
+            <me-icon
+              :name="t('keyMain.ttlChecked')"
+              icon="el-icon-timer"
+              hint
+              :class="checkedBtnClass"
+              placement="top" />
+          </el-link>
+          <el-link
+            underline="never"
+            :disabled="checkedDisabled"
+            @click="deleteChecked"
+            v-if="canEdit">
+            <me-icon
+              :name="t('keyMain.deleteChecked')"
+              icon="el-icon-delete"
+              hint
+              :class="checkedBtnClass"
+              placement="top" />
+          </el-link>
+          <el-link underline="never" :disabled="checkedDisabled" @click="favoriteChecked">
+            <me-icon
+              :name="t('keyMain.favoriteChecked')"
+              icon="el-icon-star-filled"
+              hint
+              :class="checkedBtnClass"
+              placement="top" />
+          </el-link>
+        </template>
+        <template v-else>
+          <el-link underline="never" :disabled="checkedDisabled" @click="unfavoriteChecked">
+            <me-icon
+              :name="t('keyMain.unfavoriteChecked')"
+              icon="el-icon-star"
+              hint
+              :class="checkedBtnClass"
+              placement="top" />
+          </el-link>
+        </template>
       </div>
 
       <!-- 中间: 选中/过滤, 过滤/总数 -->
       <div class="center">
         <el-text class="tip" size="large" type="primary">
           <span v-if="showCheckbox">{{ checkedKeyList.length }} / {{ filterKeyList.length }}</span>
+          <span v-else-if="favoriteMode"
+            >{{ filterKeyList.length }} / {{ currentFavorites.length }}</span
+          >
           <span v-else>{{ filterKeyList.length }} / {{ keyList.length }}</span>
         </el-text>
       </div>
 
-      <!-- 右侧: 多选|扩展 -->
+      <!-- 右侧: 收藏|扩展 -->
       <div class="me-flex" v-if="!showCheckbox">
         <me-icon
-          icon="me-icon-checked"
+          v-if="!favoriteMode"
+          icon="el-icon-star-filled"
           class="icon-btn"
-          @click="toggleChecked"
+          @click="toggleFavoriteMode"
           placement="top"
-          :name="t('keyMain.checkedMode')"
+          :name="t('keyMain.myFavorites')"
           hint />
         <el-dropdown placement="top-end" @command="handleCommand" style="margin: 5px">
           <me-icon icon="el-icon-more-filled" class="icon-btn" />
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="exportData">
-                <me-icon :name="t('keyMain.exportData')" icon="me-icon-export" />
-              </el-dropdown-item>
-              <el-dropdown-item command="importData" v-if="canEdit">
-                <me-icon :name="t('keyMain.importData')" icon="me-icon-import" />
-              </el-dropdown-item>
-              <el-dropdown-item command="importCmd" v-if="canEdit">
-                <me-icon :name="t('keyMain.importCmd')" icon="me-icon-import" />
-              </el-dropdown-item>
-              <el-dropdown-item command="mockData" v-if="canEdit">
-                <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />
-              </el-dropdown-item>
+              <template v-if="!favoriteMode">
+                <el-dropdown-item command="exportData">
+                  <me-icon :name="t('keyMain.exportData')" icon="me-icon-export" />
+                </el-dropdown-item>
+                <el-dropdown-item command="importData" v-if="canEdit">
+                  <me-icon :name="t('keyMain.importData')" icon="me-icon-import" />
+                </el-dropdown-item>
+                <el-dropdown-item command="importCmd" v-if="canEdit">
+                  <me-icon :name="t('keyMain.importCmd')" icon="me-icon-import" />
+                </el-dropdown-item>
+                <el-dropdown-item command="mockData" v-if="canEdit">
+                  <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />
+                </el-dropdown-item>
 
-              <el-dropdown-item command="batchDelete" v-if="canEdit" divided>
-                <me-icon :name="t('keyMain.batchDelete')" icon="el-icon-delete" />
-              </el-dropdown-item>
-              <el-dropdown-item command="flushDb" v-if="canEdit">
-                <me-icon :name="t('keyMain.flushDb')" icon="el-icon-delete-filled" />
-              </el-dropdown-item>
+                <el-dropdown-item command="batchDelete" v-if="canEdit" divided>
+                  <me-icon :name="t('keyMain.batchDelete')" icon="el-icon-delete" />
+                </el-dropdown-item>
+                <el-dropdown-item command="flushDb" v-if="canEdit">
+                  <me-icon :name="t('keyMain.flushDb')" icon="el-icon-delete-filled" />
+                </el-dropdown-item>
+              </template>
 
-              <el-dropdown-item command="toggleKeyShow" divided>
+              <el-dropdown-item command="toggleKeyShow" :divided="!favoriteMode">
                 <me-icon
                   :name="keyShowTree ? t('keyMain.listView') : t('keyMain.treeView')"
                   :icon="keyShowTree ? 'me-icon-list' : 'me-icon-tree'"></me-icon>
@@ -849,6 +1130,15 @@ function editDbName(db: number): void {
                 <me-icon
                   :name="sortByCount ? t('keyMain.sortByAlphabet') : t('keyMain.sortByCount')"
                   icon="me-icon-alphabet"></me-icon>
+              </el-dropdown-item>
+              <el-dropdown-item
+                v-if="favoriteMode && currentFavorites.length > 0"
+                command="clearFavorites"
+                divided>
+                <me-icon :name="t('keyMain.clearFavorites')" icon="el-icon-delete" />
+              </el-dropdown-item>
+              <el-dropdown-item command="checkedMode">
+                <me-icon :name="t('keyMain.checkedMode')" icon="me-icon-checked" />
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -866,7 +1156,6 @@ function editDbName(db: number): void {
           placement="top" />
       </div>
     </div>
-
     <!-- 字段新增、批量删除键、目录内存分析 -->
     <FieldAdd ref="fieldAddRef" @success="addKeyOk" />
     <KeyBatch ref="keyBatchRef" @success="batchKeyOk" />
@@ -893,100 +1182,92 @@ function editDbName(db: number): void {
       border-color: var(--el-border-color);
     }
 
-    // 复选框显示尽量为方形
+    // 类型选择与输入框衔接：prepend 只负责布局，外框由 tag / append 按钮承担，避免双边框
     :deep(.el-input-group__prepend) {
-      padding: 0 10px 0 0;
+      padding: 0;
+      box-shadow: none;
     }
 
-    // 查询和新增key不收缩，避免调整侧边栏宽度时变为两行
+    .key-type-tag {
+      width: 32px;
+      min-height: var(--el-component-size);
+      font-weight: bold;
+      border-radius: 0;
+      border-top-left-radius: var(--el-input-border-radius, var(--el-border-radius-base));
+      border-bottom-left-radius: var(--el-input-border-radius, var(--el-border-radius-base));
+      border-right: none;
+    }
+
+    // 新增键按钮不收缩，避免调整侧边栏宽度时变为两行
     :deep(.el-input-group__append) {
       flex-shrink: 0;
     }
 
-    // :deep(.el-button) {
-    //   padding: 8px 12px;
-    // }
+    // 输入框内右侧：暂停/继续 + 刷新 + 精确查询
+    .keyword-suffix {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: 2px;
 
-    // loading 图标旋转动画
-    :deep(.el-button .is-loading) {
-      animation: rotating 1s linear infinite !important;
-      background-color: unset;
+      // 与 suffix 图标同色，选中时用主题色
+      :deep(.suffix-exact-checkbox) {
+        height: auto;
+
+        .el-checkbox__inner {
+          border-color: var(--el-text-color-secondary);
+          background-color: transparent;
+        }
+
+        &:hover .el-checkbox__inner {
+          border-color: var(--el-color-primary);
+        }
+
+        &.is-checked .el-checkbox__inner {
+          background-color: var(--el-color-primary);
+          border-color: var(--el-color-primary);
+        }
+      }
     }
 
-    // loading时不添加背景色
-    :deep(.el-button.is-loading:before) {
-      background-color: unset;
-    }
-
-    .search-input-wrapper {
+    .scan-control {
       position: relative;
-      width: 100%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
 
-      .search-history-dropdown {
+      .scan-ring {
         position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        z-index: 100;
-        background-color: color-mix(in srgb, var(--el-bg-color) 70%, transparent);
-        border: 1px solid var(--el-border-color);
-        border-top: none;
-        border-radius: 0 0 4px 4px;
-        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-        max-height: 300px;
-        overflow-y: auto;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        line-height: 1;
+      }
 
-        .history-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 4px 12px;
-          cursor: pointer;
-          font-size: 13px;
-          color: var(--el-text-color-regular);
+      .scan-icon {
+        position: relative;
+        z-index: 1;
+        font-size: 16px;
 
-          &:hover {
-            background-color: var(--el-color-info-light-8);
-          }
-
-          .history-text {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          }
-
-          .history-delete {
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            color: var(--el-text-color-secondary);
-            font-size: 16px;
-            line-height: 1;
-            flex-shrink: 0;
-
-            &:hover {
-              color: var(--el-color-danger);
-              background-color: var(--el-color-danger-light-9);
-            }
-          }
+        :deep(.icon),
+        :deep(svg) {
+          width: 16px;
+          height: 16px;
         }
+      }
+    }
 
-        .history-clear {
-          padding: 8px 12px;
-          text-align: center;
-          font-size: 12px;
-          color: var(--el-text-color-secondary);
-          border-top: 1px solid var(--el-border-color-lighter);
-          cursor: pointer;
+    .suffix-icon-btn {
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--el-text-color-secondary);
 
-          &:hover {
-            color: var(--el-color-primary);
-          }
-        }
+      &:hover {
+        color: var(--el-color-primary);
       }
     }
   }
@@ -1004,6 +1285,7 @@ function editDbName(db: number): void {
     border: 1px solid var(--el-border-color);
     border-top: none;
     border-bottom: none;
+    position: relative;
 
     height: 100%;
     padding: 5px;
@@ -1012,33 +1294,145 @@ function editDbName(db: number): void {
     :deep(.el-link) {
       font-size: 12px;
     }
+
+    .search-history-dropdown {
+      position: absolute;
+      // top: 100%;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 100;
+      background-color: color-mix(in srgb, var(--el-bg-color) 70%, transparent);
+      border: 1px solid var(--el-border-color);
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+      max-height: 300px;
+      overflow-y: auto;
+
+      .history-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--el-text-color-regular);
+
+        &:hover {
+          background-color: var(--el-color-info-light-8);
+        }
+
+        .history-text {
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .history-delete {
+          width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          color: var(--el-text-color-secondary);
+          font-size: 16px;
+          line-height: 1;
+          flex-shrink: 0;
+
+          &:hover {
+            color: var(--el-color-danger);
+            background-color: var(--el-color-danger-light-9);
+          }
+        }
+      }
+
+      .history-clear {
+        padding: 8px 12px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--el-text-color-secondary);
+        border-top: 1px solid var(--el-border-color-lighter);
+        cursor: pointer;
+
+        &:hover {
+          color: var(--el-color-primary);
+        }
+      }
+    }
   }
 
   .key-footer {
     height: 30px;
     border: 1px solid var(--el-border-color);
     border-top: none;
-
-    //margin-top: 5px;
-    //padding-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
 
     :deep(.icon-btn) {
-      font-size: 20px;
+      font-size: 18px;
     }
 
     :deep(.icon-disabled) {
-      font-size: 20px;
+      font-size: 18px;
     }
 
     :deep(.el-select__wrapper) {
       min-height: 0;
       height: 30px;
       padding: 4px 4px 4px 10px;
-      //border-bottom-left-radius: 0;
-      //box-shadow: 0 0 0 1px var(--el-border-color);
+    }
+
+    .db-select {
+      flex-shrink: 0;
+
+      :deep(.el-select__wrapper) {
+        box-shadow: none;
+        background: transparent;
+        padding-left: 4px;
+        padding-right: 4px;
+      }
+
+      :deep(.el-select__suffix) {
+        .el-icon {
+          font-size: 12px;
+          color: var(--el-text-color-placeholder);
+
+          // upDown 图标固定方向，不随展开旋转
+          &.is-reverse {
+            transform: none;
+          }
+        }
+
+        .db-select-arrow {
+          width: 1em;
+          height: 1em;
+        }
+      }
+
+      :deep(.icon-main) {
+        min-width: 0;
+        overflow: hidden;
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+    }
+
+    .db-option {
+      align-items: center;
+      width: 100%;
+
+      .db-option-extra {
+        align-items: center;
+        margin-left: auto;
+      }
     }
 
     .tip {

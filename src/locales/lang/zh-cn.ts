@@ -484,6 +484,10 @@ export default {
     memoryUsage: '目录内存分析',
     deleteFolder: '批量删除键',
     exportFolder: '批量导出键',
+    favoriteKey: '收藏键',
+    unfavoriteKey: '取消收藏',
+    favoriteOk: '已收藏',
+    unfavoriteOk: '已取消收藏',
   },
 
   redisClient: {
@@ -832,10 +836,12 @@ export default {
 
   keyMain: {
     keyword: 'Enter 键进行搜索',
-    exactSearch: '精确匹配',
+    exactSearch:
+      '精确匹配<br/>• 关闭时：输入 app → 自动前后追加*，扫描 *app*<br/>• 开启时：输入 app* → 查询 app 开头的键；输入 app → 使用 EXISTS 判断键是否存在',
     refreshKey: '刷新键',
     scanning: '扫描中...',
-    stopScan: '停止扫描',
+    pauseScan: '暂停扫描',
+    resumeScan: '继续扫描',
     addKey: '新增键',
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
@@ -867,6 +873,19 @@ export default {
     editDbNamePlaceholder: '请输入定制名称',
     dbShowLimit: '显示数量限制',
     clearHistory: '清空历史记录',
+    myFavorites: '进入收藏模式',
+    favoriteFilter: '搜索收藏键',
+    favoriteMode: '收藏模式',
+    exitFavoriteMode: '退出收藏',
+    favoriteChecked: '批量收藏',
+    unfavoriteChecked: '批量取消收藏',
+    favoriteCheckedOk: '已收藏 {count} 个键',
+    unfavoriteCheckedOk: '已取消收藏 {count} 个键',
+    favoriteCheckedAllAlready: '所选键均已收藏',
+    unfavoriteCheckedNoneAlready: '所选键均未收藏',
+    clearFavorites: '清空收藏',
+    clearFavoritesConfirm: '确定清空当前库的全部收藏吗？',
+    clearFavoritesOk: '已清空收藏',
   },
 
   ttlSet: {

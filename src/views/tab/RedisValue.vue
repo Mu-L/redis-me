@@ -27,6 +27,7 @@ import type {
   ScanCursor,
   XInfoGroup,
 } from '@/types/tauri-specta'
+import { useFavorites, addFavorite, removeFavorite, isFavorited } from '@/utils/favorite'
 import {
   BYTES_FORMAT,
   EXT_FORMAT,
@@ -497,6 +498,16 @@ function updateTTL() {
   if (!rv) return
   ttlSetRef.value?.open({ ttl: rv.ttl })
 }
+
+const ttlDisplayText = computed(() => {
+  const rv = redisValue.value
+  if (!rv) return ''
+  return rv.ttl === -1 ? t('redisValue.ttlForever') : meHumanSeconds(rv.ttl)
+})
+
+const ttlIconHint = computed(() => {
+  return canEdit.value ? t('redisValue.ttlHint') : t('redisValue.ttlHintReadonly')
+})
 // #endregion
 
 // #region 键级操作（重命名 / 删除）
@@ -512,6 +523,40 @@ const keyRenameRef = useTemplateRef<InstanceType<typeof KeyRename>>('keyRenameRe
 function renameKey() {
   if (!share.redisKey) return
   keyRenameRef.value?.open({ redisKey: share.redisKey })
+}
+
+// 收藏（与 KeyTree 右键菜单一致）
+const favorites = useFavorites()
+const isCurrentKeyFavorited = computed(() => {
+  const conn = share.conn
+  const rk = share.redisKey
+  if (!conn || !rk) return false
+  return isFavorited(favorites.value, conn.id, conn.db, rk.bytes)
+})
+
+function toggleFavorite() {
+  const conn = share.conn
+  const rk = share.redisKey
+  if (!conn || !rk) return
+  if (isCurrentKeyFavorited.value) {
+    favorites.value = removeFavorite(favorites.value, conn.id, conn.db, rk.bytes)
+    meOk(t('keyTree.unfavoriteOk'))
+  } else {
+    favorites.value = addFavorite(favorites.value, conn.id, conn.db, rk)
+    meOk(t('keyTree.favoriteOk'))
+  }
+}
+
+function onKeyMoreCommand(command: string) {
+  if (command === 'refreshKey') {
+    void refreshKey(false)
+  } else if (command === 'deleteKey') {
+    delKey()
+  } else if (command === 'copyKey') {
+    meCopy(showKey.value)
+  } else if (command === 'renameKey') {
+    renameKey()
+  }
 }
 // #endregion
 
@@ -761,66 +806,64 @@ onUnmounted(() => {
     <template v-if="share.redisKey && redisValue">
       <!-- 上方键 -->
       <div class="value-header">
-        <!-- 键名称 -->
-        <el-input type="text" v-model="showKey" readonly style="flex: 1">
-          <template #prepend>
-            <el-text :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
-          </template>
-          <template #append>
-            <me-button
-              :info="t('copy')"
-              icon="el-icon-document-copy"
-              @click="meCopy(showKey)"
-              placement="top" />
-          </template>
-        </el-input>
+        <div class="value-header-main">
+          <el-input type="text" v-model="showKey" readonly class="value-header-input">
+            <template #prepend>
+              <el-text :type="meType(redisValue.type)">{{ redisValue.type.toUpperCase() }}</el-text>
+            </template>
+            <template #suffix>
+              <el-tooltip :content="ttlIconHint" placement="top" :show-after="500">
+                <me-icon
+                  icon="el-icon-timer"
+                  class="suffix-ttl icon-btn"
+                  icon-left
+                  :name="ttlDisplayText"
+                  @click.stop="updateTTL" />
+              </el-tooltip>
+            </template>
+          </el-input>
 
-        <!-- 哈希键 / StreamId -->
-        <el-input
-          type="text"
-          :placeholder="t('redisValue.optional')"
-          clearable
-          style="width: 200px; margin-left: 10px"
-          v-model="hashKey"
-          v-if="hashType || streamType"
-          @keyup.enter="refreshKey(false)">
-          <template #prepend>{{
-            streamType ? t('redisValue.streamId') : t('redisValue.hashKey')
-          }}</template>
-        </el-input>
+          <el-input
+            type="text"
+            :placeholder="t('redisValue.optional')"
+            clearable
+            class="value-header-hash"
+            v-model="hashKey"
+            v-if="hashType || streamType"
+            @keyup.enter="refreshKey(false)">
+            <template #prepend>{{
+              streamType ? t('redisValue.streamId') : t('redisValue.hashKey')
+            }}</template>
+          </el-input>
+        </div>
 
-        <!-- TTL, 刷新/编辑/删除 -->
-        <div class="me-flex">
-          <me-button
-            icon="el-icon-timer"
-            :info="canEdit ? t('redisValue.ttlHint') : t('redisValue.ttlHintReadonly')"
+        <div class="value-header-actions">
+          <me-icon
+            :icon="isCurrentKeyFavorited ? 'el-icon-star-filled' : 'el-icon-star'"
+            :class="['icon-btn', { 'is-favorited': isCurrentKeyFavorited }]"
+            :name="isCurrentKeyFavorited ? t('keyTree.unfavoriteKey') : t('keyTree.favoriteKey')"
+            hint
             placement="top"
-            style="margin: 0 10px"
-            @click="updateTTL">
-            {{
-              redisValue.ttl === -1 ? t('redisValue.ttlForever') : meHumanSeconds(redisValue.ttl)
-            }}
-          </me-button>
-
-          <el-button-group>
-            <me-button
-              :info="t('redisValue.refreshKey')"
-              icon="el-icon-refresh"
-              placement="top"
-              @click="refreshKey(false)" />
-            <me-button
-              :info="t('redisValue.renameKey')"
-              icon="el-icon-edit"
-              placement="top"
-              @click="renameKey"
-              v-if="canEdit" />
-            <me-button
-              :info="t('redisValue.deleteKey')"
-              icon="el-icon-delete"
-              placement="top"
-              @click="delKey"
-              v-if="canEdit" />
-          </el-button-group>
+            @click="toggleFavorite" />
+          <el-dropdown placement="bottom-end" @command="onKeyMoreCommand">
+            <me-icon icon="el-icon-more-filled" class="icon-btn" />
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="refreshKey">
+                  <me-icon icon="el-icon-refresh-right" :name="t('redisValue.refreshKey')" />
+                </el-dropdown-item>
+                <el-dropdown-item v-if="canEdit" command="deleteKey">
+                  <me-icon icon="el-icon-delete" :name="t('redisValue.deleteKey')" />
+                </el-dropdown-item>
+                <el-dropdown-item command="copyKey">
+                  <me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')" />
+                </el-dropdown-item>
+                <el-dropdown-item v-if="canEdit" command="renameKey">
+                  <me-icon icon="el-icon-edit" :name="t('redisValue.renameKey')" />
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </div>
 
@@ -1197,12 +1240,58 @@ onUnmounted(() => {
     :deep(.el-input-group__prepend) {
       padding: 0 16px;
     }
-    :deep(.el-input-group__append) {
-      padding: 0 18px;
-    }
 
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+
+    .value-header-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .value-header-input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .value-header-hash {
+      width: 200px;
+      flex-shrink: 0;
+    }
+
+    .suffix-ttl {
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--el-text-color-secondary);
+      margin-right: 2px;
+
+      &:hover {
+        color: var(--el-color-primary);
+      }
+
+      :deep(span) {
+        font-size: 13px;
+      }
+    }
+
+    .value-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+
+      :deep(.icon-btn) {
+        font-size: 18px;
+      }
+
+      .is-favorited {
+        color: #f7ba2a;
+      }
+    }
   }
 
   .value-main {

@@ -1,28 +1,31 @@
 # 4.x Changelog
 
-## v4.0.4 (2026-06-21)
+## [v4.1.0](https://mp.weixin.qq.com/s/pM545fZPNiy3gxCvpDvmlw) (2026-06-27)
 
-- Command log dialog: multiple UI improvements
-- Detect INFO command permission; hide info and chart tabs when unsupported
-- Optimized minimal mode detection logic
+### ✨ New Features
 
-## v4.0.3 (2026-06-20)
+- Added **Favorite Keys**
+  - Right-click to favorite/unfavorite; favorited keys show a star icon
+  - "My Favorites" entry in the status bar; favorite mode shows only keys for the current connection/database
+  - Favorite list supports keyword filtering; batch favorite/unfavorite in multi-select mode
+- **Key Area**
+  - **Search history**; dropdown placed below the key list to avoid blocking keys
+  - **Real-time scan progress with pause/resume** #116
+  - Exact search uses EXISTS for better performance #122
+  - DB selector: new icon and styling improvements
+- **Value Tab**: Improved header layout; TTL shown next to the key name; actions moved to favorite and more menus
+- **Command Log**
+  - Added monitoring for MONITOR, Pub/Sub, import/export, and other async commands
+  - Improved dialog interaction and table display
+- Other improvements
+  - Hide Info and Chart tabs when INFO command is not permitted
+  - Improved MONITOR and Pub/Sub labels and icons
+  - Improved minimal mode detection
+  - Updated flat mode icons
 
-- Command log supports async-executed MONITOR, Pub/Sub, import/export, etc.
-- Fixed INFO capability detection in cluster mode
-- Optimized MONITOR and Pub/Sub text and icons
-- Optimized search box history dropdown height
-- Updated all frontend and backend dependencies to latest versions
+### 🐞 Bug Fixes
 
-## v4.0.2 (2026-06-19)
-
-- Key scan fully redesigned: real-time display + stoppable scan #116
-- Search box supports history records
-
-## v4.0.1 (2026-06-18)
-
-- Fixed scan issue causing "Load All Keys" functionality to fail
-- Reduced scan retry interval from 100ms to 10ms
+- Fixed "Load All Remaining Keys" failing after scan improvements
 
 ## [v4.0.0](https://mp.weixin.qq.com/s/U9DYq4LfoliE_eR1BKE5mg) (2026-06-18)
 

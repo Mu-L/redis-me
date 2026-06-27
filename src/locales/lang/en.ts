@@ -494,6 +494,10 @@ export default {
     memoryUsage: 'Memory Usage',
     deleteFolder: 'Delete Keys',
     exportFolder: 'Export Keys',
+    favoriteKey: 'Favorite',
+    unfavoriteKey: 'Unfavorite',
+    favoriteOk: 'Added to Favorites',
+    unfavoriteOk: 'Removed from Favorites',
   },
 
   redisClient: {
@@ -777,7 +781,7 @@ export default {
     ttlHint: 'Click to modify the key expiration time',
     ttlHintReadonly: 'Key expiration time',
     ttlForever: 'Forever',
-    deleteKey: 'Delete Key',
+    deleteKey: 'Delete',
     prettyHint:
       'Pretty is enabled by default. When enabled, it formats hash/list/set/json, etc. When disabled, it displays the raw value toString.',
     locationHint: 'View the cluster node where this key is located',
@@ -797,8 +801,8 @@ export default {
     noKeySelected: 'No Key Selected',
     loadMore: 'Load More',
     loadAll: 'Load All',
-    renameKey: 'Rename Key',
-    refreshKey: 'Refresh Key',
+    renameKey: 'Rename',
+    refreshKey: 'Refresh',
 
     textMemory: 'Memory Usage: ',
     textLength: 'Bytes Length: ',
@@ -845,10 +849,12 @@ export default {
 
   keyMain: {
     keyword: 'Enter to Search',
-    exactSearch: 'Exact Search',
+    exactSearch:
+      'Exact Match<br/>• Off: input app → auto add * before/after, scan *app*<br/>• On: input app* → query keys starting with app; input app → use EXISTS to check if key exists',
     refreshKey: 'Refresh Key',
     scanning: 'Scanning...',
-    stopScan: 'Stop Scan',
+    pauseScan: 'Pause Scan',
+    resumeScan: 'Resume Scan',
     addKey: 'Add Key',
     loadMore: 'Load More',
     loadAll: 'Load All',
@@ -881,6 +887,19 @@ export default {
     editDbNamePlaceholder: 'input custom name',
     dbShowLimit: 'DB display limit',
     clearHistory: 'Clear History',
+    myFavorites: 'Enter Favorites',
+    favoriteFilter: 'Filter Favorites',
+    favoriteMode: 'Favorite Mode',
+    exitFavoriteMode: 'Exit Favorites',
+    favoriteChecked: 'Batch Favorite',
+    unfavoriteChecked: 'Batch Unfavorite',
+    favoriteCheckedOk: 'Added {count} keys',
+    unfavoriteCheckedOk: 'Removed {count} keys',
+    favoriteCheckedAllAlready: 'All selected keys are already favorited',
+    unfavoriteCheckedNoneAlready: 'None of the selected keys are favorited',
+    clearFavorites: 'Clear Favorites',
+    clearFavoritesConfirm: 'Clear all favorites in current DB?',
+    clearFavoritesOk: 'Favorites cleared',
   },
 
   ttlSet: {
