@@ -576,8 +576,6 @@ function toggleFavorite() {
 function onKeyMoreCommand(command: string) {
   if (command === 'refreshKey') {
     void refreshKey(false)
-  } else if (command === 'deleteKey') {
-    delKey()
   } else if (command === 'copyKey') {
     meCopy(showKey.value)
   } else if (command === 'renameKey') {
@@ -875,15 +873,20 @@ onUnmounted(() => {
             hint
             placement="top"
             @click="toggleFavorite" />
+          <me-icon
+            v-if="canEdit"
+            icon="el-icon-delete"
+            class="icon-btn"
+            :name="t('redisValue.deleteKey')"
+            hint
+            placement="top"
+            @click="delKey" />
           <el-dropdown placement="bottom-end" @command="onKeyMoreCommand">
             <me-icon icon="el-icon-more-filled" class="icon-btn" />
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="refreshKey">
                   <me-icon icon="el-icon-refresh-right" :name="t('redisValue.refreshKey')" />
-                </el-dropdown-item>
-                <el-dropdown-item v-if="canEdit" command="deleteKey">
-                  <me-icon icon="el-icon-delete" :name="t('redisValue.deleteKey')" />
                 </el-dropdown-item>
                 <el-dropdown-item command="copyKey">
                   <me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')" />
