@@ -1,8 +1,7 @@
 ## Future
 
-- 复制为命令
-- 收藏键功能
-- 复制为命令及导出命令(已有方案)
+- 收藏键功能 ✅️
+- 复制为命令及导出命令(已有方案) ✅️
 - 键类型: Vector Set，Time Series的支持
 - 官网升级，参考cc-switch的官网: https://www.ccswitch.io/zh/
 - RedisSearch的支持
