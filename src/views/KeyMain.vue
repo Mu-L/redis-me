@@ -888,7 +888,11 @@ function editDbName(db: number): void {
                 </div>
               </el-tooltip>
               <el-tooltip :content="t('keyMain.refreshKey')" placement="bottom" :show-after="500">
-                <me-icon icon="me-icon-search" class="suffix-icon-btn" @click.stop="onRefreshKey" />
+                <me-icon
+                  icon="me-icon-search"
+                  class="suffix-icon-btn"
+                  :style="{ color: share.color }"
+                  @click.stop="onRefreshKey" />
               </el-tooltip>
               <el-tooltip
                 :content="t('keyMain.exactSearch')"
@@ -1279,10 +1283,9 @@ function editDbName(db: number): void {
     .suffix-icon-btn {
       cursor: pointer;
       font-size: 16px;
-      color: var(--el-text-color-secondary);
 
       &:hover {
-        color: var(--el-color-primary);
+        opacity: 0.75;
       }
     }
   }
