@@ -447,13 +447,18 @@ export default {
     ttl: '过期时间',
     exportFormat: '导出格式',
     exportFormatTipCsv:
-      '原理：DUMP 序列化键值（Base64），每行「键,值,过期秒数」。\n场景：配合「导入数据」完整还原，适合批量迁移及含二进制内容的键；仅建议在版本相近的 Redis/Valkey 间使用。',
+      '原理：DUMP 序列化（Base64），导入以 RESTORE 还原，每行「键,值,过期秒数」\n场景：配合导入 CSV 完整还原，适合批量迁移；版本相近的 Redis/Valkey 间使用',
     exportFormatTipCmd:
-      '原理：展开为 SET/HMSET 等 redis-cli 命令（UTF-8 文本）。\n场景：配合「导入命令」或在终端/脚本中执行，可读可编辑，便于分享与调试。',
+      '原理：展开为 SET/HMSET 等 redis-cli 命令（UTF-8 文本）\n场景：配合导入 CMD 或终端执行，可读可编辑，适用所有 Redis/Valkey 版本',
   },
 
   keyImport: {
     title: '导入数据',
+    importFormat: '导入格式',
+    importFormatTipCsv:
+      '原理：读取 DUMP 数据，以 RESTORE 命令还原，每行「键,值,过期秒数」\n场景：配合导出 CSV 完整还原，适合批量迁移；版本相近的 Redis/Valkey 间使用',
+    importFormatTipCmd:
+      '原理：逐行执行 SET/HMSET 等 redis-cli 命令\n场景：配合导出 CMD 或 .redis/.txt 文件，可读可编辑，适用所有 Redis/Valkey 版本',
     file: '导入文件',
     fileTip: '请选择需要导入的文件 ({tip})',
     fileRequired: '导入文件不能为空',
@@ -865,7 +870,6 @@ export default {
     mockData: '模拟数据',
     exportData: '导出数据',
     importData: '导入数据',
-    importCmd: '导入命令',
     listView: '平铺展示',
     treeView: '树形展示',
     sortByCount: '数量排序',

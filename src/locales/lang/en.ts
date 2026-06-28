@@ -457,13 +457,18 @@ export default {
     ttl: 'Expiration',
     exportFormat: 'Export Format',
     exportFormatTipCsv:
-      'Principle: DUMP-serialized key/value (Base64), one line per key as key,value,ttl.\nCase: use with Import Data for full restore—best for bulk migration and binary-safe keys; recommended only between Redis/Valkey instances with similar versions.',
+      'Principle: DUMP serialization (Base64), restored via RESTORE on import; key,value,ttl per line\nCase: pair with CSV import for full restore and bulk migration; similar Redis/Valkey versions',
     exportFormatTipCmd:
-      'Principle: expands keys into SET/HMSET-style redis-cli commands (UTF-8 text).\nCase: use with Import Cmd or run in terminal/scripts—human-readable and easy to edit or share.',
+      'Principle: SET/HMSET-style redis-cli commands (UTF-8 text)\nCase: pair with CMD import or run in terminal; readable, all Redis/Valkey versions',
   },
 
   keyImport: {
     title: 'Import Data',
+    importFormat: 'Import Format',
+    importFormatTipCsv:
+      'Principle: reads DUMP data and restores via RESTORE; key,value,ttl per line\nCase: pair with CSV export for full restore and bulk migration; similar Redis/Valkey versions',
+    importFormatTipCmd:
+      'Principle: executes redis-cli commands line by line\nCase: pair with CMD export or .redis/.txt files; readable, all Redis/Valkey versions',
     file: 'Import File',
     fileTip: 'Select file to import ({tip})',
     fileRequired: 'import file required',
@@ -879,7 +884,6 @@ export default {
     mockData: 'Mock Data',
     exportData: 'Export Data',
     importData: 'Import Data',
-    importCmd: 'Import Cmd',
     listView: 'List View',
     treeView: 'Tree View',
     sortByCount: 'Key Count',

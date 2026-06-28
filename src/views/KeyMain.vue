@@ -559,8 +559,8 @@ function batchKeyOk(mode: string): void {
 }
 
 const keyImportRef = useTemplateRef<InstanceType<typeof KeyImport>>('keyImportRef')
-function importData(isCmdFile: boolean = false): void {
-  keyImportRef.value?.open(isCmdFile)
+function importData(): void {
+  keyImportRef.value?.open()
 }
 function importStart(): void {
   share.exportImportingPercentage = 0
@@ -640,9 +640,7 @@ async function handleCommand(command: string): Promise<void> {
   } else if ('exportData' === command) {
     exportFolder('*')
   } else if ('importData' === command) {
-    importData(false)
-  } else if ('importCmd' === command) {
-    importData(true)
+    importData()
   } else if ('batchDelete' === command) {
     deleteFolder('*')
   } else if ('flushDb' === command) {
@@ -1123,9 +1121,6 @@ function editDbName(db: number): void {
                 </el-dropdown-item>
                 <el-dropdown-item command="importData" v-if="canEdit">
                   <me-icon :name="t('keyMain.importData')" icon="me-icon-import" />
-                </el-dropdown-item>
-                <el-dropdown-item command="importCmd" v-if="canEdit">
-                  <me-icon :name="t('keyMain.importCmd')" icon="me-icon-import" />
                 </el-dropdown-item>
                 <el-dropdown-item command="mockData" v-if="canEdit">
                   <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />
