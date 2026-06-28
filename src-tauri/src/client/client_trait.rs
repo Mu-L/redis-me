@@ -1380,7 +1380,8 @@ fn import_cmds(
 }
 
 fn import_cmd(mut conn: &mut impl Commands, line: &str) -> AnyResult<()> {
-    info!("line: {}", line);
+    // 命令日志已经输出，这里不再输出
+    //info!("line: {}", line);
     let (cmd, args) = parse_command(line)?;
     redis::cmd(cmd.as_str()).arg(args).exec(&mut conn)?;
     Ok(())

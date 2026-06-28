@@ -210,6 +210,7 @@ impl From<&ConnConfig> for MeBase {
             command_timeout: crate::utils::util::CONNECTION_NORMAL_TIMEOUT,
             command_logger: Arc::new(crate::utils::command_log::CommandLogger::new(
                 conf.id.clone(),
+                conf.name.clone(),
             )),
             app_handle: Arc::new(RwLock::new(None::<AppHandle>)),
             capabilities: ServerCapabilities::default(),
