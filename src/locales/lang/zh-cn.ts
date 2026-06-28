@@ -339,7 +339,7 @@ export default {
 
   keyHeader: {
     mockHint: '请输入每种数据类型条数（N×5）',
-    mockValidator: '最小值1，最大值1000',
+    mockValidator: '最小值1，最大值10000',
     mocking: '插入中',
     mockOk: '模拟数据插入完成',
     connHint: '请选择连接',
