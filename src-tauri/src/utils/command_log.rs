@@ -10,6 +10,7 @@
 use crate::utils::model::{CommandLogEntry, CommandLogEvent};
 use crate::utils::util::EVENT_COMMAND_LOG;
 use chrono::Local;
+use log::info;
 use parking_lot::RwLock;
 use redis::cluster::ClusterConnection;
 use redis::cluster_routing::RoutingInfo;
@@ -28,16 +29,19 @@ pub struct CommandLogger {
     next_id: AtomicU64,
     max_entries: usize,
     conn_id: String,
+    /// 连接显示名，仅用于控制台 info 日志
+    conn_name: String,
     app_handle: RwLock<Option<AppHandle>>,
 }
 
 impl CommandLogger {
-    pub fn new(conn_id: String) -> Self {
+    pub fn new(conn_id: String, conn_name: String) -> Self {
         Self {
             entries: RwLock::new(Vec::new()),
             next_id: AtomicU64::new(1),
             max_entries: DEFAULT_MAX_ENTRIES,
             conn_id,
+            conn_name,
             app_handle: RwLock::new(None),
         }
     }
@@ -98,6 +102,7 @@ impl CommandLogger {
             error,
         };
 
+        info!("[{}] db={} {}", self.conn_name, db_index, entry.full_command);
         self.emit_entry(&entry);
 
         let mut entries = self.entries.write();
@@ -343,6 +348,7 @@ mod tests {
             next_id: AtomicU64::new(1),
             max_entries: 3,
             conn_id: "test".into(),
+            conn_name: "test".into(),
             app_handle: RwLock::new(None),
         };
         let cmd = redis::cmd("GET");

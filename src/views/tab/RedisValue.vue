@@ -19,7 +19,7 @@ import {
 import { useI18n } from 'vue-i18n'
 
 import MeShortcut from '@/components/MeShortcut.vue'
-import { shareProvideKey } from '@/types/me-interface'
+import { shareProvideKey, connUiProvideKey } from '@/types/me-interface'
 import type {
   FieldScanResult,
   RedisFieldDel_Deserialize,
@@ -59,6 +59,7 @@ import {
   meJsonNormal,
   meOk,
   meType,
+  meWarn,
 } from '@/utils/util'
 import TableGroup from '@/views/ext/TableGroup.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
@@ -94,6 +95,7 @@ type ValueTableRow = Record<string, unknown> & {
 // #region 共享上下文与权限
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
+const connUi = inject(connUiProvideKey)!
 const canEdit = computed(() => !share.readonly)
 const canSave = computed(() => canEdit.value && (stringType.value || jsonType.value))
 // #endregion
@@ -525,6 +527,30 @@ function renameKey() {
   keyRenameRef.value?.open({ redisKey: share.redisKey })
 }
 
+function duplicateKey() {
+  if (!share.redisKey) return
+  connUi.openKeyCopy(share.redisKey)
+}
+
+const copyAsCommandLoading = ref(false)
+
+async function copyAsCommand() {
+  const conn = share.conn
+  const rk = share.redisKey
+  if (!conn || !rk || copyAsCommandLoading.value) return
+  copyAsCommandLoading.value = true
+  try {
+    const text = await meCommands.getKeyAsCommand(conn.id, rk)
+    if (!text.trim()) {
+      meWarn(t('redisValue.copyCommandEmpty'))
+      return
+    }
+    meCopy(text, t('redisValue.copyCommandOk'))
+  } finally {
+    copyAsCommandLoading.value = false
+  }
+}
+
 // 收藏（与 KeyTree 右键菜单一致）
 const favorites = useFavorites()
 const isCurrentKeyFavorited = computed(() => {
@@ -550,12 +576,14 @@ function toggleFavorite() {
 function onKeyMoreCommand(command: string) {
   if (command === 'refreshKey') {
     void refreshKey(false)
-  } else if (command === 'deleteKey') {
-    delKey()
   } else if (command === 'copyKey') {
     meCopy(showKey.value)
   } else if (command === 'renameKey') {
     renameKey()
+  } else if (command === 'duplicateKey') {
+    duplicateKey()
+  } else if (command === 'copyAsCommand') {
+    void copyAsCommand()
   }
 }
 // #endregion
@@ -845,6 +873,14 @@ onUnmounted(() => {
             hint
             placement="top"
             @click="toggleFavorite" />
+          <me-icon
+            v-if="canEdit"
+            icon="el-icon-delete"
+            class="icon-btn"
+            :name="t('redisValue.deleteKey')"
+            hint
+            placement="top"
+            @click="delKey" />
           <el-dropdown placement="bottom-end" @command="onKeyMoreCommand">
             <me-icon icon="el-icon-more-filled" class="icon-btn" />
             <template #dropdown>
@@ -852,14 +888,17 @@ onUnmounted(() => {
                 <el-dropdown-item command="refreshKey">
                   <me-icon icon="el-icon-refresh-right" :name="t('redisValue.refreshKey')" />
                 </el-dropdown-item>
-                <el-dropdown-item v-if="canEdit" command="deleteKey">
-                  <me-icon icon="el-icon-delete" :name="t('redisValue.deleteKey')" />
-                </el-dropdown-item>
                 <el-dropdown-item command="copyKey">
                   <me-icon icon="el-icon-document-copy" :name="t('keyTree.copyKey')" />
                 </el-dropdown-item>
                 <el-dropdown-item v-if="canEdit" command="renameKey">
                   <me-icon icon="el-icon-edit" :name="t('redisValue.renameKey')" />
+                </el-dropdown-item>
+                <el-dropdown-item v-if="canEdit" command="duplicateKey">
+                  <me-icon icon="el-icon-copy-document" :name="t('redisValue.duplicateKey')" />
+                </el-dropdown-item>
+                <el-dropdown-item command="copyAsCommand" :disabled="copyAsCommandLoading">
+                  <me-icon icon="me-icon-terminal" :name="t('redisValue.copyAsCommand')" />
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>

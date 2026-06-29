@@ -15,6 +15,7 @@ export default defineAdditionalConfig({
     footer: {
       message: `Links: 
              <a href="https://redis.tinycraft.cc" target="_blank">Tiny RDM</a> | 
+             <a href="https://redisee.com" target="_blank">Redisee</a> | 
              <a href="https://goanother.com/cn" target="_blank">Another RDM</a> | 
              <a href="https://github.com/redis/RedisInsight" target="_blank">Redis Insight</a>
              <br/><br/>

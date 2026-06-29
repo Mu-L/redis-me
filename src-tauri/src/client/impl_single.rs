@@ -161,6 +161,10 @@ impl MeClient for MeSingle {
         Ok(new_key.to_normal())
     }
 
+    fn copy(&self, param: RedisCopyParam) -> AnyResult<RedisKey> {
+        copy0(self.get_conn()?, param)
+    }
+
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey> {
         field_add0(self.get_conn()?, param, self.base().capabilities.httl_supported)
     }
@@ -389,16 +393,31 @@ impl MeClient for MeSingle {
         let id = self.id.clone();
         let app_handle = self.base().get_app_handle()?;
         export_import_check_running(running.clone())?;
+        let export_format = param.export_format.clone();
+        let file = param.file.clone();
+        let with_ttl = param.with_ttl;
         thread::spawn(move || {
-            export_csv_0_thread(
-                &mut logging_conn,
-                key_list,
-                param.file,
-                param.with_ttl,
-                running,
-                app_handle,
-                id,
-            )
+            if export_format == "cmd" {
+                export_cmd_0_thread(
+                    &mut logging_conn,
+                    key_list,
+                    file,
+                    with_ttl,
+                    running,
+                    app_handle,
+                    id,
+                );
+            } else {
+                export_csv_0_thread(
+                    &mut logging_conn,
+                    key_list,
+                    file,
+                    with_ttl,
+                    running,
+                    app_handle,
+                    id,
+                );
+            }
         });
         Ok(())
     }
@@ -431,6 +450,10 @@ impl MeClient for MeSingle {
 
     fn key_type(&self, key: RedisKey) -> AnyResult<String> {
         key_type0(self.get_conn()?, key)
+    }
+
+    fn get_key_as_command(&self, key: RedisKey) -> AnyResult<String> {
+        get_key_as_command0(self.get_conn()?, key)
     }
 
     fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>> {

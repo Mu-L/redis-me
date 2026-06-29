@@ -17,7 +17,7 @@ import {
 import { useI18n } from 'vue-i18n'
 import SvgIcon from '~virtual/svg-component'
 
-import { shareProvideKey } from '@/types/me-interface'
+import { shareProvideKey, connUiProvideKey } from '@/types/me-interface'
 import type { RedisDB, RedisKey_Deserialize, ScanCursor } from '@/types/tauri-specta'
 import {
   useFavorites,
@@ -46,6 +46,7 @@ import {
 } from '@/utils/util'
 import FieldAdd from '@/views/ext/FieldAdd.vue'
 import TTLSet from '@/views/ext/TTLSet.vue'
+import KeyCopy from '@/views/key/KeyCopy.vue'
 import KeyImport from '@/views/key/KeyImport.vue'
 import KeyRename from '@/views/key/KeyRename.vue'
 
@@ -64,6 +65,7 @@ interface ImportExportProgressPayload {
 
 const { t } = useI18n()
 const share = inject(shareProvideKey)!
+const connUi = inject(connUiProvideKey)!
 const canEdit = computed(() => !share.readonly)
 
 async function refresh(): Promise<void> {
@@ -207,6 +209,13 @@ async function onRefreshKey() {
   await scanKey(false, false, true)
 }
 
+/** F5 刷新键列表（连接内全局生效，需阻止浏览器默认刷新） */
+function onKeyListRefreshHotkey(e: KeyboardEvent) {
+  if (e.key !== 'F5') return
+  e.preventDefault()
+  void onRefreshKey()
+}
+
 const match = computed(() => {
   // 仅扫描该目录，直接返回
   if (loadFolder.value) return keyword.value + ':*'
@@ -342,15 +351,6 @@ async function scanKeyAll(): Promise<void> {
   await scanKeyAll() // 继续递归
 }
 
-onMounted(() => {
-  bus.on(KEY_DELETE, deleteKey)
-  bus.on(CONN_REFRESH, refresh)
-})
-onUnmounted(() => {
-  bus.off(KEY_DELETE, deleteKey)
-  bus.off(CONN_REFRESH, refresh)
-})
-
 function deleteKey(redisKey: RedisKey_Deserialize): void {
   keyList.value = keyList.value.filter(rk => rk.bytes !== redisKey.bytes)
   share.redisKey = null
@@ -453,6 +453,8 @@ function contextKey(command: string, redisKey: RedisKey_Deserialize): void {
     meDeleteKey(share.conn!.id, redisKey)
   } else if (command === 'renameKey') {
     keyRenameRef.value?.open({ redisKey })
+  } else if (command === 'duplicateKey') {
+    keyCopyRef.value?.open({ redisKey })
   } else if (command === 'checkedMode') {
     enterCheckedMode()
   } else if (command === 'exitCheckedMode') {
@@ -502,6 +504,21 @@ function contextFolder(command: string, folder: string): void {
 }
 
 const keyRenameRef = useTemplateRef<InstanceType<typeof KeyRename>>('keyRenameRef')
+const keyCopyRef = useTemplateRef<InstanceType<typeof KeyCopy>>('keyCopyRef')
+
+onMounted(() => {
+  bus.on(KEY_DELETE, deleteKey)
+  bus.on(CONN_REFRESH, refresh)
+  window.addEventListener('keydown', onKeyListRefreshHotkey, true)
+  connUi.openKeyCopy = (redisKey: RedisKey_Deserialize) => {
+    keyCopyRef.value?.open({ redisKey })
+  }
+})
+onUnmounted(() => {
+  bus.off(KEY_DELETE, deleteKey)
+  bus.off(CONN_REFRESH, refresh)
+  window.removeEventListener('keydown', onKeyListRefreshHotkey, true)
+})
 
 const fieldAddRef = useTemplateRef<InstanceType<typeof FieldAdd>>('fieldAddRef')
 
@@ -542,8 +559,8 @@ function batchKeyOk(mode: string): void {
 }
 
 const keyImportRef = useTemplateRef<InstanceType<typeof KeyImport>>('keyImportRef')
-function importData(isCmdFile: boolean = false): void {
-  keyImportRef.value?.open(isCmdFile)
+function importData(): void {
+  keyImportRef.value?.open()
 }
 function importStart(): void {
   share.exportImportingPercentage = 0
@@ -623,9 +640,7 @@ async function handleCommand(command: string): Promise<void> {
   } else if ('exportData' === command) {
     exportFolder('*')
   } else if ('importData' === command) {
-    importData(false)
-  } else if ('importCmd' === command) {
-    importData(true)
+    importData()
   } else if ('batchDelete' === command) {
     deleteFolder('*')
   } else if ('flushDb' === command) {
@@ -872,8 +887,9 @@ function editDbName(db: number): void {
               </el-tooltip>
               <el-tooltip :content="t('keyMain.refreshKey')" placement="bottom" :show-after="500">
                 <me-icon
-                  icon="el-icon-refresh-right"
+                  icon="me-icon-search"
                   class="suffix-icon-btn"
+                  :style="{ color: share.color }"
                   @click.stop="onRefreshKey" />
               </el-tooltip>
               <el-tooltip
@@ -1106,9 +1122,6 @@ function editDbName(db: number): void {
                 <el-dropdown-item command="importData" v-if="canEdit">
                   <me-icon :name="t('keyMain.importData')" icon="me-icon-import" />
                 </el-dropdown-item>
-                <el-dropdown-item command="importCmd" v-if="canEdit">
-                  <me-icon :name="t('keyMain.importCmd')" icon="me-icon-import" />
-                </el-dropdown-item>
                 <el-dropdown-item command="mockData" v-if="canEdit">
                   <me-icon :name="t('keyMain.mockData')" icon="el-icon-coffee-cup" />
                 </el-dropdown-item>
@@ -1163,6 +1176,7 @@ function editDbName(db: number): void {
     <KeyMemory ref="keyMemoryRef" />
     <TTLSet ref="ttlSetRef" />
     <KeyRename ref="keyRenameRef" />
+    <KeyCopy ref="keyCopyRef" @success="addKeyOk" />
   </div>
 </template>
 
@@ -1264,10 +1278,9 @@ function editDbName(db: number): void {
     .suffix-icon-btn {
       cursor: pointer;
       font-size: 16px;
-      color: var(--el-text-color-secondary);
 
       &:hover {
-        color: var(--el-color-primary);
+        opacity: 0.75;
       }
     }
   }

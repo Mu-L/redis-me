@@ -7,4 +7,5 @@ pub mod macros;
 pub mod model;
 pub mod setup;
 pub mod ssh_tunnel;
+pub mod redis_cli_format;
 pub mod util;

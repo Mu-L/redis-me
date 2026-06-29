@@ -331,14 +331,6 @@ function setCurrentKey(redisKey: RedisKey_Deserialize) {
 // 键高度配置
 const keyHeight = computed(() => meTauri.settings.keyHeight ?? 20)
 
-/** 当前行是否为选中键 */
-/** 当前行是否为选中键 */
-function isCurrentKey(node: TreeNode): boolean {
-  if (!props.redisKey) return false
-  const rk = node.data.redisKey as RedisKey_Deserialize | undefined
-  return rk?.bytes === props.redisKey.bytes
-}
-
 function quickDeleteKey(redisKey: RedisKey_Deserialize): void {
   if (!share.conn) return
   meDeleteKey(share.conn.id, redisKey)
@@ -392,7 +384,7 @@ const isContextNodeFavorited = computed(() => {
             </div>
             <div class="me-flex" style="margin-right: 15px; gap: 5px">
               <me-icon
-                v-if="canEdit && !showCheckbox && !favoriteMode && isCurrentKey(node)"
+                v-if="canEdit && !showCheckbox && !favoriteMode"
                 :info="t('keyTree.deleteKey')"
                 icon="el-icon-delete"
                 class="key-delete-btn"
@@ -450,6 +442,9 @@ const isContextNodeFavorited = computed(() => {
             /></el-dropdown-item>
             <el-dropdown-item v-if="canEdit" command="renameKey"
               ><me-icon icon="el-icon-edit" :name="t('keyList.renameKey')"
+            /></el-dropdown-item>
+            <el-dropdown-item v-if="canEdit" command="duplicateKey"
+              ><me-icon icon="el-icon-copy-document" :name="t('redisValue.duplicateKey')"
             /></el-dropdown-item>
             <el-dropdown-item v-if="!showCheckbox" command="checkedMode"
               ><me-icon icon="me-icon-checked" :name="t('keyMain.checkedMode')"
@@ -554,9 +549,15 @@ const isContextNodeFavorited = computed(() => {
   white-space: nowrap;
 }
 
+/* 删除图标：hover 行时显示 */
+:deep(.el-tree-node__content:hover) .key-delete-btn {
+  visibility: visible;
+}
+
 /* 删除图标右缘与文件夹 [数量] 末位数字对齐（略大于数量块的 margin-right） */
 .key-delete-btn {
   flex-shrink: 0;
+  visibility: hidden;
   cursor: pointer;
   color: var(--el-color-info);
 

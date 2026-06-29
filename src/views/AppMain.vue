@@ -25,7 +25,7 @@ import {
   type ConnShortcutAction,
   type UiConn,
 } from '@/types/me-interface'
-import type { ConnConfig } from '@/types/tauri-specta'
+import type { ConnConfig, RedisKey_Deserialize } from '@/types/tauri-specta'
 import { isConnMinimalMode, mergeConnGroupsFromList } from '@/utils/conn'
 import { clearKeyTypeCacheForConn } from '@/utils/key-type-cache'
 import { mergeImportedConnList } from '@/utils/rdm'
@@ -212,6 +212,8 @@ const connUi = reactive({
   /** KeyHeader onMounted 时注入，供菜单与全局快捷键共用 */
   openSetting(): void {},
   openShortcuts(): void {},
+  /** KeyMain onMounted 时注入，供键值页等打开创建副本弹窗 */
+  openKeyCopy(_redisKey: RedisKey_Deserialize): void {},
   runConnAction(action: ConnShortcutAction): void {
     if (action === 'add') connUi.openConnSave('add')
     else if (action === 'import') connUi.openConnImport()

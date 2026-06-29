@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { cloneDeep } from 'lodash'
-import { computed, inject, ref, useTemplateRef } from 'vue'
+import { computed, inject, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { shareProvideKey } from '@/types/me-interface'
 import type { RedisImportCsv } from '@/types/tauri-specta'
 import { meCommands } from '@/utils/util'
 
+/** csv：DUMP 格式；cmd：redis-cli 命令文本 */
+type KeyImportForm = RedisImportCsv & { importFormat: 'csv' | 'cmd' }
+
 const { t } = useI18n()
 const emit = defineEmits(['success', 'closed'])
 
 defineExpose({ open })
-function open(_isCmdFile: boolean) {
+function open() {
   visible.value = true
-  isCmdFile.value = _isCmdFile
   Object.assign(form.value, cloneDeep(initForm))
 }
 
@@ -23,18 +25,34 @@ const share = inject(shareProvideKey)!
 // 表单数据
 const visible = ref(false)
 const loading = ref(false)
-const initForm: RedisImportCsv = {
+const initForm: KeyImportForm = {
   file: '',
   handleConflict: 'replace',
   handleTtl: 'parse',
   ttl: -1,
+  importFormat: 'csv',
 }
 
-// 支持导入不同的文件类型
-const isCmdFile = ref(false)
-const fileSuffix = computed(() => (isCmdFile.value ? 'txt' : 'csv'))
+// 命令文本：.redis 为主后缀，.txt 通用文本
+const cmdFileExtensions = ['redis', 'txt']
+const isCmdFile = computed(() => form.value.importFormat === 'cmd')
+const fileSuffixTip = computed(() => (isCmdFile.value ? cmdFileExtensions.join(', ') : 'csv'))
 
-const form = ref<RedisImportCsv>(cloneDeep(initForm))
+const form = ref<KeyImportForm>(cloneDeep(initForm))
+const importFormatOptions = computed(() => [
+  { label: 'CSV', value: 'csv' as const },
+  { label: 'CMD', value: 'cmd' as const },
+])
+const importFormatTip = computed(() =>
+  isCmdFile.value ? t('keyImport.importFormatTipCmd') : t('keyImport.importFormatTipCsv'),
+)
+
+watch(
+  () => form.value.importFormat,
+  () => {
+    form.value.file = ''
+  },
+)
 const rules = computed(() => ({
   file: [{ required: true, message: t('keyImport.fileRequired') }],
 }))
@@ -77,25 +95,32 @@ function submit() {
     @closed="emit('closed')"
     destroy-on-close>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-      <el-form-item :label="t('keyImport.file')" prop="file">
-        <me-file-input
-          v-model="form.file"
-          :placeholder="t('keyImport.fileTip', { tip: fileSuffix })"
-          :file-suffix="fileSuffix" />
-      </el-form-item>
-
-      <el-row :span="24" v-if="!isCmdFile">
-        <el-col :span="12">
+      <el-row :span="24">
+        <el-col :span="8">
+          <el-form-item :label="t('keyImport.importFormat')">
+            <el-segmented v-model="form.importFormat" :options="importFormatOptions" />
+          </el-form-item>
+        </el-col>
+        <el-col v-if="!isCmdFile" :span="8">
           <el-form-item :label="t('keyImport.handleConflict')">
             <el-segmented v-model="form.handleConflict" :options="handleConflictOptions" />
           </el-form-item>
         </el-col>
-        <el-col :span="12">
+        <el-col v-if="!isCmdFile" :span="8">
           <el-form-item :label="t('keyImport.handleTtl')">
             <el-segmented v-model="form.handleTtl" :options="handleTtlOptions" />
           </el-form-item>
         </el-col>
       </el-row>
+      <el-text type="info" class="import-format-tip">{{ importFormatTip }}</el-text>
+
+      <el-form-item :label="t('keyImport.file')" prop="file">
+        <me-file-input
+          v-model="form.file"
+          :placeholder="t('keyImport.fileTip', { tip: fileSuffixTip })"
+          :file-suffix="isCmdFile ? 'redis' : 'csv'"
+          :file-extensions="isCmdFile ? cmdFileExtensions : undefined" />
+      </el-form-item>
     </el-form>
 
     <template #footer>
@@ -106,3 +131,13 @@ function submit() {
     </template>
   </el-dialog>
 </template>
+
+<style scoped lang="scss">
+.import-format-tip {
+  display: block;
+  margin: -8px 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+</style>

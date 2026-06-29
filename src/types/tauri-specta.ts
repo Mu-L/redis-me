@@ -29,6 +29,7 @@ export const commands = {
 	set: (id: string, param: RedisSetParam_Deserialize) => typedError<null, string>(__TAURI_INVOKE("set", { id, param })),
 	del: (id: string, key: RedisKey_Deserialize) => typedError<null, string>(__TAURI_INVOKE("del", { id, key })),
 	rename: (id: string, key: RedisKey_Deserialize, newKey: RedisKey_Deserialize) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("rename", { id, key, newKey })),
+	copy: (id: string, param: RedisCopyParam_Deserialize) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("copy", { id, param })),
 	fieldAdd: (id: string, param: RedisFieldAdd_Deserialize) => typedError<RedisKey_Serialize, string>(__TAURI_INVOKE("field_add", { id, param })),
 	fieldSet: (id: string, param: RedisFieldSet_Deserialize) => typedError<null, string>(__TAURI_INVOKE("field_set", { id, param })),
 	fieldDel: (id: string, param: RedisFieldDel_Deserialize) => typedError<null, string>(__TAURI_INVOKE("field_del", { id, param })),
@@ -63,6 +64,7 @@ export const commands = {
 	importCmd: (id: string, file: string) => typedError<null, string>(__TAURI_INVOKE("import_cmd", { id, file })),
 	mockData: (id: string, count: number) => typedError<null, string>(__TAURI_INVOKE("mock_data", { id, count })),
 	keyType: (id: string, key: RedisKey_Deserialize) => typedError<string, string>(__TAURI_INVOKE("key_type", { id, key })),
+	getKeyAsCommand: (id: string, key: RedisKey_Deserialize) => typedError<string, string>(__TAURI_INVOKE("get_key_as_command", { id, key })),
 	xinfoGroups: (id: string, key: RedisKey_Deserialize) => typedError<XInfoGroup[], string>(__TAURI_INVOKE("xinfo_groups", { id, key })),
 	xinfoConsumers: (id: string, key: RedisKey_Deserialize, group: string) => typedError<XInfoConsumer[], string>(__TAURI_INVOKE("xinfo_consumers", { id, key, group })),
 	keySlot: (id: string, key: RedisKey_Deserialize) => typedError<number, string>(__TAURI_INVOKE("key_slot", { id, key })),
@@ -263,6 +265,20 @@ export type RedisCommand = {
 	autoBroadcast: boolean | null,
 };
 
+export type RedisCopyParam = RedisCopyParam_Serialize | RedisCopyParam_Deserialize;
+
+export type RedisCopyParam_Deserialize = {
+	source: RedisKey_Deserialize,
+	destination: RedisKey_Deserialize,
+	db: number,
+};
+
+export type RedisCopyParam_Serialize = {
+	source: RedisKey_Serialize,
+	destination: RedisKey_Serialize,
+	db: number,
+};
+
 export type RedisDB = {
 	db: number,
 	size: number,
@@ -275,6 +291,7 @@ export type RedisExportCsv_Deserialize = {
 	keyList: RedisKey_Deserialize[],
 	file: string,
 	withTtl: boolean,
+	exportFormat?: string,
 };
 
 export type RedisExportCsv_Serialize = {
@@ -282,6 +299,7 @@ export type RedisExportCsv_Serialize = {
 	keyList: RedisKey_Serialize[],
 	file: string,
 	withTtl: boolean,
+	exportFormat: string,
 };
 
 export type RedisFieldAdd = RedisFieldAdd_Serialize | RedisFieldAdd_Deserialize;

@@ -339,7 +339,7 @@ export default {
 
   keyHeader: {
     mockHint: '请输入每种数据类型条数（N×5）',
-    mockValidator: '最小值1，最大值1000',
+    mockValidator: '最小值1，最大值10000',
     mocking: '插入中',
     mockOk: '模拟数据插入完成',
     connHint: '请选择连接',
@@ -445,10 +445,20 @@ export default {
     exportFileTip: '请选择文件导出路径',
     expireTip: '同时导出过期时间',
     ttl: '过期时间',
+    exportFormat: '导出格式',
+    exportFormatTipCsv:
+      '原理：DUMP 序列化（Base64），导入以 RESTORE 还原，每行「键,值,过期秒数」\n场景：配合导入 CSV 完整还原，适合批量迁移；版本相近的 Redis/Valkey 间使用',
+    exportFormatTipCmd:
+      '原理：展开为 SET/HMSET 等 redis-cli 命令（UTF-8 文本）\n场景：配合导入 CMD 或终端执行，可读可编辑，适用所有 Redis/Valkey 版本',
   },
 
   keyImport: {
     title: '导入数据',
+    importFormat: '导入格式',
+    importFormatTipCsv:
+      '原理：读取 DUMP 数据，以 RESTORE 命令还原，每行「键,值,过期秒数」\n场景：配合导出 CSV 完整还原，适合批量迁移；版本相近的 Redis/Valkey 间使用',
+    importFormatTipCmd:
+      '原理：逐行执行 SET/HMSET 等 redis-cli 命令\n场景：配合导出 CMD 或 .redis/.txt 文件，可读可编辑，适用所有 Redis/Valkey 版本',
     file: '导入文件',
     fileTip: '请选择需要导入的文件 ({tip})',
     fileRequired: '导入文件不能为空',
@@ -471,6 +481,7 @@ export default {
   keyList: { renameKey: '重命名键' },
 
   keyRename: { title: '重命名键', newKeyName: '新键名' },
+  keyCopy: { title: '创建副本', newKeyName: '新键名' },
 
   keyTree: {
     noData: '没有数据',
@@ -789,6 +800,10 @@ export default {
     loadMore: '加载更多',
     loadAll: '加载剩余所有键',
     renameKey: '重命名键',
+    duplicateKey: '创建副本',
+    copyAsCommand: '复制为命令',
+    copyCommandOk: '命令已复制',
+    copyCommandEmpty: '空键，无可复制命令',
     refreshKey: '刷新键',
 
     textMemory: '内存占用：',
@@ -838,7 +853,7 @@ export default {
     keyword: 'Enter 键进行搜索',
     exactSearch:
       '精确匹配<br/>• 关闭时：输入 app → 自动前后追加*，扫描 *app*<br/>• 开启时：输入 app* → 查询 app 开头的键；输入 app → 使用 EXISTS 判断键是否存在',
-    refreshKey: '刷新键',
+    refreshKey: '刷新键列表 (F5)',
     scanning: '扫描中...',
     pauseScan: '暂停扫描',
     resumeScan: '继续扫描',
@@ -855,7 +870,6 @@ export default {
     mockData: '模拟数据',
     exportData: '导出数据',
     importData: '导入数据',
-    importCmd: '导入命令',
     listView: '平铺展示',
     treeView: '树形展示',
     sortByCount: '数量排序',

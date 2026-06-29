@@ -2,6 +2,7 @@ use crate::utils::command_log::CommandLogger;
 use crate::utils::conn::set_client_name;
 use crate::utils::error::AppError;
 use crate::utils::model::*;
+use crate::utils::redis_cli_format::*;
 use crate::utils::util::*;
 use Ordering::Relaxed;
 use anyhow::{Context, bail};
@@ -13,8 +14,8 @@ use parking_lot::MutexGuard;
 use redis::acl::Rule;
 use redis::streams::{StreamInfoConsumersReply, StreamInfoGroupsReply, StreamRangeReply};
 use redis::{
-    Cmd, Commands, Connection, ExpireOption, FromRedisValue, IntegerReplyOrNoOp, JsonCommands, Msg,
-    SetExpiry, SetOptions, Value, ValueType, from_redis_value,
+    Cmd, Commands, Connection, CopyOptions, ExpireOption, FromRedisValue, IntegerReplyOrNoOp,
+    JsonCommands, Msg, SetExpiry, SetOptions, Value, ValueType, from_redis_value,
 };
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -64,6 +65,8 @@ pub trait MeClient: Send + Sync {
 
     fn rename(&self, key: RedisKey, new_key: RedisKey) -> AnyResult<RedisKey>;
 
+    fn copy(&self, param: RedisCopyParam) -> AnyResult<RedisKey>;
+
     fn field_add(&self, param: RedisFieldAdd) -> AnyResult<RedisKey>;
 
     fn field_set(&self, param: RedisFieldSet) -> AnyResult<()>;
@@ -103,6 +106,7 @@ pub trait MeClient: Send + Sync {
 
     fn mock_data(&self, count: u64) -> AnyResult<()>;
     fn key_type(&self, key: RedisKey) -> AnyResult<String>;
+    fn get_key_as_command(&self, key: RedisKey) -> AnyResult<String>;
     fn xinfo_groups(&self, key: RedisKey) -> AnyResult<Vec<XInfoGroup>>;
     fn xinfo_consumers(&self, key: RedisKey, group: String) -> AnyResult<Vec<XInfoConsumer>>;
     fn key_slot(&self, key: RedisKey) -> AnyResult<u64>;
@@ -598,6 +602,22 @@ pub fn del0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResult<()>
     Ok(())
 }
 
+pub fn copy0(
+    mut conn: MutexGuard<impl Commands>,
+    param: RedisCopyParam,
+) -> AnyResult<RedisKey> {
+    let dest = &param.destination;
+    if conn.exists(dest)? {
+        bail!(AppError::KeyAlreadyExists {
+            key: vec8_to_display_string(dest.to_bytes())
+        });
+    }
+
+    let opts = CopyOptions::default().db(param.db);
+    let _: bool = conn.copy(&param.source, dest, opts)?;
+    Ok(param.destination.to_normal())
+}
+
 pub fn field_add0(
     mut conn: MutexGuard<impl Commands>,
     param: RedisFieldAdd,
@@ -994,6 +1014,106 @@ pub fn export_csv_0_thread(
     running.store(false, Relaxed);
 }
 
+pub fn export_cmd_0_thread(
+    conn: &mut impl Commands,
+    key_list: Vec<RedisKey>,
+    file: String,
+    with_ttl: bool,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) {
+    info!("export cmd keys count: {}", key_list.len());
+    let result = export_keys_as_command(
+        conn,
+        key_list,
+        &file,
+        with_ttl,
+        running.clone(),
+        app_handle,
+        id,
+    );
+    match result {
+        Ok(_) => info!("export cmd keys ok"),
+        Err(e) => warn!("export cmd keys err: {e}"),
+    }
+    running.store(false, Relaxed);
+}
+
+fn export_keys_as_command(
+    mut conn: impl Commands,
+    key_list: Vec<RedisKey>,
+    file: &str,
+    with_ttl: bool,
+    running: Arc<AtomicBool>,
+    app_handle: AppHandle,
+    id: String,
+) -> AnyResult<()> {
+    info!("export cmd file: {}", file);
+    let mut writer = BufWriter::new(File::create(file)?);
+    let mut ok_count = 0;
+    let mut err_count = 0;
+    let total_count = key_list.len() as u64;
+    for key in key_list {
+        if running.load(Relaxed) {
+            let result = export_key_as_command(&mut conn, &mut writer, key, with_ttl);
+            match result {
+                Ok(true) => ok_count += 1,
+                Ok(false) => err_count += 1,
+                Err(e) => {
+                    warn!("export cmd key err: {e}");
+                    err_count += 1;
+                }
+            }
+            let event = ExportImportEvent {
+                id: id.clone(),
+                ok_count,
+                err_count,
+                total_count,
+                ignore_count: 0,
+                finished: false,
+            };
+            let _ = &app_handle.emit(EVENT_EXPORT, event);
+        }
+    }
+
+    let event = ExportImportEvent {
+        id: id.clone(),
+        ok_count,
+        err_count,
+        total_count,
+        ignore_count: 0,
+        finished: true,
+    };
+    let _ = &app_handle.emit(EVENT_EXPORT, event);
+    writer.flush()?;
+    Ok(())
+}
+
+/// 写入单键命令行；返回 Ok(true) 表示有内容写出
+fn export_key_as_command(
+    conn: &mut impl Commands,
+    writer: &mut BufWriter<File>,
+    key: RedisKey,
+    with_ttl: bool,
+) -> AnyResult<bool> {
+    let key_bytes = key.to_bytes();
+    let lines = key_as_command_lines(conn, &key)?;
+    if lines.is_empty() {
+        return Ok(false);
+    }
+    for line in &lines {
+        writeln!(writer, "{line}")?;
+    }
+    if with_ttl {
+        let ttl = conn.ttl(&key)?;
+        if ttl > 0 {
+            writeln!(writer, "{}", format_expire_command(&key_bytes, ttl))?;
+        }
+    }
+    Ok(true)
+}
+
 fn export_keys(
     mut conn: impl Commands,
     key_list: Vec<RedisKey>,
@@ -1260,7 +1380,8 @@ fn import_cmds(
 }
 
 fn import_cmd(mut conn: &mut impl Commands, line: &str) -> AnyResult<()> {
-    info!("line: {}", line);
+    // 命令日志已经输出，这里不再输出
+    //info!("line: {}", line);
     let (cmd, args) = parse_command(line)?;
     redis::cmd(cmd.as_str()).arg(args).exec(&mut conn)?;
     Ok(())
@@ -1270,6 +1391,88 @@ pub fn key_type0(mut conn: MutexGuard<impl Commands>, key: RedisKey) -> AnyResul
     // 简单字符串回复：key 的类型，如果 key 不存在则返回 none
     let key_type: ValueType = conn.key_type(&key)?;
     Ok(ui_key_type(key_type))
+}
+
+/// 单键 → redis-cli 可执行命令行列表（全量读取，与键值页 fieldScan 分页无关）
+fn key_as_command_lines(conn: &mut impl Commands, key: &RedisKey) -> AnyResult<Vec<String>> {
+    let key_type: ValueType = conn.key_type(&key)?;
+    if key_type == ValueType::None {
+        bail!(AppError::KeyNotFound {
+            key: vec8_to_display_string(key.to_bytes())
+        });
+    }
+
+    let key_bytes = key.to_bytes();
+    let lines = match key_type {
+        ValueType::String => {
+            let value: Vec<u8> = conn.get(&key)?;
+            vec![format_set_command(key_bytes, &value)]
+        }
+        ValueType::Hash => {
+            let pairs: Vec<(Vec<u8>, Vec<u8>)> = conn.hgetall(&key)?;
+            format_hmset_command(key_bytes, &pairs)
+                .map(|s| vec![s])
+                .unwrap_or_default()
+        }
+        ValueType::List => {
+            let items: Vec<Vec<u8>> = conn.lrange(&key, 0, -1)?;
+            format_rpush_command(key_bytes, &items)
+                .map(|s| vec![s])
+                .unwrap_or_default()
+        }
+        ValueType::Set => {
+            let members: Vec<Vec<u8>> = conn.smembers(&key)?;
+            format_sadd_command(key_bytes, &members)
+                .map(|s| vec![s])
+                .unwrap_or_default()
+        }
+        ValueType::ZSet => {
+            let pairs: Vec<(Vec<u8>, f64)> = conn.zrange_withscores(&key, 0, -1)?;
+            format_zadd_command(key_bytes, &pairs)
+                .map(|s| vec![s])
+                .unwrap_or_default()
+        }
+        ValueType::Stream => {
+            let raw: Value = redis::cmd("XRANGE")
+                .arg(&key)
+                .arg("-")
+                .arg("+")
+                .query(conn)?;
+            let entries = parse_xrange_ordered(raw)?;
+            entries
+                .iter()
+                .map(|(id, fields)| format_xadd_command(key_bytes, id, fields))
+                .collect()
+        }
+        ValueType::JSON => {
+            let json: Value = redis::cmd("JSON.GET").arg(&key).query(conn)?;
+            match json {
+                Value::Nil => vec![],
+                Value::BulkString(b) if b.is_empty() => vec![],
+                Value::BulkString(b) => vec![format_json_set_command(key_bytes, &b)],
+                other => {
+                    let b = redis_value_to_bulk_bytes(other);
+                    if b.is_empty() {
+                        vec![]
+                    } else {
+                        vec![format_json_set_command(key_bytes, &b)]
+                    }
+                }
+            }
+        }
+        other => bail!(AppError::KeyTypeUnsupported {
+            value_type: ui_key_type(other)
+        }),
+    };
+    Ok(lines)
+}
+
+/// 单键 → redis-cli 可执行命令（全量读取，与键值页 fieldScan 分页无关）
+pub fn get_key_as_command0(
+    mut conn: MutexGuard<impl Commands>,
+    key: RedisKey,
+) -> AnyResult<String> {
+    Ok(key_as_command_lines(&mut conn, &key)?.join("\n"))
 }
 
 pub fn xinfo_groups0(
@@ -1483,8 +1686,11 @@ fn acl_selector_from_text(text: &str) -> AnyResult<Rule> {
     if inner.is_empty() {
         bail!("empty ACL selector");
     }
-    let tokens = shell_words::split(inner)?;
-    let rules: Vec<Rule> = tokens.iter().map(|t| acl_selector_token_to_rule(t)).collect();
+    let tokens = split_redis_args(inner)?;
+    let rules: Vec<Rule> = tokens
+        .iter()
+        .map(|t| acl_selector_token_to_rule(&String::from_utf8_lossy(t)))
+        .collect();
     Ok(Rule::Selector(rules))
 }
 
@@ -1929,6 +2135,10 @@ pub fn acl_dryrun0(
     }
     
     // 使用 redis-rs 内置的 acl_dryrun 方法
+    let cmd_args: Vec<String> = cmd_args
+        .iter()
+        .map(|b| String::from_utf8_lossy(b).into_owned())
+        .collect();
     let result: String = conn.acl_dryrun(&username, &cmd_name, &cmd_args)?;
     Ok(result)
 }

@@ -349,7 +349,7 @@ export default {
 
   keyHeader: {
     mockHint: 'Please enter each data type number（N×5）',
-    mockValidator: 'Min 1，Max 1000',
+    mockValidator: 'Min 1，Max 10000',
     mocking: 'Inserting',
     mockOk: 'Mock Data Insert Done',
     connHint: 'Select Connection',
@@ -455,10 +455,20 @@ export default {
     exportFileTip: 'Select export path',
     expireTip: 'Include Expiration',
     ttl: 'Expiration',
+    exportFormat: 'Export Format',
+    exportFormatTipCsv:
+      'Principle: DUMP serialization (Base64), restored via RESTORE on import; key,value,ttl per line\nCase: pair with CSV import for full restore and bulk migration; similar Redis/Valkey versions',
+    exportFormatTipCmd:
+      'Principle: SET/HMSET-style redis-cli commands (UTF-8 text)\nCase: pair with CMD import or run in terminal; readable, all Redis/Valkey versions',
   },
 
   keyImport: {
     title: 'Import Data',
+    importFormat: 'Import Format',
+    importFormatTipCsv:
+      'Principle: reads DUMP data and restores via RESTORE; key,value,ttl per line\nCase: pair with CSV export for full restore and bulk migration; similar Redis/Valkey versions',
+    importFormatTipCmd:
+      'Principle: executes redis-cli commands line by line\nCase: pair with CMD export or .redis/.txt files; readable, all Redis/Valkey versions',
     file: 'Import File',
     fileTip: 'Select file to import ({tip})',
     fileRequired: 'import file required',
@@ -481,6 +491,7 @@ export default {
   keyList: { renameKey: 'Rename' },
 
   keyRename: { title: 'Rename Key', newKeyName: 'New key name' },
+  keyCopy: { title: 'Duplicate Key', newKeyName: 'New key name' },
 
   keyTree: {
     noData: 'No Data',
@@ -802,6 +813,10 @@ export default {
     loadMore: 'Load More',
     loadAll: 'Load All',
     renameKey: 'Rename',
+    duplicateKey: 'Duplicate',
+    copyAsCommand: 'Copy as Command',
+    copyCommandOk: 'Command copied',
+    copyCommandEmpty: 'Empty key, nothing to copy',
     refreshKey: 'Refresh',
 
     textMemory: 'Memory Usage: ',
@@ -851,7 +866,7 @@ export default {
     keyword: 'Enter to Search',
     exactSearch:
       'Exact Match<br/>• Off: input app → auto add * before/after, scan *app*<br/>• On: input app* → query keys starting with app; input app → use EXISTS to check if key exists',
-    refreshKey: 'Refresh Key',
+    refreshKey: 'Refresh List (F5)',
     scanning: 'Scanning...',
     pauseScan: 'Pause Scan',
     resumeScan: 'Resume Scan',
@@ -869,7 +884,6 @@ export default {
     mockData: 'Mock Data',
     exportData: 'Export Data',
     importData: 'Import Data',
-    importCmd: 'Import Cmd',
     listView: 'List View',
     treeView: 'Tree View',
     sortByCount: 'Key Count',

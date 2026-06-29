@@ -210,6 +210,7 @@ impl From<&ConnConfig> for MeBase {
             command_timeout: crate::utils::util::CONNECTION_NORMAL_TIMEOUT,
             command_logger: Arc::new(crate::utils::command_log::CommandLogger::new(
                 conf.id.clone(),
+                conf.name.clone(),
             )),
             app_handle: Arc::new(RwLock::new(None::<AppHandle>)),
             capabilities: ServerCapabilities::default(),
@@ -440,6 +441,13 @@ impl ToRedisArgs for RedisKey {
 }
 impl ToSingleRedisArg for RedisKey {}
 
+// 复制键：COPY source destination [DB destination-db] [REPLACE]
+api_model!(RedisCopyParam {
+    source: RedisKey,
+    destination: RedisKey,
+    db: u16,
+});
+
 // 批量删除
 api_model!(RedisBatchKey {
     #[serde(rename = "match")]
@@ -453,13 +461,19 @@ api_model!(RedisBatchTtl {
     ttl: i64
 });
 
-// 导出
+fn default_export_format() -> String {
+    "csv".into()
+}
+
+// 导出（csv：DUMP 格式；cmd：redis-cli 可执行命令文本）
 api_model!(RedisExportCsv {
     #[serde(rename = "match")]
     pattern: String,
     key_list: Vec<RedisKey>,
     file: String,
     with_ttl: bool,
+    #[serde(default = "default_export_format")]
+    export_format: String,
 });
 
 impl From<RedisExportCsv> for RedisBatchKey {
