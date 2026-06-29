@@ -140,8 +140,8 @@ impl MeClient for MeCluster {
             cc.now_cursor = next_cursor;
             if next_cursor == 0 {
                 cc.ready_nodes.push(node.clone());
-                break;
             }
+            break;
         }
 
         // 判断是否扫描完毕
